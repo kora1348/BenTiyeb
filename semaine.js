@@ -44,8 +44,6 @@ async function fetchCryptoData(symbol) {
             cryptoName.textContent = `${symbol} : ${totalValue}%`;
             cryptoNameDiv.appendChild(cryptoName);
 
-
-        
             // Ajouter la classe CSS appropriée
             if (totalVariation >= 100) {
                 cryptoName.classList.add('positive');

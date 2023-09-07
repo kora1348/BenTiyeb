@@ -36,6 +36,21 @@ async function fetchCryptoData(symbol) {
         } else if (totalVariation <= -100) {
             totalCell.classList.add('negative');
         }
+
+        if (totalVariation >= 100 || totalVariation <= -100) {
+            // Ajouter le nom de la crypto en dehors du tableau
+            const cryptoNameDiv = document.getElementById('cryptoNames');
+            const cryptoName = document.createElement('p');
+            cryptoName.textContent = `${symbol} : ${totalValue}%`;
+            cryptoNameDiv.appendChild(cryptoName);
+        
+            // Ajouter la classe CSS appropriée
+            if (totalVariation >= 100) {
+                cryptoName.classList.add('positive');
+            } else if (totalVariation <= -100) {
+                cryptoName.classList.add('negative');
+            }
+        }
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
