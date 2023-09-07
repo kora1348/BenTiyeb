@@ -31,12 +31,20 @@ async function fetchCryptoData(symbol) {
         const totalValue = totalVariation.toFixed(2);
         totalCell.textContent = `${totalValue}%`;
 
+        if (totalVariation >= 100) {
+            totalCell.classList.add('positive');
+        } else if (totalVariation <= -100) {
+            totalCell.classList.add('negative');
+        }
+
         if (totalVariation >= 100 || totalVariation <= -100) {
             // Ajouter le nom de la crypto en dehors du tableau
             const cryptoNameDiv = document.getElementById('cryptoNames');
             const cryptoName = document.createElement('p');
             cryptoName.textContent = `${symbol} : ${totalValue}%`;
             cryptoNameDiv.appendChild(cryptoName);
+
+
         
             // Ajouter la classe CSS appropriée
             if (totalVariation >= 100) {
