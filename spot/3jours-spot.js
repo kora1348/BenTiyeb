@@ -20,8 +20,7 @@ async function fetchCryptoData(symbol) {
             const weekStartDate = new Date(data[i][0]);
             const weekEndDate = new Date(data[i][6]);
             const options = { year: '2-digit', month: '2-digit', day: '2-digit' };
-            variationCell.textContent = `${weekStartDate.toLocaleDateString('fr-FR', options)} - ${weekEndDate.toLocaleDateString('fr-FR', options).slice(0, 5)}: ${variationValue}%`;
-
+            variationCell.textContent = `${weekStartDate.toLocaleDateString('fr-FR', options)} - ${weekEndDate.toLocaleDateString('fr-FR', options)}: ${variationValue}%`;
             // Ne pas ajouter de classe de couleur aux cellules individuelles
             totalVariation += daysVariation; // Ajouter la variation hebdomadaire au total
         }
