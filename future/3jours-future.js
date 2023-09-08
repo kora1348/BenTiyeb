@@ -17,12 +17,13 @@ async function fetchCryptoData(symbol) {
 
             const variationCell = cryptoRow.insertCell(cellIndex);
             const variationValue = daysVariation.toFixed(2);
-            const weekStartDate = new Date(data[i][0]);
-            const weekEndDate = new Date(data[i][6]);
-            const options = { year: '2-digit', month: '2-digit', day: '2-digit' };
-            variationCell.textContent = `${weekStartDate.toLocaleDateString('fr-FR', options)} - ${weekEndDate.toLocaleDateString('fr-FR', options)}: ${variationValue}%`;
+            // const weekStartDate = new Date(data[i][0]);
+            // const weekEndDate = new Date(data[i][6]);
+            // const options = { year: '2-digit', month: '2-digit', day: '2-digit' };
+            variationCell.textContent = `${variationValue}%`; // Remplacez les variables par les données brutes
             // Ne pas ajouter de classe de couleur aux cellules individuelles
             totalVariation += daysVariation; // Ajouter la variation hebdomadaire au total
+
         }
 
         // Ajouter la cellule pour afficher le total de variation
