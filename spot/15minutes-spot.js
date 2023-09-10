@@ -40,7 +40,7 @@ async function fetchCryptoData(symbol) {
             totalCell.classList.add('negative');
         }
 
-        if (totalVariation >= 40 || totalVariation <= -40) {
+        if (totalVariation <= -40) {
             // Ajouter le nom de la crypto en dehors du tableau
             const cryptoNameDiv = document.getElementById('cryptoNames');
             const cryptoName = document.createElement('p');
