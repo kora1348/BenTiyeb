@@ -60,7 +60,6 @@ async function fetchCryptoData(symbol) {
             } else if (totalVariation <= -5) {
                 cryptoName.classList.add('negative');
             }
-
         }
 
     } catch (error) {
