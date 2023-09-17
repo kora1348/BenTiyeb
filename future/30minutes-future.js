@@ -149,6 +149,7 @@ fetchCryptoData('GRT');
 fetchCryptoData('GTC');
 fetchCryptoData('HBAR');
 fetchCryptoData('HFT');
+fetchCryptoData('HIFI');
 fetchCryptoData('HIGH');
 fetchCryptoData('HOT');
 fetchCryptoData('ICP');
