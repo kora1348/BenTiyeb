@@ -1,11 +1,17 @@
+On élimine ces cryptos par sécurité ! 
 
-- 03/09/2023 ; 
-    AKRO possède 125% 
-    BLZ  possède 110%
+DogeCoin*  (Doge) 
+Lido*  (LDO) 
+Tron*  (TRX) 
+Bnb* (BNB) 
+Wrapped 
+Toncoin 
+Xrp*
+Cardano* (ADA)
+Dai 
+Usdc* (USDC)
+Solana* (SOL) 
+Polkadot* (DOT) 
 
-
-    -----
-
-    On fait la page 11
-
-    https://www.binance.com/fr/markets/spot_margin-USDT?p=11
+Capitalisation boursière comparable
+Parmi tous les actifs disponibles sur Coinbase, ces 12 actifs sont les plus proches de Dogecoin en termes de capitalisation boursière.
