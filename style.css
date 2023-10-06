@@ -58,7 +58,7 @@ th, td {
   border-radius: 4px; /* Coins arrondis */
 }
 
-.button-red {
+.btnRed {
   background-color: #FB3831; /* Couleur de fond */
   color: white; /* Couleur du texte */
   border: none; /* Pas de bordure */
