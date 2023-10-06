@@ -57,3 +57,17 @@ th, td {
   cursor: pointer; /* Curseur de la souris en forme de main quand on survole le bouton */
   border-radius: 4px; /* Coins arrondis */
 }
+
+.button-red {
+  background-color: #FB3831; /* Couleur de fond */
+  color: white; /* Couleur du texte */
+  border: none; /* Pas de bordure */
+  padding: 10px 20px; /* Espacement du contenu à l'intérieur du bouton */
+  text-align: center; /* Centre le texte horizontalement */
+  text-decoration: none; /* Pas de soulignement pour le texte */
+  display: inline-block; /* Permet au bouton de s'ajuster au contenu */
+  font-size: 16px; /* Taille de police */
+  margin: 4px 2px; /* Marge autour du bouton */
+  cursor: pointer; /* Curseur de la souris en forme de main quand on survole le bouton */
+  border-radius: 4px; /* Coins arrondis */
+}
