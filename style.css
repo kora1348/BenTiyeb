@@ -59,7 +59,7 @@ th, td {
 }
 
 .btnRed {
-  background-color: #FB3831; /* Couleur de fond */
+  background-color: red; /* Couleur de fond */
   color: white; /* Couleur du texte */
   border: none; /* Pas de bordure */
   padding: 10px 20px; /* Espacement du contenu à l'intérieur du bouton */
