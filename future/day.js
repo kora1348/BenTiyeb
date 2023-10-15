@@ -276,3 +276,10 @@ async function fetchCryptoData(symbol) {
     
     setInterval(afficherHeure, 5000); // Rafraîchit toutes les 5 secondes
     
+    function rafraichirPage() {
+      location.reload();
+    }
+    
+    // Appeler la fonction pour rafraîchir la page toutes les 5 secondes
+    setInterval(rafraichirPage, 7000);
+    
