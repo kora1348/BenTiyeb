@@ -264,7 +264,7 @@ async function fetchCryptoData(symbol) {
     fetchCryptoData("ZIL");
     fetchCryptoData("ZRX");
 
-
+/*
     function afficherHeure() {
       const maintenant = new Date();
       const heures = maintenant.getHours().toString().padStart(2, '0');
@@ -283,4 +283,4 @@ async function fetchCryptoData(symbol) {
     
     // Appeler la fonction pour rafraîchir la page toutes les 5 secondes
     setInterval(rafraichirPage, 7000);
-    
+    */
