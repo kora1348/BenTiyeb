@@ -73,7 +73,10 @@ async function updateCryptoData(symbol) {
 
     if (totalVariation >= 0.10 && totalVariation <= 0.30) {
       checkAndNotify(symbol, totalVariation);
+    } else if (totalVariation >= -0.30 && totalVariation <= -0.10) {
+      checkAndNotify(symbol, totalVariation);
     }
+    
 
   } catch (error) {
     console.error(
@@ -89,7 +92,7 @@ function checkAndNotify(symbol, totalVariation) {
     if (!notificationState[symbol]) {
       const currentTime = new Date();
       const formattedTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
-      createNotification(symbol, `Le taux de variance est entre 0.10 et 0.30 (${formattedTime})`);
+      createNotification(symbol, `La variation est supérieur ou égale à 3%-3.50% (Long) (${formattedTime})`);
       notificationState[symbol] = Date.now(); // Enregistrez le moment où la notification a été affichée
     }
   } else if (totalVariation >= -0.30 && totalVariation <= -0.10) {
@@ -97,7 +100,7 @@ function checkAndNotify(symbol, totalVariation) {
     if (!notificationState[symbol]) {
       const currentTime = new Date();
       const formattedTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
-      createNotification(symbol, `Le taux de variance est entre -0.30 et -0.10 (${formattedTime})`);
+      createNotification(symbol, `La variation est inférieure ou égale à 3%-3.50% (Short) (${formattedTime})`);
       notificationState[symbol] = Date.now(); // Enregistrez le moment où la notification a été affichée
     }
   } else {
@@ -147,7 +150,7 @@ if ("Notification" in window) {
       refreshData("ADA");
       refreshData("AGIX");
       refreshData("AGLD");
-      refreshData("ALGO");/*
+      refreshData("ALGO");
       refreshData("ALICE");
       refreshData("ALPHA");
       refreshData("ALPACA");
@@ -329,7 +332,7 @@ if ("Notification" in window) {
       refreshData("ZEC");
       refreshData("ZEN");
       refreshData("ZIL");
-      refreshData("ZRX");*/
+      refreshData("ZRX");
     
       // ... (ajoutez d'autres crypto-monnaies à surveiller ici)
     }
