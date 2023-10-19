@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
       const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=5`
+        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
       );
       const data = await response.json();
   
@@ -38,32 +38,33 @@ async function fetchCryptoData(symbol) {
       const totalValue = totalVariation.toFixed(2);
       totalCell.textContent = `${totalValue}%`;
   
-      if (totalVariation >= 8) {
+      if (totalVariation >= 3.00 && totalVariation <= 3.50) {
+        // Ajouter la classe CSS appropriée à totalCell
         totalCell.classList.add("positive");
-      } else if (totalVariation <= -8) {
+      } else if (totalVariation >= -3.50 && totalVariation <= -3.00) {
+        // Ajouter la classe CSS appropriée à totalCell
         totalCell.classList.add("negative");
       }
   
-      if (totalVariation >= 8 || totalVariation <= -8) {
+      if (totalVariation >= 3.00 && totalVariation <= 3.50) {
         // Ajouter le nom de la crypto en dehors du tableau
         const cryptoNameDiv = document.getElementById("cryptoNames");
         const cryptoName = document.createElement("p");
         cryptoName.textContent = `${symbol} : ${totalValue}%`;
         cryptoNameDiv.appendChild(cryptoName);
-  
+      
         // Ajouter la classe CSS appropriée
-        if (totalVariation >= 8) {
-          cryptoName.classList.add("positive");
-        } else if (totalVariation <= -8) {
-          cryptoName.classList.add("negative");
-        }
-  
+        cryptoName.classList.add("positive");
+      } else if (totalVariation >= -3.50 && totalVariation <= -3.00) {
+        // Ajouter le nom de la crypto en dehors du tableau
+        const cryptoNameDiv = document.getElementById("cryptoNames");
+        const cryptoName = document.createElement("p");
+        cryptoName.textContent = `${symbol} : ${totalValue}%`;
+        cryptoNameDiv.appendChild(cryptoName);
+      
         // Ajouter la classe CSS appropriée
-        if (totalVariation >= 8) {
-          cryptoName.classList.add("positive");
-        } else if (totalVariation <= -8) {
-          cryptoName.classList.add("negative");
-        }
+        cryptoName.classList.add("negative");
+   
       }
     } catch (error) {
       console.error(
