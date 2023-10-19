@@ -83,7 +83,6 @@ async function updateCryptoData(symbol) {
   }
 }
 
-// Fonction pour vérifier la variation et envoyer une notification si nécessaire
 function checkAndNotify(symbol, totalVariation) {
   if (totalVariation >= 0.10 && totalVariation <= 0.30) {
     // Vérifier si une notification a déjà été affichée pour cette condition
@@ -93,11 +92,20 @@ function checkAndNotify(symbol, totalVariation) {
       createNotification(symbol, `Le taux de variance est entre 0.10 et 0.30 (${formattedTime})`);
       notificationState[symbol] = Date.now(); // Enregistrez le moment où la notification a été affichée
     }
+  } else if (totalVariation >= -0.30 && totalVariation <= -0.10) {
+    // Vérifier si une notification a déjà été affichée pour cette condition
+    if (!notificationState[symbol]) {
+      const currentTime = new Date();
+      const formattedTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
+      createNotification(symbol, `Le taux de variance est entre -0.30 et -0.10 (${formattedTime})`);
+      notificationState[symbol] = Date.now(); // Enregistrez le moment où la notification a été affichée
+    }
   } else {
     // Si la condition n'est plus vraie, réinitialisez l'état de notification
     notificationState[symbol] = null;
   }
 }
+
 
 // Fonction pour créer une notification de navigateur
 function createNotification(cryptoName, message) {
@@ -139,7 +147,7 @@ if ("Notification" in window) {
       refreshData("ADA");
       refreshData("AGIX");
       refreshData("AGLD");
-      refreshData("ALGO");
+      refreshData("ALGO");/*
       refreshData("ALICE");
       refreshData("ALPHA");
       refreshData("ALPACA");
@@ -321,7 +329,7 @@ if ("Notification" in window) {
       refreshData("ZEC");
       refreshData("ZEN");
       refreshData("ZIL");
-      refreshData("ZRX");
+      refreshData("ZRX");*/
     
       // ... (ajoutez d'autres crypto-monnaies à surveiller ici)
     }
