@@ -40,15 +40,15 @@ async function updateCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
-    if (totalVariation >= 0.10 && totalVariation <= 0.30) {
+    if (totalVariation >= 0.50 && totalVariation <= 1.20) {
       // Ajouter la classe CSS appropriée à totalCell
       totalCell.classList.add("positive");
-    } else if (totalVariation >= -0.30 && totalVariation <= -0.10) {
+    } else if (totalVariation >= -1.20 && totalVariation <= -0.50) {
       // Ajouter la classe CSS appropriée à totalCell
       totalCell.classList.add("negative");
     }
 
-    if (totalVariation >= 0.10 && totalVariation <= 0.30) {
+    if (totalVariation >= 0.50 && totalVariation <= 1.20) {
       // Ajouter le nom de la crypto en dehors du tableau
       const cryptoNameDiv = document.getElementById("cryptoNames");
       const cryptoName = document.createElement("p");
@@ -57,7 +57,7 @@ async function updateCryptoData(symbol) {
     
       // Ajouter la classe CSS appropriée
       cryptoName.classList.add("positive");
-    } else if (totalVariation >= -0.30 && totalVariation <= -0.10) {
+    } else if (totalVariation >= -1.20 && totalVariation <= -0.50) {
       // Ajouter le nom de la crypto en dehors du tableau
       const cryptoNameDiv = document.getElementById("cryptoNames");
       const cryptoName = document.createElement("p");
@@ -71,9 +71,9 @@ async function updateCryptoData(symbol) {
     
 
 
-    if (totalVariation >= 0.10 && totalVariation <= 0.30) {
+    if (totalVariation >= 0.50 && totalVariation <= 1.20) {
       checkAndNotify(symbol, totalVariation);
-    } else if (totalVariation >= -0.30 && totalVariation <= -0.10) {
+    } else if (totalVariation >= -1.20 && totalVariation <= -0.50) {
       checkAndNotify(symbol, totalVariation);
     }
     
@@ -87,7 +87,7 @@ async function updateCryptoData(symbol) {
 }
 
 function checkAndNotify(symbol, totalVariation) {
-  if (totalVariation >= 0.10 && totalVariation <= 0.30) {
+  if (totalVariation >= 0.50 && totalVariation <= 1.20) {
     // Vérifier si une notification a déjà été affichée pour cette condition
     if (!notificationState[symbol]) {
       const currentTime = new Date();
@@ -95,7 +95,7 @@ function checkAndNotify(symbol, totalVariation) {
       createNotification(symbol, `La variation est supérieur ou égale à 3%-3.50% (Long) (${formattedTime})`);
       notificationState[symbol] = Date.now(); // Enregistrez le moment où la notification a été affichée
     }
-  } else if (totalVariation >= -0.30 && totalVariation <= -0.10) {
+  } else if (totalVariation >= -1.20 && totalVariation <= -0.50) {
     // Vérifier si une notification a déjà été affichée pour cette condition
     if (!notificationState[symbol]) {
       const currentTime = new Date();
