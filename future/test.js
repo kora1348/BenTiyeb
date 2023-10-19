@@ -78,7 +78,7 @@ function createNotification(cryptoName, message) {
           // Détruire la notification après 1 minute
           setTimeout(() => {
             notification.close();
-          }, 60000);
+          }, 30000);
         } catch (error) {
           console.error("Erreur lors de la création de la notification:", error);
         }
@@ -94,7 +94,7 @@ function createNotification(cryptoName, message) {
 async function refreshData(symbol) {
   while (true) {
     await updateCryptoData(symbol);
-    await new Promise(resolve => setTimeout(resolve, 60000));
+    await new Promise(resolve => setTimeout(resolve, 30000));
   }
 }
 
@@ -123,4 +123,4 @@ function refreshPage() {
 }
 
 // Appeler la fonction refreshPage() toutes les 20 secondes
-setInterval(refreshPage, 20000); // 20 000 millisecondes = 20 secondes
+setInterval(refreshPage, 30000); // 20 000 millisecondes = 20 secondes
