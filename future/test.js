@@ -92,7 +92,7 @@ function checkAndNotify(symbol, totalVariation) {
     if (!notificationState[symbol]) {
       const currentTime = new Date();
       const formattedTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
-      createNotification(symbol, `La variation est supérieur ou égale à 3%-3.50% (Long) (${formattedTime})`);
+      createNotification(symbol, `Plan B\nLa variation est supérieure ou égale à 3%-3.50% (Long) (${formattedTime})`);
       notificationState[symbol] = Date.now(); // Enregistrez le moment où la notification a été affichée
     }
   } else if (totalVariation >= -1.20 && totalVariation <= -0.50) {
@@ -100,7 +100,7 @@ function checkAndNotify(symbol, totalVariation) {
     if (!notificationState[symbol]) {
       const currentTime = new Date();
       const formattedTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
-      createNotification(symbol, `La variation est inférieure ou égale à 3%-3.50% (Short) (${formattedTime})`);
+      createNotification(symbol, `Plan B\nLa variation est inférieure ou égale à 3%-3.50% (Short) (${formattedTime})`);
       notificationState[symbol] = Date.now(); // Enregistrez le moment où la notification a été affichée
     }
   } else {
