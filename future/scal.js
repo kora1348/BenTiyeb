@@ -266,23 +266,4 @@ async function fetchCryptoData(symbol) {
     fetchCryptoData("ZRX");
 
 
-  /*
-    function afficherHeure() {
-      const maintenant = new Date();
-      const heures = maintenant.getHours().toString().padStart(2, '0');
-      const minutes = maintenant.getMinutes().toString().padStart(2, '0');
-      const secondes = maintenant.getSeconds().toString().padStart(2, '0');
-      const heureActuelle = `${heures}:${minutes}:${secondes}`;
-    
-      document.getElementById('heure').textContent = heureActuelle;
-    }
-    
-    setInterval(afficherHeure, 5000); // Rafraîchit toutes les 5 secondes
-    
-    function rafraichirPage() {
-      location.reload();
-    }
-    
-    // Appeler la fonction pour rafraîchir la page toutes les 5 secondes
-    setInterval(rafraichirPage, 7000);
-    */
+ 
