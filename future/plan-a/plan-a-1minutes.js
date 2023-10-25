@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
       const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=13`
+        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=2`
       );
       const data = await response.json();
   
@@ -38,13 +38,13 @@ async function fetchCryptoData(symbol) {
       const totalValue = totalVariation.toFixed(2);
       totalCell.textContent = `${totalValue}%`;
   
-      if (totalVariation >= 5) {
+      if (totalVariation >= 3) {
         totalCell.classList.add("positive");
-      } else if (totalVariation <= -5) {
+      } else if (totalVariation <= -3) {
         totalCell.classList.add("negative");
       }
   
-      if (totalVariation >= 5 || totalVariation <= -5) {
+      if (totalVariation >= 3 || totalVariation <= -3) {
         // Ajouter le nom de la crypto en dehors du tableau
         const cryptoNameDiv = document.getElementById("cryptoNames");
         const cryptoName = document.createElement("p");
@@ -52,16 +52,16 @@ async function fetchCryptoData(symbol) {
         cryptoNameDiv.appendChild(cryptoName);
   
         // Ajouter la classe CSS appropriée
-        if (totalVariation >= 5) {
+        if (totalVariation >= 3) {
           cryptoName.classList.add("positive");
-        } else if (totalVariation <= -5) {
+        } else if (totalVariation <= -3) {
           cryptoName.classList.add("negative");
         }
   
         // Ajouter la classe CSS appropriée
-        if (totalVariation >= 5) {
+        if (totalVariation >= 3) {
           cryptoName.classList.add("positive");
-        } else if (totalVariation <= -5) {
+        } else if (totalVariation <= -3) {
           cryptoName.classList.add("negative");
         }
       }
