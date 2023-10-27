@@ -1,78 +1,89 @@
 async function fetchCryptoData(symbol) {
-    try {
+  try {
       const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
       );
       const data = await response.json();
-  
-      // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
-      let totalVariation = 0;
-  
-      // Mise à jour du tableau avec les données et la couleur
-      const cryptoRow = document.getElementById(symbol);
-  
-      for (let i = 0; i < data.length; i++) {
-        const openPrice = parseFloat(data[i][1]);
-        const closePrice = parseFloat(data[i][4]);
-        const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
-        const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
-  
-        const variationCell = cryptoRow.insertCell(cellIndex);
-        const variationValue = intervalVariation.toFixed(2);
-        const timestamp = parseInt(data[i][0]);
-        const dateValue = new Date(timestamp);
-        const hour = dateValue.getHours();
-        const minute = dateValue.getMinutes();
-        const formattedTime = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-  
-        variationCell.textContent = `${formattedTime}: ${variationValue}%`;
-  
-        // Ne pas ajouter de classe de couleur aux cellules individuelles
-        totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
+
+      // Vérifier les variations pour la première et la deuxième période
+      const openPrice1 = parseFloat(data[0][1]);
+      const closePrice1 = parseFloat(data[0][4]);
+      const intervalVariation1 = ((closePrice1 - openPrice1) / openPrice1) * 100;
+
+      const openPrice2 = parseFloat(data[1][1]);
+      const closePrice2 = parseFloat(data[1][4]);
+      const intervalVariation2 = ((closePrice2 - openPrice2) / openPrice2) * 100;
+
+      // Si la première variation est négative et la deuxième est positive, et que la première est plus petite que la deuxième
+      if (intervalVariation1 < 0 && intervalVariation2 > 0 && intervalVariation1 < intervalVariation2) {
+          // Continuer avec le reste du code
+
+          // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
+          let totalVariation = 0;
+
+          // Mise à jour du tableau avec les données et la couleur
+          const cryptoRow = document.getElementById(symbol);
+
+          for (let i = 0; i < data.length; i++) {
+              const openPrice = parseFloat(data[i][1]);
+              const closePrice = parseFloat(data[i][4]);
+              const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
+              const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+
+              const variationCell = cryptoRow.insertCell(cellIndex);
+              const variationValue = intervalVariation.toFixed(2);
+              const timestamp = parseInt(data[i][0]);
+              const dateValue = new Date(timestamp);
+              const hour = dateValue.getHours();
+              const minute = dateValue.getMinutes();
+              const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+
+              variationCell.textContent = `${formattedTime}: ${variationValue}%`;
+
+              // Ne pas ajouter de classe de couleur aux cellules individuelles
+              totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
+          }
+
+          // Ajouter la cellule pour afficher le total de variation
+          const totalCell = cryptoRow.insertCell(data.length + 1);
+          const totalValue = totalVariation.toFixed(2);
+          totalCell.textContent = `${totalValue}%`;
+
+          if (totalVariation >= 0.10 && totalVariation <= 0.50) {
+              // Ajouter la classe CSS appropriée à totalCell
+              totalCell.classList.add("positive");
+          } else if (totalVariation >= -0.50 && totalVariation <= -0.10) {
+              // Ajouter la classe CSS appropriée à totalCell
+              totalCell.classList.add("negative");
+          }
+
+          // A finir
+
+          if (totalVariation >= 0.10 && totalVariation <= 0.50) {
+              // Ajouter le nom de la crypto en dehors du tableau
+              const cryptoNameDiv = document.getElementById("cryptoNames");
+              const cryptoName = document.createElement("p");
+              cryptoName.textContent = `${symbol} : ${totalValue}%`;
+              cryptoNameDiv.appendChild(cryptoName);
+
+              // Ajouter la classe CSS appropriée
+              cryptoName.classList.add("positive");
+          } else if (totalVariation >= -0.50 && totalVariation <= -0.10) {
+              // Ajouter le nom de la crypto en dehors du tableau
+              const cryptoNameDiv = document.getElementById("cryptoNames");
+              const cryptoName = document.createElement("p");
+              cryptoName.textContent = `${symbol} : ${totalValue}%`;
+              cryptoNameDiv.appendChild(cryptoName);
+
+              // Ajouter la classe CSS appropriée
+              cryptoName.classList.add("negative");
+          }
       }
-  
-      // Ajouter la cellule pour afficher le total de variation
-      const totalCell = cryptoRow.insertCell(data.length + 1);
-      const totalValue = totalVariation.toFixed(2);
-      totalCell.textContent = `${totalValue}%`;
-  
-      if (totalVariation >= 0.10 && totalVariation <= 0.50) {
-        // Ajouter la classe CSS appropriée à totalCell
-        totalCell.classList.add("positive");
-      } else if (totalVariation >= -0.50 && totalVariation <= -0.10) {
-        // Ajouter la classe CSS appropriée à totalCell
-        totalCell.classList.add("negative");
-      }
-  
-      if (totalVariation >= 0.10 && totalVariation <= 0.50) {
-        // Ajouter le nom de la crypto en dehors du tableau
-        const cryptoNameDiv = document.getElementById("cryptoNames");
-        const cryptoName = document.createElement("p");
-        cryptoName.textContent = `${symbol} : ${totalValue}%`;
-        cryptoNameDiv.appendChild(cryptoName);
-      
-        // Ajouter la classe CSS appropriée
-        cryptoName.classList.add("positive");
-      } else if (totalVariation >= -0.50 && totalVariation <= -0.10) {
-        // Ajouter le nom de la crypto en dehors du tableau
-        const cryptoNameDiv = document.getElementById("cryptoNames");
-        const cryptoName = document.createElement("p");
-        cryptoName.textContent = `${symbol} : ${totalValue}%`;
-        cryptoNameDiv.appendChild(cryptoName);
-      
-        // Ajouter la classe CSS appropriée
-        cryptoName.classList.add("negative");
-   
-      }
-    } catch (error) {
-      console.error(
-        `Erreur lors de la récupération des données pour ${symbol}:`,
-        error
-      );
-    }
+  } catch (error) {
+      console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
   }
+}
+
   
     // Appel de la fonction pour obtenir les taux de variation des cryptos
     fetchCryptoData("1INCH");
