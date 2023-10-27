@@ -38,15 +38,15 @@ async function fetchCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
-    if (totalVariation >= 4.30 && totalVariation <= 4.39) {
+    if (totalVariation >= 4.20 && totalVariation <= 4.49) {
       // Ajouter la classe CSS appropriée à totalCell
       totalCell.classList.add("positive");
-    } else if (totalVariation >= -4.39 && totalVariation <= -4.30) {
+    } else if (totalVariation >= -4.49 && totalVariation <= -4.20) {
       // Ajouter la classe CSS appropriée à totalCell
       totalCell.classList.add("negative");
     }
 
-    if (totalVariation >= 4.30 && totalVariation <= 4.39) {
+    if (totalVariation >= 4.20 && totalVariation <= 4.49) {
       // Ajouter le nom de la crypto en dehors du tableau
       const cryptoNameDiv = document.getElementById("cryptoNames");
       const cryptoName = document.createElement("p");
@@ -55,7 +55,7 @@ async function fetchCryptoData(symbol) {
     
       // Ajouter la classe CSS appropriée
       cryptoName.classList.add("positive");
-    } else if (totalVariation >= -4.39 && totalVariation <= -4.30) {
+    } else if (totalVariation >= -4.49 && totalVariation <= -4.20) {
       // Ajouter le nom de la crypto en dehors du tableau
       const cryptoNameDiv = document.getElementById("cryptoNames");
       const cryptoName = document.createElement("p");
