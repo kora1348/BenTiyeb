@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
       const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=2`
       );
       const data = await response.json();
 
@@ -49,14 +49,14 @@ async function fetchCryptoData(symbol) {
           const totalValue = totalVariation.toFixed(2);
           totalCell.textContent = `${totalValue}%`;
 
-          if (totalVariation >= 0.10 && totalVariation <= 0.50) {
+          if (totalVariation >= 0.14 && totalVariation <= 0.50) {
               // Ajouter la classe CSS appropriée à totalCell
               totalCell.classList.add("positive");
           } 
 
           // A finir
 
-          if (totalVariation >= 0.10 && totalVariation <= 0.50) {
+          if (totalVariation >= 0.14 && totalVariation <= 0.50) {
               // Ajouter le nom de la crypto en dehors du tableau
               const cryptoNameDiv = document.getElementById("cryptoNames");
               const cryptoName = document.createElement("p");
@@ -76,7 +76,7 @@ async function fetchCryptoData(symbol) {
 function refreshPage() {
   setInterval(() => {
     location.reload();
-  }, 20000);
+  }, 60000);
 }
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
