@@ -52,10 +52,7 @@ async function fetchCryptoData(symbol) {
           if (totalVariation >= 0.10 && totalVariation <= 0.50) {
               // Ajouter la classe CSS appropriée à totalCell
               totalCell.classList.add("positive");
-          } else if (totalVariation >= -0.50 && totalVariation <= -0.10) {
-              // Ajouter la classe CSS appropriée à totalCell
-              totalCell.classList.add("negative");
-          }
+          } 
 
           // A finir
 
@@ -68,16 +65,7 @@ async function fetchCryptoData(symbol) {
 
               // Ajouter la classe CSS appropriée
               cryptoName.classList.add("positive");
-          } else if (totalVariation >= -0.50 && totalVariation <= -0.10) {
-              // Ajouter le nom de la crypto en dehors du tableau
-              const cryptoNameDiv = document.getElementById("cryptoNames");
-              const cryptoName = document.createElement("p");
-              cryptoName.textContent = `${symbol} : ${totalValue}%`;
-              cryptoNameDiv.appendChild(cryptoName);
-
-              // Ajouter la classe CSS appropriée
-              cryptoName.classList.add("negative");
-          }
+          } 
       }
   } catch (error) {
       console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
