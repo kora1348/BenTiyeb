@@ -81,6 +81,8 @@ async function fetchCryptoData(symbol) {
         : `${symbol} (ROUGE)`;
     } else {
       totalCell.textContent = "/";
+      totalCell.classList.add("black");
+      cryptoNameDiv.classList.remove("positive", "negative"); // Retirez les classes "positive" et "negative"
      
     }
   } catch (error) {
