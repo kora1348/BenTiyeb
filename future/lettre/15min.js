@@ -52,19 +52,19 @@ async function fetchCryptoData(symbol) {
     const negativeCount = variations.filter(variation => variation < 0).length;
 
     if (positiveCount >= 20) {
-      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (VERT)`
-        : `${symbol} (VERT)`;
-    } else if (negativeCount >= 20) {
-      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
+      totalCell.textContent = "SHORT " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (ROUGE)`
-        : `${symbol} (ROUGE)`;
+        ? `${existingContent}<br>${symbol} (SHORT)`
+        : `${symbol} (SHORT)`;
+    } else if (negativeCount >= 20) {
+      totalCell.textContent = "LONG " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (LONG)`
+        : `${symbol} (LONG)`;
     } else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
