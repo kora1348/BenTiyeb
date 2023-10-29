@@ -51,13 +51,23 @@ async function fetchCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
+    const cryptoNameDiv = document.getElementById("cryptoNames");
+
     // Vérifier si variation1 et variation2 sont négatifs et afficher "VERT" dans la cellule totalCell
     if (variation1 < 0 && variation2 < 0) {
       totalCell.textContent = "VERT " + "(" + totalValue + "%)";
       totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (VERT)`
+        : `${symbol} (VERT)`;
     } else if (variation1 > 0 && variation2 > 0) {
       totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (ROUGE)`
+        : `${symbol} (ROUGE)`;
     }else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
