@@ -29,15 +29,15 @@ async function fetchCryptoData(symbol) {
               .padStart(2, "0")}`;
 
           if (minute % 5 === 0) {
-              // Afficher la variation uniquement à des intervalles de 5 minutes
-              variationCell.textContent = `${formattedTime}: ${variationValue}%`;
-
               // Ajouter la classe CSS appropriée en fonction de la valeur de intervalVariation
               if (intervalVariation > 0) {
                   variationCell.classList.add("positive");
               } else if (intervalVariation < 0) {
                   variationCell.classList.add("negative");
               }
+
+              // Afficher la variation uniquement à des intervalles de 5 minutes
+              variationCell.textContent = `${formattedTime}: ${variationValue}%`;
           }
       }
 
@@ -49,15 +49,18 @@ async function fetchCryptoData(symbol) {
           // Si les deux variations sont négatives, afficher "VERT" en vert
           totalCell.textContent = "VERT";
           totalCell.classList.add("positive");
+
+          // Afficher "VERT" dans la div "cryptoNames" en vert
+          const cryptoNameDiv = document.getElementById("cryptoNames");
+          cryptoNameDiv.textContent = "VERT";
+          cryptoNameDiv.classList.add("positive");
       } else {
-          // Ajouter la classe CSS appropriée en fonction de la valeur de totalValue
-          totalCell.textContent = `${totalValue}%`;
-          if (totalValue > 0) {
-              totalCell.classList.add("positive");
-          } else if (totalValue < 0) {
-              totalCell.classList.add("negative");
-          }
+          
+          
+         
       }
+
+      
   } catch (error) {
       console.error(
           `Erreur lors de la récupération des données pour ${symbol}:`,
