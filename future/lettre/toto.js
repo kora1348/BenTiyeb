@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=10`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=9`
     );
     const data = await response.json();
 
@@ -15,7 +15,7 @@ async function fetchCryptoData(symbol) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
       const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
-      const cellIndex = i;
+      const cellIndex = i +1;
 
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = intervalVariation.toFixed(2);
@@ -32,7 +32,7 @@ async function fetchCryptoData(symbol) {
     }
 
     // Ajouter la cellule pour afficher le total de variation
-    const totalCell = cryptoRow.insertCell(data.length - 1); // Réduire l'index pour le total
+    const totalCell = cryptoRow.insertCell(data.length + 1);
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
