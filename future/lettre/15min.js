@@ -54,21 +54,80 @@ async function fetchCryptoData(symbol) {
     const cryptoNameDiv = document.getElementById("cryptoNames");
 
     // Vérifier si variation1 et variation2 sont négatifs et afficher "VERT" dans la cellule totalCell
-    if (variation1 < 0 && variation2 < 0) {
+    if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 < 0 && variation6 < 0 && variation7 < 0 && variation8 < 0) {
       totalCell.textContent = "VERT " + "(" + totalValue + "%)";
       totalCell.classList.add("positive");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
         ? `${existingContent}<br>${symbol} (VERT)`
         : `${symbol} (VERT)`;
-    } else if (variation1 > 0 && variation2 > 0) {
+    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 < 0 && variation6 > 0 && variation7 < 0 && variation8 > 0) {
+      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (VERT)`
+        : `${symbol} (VERT)`;
+    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 > 0 && variation6 < 0 && variation7 < 0 && variation8 > 0) {
       totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
         ? `${existingContent}<br>${symbol} (ROUGE)`
         : `${symbol} (ROUGE)`;
-    }else {
+    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 > 0 && variation6 < 0 && variation7 > 0 && variation8 > 0) {
+      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (VERT)`
+        : `${symbol} (VERT)`;
+    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 > 0 && variation6 > 0 && variation7 < 0 && variation8 < 0) {
+      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (ROUGE)`
+        : `${symbol} (ROUGE)`;
+    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 < 0 && variation6 > 0 && variation7 > 0 && variation8 < 0) {
+      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (ROUGE)`
+        : `${symbol} (ROUGE)`;
+    } 		else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 > 0 && variation6 < 0 && variation7 < 0 && variation8 < 0) {
+      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (ROUGE)`
+        : `${symbol} (ROUGE)`;
+    } 	else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 > 0 && variation6 < 0 && variation7 > 0 && variation8 < 0) {
+      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (VERT)`
+        : `${symbol} (VERT)`;
+    } 	else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 > 0 && variation6 < 0 && variation7 > 0 && variation8 > 0) {
+      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
+      totalCell.classList.add("positive");
+      const existingContent = cryptoNameDiv.innerHTML;
+      cryptoNameDiv.innerHTML = existingContent
+        ? `${existingContent}<br>${symbol} (VERT)`
+        : `${symbol} (VERT)`;
+    } 
+
+
+	
+	
+
+    
+    
+    
+   
+    else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
     }
