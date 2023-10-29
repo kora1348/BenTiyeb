@@ -11,6 +11,9 @@ async function fetchCryptoData(symbol) {
     // Mise à jour du tableau avec les données et la couleur
     const cryptoRow = document.getElementById(symbol);
 
+    let variation1 = 0;
+    let variation2 = 0;
+
     for (let i = 0; i < data.length - 1; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
@@ -35,6 +38,12 @@ async function fetchCryptoData(symbol) {
       }
 
       totalVariation += intervalVariation;
+
+      if (i === 0) {
+        variation1 = intervalVariation;
+      } else if (i === 1) {
+        variation2 = intervalVariation;
+      }
     }
 
     // Ajouter la cellule pour afficher le total de variation
@@ -42,26 +51,18 @@ async function fetchCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
-    if (totalVariation >= 3) {
+    // Vérifier si variation1 et variation2 sont négatifs et afficher "VERT" dans la cellule totalCell
+    if (variation1 < 0 && variation2 < 0) {
+      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
       totalCell.classList.add("positive");
-    } else if (totalVariation <= -3) {
+    } else if (variation1 > 0 && variation2 > 0) {
+      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
+    }else {
+      totalCell.textContent = "/";
+      totalCell.classList.add("black");
     }
 
-    if (totalVariation >= 3 || totalVariation <= -3) {
-      // Ajouter le nom de la crypto en dehors du tableau
-      const cryptoNameDiv = document.getElementById("cryptoNames");
-      const cryptoName = document.createElement("p");
-      cryptoName.textContent = `${symbol} : ${totalValue}%`;
-      cryptoNameDiv.appendChild(cryptoName);
-
-      // Ajouter la classe CSS appropriée
-      if (totalVariation >= 3) {
-        cryptoName.classList.add("positive");
-      } else if (totalVariation <= -3) {
-        cryptoName.classList.add("negative");
-      }
-    }
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -69,6 +70,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
 
 
