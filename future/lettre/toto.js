@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=9`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=3`
     );
     const data = await response.json();
 
@@ -11,11 +11,11 @@ async function fetchCryptoData(symbol) {
     // Mise à jour du tableau avec les données et la couleur
     const cryptoRow = document.getElementById(symbol);
 
-    for (let i = 0; i < data.length - 1; i++) { // Exclure l'intervalle courant en ajustant la boucle
+    for (let i = 0; i < data.length - 1; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
       const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
-      const cellIndex = i +1;
+      const cellIndex = i + 1;
 
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = intervalVariation.toFixed(2);
@@ -28,11 +28,17 @@ async function fetchCryptoData(symbol) {
       const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
+      if (intervalVariation > 0) {
+        variationCell.classList.add("positive");
+      } else if (intervalVariation < 0) {
+        variationCell.classList.add("negative");
+      }
+
       totalVariation += intervalVariation;
     }
 
     // Ajouter la cellule pour afficher le total de variation
-    const totalCell = cryptoRow.insertCell(data.length - 1+1);
+    const totalCell = cryptoRow.insertCell(data.length);
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
