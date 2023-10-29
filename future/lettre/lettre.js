@@ -49,22 +49,31 @@ async function fetchCryptoData(symbol) {
       const totalValue = totalVariation.toFixed(2);
       totalCell.textContent = `${totalValue}%`;
 
-    if (variation1 < 0 && variation2 < 0) {
-      // Si les deux variations sont négatives, afficher "VERT" en vert
-      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      // : ${totalValue}%`;
+      if (variation1 < 0 && variation2 < 0) {
+        // Si les deux variations sont négatives, afficher "VERT" en vert
+        totalCell.textContent = "VERT " + "(" + totalValue + "%)";
+        totalCell.classList.add("positive");
       
-      const cryptoNameDiv = document.getElementById("cryptoNames");
-      const existingContent = cryptoNameDiv.innerHTML; // Utilisez innerHTML pour traiter les balises HTML
-      cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (VERT)` : `${symbol} (VERT)`;
-      cryptoNameDiv.classList.add("positive");
+        const cryptoNameDiv = document.getElementById("cryptoNames");
+        const existingContent = cryptoNameDiv.innerHTML;
+        cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (VERT)` : `${symbol} (VERT)`;
+        cryptoNameDiv.classList.add("positive");
+      } else if (variation1 > 0 && variation2 > 0) {
+        // Si les deux variations sont positives, afficher "ROUGE" en rouge
+        totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
+        totalCell.classList.add("negative");
+      
+        const cryptoNameDiv = document.getElementById("cryptoNames");
+        const existingContent = cryptoNameDiv.innerHTML;
+        cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (ROUGE)` : `${symbol} (ROUGE)`;
+        cryptoNameDiv.classList.add("negative");
+      } else {
+        totalCell.textContent = "/";
+        totalCell.classList.add("black");
+      }
       
 
-    } else {
-      totalCell.textContent = "/";
-      totalCell.classList.add("black");
-    }
+
 
   } catch (error) {
     console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
