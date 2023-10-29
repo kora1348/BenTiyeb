@@ -1,72 +1,64 @@
 async function fetchCryptoData(symbol) {
   try {
-      const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
-      );
-      const data = await response.json();
+    const response = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
+    );
+    const data = await response.json();
 
-      // Calcul des variations individuelles
-      const variation1 = ((parseFloat(data[0][4]) - parseFloat(data[0][1])) / parseFloat(data[0][1])) * 100;
-      const variation2 = ((parseFloat(data[1][4]) - parseFloat(data[1][1])) / parseFloat(data[1][1])) * 100;
+    // Calcul des variations individuelles
+    const variation1 = ((parseFloat(data[0][4]) - parseFloat(data[0][1])) / parseFloat(data[0][1])) * 100;
+    const variation2 = ((parseFloat(data[1][4]) - parseFloat(data[1][1])) / parseFloat(data[1][1])) * 100;
 
-      // Mise à jour du tableau avec les données et la couleur
-      const cryptoRow = document.getElementById(symbol);
+    // Mise à jour du tableau avec les données et la couleur
+    const cryptoRow = document.getElementById(symbol);
 
-      for (let i = 0; i < data.length; i++) {
-          const openPrice = parseFloat(data[i][1]);
-          const closePrice = parseFloat(data[i][4]);
-          const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
-          const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+    for (let i = 0; i < data.length; i++) {
+      const openPrice = parseFloat(data[i][1]);
+      const closePrice = parseFloat(data[i][4]);
+      const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
+      const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
 
-          const variationCell = cryptoRow.insertCell(cellIndex);
-          const variationValue = intervalVariation.toFixed(2);
-          const timestamp = parseInt(data[i][0]);
-          const dateValue = new Date(timestamp);
-          const hour = dateValue.getHours();
-          const minute = dateValue.getMinutes();
-          const formattedTime = `${hour.toString().padStart(2, "0")}:${minute
-              .toString()
-              .padStart(2, "0")}`;
+      const variationCell = cryptoRow.insertCell(cellIndex);
+      const variationValue = intervalVariation.toFixed(2);
+      const timestamp = parseInt(data[i][0]);
+      const dateValue = new Date(timestamp);
+      const hour = dateValue.getHours();
+      const minute = dateValue.getMinutes();
+      const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
 
-          if (minute % 5 === 0) {
-              // Ajouter la classe CSS appropriée en fonction de la valeur de intervalVariation
-              if (intervalVariation > 0) {
-                  variationCell.classList.add("positive");
-              } else if (intervalVariation < 0) {
-                  variationCell.classList.add("negative");
-              }
+      if (minute % 5 === 0) {
+        // Ajouter la classe CSS appropriée en fonction de la valeur de intervalVariation
+        if (intervalVariation > 0) {
+          variationCell.classList.add("positive");
+        } else if (intervalVariation < 0) {
+          variationCell.classList.add("negative");
+        }
 
-              // Afficher la variation uniquement à des intervalles de 5 minutes
-              variationCell.textContent = `${formattedTime}: ${variationValue}%`;
-          }
+        // Afficher la variation uniquement à des intervalles de 5 minutes
+        variationCell.textContent = `${formattedTime}: ${variationValue}%`;
       }
+    }
 
-      // Ajouter la cellule pour afficher le total de variation
-      const totalCell = cryptoRow.insertCell(data.length + 1);
-      const totalValue = (variation1 + variation2).toFixed(2);
+    // Ajouter la cellule pour afficher le total de variation
+    const totalCell = cryptoRow.insertCell(data.length + 1);
+    const totalValue = (variation1 + variation2).toFixed(2);
 
-      if (variation1 < 0 && variation2 < 0) {
-          // Si les deux variations sont négatives, afficher "VERT" en vert
-          totalCell.textContent = "VERT";
-          totalCell.classList.add("positive");
+    if (variation1 < 0 && variation2 < 0) {
+      // Si les deux variations sont négatives, afficher "VERT" en vert
+      totalCell.textContent = "VERT";
+      totalCell.classList.add("positive");
 
-          // Afficher "VERT" dans la div "cryptoNames" en vert
-          const cryptoNameDiv = document.getElementById("cryptoNames");
-          cryptoNameDiv.textContent = `${symbol} (VERT)`;
-          cryptoNameDiv.classList.add("positive");
-
-      } else {
-        totalCell.textContent = "/";
-        totalCell.classList.add("black");
-         
-      }
-
+      const cryptoNameDiv = document.getElementById("cryptoNames");
+      const existingContent = cryptoNameDiv.textContent;
+      cryptoNameDiv.textContent = existingContent ? `${existingContent}, ${symbol} (VERT)` : `${symbol} (VERT)`;
+      cryptoNameDiv.classList.add("positive");
+    } else {
+      totalCell.textContent = "/";
+      totalCell.classList.add("black");
+    }
 
   } catch (error) {
-      console.error(
-          `Erreur lors de la récupération des données pour ${symbol}:`,
-          error
-      );
+    console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
   }
 }
 
