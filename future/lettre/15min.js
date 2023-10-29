@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=9`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=29`
     );
     const data = await response.json();
 
@@ -11,8 +11,7 @@ async function fetchCryptoData(symbol) {
     // Mise à jour du tableau avec les données et la couleur
     const cryptoRow = document.getElementById(symbol);
 
-    let variation1 = 0;
-    let variation2 = 0;
+    const variations = [];
 
     for (let i = 0; i < data.length - 1; i++) {
       const openPrice = parseFloat(data[i][1]);
@@ -38,12 +37,7 @@ async function fetchCryptoData(symbol) {
       }
 
       totalVariation += intervalVariation;
-
-      if (i === 0) {
-        variation1 = intervalVariation;
-      } else if (i === 1) {
-        variation2 = intervalVariation;
-      }
+      variations.push(intervalVariation);
     }
 
     // Ajouter la cellule pour afficher le total de variation
@@ -53,81 +47,25 @@ async function fetchCryptoData(symbol) {
 
     const cryptoNameDiv = document.getElementById("cryptoNames");
 
-    // Vérifier si variation1 et variation2 sont négatifs et afficher "VERT" dans la cellule totalCell
-    if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 < 0 && variation6 < 0 && variation7 < 0 && variation8 < 0) {
+    // Vérifier si au moins deux des trois variations sont positives et afficher "VERT" dans la cellule totalCell
+    const positiveCount = variations.filter(variation => variation > 0).length;
+    const negativeCount = variations.filter(variation => variation < 0).length;
+
+    if (positiveCount >= 20) {
       totalCell.textContent = "VERT " + "(" + totalValue + "%)";
       totalCell.classList.add("positive");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
         ? `${existingContent}<br>${symbol} (VERT)`
         : `${symbol} (VERT)`;
-    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 < 0 && variation6 > 0 && variation7 < 0 && variation8 > 0) {
-      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (VERT)`
-        : `${symbol} (VERT)`;
-    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 > 0 && variation6 < 0 && variation7 < 0 && variation8 > 0) {
+    } else if (negativeCount >= 20) {
       totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
         ? `${existingContent}<br>${symbol} (ROUGE)`
         : `${symbol} (ROUGE)`;
-    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 > 0 && variation6 < 0 && variation7 > 0 && variation8 > 0) {
-      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (VERT)`
-        : `${symbol} (VERT)`;
-    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 < 0 && variation5 > 0 && variation6 > 0 && variation7 < 0 && variation8 < 0) {
-      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (ROUGE)`
-        : `${symbol} (ROUGE)`;
-    } else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 < 0 && variation6 > 0 && variation7 > 0 && variation8 < 0) {
-      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (ROUGE)`
-        : `${symbol} (ROUGE)`;
-    } 		else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 > 0 && variation6 < 0 && variation7 < 0 && variation8 < 0) {
-      totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (ROUGE)`
-        : `${symbol} (ROUGE)`;
-    } 	else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 > 0 && variation6 < 0 && variation7 > 0 && variation8 < 0) {
-      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (VERT)`
-        : `${symbol} (VERT)`;
-    } 	else if (variation1 < 0 && variation2 < 0 && variation3 < 0 && variation4 > 0 && variation5 > 0 && variation6 < 0 && variation7 > 0 && variation8 > 0) {
-      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (VERT)`
-        : `${symbol} (VERT)`;
-    } 
-
-
-	
-	
-
-    
-    
-    
-   
-    else {
+    } else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
     }
@@ -139,6 +77,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
 
 
