@@ -71,7 +71,7 @@ async function fetchCryptoData(symbol) {
       cryptoNameDiv.innerHTML = existingContent
         ? `${existingContent}<br>${symbol} (VERT)`
         : `${symbol} (VERT)`;
-    } else if (variations.slice(0, 2).every(variation => variation > 0)) {
+    } else if (variation1 > 0 && variation2 > 0) {
       // Si les deux premières variations sont positives, afficher "ROUGE" en rouge
       totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
