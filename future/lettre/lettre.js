@@ -49,9 +49,11 @@ async function fetchCryptoData(symbol) {
       totalCell.classList.add("positive");
 
       const cryptoNameDiv = document.getElementById("cryptoNames");
-      const existingContent = cryptoNameDiv.textContent;
-      cryptoNameDiv.textContent = existingContent ? `${existingContent}, ${symbol} (VERT)` : `${symbol} (VERT)`;
+      const existingContent = cryptoNameDiv.innerHTML; // Utilisez innerHTML pour traiter les balises HTML
+      cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (VERT)` : `${symbol} (VERT)`;
       cryptoNameDiv.classList.add("positive");
+      
+
     } else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
