@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=8`
     );
     const data = await response.json();
 
@@ -9,46 +9,48 @@ async function fetchCryptoData(symbol) {
     let totalVariation = 0;
 
     // Calcul des variations individuelles
-    const variation1 =
-      ((parseFloat(data[0][4]) - parseFloat(data[0][1])) /
-        parseFloat(data[0][1])) *
-      100;
-    const variation2 =
-      ((parseFloat(data[1][4]) - parseFloat(data[1][1])) /
-        parseFloat(data[1][1])) *
-      100;
-
-    // Mise à jour du tableau avec les données et la couleur
-    const cryptoRow = document.getElementById(symbol);
+    const variations = [];
 
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
       const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
-      const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+      variations.push(intervalVariation);
+    }
 
+    const cryptoRow = document.getElementById(symbol);
+    const currentTime = new Date();
+    const currentMinutes = currentTime.getMinutes();
+
+    for (let i = 0; i < data.length; i++) {
+      const cellIndex = i + 1;
       const variationCell = cryptoRow.insertCell(cellIndex);
-      const variationValue = intervalVariation.toFixed(2);
       const timestamp = parseInt(data[i][0]);
       const dateValue = new Date(timestamp);
       const hour = dateValue.getHours();
       const minute = dateValue.getMinutes();
-      const formattedTime = `${hour.toString().padStart(2, "0")}:${minute
-        .toString()
-        .padStart(2, "0")}`;
+      const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
 
-      if (minute % 5 === 0) {
+      // Calculer intervalVariation1
+      const intervalVariation1 =
+        ((parseFloat(data[0][4]) - parseFloat(data[0][1])) / parseFloat(data[0][1])) * 100;
+
+      // Vérifier si l'intervalle de 5 minutes est terminé
+      if (minute <= currentMinutes && minute % 5 === 0) {
+        const variationValue = variations[i].toFixed(2);
+
         // Ajouter la classe CSS appropriée en fonction de la valeur de intervalVariation
-        if (intervalVariation > 0) {
+        if (variations[i] > 0) {
           variationCell.classList.add("positive");
-        } else if (intervalVariation < 0) {
+        } else if (variations[i] < 0) {
           variationCell.classList.add("negative");
+        } else {
+          variationCell.classList.add("black");
         }
 
-        // Afficher la variation uniquement à des intervalles de 5 minutes
+        // Afficher la variation
         variationCell.textContent = `${formattedTime}: ${variationValue}%`;
-        // Ne pas ajouter de classe de couleur aux cellules individuelles
-        totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
+        totalVariation += variations[i];
       }
     }
 
@@ -59,22 +61,22 @@ async function fetchCryptoData(symbol) {
 
     const cryptoNameDiv = document.getElementById("cryptoNames");
 
-    if (variation1 < 0 && variation2 < 0) {
-      // Si les deux variations sont négatives, afficher "VERT" en vert
+    if (variations.every(variation => variation < 0)) {
+      // Si toutes les variations sont négatives, afficher "VERT" en vert
       totalCell.textContent = "VERT " + "(" + totalValue + "%)";
       totalCell.classList.add("positive");
-      cryptoNameDiv.classList.remove("negative"); // Retirez la classe "negative"
-      cryptoNameDiv.classList.add("positive"); // Ajoutez la classe "positive"
+      cryptoNameDiv.classList.remove("negative");
+      cryptoNameDiv.classList.add("positive");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
         ? `${existingContent}<br>${symbol} (VERT)`
         : `${symbol} (VERT)`;
-    } else if (variation1 > 0 && variation2 > 0) {
-      // Si les deux variations sont positives, afficher "ROUGE" en rouge
+    } else if (variations.slice(0, 2).every(variation => variation > 0)) {
+      // Si les deux premières variations sont positives, afficher "ROUGE" en rouge
       totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
-      cryptoNameDiv.classList.remove("positive"); // Retirez la classe "positive"
-      cryptoNameDiv.classList.add("negative"); // Ajoutez la classe "negative"
+      cryptoNameDiv.classList.remove("positive");
+      cryptoNameDiv.classList.add("negative");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
         ? `${existingContent}<br>${symbol} (ROUGE)`
@@ -82,8 +84,7 @@ async function fetchCryptoData(symbol) {
     } else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
-      cryptoNameDiv.classList.remove("positive", "negative"); // Retirez les classes "positive" et "negative"
-     
+      cryptoNameDiv.classList.remove("positive", "negative");
     }
   } catch (error) {
     console.error(
@@ -92,6 +93,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 fetchCryptoData("1INCH");
