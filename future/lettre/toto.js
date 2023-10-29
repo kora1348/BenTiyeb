@@ -1,24 +1,30 @@
 async function fetchCryptoData(symbol) {
-    try {
-      const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=2`
-      );
-      const data = await response.json();
-  
-      // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
-      let totalVariation = 0;
-  
-      // Mise à jour du tableau avec les données et la couleur
-      const cryptoRow = document.getElementById(symbol);
-  
-      for (let i = 0; i < data.length; i++) {
-        const openPrice = parseFloat(data[i][1]);
-        const closePrice = parseFloat(data[i][4]);
-        const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
-        const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
-  
-        const variationCell = cryptoRow.insertCell(cellIndex);
-        const variationValue = intervalVariation.toFixed(2);
+  try {
+    const response = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=2`
+    );
+    const data = await response.json();
+
+    // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
+    let totalVariation = 0;
+
+    // Mise à jour du tableau avec les données et la couleur
+    const cryptoRow = document.getElementById(symbol);
+
+    for (let i = 0; i < data.length; i++) {
+      const openPrice = parseFloat(data[i][1]);
+      const closePrice = parseFloat(data[i][4]);
+      const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
+      const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+
+      const variationCell = cryptoRow.insertCell(cellIndex);
+      const variationValue = intervalVariation.toFixed(2);
+
+      // Ne pas ajouter de classe de couleur aux cellules individuelles
+      totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
+
+      if (i === 0) {
+        // Ajouter l'affichage pour l'intervalle 1 ici
         const timestamp = parseInt(data[i][0]);
         const dateValue = new Date(timestamp);
         const hour = dateValue.getHours();
@@ -26,53 +32,44 @@ async function fetchCryptoData(symbol) {
         const formattedTime = `${hour.toString().padStart(2, "0")}:${minute
           .toString()
           .padStart(2, "0")}`;
-  
         variationCell.textContent = `${formattedTime}: ${variationValue}%`;
-  
-        // Ne pas ajouter de classe de couleur aux cellules individuelles
-        totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
       }
-  
-      // Ajouter la cellule pour afficher le total de variation
-      const totalCell = cryptoRow.insertCell(data.length + 1);
-      const totalValue = totalVariation.toFixed(2);
-      totalCell.textContent = `${totalValue}%`;
-  
-      if (totalVariation >= 3) {
-        totalCell.classList.add("positive");
-      } else if (totalVariation <= -3) {
-        totalCell.classList.add("negative");
-      }
-  
-      if (totalVariation >= 3 || totalVariation <= -3) {
-        // Ajouter le nom de la crypto en dehors du tableau
-        const cryptoNameDiv = document.getElementById("cryptoNames");
-        const cryptoName = document.createElement("p");
-        cryptoName.textContent = `${symbol} : ${totalValue}%`;
-        cryptoNameDiv.appendChild(cryptoName);
-  
-        // Ajouter la classe CSS appropriée
-        if (totalVariation >= 3) {
-          cryptoName.classList.add("positive");
-        } else if (totalVariation <= -3) {
-          cryptoName.classList.add("negative");
-        }
-  
-        // Ajouter la classe CSS appropriée
-        if (totalVariation >= 3) {
-          cryptoName.classList.add("positive");
-        } else if (totalVariation <= -3) {
-          cryptoName.classList.add("negative");
-        }
-      }
-    } catch (error) {
-      console.error(
-        `Erreur lors de la récupération des données pour ${symbol}:`,
-        error
-      );
     }
+
+    // Ajouter la cellule pour afficher le total de variation
+    const totalCell = cryptoRow.insertCell(data.length + 1);
+    const totalValue = totalVariation.toFixed(2);
+    totalCell.textContent = `${totalValue}%`;
+
+    if (totalVariation >= 3) {
+      totalCell.classList.add("positive");
+    } else if (totalVariation <= -3) {
+      totalCell.classList.add("negative");
+    }
+
+    if (totalVariation >= 3 || totalVariation <= -3) {
+      // Ajouter le nom de la crypto en dehors du tableau
+      const cryptoNameDiv = document.getElementById("cryptoNames");
+      const cryptoName = document.createElement("p");
+      cryptoName.textContent = `${symbol} : ${totalValue}%`;
+      cryptoNameDiv.appendChild(cryptoName);
+
+      // Ajouter la classe CSS appropriée
+      if (totalVariation >= 3) {
+        cryptoName.classList.add("positive");
+      } else if (totalVariation <= -3) {
+        cryptoName.classList.add("negative");
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Erreur lors de la récupération des données pour ${symbol}:`,
+      error
+    );
   }
-  
+}
+
+
   // Appel de la fonction pour obtenir les taux de variation des cryptos
   fetchCryptoData("1INCH");
   fetchCryptoData("AAVE");
