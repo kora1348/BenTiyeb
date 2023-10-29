@@ -40,7 +40,7 @@ async function fetchCryptoData(symbol) {
         // Afficher la variation uniquement à des intervalles de 5 minutes
         variationCell.textContent = `${formattedTime}: ${variationValue}%`;
                 // Ne pas ajouter de classe de couleur aux cellules individuelles
-                totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
+        totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
       }
     }
 
@@ -49,28 +49,30 @@ async function fetchCryptoData(symbol) {
       const totalValue = totalVariation.toFixed(2);
       totalCell.textContent = `${totalValue}%`;
 
-      if (variation1 < 0 && variation2 < 0) {
-        // Si les deux variations sont négatives, afficher "VERT" en vert
-        totalCell.textContent = "VERT " + "(" + totalValue + "%)";
-        totalCell.classList.add("positive");
-      
-        const cryptoNameDiv = document.getElementById("cryptoNames");
-        const existingContent = cryptoNameDiv.innerHTML;
-        cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (VERT)` : `${symbol} (VERT)`;
-        cryptoNameDiv.classList.add("positive");
-      } else if (variation1 > 0 && variation2 > 0) {
-        // Si les deux variations sont positives, afficher "ROUGE" en rouge
-        totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
-        totalCell.classList.add("negative");
-      
-        const cryptoNameDiv = document.getElementById("cryptoNames");
-        const existingContent = cryptoNameDiv.innerHTML;
-        cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (ROUGE)` : `${symbol} (ROUGE)`;
-        cryptoNameDiv.classList.add("negative");
-      } else {
-        totalCell.textContent = "/";
-        totalCell.classList.add("black");
-      }
+      const cryptoNameDiv = document.getElementById("cryptoNames");
+
+if (variation1 < 0 && variation2 < 0) {
+  // Si les deux variations sont négatives, afficher "VERT" en vert
+  totalCell.textContent = "VERT " + "(" + totalValue + "%)";
+  totalCell.classList.add("positive");
+  cryptoNameDiv.classList.remove("negative"); // Retirez la classe "negative"
+  cryptoNameDiv.classList.add("positive"); // Ajoutez la classe "positive"
+  const existingContent = cryptoNameDiv.innerHTML;
+  cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (VERT)` : `${symbol} (VERT)`;
+} else if (variation1 > 0 && variation2 > 0) {
+  // Si les deux variations sont positives, afficher "ROUGE" en rouge
+  totalCell.textContent = "ROUGE " + "(" + totalValue + "%)";
+  totalCell.classList.add("negative");
+  cryptoNameDiv.classList.remove("positive"); // Retirez la classe "positive"
+  cryptoNameDiv.classList.add("negative"); // Ajoutez la classe "negative"
+  const existingContent = cryptoNameDiv.innerHTML;
+  cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (ROUGE)` : `${symbol} (ROUGE)`;
+} else {
+  totalCell.textContent = "/";
+  totalCell.classList.add("black");
+  cryptoNameDiv.classList.remove("positive", "negative"); // Retirez les classes "positive" et "negative"
+}
+
       
 
 
