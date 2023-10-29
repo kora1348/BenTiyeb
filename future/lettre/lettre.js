@@ -55,12 +55,12 @@ async function fetchCryptoData(symbol) {
           cryptoNameDiv.textContent = "VERT";
           cryptoNameDiv.classList.add("positive");
       } else {
-          
-          
+        totalCell.textContent = "/";
+        totalCell.classList.add("black");
          
       }
 
-      
+
   } catch (error) {
       console.error(
           `Erreur lors de la récupération des données pour ${symbol}:`,
