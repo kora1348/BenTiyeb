@@ -5,6 +5,9 @@ async function fetchCryptoData(symbol) {
     );
     const data = await response.json();
 
+      // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
+      let totalVariation = 0;
+
     // Calcul des variations individuelles
     const variation1 = ((parseFloat(data[0][4]) - parseFloat(data[0][1])) / parseFloat(data[0][1])) * 100;
     const variation2 = ((parseFloat(data[1][4]) - parseFloat(data[1][1])) / parseFloat(data[1][1])) * 100;
@@ -36,18 +39,22 @@ async function fetchCryptoData(symbol) {
 
         // Afficher la variation uniquement à des intervalles de 5 minutes
         variationCell.textContent = `${formattedTime}: ${variationValue}%`;
+                // Ne pas ajouter de classe de couleur aux cellules individuelles
+                totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
       }
     }
 
-    // Ajouter la cellule pour afficher le total de variation
-    const totalCell = cryptoRow.insertCell(data.length + 1);
-    const totalValue = (variation1 + variation2).toFixed(2);
+      // Ajouter la cellule pour afficher le total de variation
+      const totalCell = cryptoRow.insertCell(data.length + 1);
+      const totalValue = totalVariation.toFixed(2);
+      totalCell.textContent = `${totalValue}%`;
 
     if (variation1 < 0 && variation2 < 0) {
       // Si les deux variations sont négatives, afficher "VERT" en vert
-      totalCell.textContent = "VERT";
+      totalCell.textContent = "VERT " + "(" + totalValue + "%)";
       totalCell.classList.add("positive");
-
+      // : ${totalValue}%`;
+      
       const cryptoNameDiv = document.getElementById("cryptoNames");
       const existingContent = cryptoNameDiv.innerHTML; // Utilisez innerHTML pour traiter les balises HTML
       cryptoNameDiv.innerHTML = existingContent ? `${existingContent}<br>${symbol} (VERT)` : `${symbol} (VERT)`;
