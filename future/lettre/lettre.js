@@ -52,8 +52,9 @@ async function fetchCryptoData(symbol) {
 
           // Afficher "VERT" dans la div "cryptoNames" en vert
           const cryptoNameDiv = document.getElementById("cryptoNames");
-          cryptoNameDiv.textContent = "VERT";
+          cryptoNameDiv.textContent = `${symbol} (VERT)`;
           cryptoNameDiv.classList.add("positive");
+
       } else {
         totalCell.textContent = "/";
         totalCell.classList.add("black");
