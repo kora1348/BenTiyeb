@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=29`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=30m&limit=29`
     );
     const data = await response.json();
 
@@ -26,7 +26,7 @@ async function fetchCryptoData(symbol) {
       const timestamp = parseInt(data[i][0]);
       const dateValue = new Date(timestamp);
       const hour = dateValue.getHours();
-      const minute = dateValue.getMinutes()+15;
+      const minute = dateValue.getMinutes()+30;
       const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
