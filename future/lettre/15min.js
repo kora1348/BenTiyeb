@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=29`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=8`
     );
     const data = await response.json();
 
@@ -54,20 +54,20 @@ async function fetchCryptoData(symbol) {
     const positiveCount = variations.filter(variation => variation > 0).length;
     const negativeCount = variations.filter(variation => variation < 0).length;
 
-    if (positiveCount >= 20 && totalValue >= 4) {
+    if (positiveCount >= 6 /*&& totalValue >= 4*/) {
       totalCell.textContent = "SHORT " + "(" + totalValue + "%)";
       totalCell.classList.add("negative");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (SHORT)`
-        : `${symbol} (SHORT)`;
-      } else if (negativeCount >= 20 && totalValue <= -4) {
+      ? `${existingContent}<br><span class="negative">${symbol}  ${totalValue} (SHORT)</span>`
+      : `<span class="negative">${symbol} ${totalValue} (SHORT)</span>`;
+    } else if (negativeCount >= 6 /*&& totalValue <= -4*/) {
       totalCell.textContent = "LONG " + "(" + totalValue + "%)";
       totalCell.classList.add("positive");
       const existingContent = cryptoNameDiv.innerHTML;
       cryptoNameDiv.innerHTML = existingContent
-        ? `${existingContent}<br>${symbol} (LONG)`
-        : `${symbol} (LONG)`;
+      ? `${existingContent}<br><span class="positive">${symbol}  ${totalValue} (LONG)</span>`
+      : `<span class="positive">${symbol} ${totalValue} (LONG)</span>`;
     } else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
