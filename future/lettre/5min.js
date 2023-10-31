@@ -90,7 +90,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("ALGO");
   fetchCryptoData("ALICE");
   fetchCryptoData("ALPHA");
-  fetchCryptoData("ALPACA");
   fetchCryptoData("AMB");
   fetchCryptoData("ANKR");
   fetchCryptoData("ANT");
@@ -137,6 +136,8 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("DASH");
   fetchCryptoData("DENT");
   fetchCryptoData("DGB");
+  fetchCryptoData("DOGE");
+  fetchCryptoData("DOT");
   fetchCryptoData("DUSK");
   fetchCryptoData("DYDX");
   fetchCryptoData("EDU");
@@ -179,6 +180,7 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("KLAY");
   fetchCryptoData("KNC");
   fetchCryptoData("KSM");
+  fetchCryptoData("LDO");
   fetchCryptoData("LEVER");
   fetchCryptoData("LINA");
   fetchCryptoData("LINK");
@@ -229,7 +231,7 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("SHIB");
   fetchCryptoData("SKL");
   fetchCryptoData("SNX");
-  fetchCryptoData("SNT");
+  fetchCryptoData("SOL");
   fetchCryptoData("SPELL");
   fetchCryptoData("SSV");
   fetchCryptoData("STORJ");
@@ -242,10 +244,12 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("TOMO");
   fetchCryptoData("TRB");
   fetchCryptoData("TRU");
+  fetchCryptoData("TRX");
   fetchCryptoData("T");
   fetchCryptoData("UMA");
   fetchCryptoData("UNFI");
   fetchCryptoData("UNI");
+  fetchCryptoData("USDC");
   fetchCryptoData("VET");
   fetchCryptoData("WAVES");
   fetchCryptoData("WLD");
@@ -265,11 +269,12 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("ZIL");
   fetchCryptoData("ZRX");
 
-  // Fonction pour recharger la page et afficher un message dans la console
-function refreshPage() {
-  location.reload();
-}
 
-// Appeler la fonction de rafraîchissement toutes les 50 secondes
-setInterval(refreshPage, 50000);
+  // Fonction pour recharger la page et afficher un message dans la console
+  function refreshPage() {
+    location.reload();
+  }
   
+  // Appeler la fonction de rafraîchissement toutes les 20 secondes
+  setInterval(refreshPage, 20000);
+    
