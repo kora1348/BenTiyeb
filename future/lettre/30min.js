@@ -271,11 +271,10 @@ async function fetchCryptoData(symbol) {
     fetchCryptoData("ZRX");
   
   
-    // Fonction pour recharger la page et afficher un message dans la console
-    function refreshPage() {
-      location.reload();
-    }
+  // function refreshPage() {
+  //   location.reload();
+  // }
+  
+
+  // setInterval(refreshPage, 20000);
     
-    // Appeler la fonction de rafraîchissement toutes les 20 secondes
-    setInterval(refreshPage, 20000);
-      
