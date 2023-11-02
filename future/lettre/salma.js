@@ -22,16 +22,16 @@ async function fetchCryptoData(symbol) {
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = intervalVariation.toFixed(2);
 
-   // Afficher l'heure de l'intervalle et la variation
-   const timestamp = parseInt(data[i][0]);
-   const dateValue = new Date(timestamp);
-   dateValue.setMinutes(dateValue.getMinutes() + 5);
-   
-   const day = dateValue.getDay();
-   const minute = dateValue.getMinutes();
-   const formattedTime = `${day.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-   variationCell.textContent = `${formattedTime}: ${variationValue}%`;
+      // Afficher la date (jour, mois et année) de l'intervalle et la variation
+  const timestamp = parseInt(data[i][0]);
+  const dateValue = new Date(timestamp);
+  const day = dateValue.getDate();
+  const month = dateValue.getMonth() + 1; // Notez que les mois commencent à 0, donc nous ajoutons 1.
+  const year = dateValue.getFullYear();
 
+  const formattedDate = `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year}`;
+  variationCell.textContent = `${formattedDate}: ${variationValue}%`;
+  
       if (intervalVariation > 0) {
         variationCell.classList.add("positive");
       } else if (intervalVariation < 0) {
