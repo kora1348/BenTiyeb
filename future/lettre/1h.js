@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=63`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=4`
     );
     const data = await response.json();
 
