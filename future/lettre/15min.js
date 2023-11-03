@@ -22,15 +22,15 @@ async function fetchCryptoData(symbol) {
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = intervalVariation.toFixed(2);
 
-   // Afficher l'heure de l'intervalle et la variation
-   const timestamp = parseInt(data[i][0]);
-   const dateValue = new Date(timestamp);
-   dateValue.setMinutes(dateValue.getMinutes() + 5);
-   
-   const hour = dateValue.getHours();
-   const minute = dateValue.getMinutes();
-   const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-   variationCell.textContent = `${formattedTime}: ${variationValue}%`;
+      // Afficher l'heure de l'intervalle et la variation
+      const timestamp = parseInt(data[i][0]);
+      const dateValue = new Date(timestamp);
+      dateValue.setMinutes(dateValue.getMinutes() + 5);
+
+      const hour = dateValue.getHours();
+      const minute = dateValue.getMinutes();
+      const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+      variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
       if (intervalVariation > 0) {
         variationCell.classList.add("positive");
@@ -53,25 +53,21 @@ async function fetchCryptoData(symbol) {
     const positiveCount = variations.filter(variation => variation > 0).length;
     const negativeCount = variations.filter(variation => variation < 0).length;
 
-    if (positiveCount >= 3 /*&& totalValue >= 4*/) {
-      totalCell.textContent = "SHORT " + "(" + totalValue + "%)";
-      totalCell.classList.add("negative");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
-      ? `${existingContent}<br><span class="negative">${symbol}  ${totalValue} (SHORT)</span>`
-      : `<span class="negative">${symbol} ${totalValue} (SHORT)</span>`;
-    } else if (negativeCount >= 3 /*&& totalValue <= -4*/) {
-      totalCell.textContent = "LONG " + "(" + totalValue + "%)";
-      totalCell.classList.add("positive");
-      const existingContent = cryptoNameDiv.innerHTML;
-      cryptoNameDiv.innerHTML = existingContent
+    // Nouvelle condition : la deuxième valeur doit être plus grande que la première et la troisième
+    if (negativeCount >= 3) {
+      const secondValue = variations[1];
+  if (secondValue <= variations[0] && secondValue <=  variations[2]) {
+    totalCell.textContent = "LONG " + "(" + totalValue + "%)";
+    totalCell.classList.add("positive");
+    const existingContent = cryptoNameDiv.innerHTML;
+    cryptoNameDiv.innerHTML = existingContent
       ? `${existingContent}<br><span class="positive">${symbol}  ${totalValue} (LONG)</span>`
       : `<span class="positive">${symbol} ${totalValue} (LONG)</span>`;
+  }
     } else {
       totalCell.textContent = "/";
       totalCell.classList.add("black");
     }
-
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -79,6 +75,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
   // Appel de la fonction pour obtenir les taux de variation des cryptos
   fetchCryptoData("1INCH");
