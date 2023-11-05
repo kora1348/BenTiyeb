@@ -38,10 +38,10 @@ async function fetchCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
-    if (totalVariation >= 0.80) {
-      totalCell.classList.add("positive");
-    } else if (totalVariation <= -0.80) {
+    if (totalVariation >= 0.80 && totalVariation <=90) {
       totalCell.classList.add("negative");
+    } else if (totalVariation <= -0.80 && totalVariation <= -90) {
+      totalCell.classList.add("positive");
     }
 
     if (totalVariation >= 0.80 || totalVariation <= -0.80) {
@@ -51,19 +51,13 @@ async function fetchCryptoData(symbol) {
       cryptoName.textContent = `${symbol} : ${totalValue}%`;
       cryptoNameDiv.appendChild(cryptoName);
 
-    
-          // Ajouter la classe CSS appropriée
-          if (totalVariation >= 0.80) {
-            cryptoName.classList.add("positive");
-          } else if (totalVariation <= -0.80) {
-            cryptoName.classList.add("negative");
-          }
+
           
       // Ajouter la classe CSS appropriée
-      if (totalVariation >= 0.80) {
-        cryptoName.classList.add("positive");
-      } else if (totalVariation <= -0.80) {
+      if (totalVariation >= 0.80 && totalVariation <=90) {
         cryptoName.classList.add("negative");
+      } else if (totalVariation <= -0.80 && totalVariation <= -90) {
+        cryptoName.classList.add("positive");
       }
     }
   } catch (error) {
