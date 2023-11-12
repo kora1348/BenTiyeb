@@ -68,4 +68,5 @@ async function fetchCryptoData(symbol) {
   }
 }
 
+fetchCryptoData("MEME");
 fetchCryptoData("PEPE");
