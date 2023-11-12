@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1w&limit=9`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=19`
     );
     const data = await response.json();
 
@@ -22,16 +22,16 @@ async function fetchCryptoData(symbol) {
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = intervalVariation.toFixed(2);
 
-      // Afficher la date (jour, mois et année) de l'intervalle et la variation
-  const timestamp = parseInt(data[i][0]);
-  const dateValue = new Date(timestamp);
-  const day = dateValue.getDate();
-  const month = dateValue.getMonth() + 1; // Notez que les mois commencent à 0, donc nous ajoutons 1.
-  const year = dateValue.getFullYear();
+      // Afficher l'heure de l'intervalle et la variation
+      const timestamp = parseInt(data[i][0]);
+      const dateValue = new Date(timestamp);
+      dateValue.setMinutes(dateValue.getMinutes() + 5);
 
-  const formattedDate = `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year}`;
-  variationCell.textContent = `${formattedDate}: ${variationValue}%`;
-  
+      const hour = dateValue.getHours();
+      const minute = dateValue.getMinutes();
+      const formattedTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+      variationCell.textContent = `${formattedTime}: ${variationValue}%`;
+
       if (intervalVariation > 0) {
         variationCell.classList.add("positive");
       } else if (intervalVariation < 0) {
@@ -47,26 +47,13 @@ async function fetchCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
-    if (totalVariation >= 100) {
-      totalCell.classList.add("positive");
-    } else if (totalVariation <= -100) {
-      totalCell.classList.add("negative");
-    }
+    const cryptoNameDiv = document.getElementById("cryptoNames");
 
-    if (totalVariation >= 100 || totalVariation <= -100) {
-      // Ajouter le nom de la crypto en dehors du tableau
-      const cryptoNameDiv = document.getElementById("cryptoNames");
-      const cryptoName = document.createElement("p");
-      cryptoName.textContent = `${symbol} : ${totalValue}%`;
-      cryptoNameDiv.appendChild(cryptoName);
+    // Vérifier si au moins deux des trois variations sont positives et afficher "VERT" dans la cellule totalCell
+    const positiveCount = variations.filter(variation => variation > 0).length;
+    const negativeCount = variations.filter(variation => variation < 0).length;
 
-      // Ajouter la classe CSS appropriée
-      if (totalVariation >= 100) {
-        cryptoName.classList.add("positive");
-      } else if (totalVariation <= -100) {
-        cryptoName.classList.add("negative");
-      }
-    }
+   
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -74,6 +61,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
   // Appel de la fonction pour obtenir les taux de variation des cryptos
   fetchCryptoData("1INCH");
