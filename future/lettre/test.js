@@ -33,8 +33,6 @@ async function fetchCryptoData(symbol) {
       // Ajout de la classe 'positive' si interval1 est plus grand que interval2
       if (i === 0 && interval1 > interval2) {
         variationCell.classList.add('positive');
-      } else if (i === 1 && interval2 > interval1) {
-        variationCell.classList.add('positive');
       }
     }
   } catch (error) {
@@ -44,6 +42,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
 
 
