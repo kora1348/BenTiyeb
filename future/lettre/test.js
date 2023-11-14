@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=3`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=6`
     );
     const data = await response.json();
 
@@ -12,9 +12,10 @@ async function fetchCryptoData(symbol) {
     const interval1 = parseFloat(data[0][4]) - parseFloat(data[0][1]);
     const interval2 = parseFloat(data[1][4]) - parseFloat(data[1][1]);
     const interval3 = parseFloat(data[2][4]) - parseFloat(data[2][1]);
-
+    const interval4 = parseFloat(data[3][4]) - parseFloat(data[3][1]);
+    const interval5 = parseFloat(data[4][4]) - parseFloat(data[4][1]);
     // Détermination du plus grand intervalle
-    const maxInterval = Math.max(interval1, interval2, interval3);
+    const maxInterval = Math.max(interval1, interval2, interval3, interval4, interval5);
 
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
