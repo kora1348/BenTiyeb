@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=3`
     );
     const data = await response.json();
 
@@ -11,6 +11,10 @@ async function fetchCryptoData(symbol) {
     // Comparaison des intervalles
     const interval1 = parseFloat(data[0][4]) - parseFloat(data[0][1]);
     const interval2 = parseFloat(data[1][4]) - parseFloat(data[1][1]);
+    const interval3 = parseFloat(data[2][4]) - parseFloat(data[2][1]);
+
+    // Détermination du plus grand intervalle
+    const maxInterval = Math.max(interval1, interval2, interval3);
 
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
@@ -30,8 +34,8 @@ async function fetchCryptoData(symbol) {
 
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
-      // Ajout de la classe 'positive' si interval1 est plus grand que interval2
-      if (i === 0 && interval1 > interval2) {
+      // Ajout de la classe 'positive' uniquement si l'intervalle 1 est le plus grand
+      if (i === 0 && interval1 === maxInterval) {
         variationCell.classList.add('positive');
       }
     }
@@ -42,6 +46,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
 
 
