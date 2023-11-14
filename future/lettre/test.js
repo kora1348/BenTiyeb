@@ -5,11 +5,12 @@ async function fetchCryptoData(symbol) {
     );
     const data = await response.json();
 
-    // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
-    let totalVariation = 0;
-
     // Mise à jour du tableau avec les données et la couleur
     const cryptoRow = document.getElementById(symbol);
+
+    // Comparaison des intervalles
+    const interval1 = parseFloat(data[0][4]) - parseFloat(data[0][1]);
+    const interval2 = parseFloat(data[1][4]) - parseFloat(data[1][1]);
 
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
@@ -29,27 +30,13 @@ async function fetchCryptoData(symbol) {
 
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
-      // Comparer les deux intervalVariation
-      if (i > 0) {
-        const previousVariation = parseFloat(
-          data[i - 1][4] - data[i - 1][1]
-        ).toFixed(2);
-        const currentVariation = parseFloat(
-          data[i][4] - data[i][1]
-        ).toFixed(2);
-
-        console.log(
-          `Previous Variation: ${previousVariation}, Current Variation: ${currentVariation}`
-        );
-
-        if (parseFloat(currentVariation) > parseFloat(previousVariation)) {
-          variationCell.classList.add("green-text"); // Ajouter la classe CSS
-          console.log("Added green-text class");
-        }
+      // Ajout de la classe 'positive' si interval1 est plus grand que interval2
+      if (i === 0 && interval1 > interval2) {
+        variationCell.classList.add('positive');
+      } else if (i === 1 && interval2 > interval1) {
+        variationCell.classList.add('positive');
       }
     }
-
-
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -57,6 +44,8 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
+
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 fetchCryptoData("1INCH");
