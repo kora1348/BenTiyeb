@@ -29,9 +29,25 @@ async function fetchCryptoData(symbol) {
 
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
-    }
+      // Comparer les deux intervalVariation
+      if (i > 0) {
+        const previousVariation = parseFloat(
+          data[i - 1][4] - data[i - 1][1]
+        ).toFixed(2);
+        const currentVariation = parseFloat(
+          data[i][4] - data[i][1]
+        ).toFixed(2);
 
-   
+        console.log(
+          `Previous Variation: ${previousVariation}, Current Variation: ${currentVariation}`
+        );
+
+        if (parseFloat(currentVariation) > parseFloat(previousVariation)) {
+          variationCell.classList.add("green-text"); // Ajouter la classe CSS
+          console.log("Added green-text class");
+        }
+      }
+    }
 
 
   } catch (error) {

@@ -63,3 +63,8 @@ th, td {
   border-radius: 4px; /* Coins arrondis */
 }
 
+.green-text {
+  color: green;
+  font-weight: 800;
+}
+
