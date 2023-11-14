@@ -5,11 +5,18 @@ async function fetchCryptoData(symbol) {
     );
     const data = await response.json();
 
-    // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
-    let totalVariation = 0;
-
     // Mise à jour du tableau avec les données et la couleur
     const cryptoRow = document.getElementById(symbol);
+
+    // Comparaison des intervalles
+    const interval1 = parseFloat(data[0][4]) - parseFloat(data[0][1]);
+    const interval2 = parseFloat(data[1][4]) - parseFloat(data[1][1]);
+    const interval3 = parseFloat(data[2][4]) - parseFloat(data[2][1]);
+    const interval4 = parseFloat(data[3][4]) - parseFloat(data[3][1]);
+    const interval5 = parseFloat(data[4][4]) - parseFloat(data[4][1]);
+
+    // Vérification si interval1 est strictement plus grand que les autres intervalles
+    const isMaxInterval = interval1 > interval2 && interval1 > interval3 && interval1 > interval4 && interval1 > interval5;
 
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
@@ -29,37 +36,11 @@ async function fetchCryptoData(symbol) {
 
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
-      // Ne pas ajouter de classe de couleur aux cellules individuelles
-      totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
-    }
-
-    // Ajouter la cellule pour afficher le total de variation
-    const totalCell = cryptoRow.insertCell(data.length + 1);
-    const totalValue = totalVariation.toFixed(2);
-    totalCell.textContent = `${totalValue}%`;
-
-    if (totalVariation >= 0.80 && totalVariation <= 0.90) {
-      totalCell.classList.add("negative");
-    } else if (totalVariation <= -0.80 && totalVariation >= -0.90) {
-      totalCell.classList.add("positive");
-    }
-
-    if ( (totalVariation >= 0.80 && totalVariation <= 0.90) ||  (totalVariation <= -0.80 && totalVariation >= -0.90)) {
-      // Ajouter le nom de la crypto en dehors du tableau
-      const cryptoNameDiv = document.getElementById("cryptoNames");
-      const cryptoName = document.createElement("p");
-      cryptoName.textContent = `${symbol} : ${totalValue}%`;
-      cryptoNameDiv.appendChild(cryptoName);
-
-      // Ajouter la classe CSS appropriée
-      if (totalVariation >= 0.80 && totalVariation <= 0.90) {
-        cryptoName.classList.add("negative");
-      } else if (totalVariation <= -0.80 && totalVariation >= -0.90) {
-        cryptoName.classList.add("positive");
+      // Ajout de la classe 'positive' uniquement si interval1 est strictement plus grand que les autres intervalles
+      if (i === 0 && isMaxInterval && interval1 !== 0) {
+        variationCell.classList.add('positive');
       }
     }
-
-
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -259,10 +240,10 @@ fetchCryptoData("ZRX");
 
 
 
-// function refreshPage() {
-//   location.reload();
-// }
+function refreshPage() {
+  location.reload();
+}
 
 
-// setInterval(refreshPage, 20000);
+setInterval(refreshPage, 10000);
   
