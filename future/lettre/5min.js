@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=6`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=5`
     );
     const data = await response.json();
 
@@ -240,10 +240,10 @@ fetchCryptoData("ZRX");
 
 
 
-function refreshPage() {
-  location.reload();
-}
+// function refreshPage() {
+//   location.reload();
+// }
 
 
-setInterval(refreshPage, 10000);
+// setInterval(refreshPage, 10000);
   
