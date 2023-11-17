@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=6`
     );
 
     if (!response.ok) {
@@ -11,12 +11,16 @@ async function fetchCryptoData(symbol) {
     const data = await response.json();
 
     const cryptoRow = document.getElementById(symbol);
-    const [firstInterval, secondInterval] = [
+    const [firstInterval, secondInterval, thirdInterval, fourthInterval, fifthInterval] = [
       parseFloat(data[0][4]) - parseFloat(data[0][1]),
       parseFloat(data[1][4]) - parseFloat(data[1][1]),
+      parseFloat(data[2][4]) - parseFloat(data[2][1]),
+      parseFloat(data[3][4]) - parseFloat(data[3][1]),
+      parseFloat(data[4][4]) - parseFloat(data[4][1]),
+      
     ];
 
-    const isMaxInterval = firstInterval > secondInterval;
+    const isMaxInterval = firstInterval > secondInterval && firstInterval > thirdInterval && firstInterval > fourthInterval && firstInterval > fifthInterval;
     let countIntervalGreaterThan = 0;
 
     // Ajout d'une variable pour stocker les deux meilleures variations d'intervalle
