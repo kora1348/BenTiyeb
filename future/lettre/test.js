@@ -240,7 +240,8 @@ Promise.all([
 ])
   .then((values) => {
     const total = values.reduce((accumulator, value) => accumulator + value.countIntervalGreaterThan, 0);
-    console.log(`Number of times interval1 > interval2: ${total}`);
+    const totalMessageDiv = document.getElementById('totalMessage');
+    totalMessageDiv.textContent = `La direction est haussière : ${total}`;
   })
   .catch((error) => {
     console.error("Error during Promise.all:", error);
