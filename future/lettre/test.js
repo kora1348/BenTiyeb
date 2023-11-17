@@ -283,9 +283,10 @@ Promise.all([
   totalMessageDiv.textContent = `La direction est haussière : ${total}`;
 
   // Afficher les deux meilleures variations d'intervalle dans l'élément avec l'ID "rankingMessage"
-  totalMessageDiv.innerHTML += `<br><br>Les deux meilleures variations sont : <br>
-    1. ${topIntervals.first.symbol} ${topIntervals.first.value.toFixed(2)}% à ${topIntervals.first.time} <br>
-    2. ${topIntervals.second.symbol} ${topIntervals.second.value.toFixed(2)}% à ${topIntervals.second.time}`;
+  totalMessageDiv.innerHTML += `<br><br>La meilleur variations d'intervalle est : <br>
+    1. ${topIntervals.second.symbol} ${topIntervals.second.value.toFixed(2)}% à ${topIntervals.second.time}`;
+
+    // 1. ${topIntervals.first.symbol} ${topIntervals.first.value.toFixed(2)}% à ${topIntervals.first.time} <br> 
 
   // Changer la couleur en vert si le total est égal ou supérieur à 2
   if (total >= 50) {
