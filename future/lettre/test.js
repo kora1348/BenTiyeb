@@ -19,6 +19,12 @@ async function fetchCryptoData(symbol) {
     const isMaxInterval = firstInterval > secondInterval;
     let countIntervalGreaterThan = 0;
 
+    // Ajout d'une variable pour stocker les deux meilleures variations d'intervalle
+    let topIntervals = {
+      first: { value: -Infinity, time: '' },
+      second: { value: -Infinity, time: '' },
+    };
+
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
@@ -37,14 +43,22 @@ async function fetchCryptoData(symbol) {
       if (i === 0 && isMaxInterval && firstInterval !== 0) {
         variationCell.classList.add('positive');
         countIntervalGreaterThan++;
+
+        // Mettre à jour les deux meilleures variations d'intervalle
+        if (intervalVariation > topIntervals.first.value) {
+          topIntervals.second = { ...topIntervals.first };
+          topIntervals.first = { value: intervalVariation, time: formattedTime };
+        } else if (intervalVariation > topIntervals.second.value) {
+          topIntervals.second = { value: intervalVariation, time: formattedTime };
+        }
       }
     }
 
-    return { countIntervalGreaterThan };
+    return { countIntervalGreaterThan, topIntervals };
 
   } catch (error) {
     console.error(`Error fetching data for ${symbol}:`, error);
-    throw error; // Re-throw the error to propagate it to the Promise.all catch block
+    throw error;
   }
 }
 
@@ -239,9 +253,34 @@ Promise.all([
   fetchCryptoData("ZRX"),
 ])
 .then((values) => {
-  const total = values.reduce((accumulator, value) => accumulator + value.countIntervalGreaterThan, 0);
+  let total = 0;
+  let topIntervals = { first: { value: -Infinity, time: '' }, second: { value: -Infinity, time: '' } };
+
+  values.forEach((value) => {
+    total += value.countIntervalGreaterThan;
+
+    // Mettre à jour les deux meilleures variations globales
+    if (value.topIntervals.first.value > topIntervals.first.value) {
+      topIntervals.second = { ...topIntervals.first };
+      topIntervals.first = { ...value.topIntervals.first };
+    } else if (value.topIntervals.first.value > topIntervals.second.value) {
+      topIntervals.second = { ...value.topIntervals.first };
+    }
+
+    if (value.topIntervals.second.value > topIntervals.second.value) {
+      topIntervals.second = { ...value.topIntervals.second };
+    }
+  });
+
   const totalMessageDiv = document.getElementById('totalMessage');
+
+  // Afficher le total
   totalMessageDiv.textContent = `La direction est haussière : ${total}`;
+
+  // Afficher les deux meilleures variations d'intervalle dans l'élément avec l'ID "rankingMessage"
+  totalMessageDiv.innerHTML += `<br>Les deux meilleures variations sont : 
+    1. ${topIntervals.first.value.toFixed(2)}% à ${topIntervals.first.time}
+    2. ${topIntervals.second.value.toFixed(2)}% à ${topIntervals.second.time}`;
 
   // Changer la couleur en vert si le total est égal ou supérieur à 2
   if (total >= 50) {
@@ -249,7 +288,6 @@ Promise.all([
     totalMessageDiv.style.fontWeight = '700';
   }
 })
-
-  .catch((error) => {
-    console.error("Error during Promise.all:", error);
-  });
+.catch((error) => {
+  console.error("Error during Promise.all:", error);
+});
