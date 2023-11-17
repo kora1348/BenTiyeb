@@ -238,11 +238,18 @@ Promise.all([
   fetchCryptoData("ZIL"),
   fetchCryptoData("ZRX"),
 ])
-  .then((values) => {
-    const total = values.reduce((accumulator, value) => accumulator + value.countIntervalGreaterThan, 0);
-    const totalMessageDiv = document.getElementById('totalMessage');
-    totalMessageDiv.textContent = `La direction est haussière : ${total}`;
-  })
+.then((values) => {
+  const total = values.reduce((accumulator, value) => accumulator + value.countIntervalGreaterThan, 0);
+  const totalMessageDiv = document.getElementById('totalMessage');
+  totalMessageDiv.textContent = `La direction est haussière : ${total}`;
+
+  // Changer la couleur en vert si le total est égal ou supérieur à 2
+  if (total >= 50) {
+    totalMessageDiv.style.color = 'green';
+    totalMessageDiv.style.fontWeight = '700';
+  }
+})
+
   .catch((error) => {
     console.error("Error during Promise.all:", error);
   });
