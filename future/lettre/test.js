@@ -289,7 +289,7 @@ Promise.all([
     // 1. ${topIntervals.first.symbol} ${topIntervals.first.value.toFixed(2)}% à ${topIntervals.first.time} <br> 
 
   // Changer la couleur en vert si le total est égal ou supérieur à 2
-  if (total >= 50) {
+  if (total <= 10) {
     totalMessageDiv.style.color = 'green';
     totalMessageDiv.style.fontWeight = '700';
   }
