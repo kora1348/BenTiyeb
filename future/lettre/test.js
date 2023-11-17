@@ -21,8 +21,8 @@ async function fetchCryptoData(symbol) {
 
     // Ajout d'une variable pour stocker les deux meilleures variations d'intervalle
     let topIntervals = {
-      first: { value: -Infinity, time: '' },
-      second: { value: -Infinity, time: '' },
+      first: { symbol: symbol, value: -Infinity, time: '' },
+      second: { symbol: symbol, value: -Infinity, time: '' },
     };
 
     for (let i = 0; i < data.length; i++) {
@@ -47,9 +47,9 @@ async function fetchCryptoData(symbol) {
         // Mettre à jour les deux meilleures variations d'intervalle
         if (intervalVariation > topIntervals.first.value) {
           topIntervals.second = { ...topIntervals.first };
-          topIntervals.first = { value: intervalVariation, time: formattedTime };
+          topIntervals.first = { symbol: symbol, value: intervalVariation, time: formattedTime };
         } else if (intervalVariation > topIntervals.second.value) {
-          topIntervals.second = { value: intervalVariation, time: formattedTime };
+          topIntervals.second = { symbol: symbol, value: intervalVariation, time: formattedTime };
         }
       }
     }
@@ -61,6 +61,7 @@ async function fetchCryptoData(symbol) {
     throw error;
   }
 }
+
 
 // Use Promise.all to fetch data for multiple symbols concurrently
 Promise.all([
@@ -254,21 +255,21 @@ Promise.all([
 ])
 .then((values) => {
   let total = 0;
-  let topIntervals = { first: { value: -Infinity, time: '' }, second: { value: -Infinity, time: '' } };
+  let topIntervals = { first: { symbol: '', value: -Infinity, time: '' }, second: { symbol: '', value: -Infinity, time: '' } };
 
-  values.forEach((value) => {
+  values.forEach((value, index) => {
     total += value.countIntervalGreaterThan;
 
     // Mettre à jour les deux meilleures variations globales
     if (value.topIntervals.first.value > topIntervals.first.value) {
       topIntervals.second = { ...topIntervals.first };
-      topIntervals.first = { ...value.topIntervals.first };
+      topIntervals.first = { symbol: value.topIntervals.first.symbol, value: value.topIntervals.first.value, time: value.topIntervals.first.time };
     } else if (value.topIntervals.first.value > topIntervals.second.value) {
-      topIntervals.second = { ...value.topIntervals.first };
+      topIntervals.second = { symbol: value.topIntervals.first.symbol, value: value.topIntervals.first.value, time: value.topIntervals.first.time };
     }
 
     if (value.topIntervals.second.value > topIntervals.second.value) {
-      topIntervals.second = { ...value.topIntervals.second };
+      topIntervals.second = { symbol: value.topIntervals.second.symbol, value: value.topIntervals.second.value, time: value.topIntervals.second.time };
     }
   });
 
@@ -279,8 +280,8 @@ Promise.all([
 
   // Afficher les deux meilleures variations d'intervalle dans l'élément avec l'ID "rankingMessage"
   totalMessageDiv.innerHTML += `<br>Les deux meilleures variations sont : 
-    1. ${topIntervals.first.value.toFixed(2)}% à ${topIntervals.first.time}
-    2. ${topIntervals.second.value.toFixed(2)}% à ${topIntervals.second.time}`;
+    1. ${topIntervals.first.symbol} ${topIntervals.first.value.toFixed(2)}% à ${topIntervals.first.time}
+    2. ${topIntervals.second.symbol} ${topIntervals.second.value.toFixed(2)}% à ${topIntervals.second.time}`;
 
   // Changer la couleur en vert si le total est égal ou supérieur à 2
   if (total >= 50) {
