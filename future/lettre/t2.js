@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=1`
     );
     const data = await response.json();
 
@@ -44,7 +44,6 @@ async function fetchCryptoData(symbol) {
       totalCell.classList.add("positive");
     }
 
-       // Check if the cryptocurrency meets the condition
     // Calculate total variation
     if (totalVariation >= 5 || totalVariation <= -5) {
       // Update #cryptoNames div with the total variation
@@ -56,7 +55,6 @@ async function fetchCryptoData(symbol) {
       // Append the content with the class
       cryptoNamesDiv.innerHTML += `<p class="${classToAdd}">${symbol}: ${totalValue}%</p>`;
     }
-
     
 
   } catch (error) {
