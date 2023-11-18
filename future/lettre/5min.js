@@ -109,6 +109,9 @@ const cryptoDataPromises = [
 
 // Attendre que toutes les promesses soient résolues
 Promise.all(cryptoDataPromises).then((cryptoDataArray) => {
-  // Afficher les totaux positifs
+  // Trier le tableau par le totalVariation de manière décroissante
+  cryptoDataArray.sort((a, b) => b.totalVariation - a.totalVariation);
+
+  // Afficher les totaux positifs triés
   displayPositiveTotals(cryptoDataArray);
 });
