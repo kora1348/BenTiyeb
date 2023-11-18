@@ -82,6 +82,9 @@ async function fetchCryptoData(symbol) {
 }
 
 // Use Promise.all to fetch data for multiple symbols concurrently
+// ...
+
+// Use Promise.all to fetch data for multiple symbols concurrently
 Promise.all([
   fetchCryptoData("1INCH"),
   fetchCryptoData("AAVE"),
@@ -91,45 +94,52 @@ Promise.all([
   fetchCryptoData("AGLD"),
   fetchCryptoData("ALGO"),
   fetchCryptoData("ALICE"),
-  
 ])
-.then((values) => {
-  let total = 0;
-  let topIntervals = { first: { symbol: '', value: -Infinity, time: '' }, second: { symbol: '', value: -Infinity, time: '' } };
+  .then((values) => {
+    let totalNegativeIntervals = 0;
+    let mostNegativeCrypto = { symbol: '', value: Infinity };
 
-  values.forEach((value, index) => {
-    total += value.countIntervalGreaterThan;
+    values.forEach((value) => {
+      totalNegativeIntervals += value.countNegativeIntervals;
 
-    // Mettre à jour les deux meilleures variations globales
-    if (value.topIntervals.first.value > topIntervals.first.value) {
-      topIntervals.second = { ...topIntervals.first };
-      topIntervals.first = { symbol: value.topIntervals.first.symbol, value: value.topIntervals.first.value, time: value.topIntervals.first.time };
-    } else if (value.topIntervals.first.value > topIntervals.second.value) {
-      topIntervals.second = { symbol: value.topIntervals.first.symbol, value: value.topIntervals.first.value, time: value.topIntervals.first.time };
+      // Mettre à jour la crypto ayant le taux négatif le plus important
+      if (value.topIntervals.second.value < mostNegativeCrypto.value) {
+        mostNegativeCrypto = {
+          symbol: value.topIntervals.second.symbol,
+          value: value.topIntervals.second.value,
+          time: value.topIntervals.second.time,
+        };
+      }
+    });
+
+    const rankingMessageDiv = document.getElementById('rankingMessage');
+    const totalMessageDiv = document.getElementById('totalMessage');
+
+    // Filtrer les cryptos avec au moins 3 intervalles négatifs
+    const negativeCryptos = values.filter((value) => value.countNegativeIntervals >= 3);
+
+    // Afficher la crypto avec le taux négatif le plus important dans 'rankingMessage'
+    if (negativeCryptos.length > 0) {
+      const mostNegativeCryptoInRanking = negativeCryptos.reduce((max, crypto) =>
+        crypto.topIntervals.second.value > max.topIntervals.second.value ? crypto : max
+      );
+
+      rankingMessageDiv.textContent = `La crypto avec le taux négatif le plus important est : 
+        ${mostNegativeCryptoInRanking.topIntervals.second.symbol} 
+        ${mostNegativeCryptoInRanking.topIntervals.second.value.toFixed(2)}% à 
+        ${mostNegativeCryptoInRanking.topIntervals.second.time}`;
     }
 
-    if (value.topIntervals.second.value > topIntervals.second.value) {
-      topIntervals.second = { symbol: value.topIntervals.second.symbol, value: value.topIntervals.second.value, time: value.topIntervals.second.time };
+    // Afficher seulement la meilleure deuxième variation d'intervalle négative dans 'totalMessage'
+    totalMessageDiv.innerHTML = `La meilleure deuxième variation d'intervalle négative est : <br>
+      1. ${mostNegativeCrypto.symbol} ${mostNegativeCrypto.value.toFixed(2)}% à ${mostNegativeCrypto.time}`;
+
+    // Changer la couleur en vert si le total est égal ou supérieur à 2
+    if (totalNegativeIntervals <= 10) {
+      totalMessageDiv.style.color = 'green';
+      totalMessageDiv.style.fontWeight = '700';
     }
+  })
+  .catch((error) => {
+    console.error("Error during Promise.all:", error);
   });
-
-  const totalMessageDiv = document.getElementById('totalMessage');
-
-  // Afficher le total
-  totalMessageDiv.textContent = `La direction est haussière : ${total}`;
-
-  // Afficher les deux meilleures variations d'intervalle dans l'élément avec l'ID "rankingMessage"
-  totalMessageDiv.innerHTML += `<br><br>La meilleur variations d'intervalle est : <br>
-    1. ${topIntervals.second.symbol} ${topIntervals.second.value.toFixed(2)}% à ${topIntervals.second.time}`;
-
-    // 1. ${topIntervals.first.symbol} ${topIntervals.first.value.toFixed(2)}% à ${topIntervals.first.time} <br> 
-
-  // Changer la couleur en vert si le total est égal ou supérieur à 2
-  if (total <= 10) {
-    totalMessageDiv.style.color = 'green';
-    totalMessageDiv.style.fontWeight = '700';
-  }
-})
-.catch((error) => {
-  console.error("Error during Promise.all:", error);
-});
