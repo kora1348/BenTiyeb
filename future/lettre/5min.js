@@ -12,7 +12,7 @@ function displayPositiveTotals(cryptoData) {
     // Afficher uniquement si le total positif est supérieur ou égal à 2
     if (positiveCount >= 2) {
       // Ajouter des classes de couleur au total
-      const totalText = `Total pour ${symbol}: ${totalVariation.toFixed(2)}% (Positif: ${positiveCount}, Negatif: ${negativeCount})`;
+      const totalText = `${symbol}: ${totalVariation.toFixed(2)}%`;
       const totalElement = document.createElement("p");
       totalElement.textContent = totalText;
       totalElement.style.color =
