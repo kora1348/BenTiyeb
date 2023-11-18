@@ -44,6 +44,7 @@ async function fetchCryptoData(symbol) {
       totalCell.classList.add("positive");
     }
 
+       // Check if the cryptocurrency meets the condition
     // Calculate total variation
     if (totalVariation >= 5 || totalVariation <= -5) {
       // Update #cryptoNames div with the total variation
@@ -55,6 +56,7 @@ async function fetchCryptoData(symbol) {
       // Append the content with the class
       cryptoNamesDiv.innerHTML += `<p class="${classToAdd}">${symbol}: ${totalValue}%</p>`;
     }
+
     
 
   } catch (error) {
