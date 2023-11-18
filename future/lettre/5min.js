@@ -31,26 +31,30 @@ async function fetchCryptoData(symbol) {
 
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
-      // Ne pas ajouter de classe de couleur aux cellules individuelles
-      totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
-
-      // Compter les variations positives et négatives
+      // Ajouter des classes de couleur aux cellules individuelles
       if (intervalVariation > 0) {
+        variationCell.style.color = 'green';
         positiveCount++;
       } else if (intervalVariation < 0) {
+        variationCell.style.color = 'red';
         negativeCount++;
       }
+      
+      totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
     }
 
-    // Afficher le total, le nombre de variations positives et le nombre de variations négatives
+    // Ajouter des classes de couleur au total
     const totalCell = cryptoRow.insertCell(data.length + 1);
     totalCell.textContent = `Total: ${totalVariation.toFixed(2)}%`;
+    totalCell.style.color = totalVariation > 0 ? 'green' : totalVariation < 0 ? 'red' : 'black';
 
     const positiveCell = cryptoRow.insertCell(data.length + 2);
     positiveCell.textContent = `Positif: ${positiveCount}`;
+    positiveCell.style.color = 'green';
 
     const negativeCell = cryptoRow.insertCell(data.length + 3);
     negativeCell.textContent = `Negatif: ${negativeCount}`;
+    negativeCell.style.color = 'red';
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
