@@ -39,9 +39,9 @@ async function fetchCryptoData(symbol) {
     totalCell.textContent = `${totalValue}%`;
 
     if (totalVariation >= 0.80 && totalVariation <= 0.84) {
-      totalCell.classList.add("negative");
-    } else if (totalVariation <= -0.80 && totalVariation >= -0.84) {
       totalCell.classList.add("positive");
+    } else if (totalVariation <= -0.80 && totalVariation >= -0.84) {
+      totalCell.classList.add("negative");
     }
 
     if ( (totalVariation >= 0.80 && totalVariation <= 0.84) ||  (totalVariation <= -0.80 && totalVariation >= -0.84)) {
@@ -53,9 +53,9 @@ async function fetchCryptoData(symbol) {
 
       // Ajouter la classe CSS appropriée
       if (totalVariation >= 0.80 && totalVariation <= 0.84) {
-        cryptoName.classList.add("negative");
-      } else if (totalVariation <= -0.80 && totalVariation >= -0.84) {
         cryptoName.classList.add("positive");
+      } else if (totalVariation <= -0.80 && totalVariation >= -0.84) {
+        cryptoName.classList.add("negative");
       }
     }
 
