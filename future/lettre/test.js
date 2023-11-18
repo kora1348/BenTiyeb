@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=6`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=5`
     );
 
     if (!response.ok) {
@@ -17,11 +17,10 @@ async function fetchCryptoData(symbol) {
       parseFloat(data[2][4]) - parseFloat(data[2][1]),
       parseFloat(data[3][4]) - parseFloat(data[3][1]),
       parseFloat(data[4][4]) - parseFloat(data[4][1]),
-      
     ];
 
-    const isMaxInterval = firstInterval > secondInterval && firstInterval > thirdInterval && firstInterval > fourthInterval && firstInterval > fifthInterval;
-    let countIntervalGreaterThan = 0;
+    let countPositiveIntervals = 0;
+    let countNegativeIntervals = 0;
 
     // Ajout d'une variable pour stocker les deux meilleures variations d'intervalle
     let topIntervals = {
@@ -44,9 +43,9 @@ async function fetchCryptoData(symbol) {
 
       variationCell.textContent = `${formattedTime}: ${variationValue}%`;
 
-      if (i === 0 && isMaxInterval && firstInterval !== 0) {
+      if (intervalVariation > 0) {
         variationCell.classList.add('positive');
-        countIntervalGreaterThan++;
+        countPositiveIntervals++;
 
         // Mettre à jour les deux meilleures variations d'intervalle
         if (intervalVariation > topIntervals.first.value) {
@@ -55,10 +54,20 @@ async function fetchCryptoData(symbol) {
         } else if (intervalVariation > topIntervals.second.value) {
           topIntervals.second = { symbol: symbol, value: intervalVariation, time: formattedTime };
         }
+      } else if (intervalVariation < 0) {
+        variationCell.classList.add('negative');
+        countNegativeIntervals++;
       }
     }
 
-    return { countIntervalGreaterThan, topIntervals };
+    // Update "Positif" and "Négatif" fields
+    const positiveCell = cryptoRow.insertCell(-1);
+    const negativeCell = cryptoRow.insertCell(-1);
+
+    positiveCell.textContent = countPositiveIntervals;
+    negativeCell.textContent = countNegativeIntervals;
+
+    return { countPositiveIntervals, countNegativeIntervals, topIntervals };
 
   } catch (error) {
     console.error(`Error fetching data for ${symbol}:`, error);
