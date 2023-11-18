@@ -136,7 +136,15 @@ const cryptoDataPromises = [
 Promise.all(cryptoDataPromises).then((cryptoDataArray) => {
   // Trier le tableau par le totalVariation de manière croissante
   cryptoDataArray.sort((a, b) => a.totalVariation - b.totalVariation);
-  // Afficher les totaux positifs triés
-  displayPositiveTotals(cryptoDataArray);
-  displayNegativeTotals(cryptoDataArray);
+  
+  // Filtrer les totaux positifs et négatifs
+  const positiveTotals = cryptoDataArray.filter(item => item.totalVariation >= 0);
+  const negativeTotals = cryptoDataArray.filter(item => item.totalVariation < 0);
+  
+  // Afficher les totaux positifs triés de la plus petite à la plus grande
+  displayPositiveTotals(positiveTotals);
+
+  // Afficher les totaux négatifs triés de la plus grande à la plus petite
+  negativeTotals.sort((a, b) => b.totalVariation - a.totalVariation);
+  displayNegativeTotals(negativeTotals);
 });
