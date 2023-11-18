@@ -259,7 +259,28 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("ZIL");
   fetchCryptoData("ZRX");
 
-
+  function mettreAJourHeure() {
+    var elementHeure = document.getElementById('heure');
+    var maintenant = new Date();
+    
+    var heures = maintenant.getHours();
+    var minutes = maintenant.getMinutes();
+    var secondes = maintenant.getSeconds();
+  
+    // Ajouter un zéro devant les chiffres < 10
+    heures = heures < 10 ? '0' + heures : heures;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    secondes = secondes < 10 ? '0' + secondes : secondes;
+  
+    // Mettre à jour le contenu de l'élément avec l'heure actuelle
+    elementHeure.innerHTML = heures + ':' + minutes + ':' + secondes;
+  }
+  
+  // Appeler la fonction une première fois pour afficher l'heure au chargement de la page
+  mettreAJourHeure();
+  
+  // Actualiser l'heure chaque seconde
+  // setInterval(mettreAJourHeure, 1000);
 
   // function refreshPage() {
   //   location.reload();
