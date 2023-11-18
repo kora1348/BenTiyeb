@@ -10,7 +10,7 @@ function displayPositiveTotals(cryptoData) {
     const negativeCount = crypto.negativeCount;
 
     // Afficher uniquement si le total positif est supérieur ou égal à 2
-    if (positiveCount >= 25) {
+    if (positiveCount >= 23) {
       // Ajouter des classes de couleur au total
       const totalText = `${symbol}: ${totalVariation.toFixed(2)}%`;
       const totalElement = document.createElement("p");
@@ -35,7 +35,7 @@ function displayNegativeTotals(cryptoData) {
     const negativeCount = crypto.negativeCount;
 
     // Afficher uniquement si le total positif est supérieur ou égal à 2
-    if (negativeCount >= 25) {
+    if (negativeCount >= 23) {
       // Ajouter des classes de couleur au total
       const totalText = `${symbol}: ${totalVariation.toFixed(2)}%`;
       const totalElement = document.createElement("p");
@@ -51,7 +51,7 @@ function displayNegativeTotals(cryptoData) {
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=33`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=28`
     );
     const data = await response.json();
 
