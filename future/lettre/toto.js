@@ -38,24 +38,27 @@ async function fetchCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
-    if (totalVariation >= 5) {
+    if (totalVariation >= 0.80 && totalVariation <= 0.84) {
       totalCell.classList.add("negative");
-    } else if (totalVariation <= -5) {
+    } else if (totalVariation <= -0.80 && totalVariation >= -0.84) {
       totalCell.classList.add("positive");
     }
 
-    // Calculate total variation
-    if (totalVariation >= 5 || totalVariation <= -5) {
-      // Update #cryptoNames div with the total variation
-      const cryptoNamesDiv = document.getElementById("cryptoNames");
+    if ( (totalVariation >= 0.80 && totalVariation <= 0.84) ||  (totalVariation <= -0.80 && totalVariation >= -0.84)) {
+      // Ajouter le nom de la crypto en dehors du tableau
+      const cryptoNameDiv = document.getElementById("cryptoNames");
+      const cryptoName = document.createElement("p");
+      cryptoName.textContent = `${symbol} : ${totalValue}%`;
+      cryptoNameDiv.appendChild(cryptoName);
 
-      // Determine the class based on totalVariation
-      const classToAdd = totalVariation <= -5 ? "positive" : "negative";
-
-      // Append the content with the class
-      cryptoNamesDiv.innerHTML += `<p class="${classToAdd}">${symbol}: ${totalValue}%</p>`;
+      // Ajouter la classe CSS appropriée
+      if (totalVariation >= 0.80 && totalVariation <= 0.84) {
+        cryptoName.classList.add("negative");
+      } else if (totalVariation <= -0.80 && totalVariation >= -0.84) {
+        cryptoName.classList.add("positive");
+      }
     }
-    
+
 
   } catch (error) {
     console.error(
