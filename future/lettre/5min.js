@@ -23,6 +23,31 @@ function displayPositiveTotals(cryptoData) {
   });
 }
 
+// Fonction pour afficher les totaux positifs supérieurs ou égaux à 2 dans la balise avec l'ID "messagePositive"
+function displayNegativeTotals(cryptoData) {
+  const messageNegative = document.getElementById("messageNegative");
+  messageNegative.innerHTML = ""; // Effacer le contenu précédent
+
+  cryptoData.forEach((crypto) => {
+    const symbol = crypto.symbol;
+    const totalVariation = crypto.totalVariation;
+    const positiveCount = crypto.positiveCount;
+    const negativeCount = crypto.negativeCount;
+
+    // Afficher uniquement si le total positif est supérieur ou égal à 2
+    if (negativeCount >= 2) {
+      // Ajouter des classes de couleur au total
+      const totalText = `${symbol}: ${totalVariation.toFixed(2)}%`;
+      const totalElement = document.createElement("p");
+      totalElement.textContent = totalText;
+      totalElement.style.color =
+        totalVariation > 0 ? "red" : totalVariation < 0 ? "green" : "black";
+
+      messageNegative.appendChild(totalElement);
+    }
+  });
+}
+
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
@@ -109,9 +134,9 @@ const cryptoDataPromises = [
 
 // Attendre que toutes les promesses soient résolues
 Promise.all(cryptoDataPromises).then((cryptoDataArray) => {
-  // Trier le tableau par le totalVariation de manière décroissante
-  cryptoDataArray.sort((a, b) => b.totalVariation - a.totalVariation);
-
+  // Trier le tableau par le totalVariation de manière croissante
+  cryptoDataArray.sort((a, b) => a.totalVariation - b.totalVariation);
   // Afficher les totaux positifs triés
   displayPositiveTotals(cryptoDataArray);
+  displayNegativeTotals(cryptoDataArray);
 });
