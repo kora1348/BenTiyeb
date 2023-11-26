@@ -2,21 +2,40 @@ function mettreAJourHeure() {
   var elementHeure = document.getElementById('heure');
   var maintenant = new Date();
   
-  var heures = maintenant.getHours();
-  var minutes = maintenant.getMinutes();
-  var secondes = maintenant.getSeconds();
+  // Créer une copie de l'heure actuelle
+  var heureActuelle = new Date(maintenant);
+
+  // Ajouter 3 heures et 20 minutes à l'heure actuelle
+  maintenant.setHours(maintenant.getHours() + 3);
+  maintenant.setMinutes(maintenant.getMinutes() + 20);
+
+  var heuresMaintenant = maintenant.getHours();
+  var minutesMaintenant = maintenant.getMinutes();
+  var secondesMaintenant = maintenant.getSeconds();
+
+  var heuresActuelle = heureActuelle.getHours();
+  var minutesActuelle = heureActuelle.getMinutes();
+  var secondesActuelle = heureActuelle.getSeconds();
 
   // Ajouter un zéro devant les chiffres < 10
-  heures = heures < 10 ? '0' + heures : heures;
-  minutes = minutes < 10 ? '0' + minutes : minutes;
-  secondes = secondes < 10 ? '0' + secondes : secondes;
+  heuresMaintenant = heuresMaintenant < 10 ? '0' + heuresMaintenant : heuresMaintenant;
+  minutesMaintenant = minutesMaintenant < 10 ? '0' + minutesMaintenant : minutesMaintenant;
+  secondesMaintenant = secondesMaintenant < 10 ? '0' + secondesMaintenant : secondesMaintenant;
 
-  // Mettre à jour le contenu de l'élément avec l'heure actuelle
-  elementHeure.innerHTML = heures + ':' + minutes + ':' + secondes;
+  heuresActuelle = heuresActuelle < 10 ? '0' + heuresActuelle : heuresActuelle;
+  minutesActuelle = minutesActuelle < 10 ? '0' + minutesActuelle : minutesActuelle;
+  secondesActuelle = secondesActuelle < 10 ? '0' + secondesActuelle : secondesActuelle;
+
+  // Mettre à jour le contenu de l'élément avec les deux heures
+  elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle +
+                           ' --- ' +
+                           heuresMaintenant + ':' + minutesMaintenant + ':' + secondesMaintenant;
 }
 
-// Appeler la fonction une première fois pour afficher l'heure au chargement de la page
+// Appeler la fonction pour mettre à jour l'heure
 mettreAJourHeure();
+
+
 
 
 async function fetchCryptoData(symbol) {
