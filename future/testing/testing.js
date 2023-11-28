@@ -63,7 +63,7 @@ function calculateAndDisplayTotal(cryptoData) {
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=33`
     );
     const data = await response.json();
 
