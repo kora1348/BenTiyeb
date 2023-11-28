@@ -7,7 +7,6 @@ function displayPositiveTotals(cryptoData) {
     const symbol = crypto.symbol;
     const totalVariation = crypto.totalVariation;
     const positiveCount = crypto.positiveCount;
-    const negativeCount = crypto.negativeCount;
 
     // Afficher uniquement si le total positif est supérieur ou égal à 2
     if (positiveCount >= 28) {
@@ -31,7 +30,6 @@ function displayNegativeTotals(cryptoData) {
   cryptoData.forEach((crypto) => {
     const symbol = crypto.symbol;
     const totalVariation = crypto.totalVariation;
-    const positiveCount = crypto.positiveCount;
     const negativeCount = crypto.negativeCount;
 
     // Afficher uniquement si le total positif est supérieur ou égal à 2
@@ -48,6 +46,20 @@ function displayNegativeTotals(cryptoData) {
   });
 }
 
+// Fonction pour calculer et afficher le total des taux de variation sur toutes les crypto-monnaies
+function calculateAndDisplayTotal(cryptoData) {
+  let totalIntervalle = 0;
+
+  cryptoData.forEach((crypto) => {
+    totalIntervalle += crypto.totalVariation;
+  });
+
+  // Afficher le total dans la balise avec l'ID "totalIntervalle"
+  const totalIntervalleDiv = document.getElementById("totalIntervalle");
+  totalIntervalleDiv.textContent = `Total Intervalle: ${totalIntervalle.toFixed(2)}%`;
+}
+
+// Fonction pour récupérer les données des cryptos depuis l'API
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
@@ -121,8 +133,8 @@ async function fetchCryptoData(symbol) {
 
 // Appeler la fonction pour chaque crypto-monnaie
 const cryptoDataPromises = [
-// Appel de la fonction pour obtenir les taux de variation des cryptos
-fetchCryptoData("1INCH"),
+  // Appel de la fonction pour obtenir les taux de variation des cryptos
+  fetchCryptoData("1INCH"),
 fetchCryptoData("AAVE"),
 fetchCryptoData("ACH"),
 fetchCryptoData("ADA"),
@@ -282,7 +294,6 @@ fetchCryptoData("SUSHI"),
 fetchCryptoData("SXP"),
 fetchCryptoData("THETA"),
 fetchCryptoData("TLM"),
-fetchCryptoData("TOMO"),
 fetchCryptoData("TRB"),
 fetchCryptoData("TRU"),
 fetchCryptoData("TRX"),
@@ -309,29 +320,24 @@ fetchCryptoData("ZEC"),
 fetchCryptoData("ZEN"),
 fetchCryptoData("ZIL"),
 fetchCryptoData("ZRX"),
-
-// function refreshPage() {
-//   location.reload(),
-// }
-
-
-// setInterval(refreshPage, 20000),
-  
 ];
 
 // Attendre que toutes les promesses soient résolues
 Promise.all(cryptoDataPromises).then((cryptoDataArray) => {
   // Trier le tableau par le totalVariation de manière croissante
   cryptoDataArray.sort((a, b) => a.totalVariation - b.totalVariation);
-  
+
   // Filtrer les totaux positifs et négatifs
   const positiveTotals = cryptoDataArray.filter(item => item.totalVariation >= 0);
   const negativeTotals = cryptoDataArray.filter(item => item.totalVariation < 0);
-  
+
   // Afficher les totaux positifs triés de la plus petite à la plus grande
   displayPositiveTotals(positiveTotals);
 
   // Afficher les totaux négatifs triés de la plus grande à la plus petite
   negativeTotals.sort((a, b) => b.totalVariation - a.totalVariation);
   displayNegativeTotals(negativeTotals);
+
+  // Calculer et afficher le total des taux de variation sur toutes les crypto-monnaies
+  calculateAndDisplayTotal(cryptoDataArray);
 });
