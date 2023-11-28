@@ -26,8 +26,8 @@ function countNegativeIntervals(cryptoData) {
   // Afficher le nombre dans la balise avec l'ID "positiveIntervalle"
   const negativeIntervalleDiv = document.getElementById("negativeIntervalle");
   negativeIntervalleDiv.textContent = `Nombre d'intervalles negatifs : ${negativeIntervalleCount}`;
-  negativeIntervalleDiv.style.color = "red";
-  negativeIntervalleDiv.style.fontWeight = "bold"; // Ajout du gras
+  // negativeIntervalleDiv.style.color = "red";
+  // negativeIntervalleDiv.style.fontWeight = "bold"; 
 }
 
 function countPositiveIntervals(cryptoData) {
@@ -43,11 +43,32 @@ function countPositiveIntervals(cryptoData) {
   // Afficher le nombre dans la balise avec l'ID "positiveIntervalle"
   const positiveIntervalleDiv = document.getElementById("positiveIntervalle");
   positiveIntervalleDiv.textContent = `Nombre d'intervalles positifs : ${positiveIntervalleCount}`;
-  positiveIntervalleDiv.style.color = "green";
-  positiveIntervalleDiv.style.fontWeight = "bold"; // Ajout du gras
+  // positiveIntervalleDiv.style.color = "green";
+  // positiveIntervalleDiv.style.fontWeight = "bold";
 }
 
 
+// Fonction pour calculer et afficher la différence entre les nombres d'intervalles positifs et négatifs
+function calculateAndDisplayDifference(cryptoData) {
+  let positiveIntervalleCount = 0;
+  let negativeIntervalleCount = 0;
+
+  cryptoData.forEach((crypto) => {
+    positiveIntervalleCount += crypto.positiveCount;
+    negativeIntervalleCount += crypto.negativeCount;
+  });
+
+  // Calculer la différence
+  const difference = positiveIntervalleCount - negativeIntervalleCount;
+
+  // Afficher la différence dans la balise avec l'ID "totalPositiveNegativeIntervalle"
+  const totalPositiveNegativeIntervalleDiv = document.getElementById("totalPositiveNegativeIntervalle");
+  totalPositiveNegativeIntervalleDiv.textContent = `Différence : ${difference}`;
+
+  // Appliquer la couleur en fonction de la différence
+  totalPositiveNegativeIntervalleDiv.style.color = difference > 0 ? "green" : "red";
+  totalPositiveNegativeIntervalleDiv.style.fontWeight = "bold";
+}
 
 
 
@@ -346,4 +367,5 @@ Promise.all(cryptoDataPromises).then((cryptoDataArray) => {
   // Calculer et afficher la somme des intervalles positifs
   countPositiveIntervals(cryptoDataArray);
   countNegativeIntervals(cryptoDataArray);
+  calculateAndDisplayDifference(cryptoDataArray);
 });
