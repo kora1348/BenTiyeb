@@ -12,6 +12,41 @@ function calculateAndDisplayTotal(cryptoData) {
   totalIntervalleDiv.textContent = `Total Intervalle: ${totalIntervalle.toFixed(2)}%`;
 }
 
+// Fonction pour additionner tous les intervalles positifs
+function countNegativeIntervals(cryptoData) {
+  let negativeIntervalleCount = 0;
+
+  cryptoData.forEach((crypto) => {
+    // Compter seulement les taux de variation négatifs
+    if (crypto.totalVariation < 0) {
+      negativeIntervalleCount++;
+    }
+  });
+
+  // Afficher le nombre dans la balise avec l'ID "positiveIntervalle"
+  const negativeIntervalleDiv = document.getElementById("negativeIntervalle");
+  negativeIntervalleDiv.textContent = `Nombre d'intervalles negatifs : ${negativeIntervalleCount}`;
+}
+
+function countPositiveIntervals(cryptoData) {
+  let positiveIntervalleCount = 0;
+
+  cryptoData.forEach((crypto) => {
+    // Compter seulement les taux de variation négatifs
+    if (crypto.totalVariation > 0) {
+      positiveIntervalleCount++;
+    }
+  });
+
+  // Afficher le nombre dans la balise avec l'ID "positiveIntervalle"
+  const positiveIntervalleDiv = document.getElementById("positiveIntervalle");
+  positiveIntervalleDiv.textContent = `Nombre d'intervalles positifs : ${positiveIntervalleCount}`;
+}
+
+
+
+
+
 function mettreAJourHeure() {
   var elementHeure = document.getElementById('heure');
   var maintenant = new Date();
@@ -301,7 +336,10 @@ fetchCryptoData("ZRX"),
 
 // Attendre que toutes les promesses soient résolues
 Promise.all(cryptoDataPromises).then((cryptoDataArray) => {
-
   // Calculer et afficher le total des taux de variation sur toutes les crypto-monnaies
   calculateAndDisplayTotal(cryptoDataArray);
+
+  // Calculer et afficher la somme des intervalles positifs
+  countPositiveIntervals(cryptoDataArray);
+  countNegativeIntervals(cryptoDataArray);
 });
