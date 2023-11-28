@@ -26,6 +26,8 @@ function countNegativeIntervals(cryptoData) {
   // Afficher le nombre dans la balise avec l'ID "positiveIntervalle"
   const negativeIntervalleDiv = document.getElementById("negativeIntervalle");
   negativeIntervalleDiv.textContent = `Nombre d'intervalles negatifs : ${negativeIntervalleCount}`;
+  negativeIntervalleDiv.style.color = "red";
+  negativeIntervalleDiv.style.fontWeight = "bold"; // Ajout du gras
 }
 
 function countPositiveIntervals(cryptoData) {
@@ -41,6 +43,8 @@ function countPositiveIntervals(cryptoData) {
   // Afficher le nombre dans la balise avec l'ID "positiveIntervalle"
   const positiveIntervalleDiv = document.getElementById("positiveIntervalle");
   positiveIntervalleDiv.textContent = `Nombre d'intervalles positifs : ${positiveIntervalleCount}`;
+  positiveIntervalleDiv.style.color = "green";
+  positiveIntervalleDiv.style.fontWeight = "bold"; // Ajout du gras
 }
 
 
