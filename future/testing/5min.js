@@ -41,9 +41,7 @@ function mettreAJourHeure() {
   secondesActuelle = secondesActuelle < 10 ? '0' + secondesActuelle : secondesActuelle;
 
   // Mettre à jour le contenu de l'élément avec les deux heures
-  elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle +
-                           ' --- ' +
-                           heuresMaintenant + ':' + minutesMaintenant + ':' + secondesMaintenant;
+  elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle;
 }
 
 // Appeler la fonction pour mettre à jour l'heure
