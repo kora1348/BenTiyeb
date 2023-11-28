@@ -1,50 +1,3 @@
-// Fonction pour afficher les totaux positifs supérieurs ou égaux à 2 dans la balise avec l'ID "messagePositive"
-function displayPositiveTotals(cryptoData) {
-  const messagePositive = document.getElementById("messagePositive");
-  messagePositive.innerHTML = ""; // Effacer le contenu précédent
-
-  cryptoData.forEach((crypto) => {
-    const symbol = crypto.symbol;
-    const totalVariation = crypto.totalVariation;
-    const positiveCount = crypto.positiveCount;
-
-    // Afficher uniquement si le total positif est supérieur ou égal à 2
-    if (positiveCount >= 28) {
-      // Ajouter des classes de couleur au total
-      const totalText = `${symbol}: ${totalVariation.toFixed(2)}%`;
-      const totalElement = document.createElement("p");
-      totalElement.textContent = totalText;
-      totalElement.style.color =
-        totalVariation > 0 ? "green" : totalVariation < 0 ? "red" : "black";
-
-      messagePositive.appendChild(totalElement);
-    }
-  });
-}
-
-// Fonction pour afficher les totaux positifs supérieurs ou égaux à 2 dans la balise avec l'ID "messagePositive"
-function displayNegativeTotals(cryptoData) {
-  const messageNegative = document.getElementById("messageNegative");
-  messageNegative.innerHTML = ""; // Effacer le contenu précédent
-
-  cryptoData.forEach((crypto) => {
-    const symbol = crypto.symbol;
-    const totalVariation = crypto.totalVariation;
-    const negativeCount = crypto.negativeCount;
-
-    // Afficher uniquement si le total positif est supérieur ou égal à 2
-    if (negativeCount >= 28) {
-      // Ajouter des classes de couleur au total
-      const totalText = `${symbol}: ${totalVariation.toFixed(2)}%`;
-      const totalElement = document.createElement("p");
-      totalElement.textContent = totalText;
-      totalElement.style.color =
-        totalVariation > 0 ? "red" : totalVariation < 0 ? "green" : "black";
-
-      messageNegative.appendChild(totalElement);
-    }
-  });
-}
 
 // Fonction pour calculer et afficher le total des taux de variation sur toutes les crypto-monnaies
 function calculateAndDisplayTotal(cryptoData) {
@@ -312,19 +265,6 @@ fetchCryptoData("ZRX"),
 
 // Attendre que toutes les promesses soient résolues
 Promise.all(cryptoDataPromises).then((cryptoDataArray) => {
-  // Trier le tableau par le totalVariation de manière croissante
-  cryptoDataArray.sort((a, b) => a.totalVariation - b.totalVariation);
-
-  // Filtrer les totaux positifs et négatifs
-  const positiveTotals = cryptoDataArray.filter(item => item.totalVariation >= 0);
-  const negativeTotals = cryptoDataArray.filter(item => item.totalVariation < 0);
-
-  // Afficher les totaux positifs triés de la plus petite à la plus grande
-  displayPositiveTotals(positiveTotals);
-
-  // Afficher les totaux négatifs triés de la plus grande à la plus petite
-  negativeTotals.sort((a, b) => b.totalVariation - a.totalVariation);
-  displayNegativeTotals(negativeTotals);
 
   // Calculer et afficher le total des taux de variation sur toutes les crypto-monnaies
   calculateAndDisplayTotal(cryptoDataArray);
