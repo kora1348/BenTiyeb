@@ -66,7 +66,7 @@ function calculateAndDisplayDifference(cryptoData) {
   totalPositiveNegativeIntervalleDiv.textContent = `Différence : ${difference}`;
 
   // Appliquer la couleur en fonction de la différence
-  totalPositiveNegativeIntervalleDiv.style.color = difference > 0 ? "green" : "red";
+  totalPositiveNegativeIntervalleDiv.style.color = difference > 0 ? "red" : "green";
   totalPositiveNegativeIntervalleDiv.style.fontWeight = "bold";
 }
 
