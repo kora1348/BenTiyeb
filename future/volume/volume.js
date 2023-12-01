@@ -35,6 +35,15 @@ async function fetchCryptoData(symbol, rowId) {
     averageCell.textContent = averageVolume.toFixed(2);
     row.appendChild(averageCell);
 
+    // Coloration en fonction de la comparaison entre la moyenne et le total
+    if (averageVolume > totalVolume) {
+      averageCell.style.color = "green"; // Moyenne supérieure au total
+    } else if (averageVolume < totalVolume) {
+      averageCell.style.color = "red"; // Moyenne inférieure au total
+    } else {
+      averageCell.style.color = "black"; // Moyenne égale au total
+    }
+
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
