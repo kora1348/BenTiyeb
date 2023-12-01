@@ -34,10 +34,17 @@ async function fetchCryptoData(symbol) {
     }
 
     // Ajouter la cellule pour afficher le total de variation
-    const totalCell = cryptoRow.insertCell(data.length + 1);
-    const totalValue = totalVariation.toFixed(2);
-    totalCell.textContent = `${totalValue}%`;
+// Ajouter la cellule pour afficher le total de variation
+const totalCell = cryptoRow.insertCell(data.length + 1);
+const totalValue = totalVariation.toFixed(2);
+totalCell.textContent = `${totalValue}%`;
 
+// Ajouter la cellule pour afficher le total de variation divisé par 8
+const dividedTotalCell = cryptoRow.insertCell(data.length + 2);
+const dividedTotalValue = (totalVariation / 8).toFixed(2);
+dividedTotalCell.textContent = `${dividedTotalValue}%`;
+
+    
     
   } catch (error) {
     console.error(
