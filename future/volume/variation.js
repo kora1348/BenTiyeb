@@ -38,26 +38,7 @@ async function fetchCryptoData(symbol) {
     const totalValue = totalVariation.toFixed(2);
     totalCell.textContent = `${totalValue}%`;
 
-    if (totalVariation >= 25) {
-      totalCell.classList.add("positive");
-    } else if (totalVariation <= -25) {
-      totalCell.classList.add("negative");
-    }
-
-    if (totalVariation >= 25 || totalVariation <= -25) {
-      // Ajouter le nom de la crypto en dehors du tableau
-      const cryptoNameDiv = document.getElementById("cryptoNames");
-      const cryptoName = document.createElement("p");
-      cryptoName.textContent = `${symbol} : ${totalValue}%`;
-      cryptoNameDiv.appendChild(cryptoName);
-
-      // Ajouter la classe CSS appropriée
-      if (totalVariation >= 25) {
-        cryptoName.classList.add("positive");
-      } else if (totalVariation <= -25) {
-        cryptoName.classList.add("negative");
-      }
-    }
+    
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
