@@ -28,6 +28,7 @@ async function fetchCryptoData(symbol, rowId) {
     // Ajout de la cellule pour le total
     const totalCell = document.createElement("td");
     totalCell.textContent = totalVolume.toFixed(2);
+    totalCell.style.color = "blue";
     row.appendChild(totalCell);
 
     // Ajout de la cellule pour la moyenne
