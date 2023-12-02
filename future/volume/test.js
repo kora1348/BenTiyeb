@@ -34,6 +34,17 @@ async function fetchCryptoData(symbol) {
       totalElement.textContent = `${totalVariation.toFixed(2)}%`;
       totalElement.classList.add("total");
 
+      // Calculez la moyenne et mettez à jour le contenu HTML avec la classe de couleur en fonction de la positivité ou de la négativité
+      const averageElement = document.getElementById(`average_${symbol}`);
+      const average = totalVariation / 8;
+      averageElement.textContent = `${average.toFixed(2)}%`;
+
+      if (average > 0) {
+          averageElement.classList.add("positive");
+      } else if (average < 0) {
+          averageElement.classList.add("negative");
+      }
+
   } catch (error) {
       console.error(
           `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -41,6 +52,7 @@ async function fetchCryptoData(symbol) {
       );
   }
 }
+
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 fetchCryptoData("1INCH");
