@@ -13,9 +13,16 @@ async function fetchCryptoData(symbol) {
           const variation = ((closePrice - openPrice) / openPrice) * 100;
           const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric', hour12: false });
 
-          // Mettez à jour le contenu HTML avec les taux de variation et l'heure
+          // Mettez à jour le contenu HTML avec les taux de variation, l'heure et la couleur
           const element = document.getElementById(`variation_${symbol}_${i + 1}`);
           element.textContent = `${variation.toFixed(2)}% ${time}`;
+
+          // Ajoutez la classe de couleur en fonction de la positivité ou de la négativité
+          if (variation > 0) {
+              element.classList.add("positive");
+          } else if (variation < 0) {
+              element.classList.add("negative");
+          }
       }
 
   } catch (error) {
