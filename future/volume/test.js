@@ -54,6 +54,15 @@ async function fetchCryptoData(symbol) {
           longElement.textContent = "-";
       }
 
+      // Vérifiez si la variation quotidienne reste en dessous de 90% de la moyenne
+      const shortElement = document.getElementById(`short_${symbol}`);
+      if (average > 0 && average < 0.9 * totalVariation) {
+          shortElement.textContent = "SHORT";
+          shortElement.classList.add("short");
+      } else {
+          shortElement.textContent = "-";
+      }
+
   } catch (error) {
       console.error(
           `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -61,6 +70,7 @@ async function fetchCryptoData(symbol) {
       );
   }
 }
+
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 fetchCryptoData("1INCH");
