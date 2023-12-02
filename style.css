@@ -57,6 +57,11 @@ th, td {
   color: red;
 }
 
+.text-center {
+  text-align: center;
+  margin: 0 auto;
+}
+
 
 .black {
   color: black;
