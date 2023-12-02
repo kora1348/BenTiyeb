@@ -11,10 +11,11 @@ async function fetchCryptoData(symbol) {
           const openPrice = parseFloat(data[i][1]);
           const closePrice = parseFloat(data[i][4]);
           const variation = ((closePrice - openPrice) / openPrice) * 100;
-          
-          // Mettez à jour le contenu HTML avec les taux de variation
+          const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric', hour12: false });
+
+          // Mettez à jour le contenu HTML avec les taux de variation et l'heure
           const element = document.getElementById(`variation_${symbol}_${i + 1}`);
-          element.textContent = variation.toFixed(2) + "%";
+          element.textContent = `${variation.toFixed(2)}% ${time}`;
       }
 
   } catch (error) {
