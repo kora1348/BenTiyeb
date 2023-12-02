@@ -27,3 +27,4 @@ async function fetchCryptoData(symbol) {
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 fetchCryptoData("1INCH");
+fetchCryptoData("BTC");
