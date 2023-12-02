@@ -45,24 +45,17 @@ async function fetchCryptoData(symbol) {
       averageElement.classList.add("negative");
     }
 
-    // Vérifiez si la variation quotidienne reste au-dessus de 1% de la moyenne
+    // Vérifiez si les variations individuelles sont supérieures de 0.10% à la moyenne
     const longElement = document.getElementById(`long_${symbol}`);
-    if (average > 0 && average > 0.01 * totalVariation) {
+    const variation1 = ((parseFloat(data[0][4]) - parseFloat(data[0][1])) / parseFloat(data[0][1])) * 100;
+    const variation2 = ((parseFloat(data[1][4]) - parseFloat(data[1][1])) / parseFloat(data[1][1])) * 100;
+
+    if (variation1 > average + 0.10 && variation2 > average + 0.10) {
       longElement.textContent = "LONG";
       longElement.classList.add("long");
     } else {
       longElement.textContent = "-";
     }
-
-    // Vérifiez si la variation quotidienne reste en dessous de 1% de la moyenne
-    const shortElement = document.getElementById(`short_${symbol}`);
-    if (average > 0 && average < 0.01 * totalVariation) {
-      shortElement.textContent = "SHORT";
-      shortElement.classList.add("short");
-    } else {
-      shortElement.textContent = "-";
-    }
-
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
