@@ -29,8 +29,10 @@ async function fetchCryptoData(symbol) {
           totalVariation += variation;
       }
 
-      // Mettez à jour le contenu HTML avec le total
-      document.getElementById(`total_${symbol}`).textContent = `${totalVariation.toFixed(2)}%`;
+      // Mettez à jour le contenu HTML avec le total et appliquez la classe de couleur bleue
+      const totalElement = document.getElementById(`total_${symbol}`);
+      totalElement.textContent = `${totalVariation.toFixed(2)}%`;
+      totalElement.classList.add("total");
 
   } catch (error) {
       console.error(
