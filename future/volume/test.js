@@ -7,6 +7,7 @@ async function fetchCryptoData(symbol) {
       const data = await response.json();
 
       // Calculez le taux de variation pour chaque intervalle
+      let totalVariation = 0;
       for (let i = 0; i < data.length; i++) {
           const openPrice = parseFloat(data[i][1]);
           const closePrice = parseFloat(data[i][4]);
@@ -23,7 +24,13 @@ async function fetchCryptoData(symbol) {
           } else if (variation < 0) {
               element.classList.add("negative");
           }
+
+          // Calculez le total des taux de variation
+          totalVariation += variation;
       }
+
+      // Mettez à jour le contenu HTML avec le total
+      document.getElementById(`total_${symbol}`).textContent = `${totalVariation.toFixed(2)}%`;
 
   } catch (error) {
       console.error(
