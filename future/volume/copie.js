@@ -52,11 +52,11 @@ async function fetchCryptoData(symbol) {
     }
 
 // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
-const percentageThreshold = 90;
+const percentageThresholdLong = 90;
 
 // Vérifiez si toutes les variations sont supérieures à 90% de la moyenne
 const longElement = document.getElementById(`long_${symbol}`);
-if (variations.every(variation => variation > average * (percentageThreshold / 100))) {
+if (variations.every(variation => variation > average * (percentageThresholdLong / 100))) {
   longElement.textContent = "LONG";
   longElement.classList.add("long");
 } else {
@@ -65,14 +65,17 @@ if (variations.every(variation => variation > average * (percentageThreshold / 1
 
 
 
-    // Vérifiez si toutes les variations sont inférieurs à la moyenne + 0.10%
-    const shortElement = document.getElementById(`short_${symbol}`);
-    if (variations.every(variation => variation < average - 0.01)) {
-      shortElement.textContent = "SHORT";
-      shortElement.classList.add("short");
-    } else {
-      shortElement.textContent = "-";
-    }
+const percentageThresholdShort = 90;
+
+// Vérifiez si toutes les variations sont en dessous de 90% de la moyenne
+const shortElement = document.getElementById(`short_${symbol}`);
+if (variations.every(variation => variation < average * (percentageThresholdShort / 100))) {
+  shortElement.textContent = "SHORT";
+  shortElement.classList.add("short");
+} else {
+  shortElement.textContent = "-";
+}
+
 
 
   } catch (error) {
