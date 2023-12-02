@@ -49,6 +49,11 @@ th, td {
   font-weight: 800;
 }
 
+.long {
+  color: green;
+}
+
+
 .black {
   color: black;
   font-weight: 800;
