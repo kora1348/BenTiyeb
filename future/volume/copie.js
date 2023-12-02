@@ -59,6 +59,17 @@ async function fetchCryptoData(symbol) {
     } else {
       longElement.textContent = "-";
     }
+
+    // Vérifiez si toutes les variations sont inférieurs à la moyenne + 0.10%
+    const shortElement = document.getElementById(`short_${symbol}`);
+    if (variations.every(variation => variation < average - 0.01)) {
+      shortElement.textContent = "SHORT";
+      shortElement.classList.add("short");
+    } else {
+      shortElement.textContent = "-";
+    }
+
+
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
