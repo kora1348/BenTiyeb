@@ -1,61 +1,79 @@
 async function fetchCryptoData(symbol) {
   try {
-    const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=8`
-    );
-    const data = await response.json();
+      const response = await fetch(
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=2`
+      );
 
-    // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
-    let totalVariation = 0;
+      const data = await response.json();
 
-    // Mise à jour du tableau avec les données et la couleur
-    const cryptoRow = document.getElementById(symbol);
+      // Calculez le taux de variation pour chaque intervalle
+      let totalVariation = 0;
+      for (let i = 0; i < data.length; i++) {
+          const openPrice = parseFloat(data[i][1]);
+          const closePrice = parseFloat(data[i][4]);
+          const variation = ((closePrice - openPrice) / openPrice) * 100;
+          const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric', hour12: false });
 
-    for (let i = 0; i < data.length; i++) {
-      const openPrice = parseFloat(data[i][1]);
-      const closePrice = parseFloat(data[i][4]);
-      const intervalVariation = ((closePrice - openPrice) / openPrice) * 25;
-      const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+          // Mettez à jour le contenu HTML avec les taux de variation, l'heure et la couleur
+          const element = document.getElementById(`variation_${symbol}_${i + 1}`);
+          element.textContent = `${variation.toFixed(2)}% ${time}`;
 
-      const variationCell = cryptoRow.insertCell(cellIndex);
-      const variationValue = intervalVariation.toFixed(2);
-      const timestamp = parseInt(data[i][0]);
-      const dateValue = new Date(timestamp);
-      const hour = dateValue.getHours();
-      const minute = dateValue.getMinutes();
-      const formattedTime = `${hour.toString().padStart(2, "0")}:${minute
-        .toString()
-        .padStart(2, "0")}`;
+          // Ajoutez la classe de couleur en fonction de la positivité ou de la négativité
+          if (variation > 0) {
+              element.classList.add("positive");
+          } else if (variation < 0) {
+              element.classList.add("negative");
+          }
 
-      variationCell.textContent = `${formattedTime}: ${variationValue}%`;
+          // Calculez le total des taux de variation
+          totalVariation += variation;
+      }
 
-      // Ne pas ajouter de classe de couleur aux cellules individuelles
-      totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
-    }
+      // Mettez à jour le contenu HTML avec le total et appliquez la classe de couleur bleue
+      const totalElement = document.getElementById(`total_${symbol}`);
+      totalElement.textContent = `${totalVariation.toFixed(2)}%`;
+      totalElement.classList.add("total");
 
-    // Ajouter la cellule pour afficher le total de variation
-// Ajouter la cellule pour afficher le total de variation
-const totalCell = cryptoRow.insertCell(data.length + 1);
-const totalValue = totalVariation.toFixed(2);
-totalCell.textContent = `${totalValue}%`;
+      // Calculez la moyenne et mettez à jour le contenu HTML avec la classe de couleur en fonction de la positivité ou de la négativité
+      const averageElement = document.getElementById(`average_${symbol}`);
+      const average = totalVariation / 8;
+      averageElement.textContent = `${average.toFixed(2)}%`;
 
-// Ajouter la cellule pour afficher le total de variation divisé par 8
-const dividedTotalCell = cryptoRow.insertCell(data.length + 2);
-const dividedTotalValue = (totalVariation / 8).toFixed(2);
-dividedTotalCell.textContent = `${dividedTotalValue}%`;
+      if (average > 0) {
+          averageElement.classList.add("positive");
+      } else if (average < 0) {
+          averageElement.classList.add("negative");
+      }
 
-    
-    
+      // Vérifiez si la variation quotidienne reste au-dessus de 90% de la moyenne
+      const longElement = document.getElementById(`long_${symbol}`);
+      if (average > 0 && average > 0.9 * totalVariation) {
+          longElement.textContent = "LONG";
+          longElement.classList.add("long");
+      } else {
+          longElement.textContent = "-";
+      }
+
+      // Vérifiez si la variation quotidienne reste en dessous de 90% de la moyenne
+      const shortElement = document.getElementById(`short_${symbol}`);
+      if (average > 0 && average < 0.1 * totalVariation) {
+          shortElement.textContent = "SHORT";
+          shortElement.classList.add("short");
+      } else {
+          shortElement.textContent = "-";
+      }
+
   } catch (error) {
-    console.error(
-      `Erreur lors de la récupération des données pour ${symbol}:`,
-      error
-    );
+      console.error(
+          `Erreur lors de la récupération des données pour ${symbol}:`,
+          error
+      );
   }
 }
 
-  // Appel de la fonction pour obtenir les taux de variation des cryptos
-  fetchCryptoData("1INCH");
+
+// Appel de la fonction pour obtenir les taux de variation des cryptos
+fetchCryptoData("1INCH");
   fetchCryptoData("AAVE");
   fetchCryptoData("ACH");
   fetchCryptoData("ADA");
@@ -217,7 +235,6 @@ dividedTotalCell.textContent = `${dividedTotalValue}%`;
   fetchCryptoData("SXP");
   fetchCryptoData("THETA");
   fetchCryptoData("TLM");
-  fetchCryptoData("TOMO");
   fetchCryptoData("TRB");
   fetchCryptoData("TRU");
   fetchCryptoData("TRX");
