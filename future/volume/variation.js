@@ -1,73 +1,73 @@
 async function fetchCryptoData(symbol) {
   try {
-      const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=2`
-      );
+    const response = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=2`
+    );
 
-      const data = await response.json();
+    const data = await response.json();
 
-      // Calculez le taux de variation pour chaque intervalle
-      let totalVariation = 0;
-      for (let i = 0; i < data.length; i++) {
-          const openPrice = parseFloat(data[i][1]);
-          const closePrice = parseFloat(data[i][4]);
-          const variation = ((closePrice - openPrice) / openPrice) * 100;
-          const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric', hour12: false });
+    // Calculez le taux de variation pour chaque intervalle
+    let totalVariation = 0;
+    for (let i = 0; i < data.length; i++) {
+      const openPrice = parseFloat(data[i][1]);
+      const closePrice = parseFloat(data[i][4]);
+      const variation = ((closePrice - openPrice) / openPrice) * 100;
+      const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric', hour12: false });
 
-          // Mettez à jour le contenu HTML avec les taux de variation, l'heure et la couleur
-          const element = document.getElementById(`variation_${symbol}_${i + 1}`);
-          element.textContent = `${variation.toFixed(2)}% ${time}`;
+      // Mettez à jour le contenu HTML avec les taux de variation, l'heure et la couleur
+      const element = document.getElementById(`variation_${symbol}_${i + 1}`);
+      element.textContent = `${variation.toFixed(2)}% ${time}`;
 
-          // Ajoutez la classe de couleur en fonction de la positivité ou de la négativité
-          if (variation > 0) {
-              element.classList.add("positive");
-          } else if (variation < 0) {
-              element.classList.add("negative");
-          }
-
-          // Calculez le total des taux de variation
-          totalVariation += variation;
+      // Ajoutez la classe de couleur en fonction de la positivité ou de la négativité
+      if (variation > 0) {
+        element.classList.add("positive");
+      } else if (variation < 0) {
+        element.classList.add("negative");
       }
 
-      // Mettez à jour le contenu HTML avec le total et appliquez la classe de couleur bleue
-      const totalElement = document.getElementById(`total_${symbol}`);
-      totalElement.textContent = `${totalVariation.toFixed(2)}%`;
-      totalElement.classList.add("total");
+      // Calculez le total des taux de variation
+      totalVariation += variation;
+    }
 
-      // Calculez la moyenne et mettez à jour le contenu HTML avec la classe de couleur en fonction de la positivité ou de la négativité
-      const averageElement = document.getElementById(`average_${symbol}`);
-      const average = totalVariation / 8;
-      averageElement.textContent = `${average.toFixed(2)}%`;
+    // Mettez à jour le contenu HTML avec le total et appliquez la classe de couleur bleue
+    const totalElement = document.getElementById(`total_${symbol}`);
+    totalElement.textContent = `${totalVariation.toFixed(2)}%`;
+    totalElement.classList.add("total");
 
-      if (average > 0) {
-          averageElement.classList.add("positive");
-      } else if (average < 0) {
-          averageElement.classList.add("negative");
-      }
+    // Calculez la moyenne et mettez à jour le contenu HTML avec la classe de couleur en fonction de la positivité ou de la négativité
+    const averageElement = document.getElementById(`average_${symbol}`);
+    const average = totalVariation / data.length;
+    averageElement.textContent = `${average.toFixed(2)}%`;
 
-      // Vérifiez si la variation quotidienne reste au-dessus de 90% de la moyenne
-      const longElement = document.getElementById(`long_${symbol}`);
-      if (average > 0 && average > 0.9 * totalVariation) {
-          longElement.textContent = "LONG";
-          longElement.classList.add("long");
-      } else {
-          longElement.textContent = "-";
-      }
+    if (average > 0) {
+      averageElement.classList.add("positive");
+    } else if (average < 0) {
+      averageElement.classList.add("negative");
+    }
 
-      // Vérifiez si la variation quotidienne reste en dessous de 90% de la moyenne
-      const shortElement = document.getElementById(`short_${symbol}`);
-      if (average > 0 && average < 0.1 * totalVariation) {
-          shortElement.textContent = "SHORT";
-          shortElement.classList.add("short");
-      } else {
-          shortElement.textContent = "-";
-      }
+    // Vérifiez si la variation quotidienne reste au-dessus de 1% de la moyenne
+    const longElement = document.getElementById(`long_${symbol}`);
+    if (average > 0 && average > 0.01 * totalVariation) {
+      longElement.textContent = "LONG";
+      longElement.classList.add("long");
+    } else {
+      longElement.textContent = "-";
+    }
+
+    // Vérifiez si la variation quotidienne reste en dessous de 1% de la moyenne
+    const shortElement = document.getElementById(`short_${symbol}`);
+    if (average > 0 && average < 0.01 * totalVariation) {
+      shortElement.textContent = "SHORT";
+      shortElement.classList.add("short");
+    } else {
+      shortElement.textContent = "-";
+    }
 
   } catch (error) {
-      console.error(
-          `Erreur lors de la récupération des données pour ${symbol}:`,
-          error
-      );
+    console.error(
+      `Erreur lors de la récupération des données pour ${symbol}:`,
+      error
+    );
   }
 }
 
