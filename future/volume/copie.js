@@ -15,10 +15,12 @@ async function fetchCryptoData(symbol) {
       const closePrice = parseFloat(data[i][4]);
       const variation = ((closePrice - openPrice) / openPrice) * 100;
       const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric', hour12: false });
+
     
       // Mettez à jour le contenu HTML avec les taux de variation, l'heure et la couleur
       const element = document.getElementById(`variation_${symbol}_${i}`);
-      element.textContent = `${variation.toFixed(2)}% ${time}`;
+      element.innerHTML = `${variation.toFixed(2)}% <span class="time">- (${time})</span>`;
+      
     
       // Ajoutez la classe de couleur en fonction de la positivité ou de la négativité
       if (variation > 0) {
