@@ -8,6 +8,8 @@ async function fetchCryptoData(symbol) {
 
     // Calculez le taux de variation pour chaque intervalle
     let totalVariation = 0;
+    const variations = [];
+
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
@@ -27,6 +29,9 @@ async function fetchCryptoData(symbol) {
 
       // Calculez le total des taux de variation
       totalVariation += variation;
+
+      // Stockez les variations dans le tableau
+      variations.push(variation);
     }
 
     // Mettez à jour le contenu HTML avec le total et appliquez la classe de couleur bleue
@@ -45,12 +50,9 @@ async function fetchCryptoData(symbol) {
       averageElement.classList.add("negative");
     }
 
-    // Vérifiez si les variations individuelles sont supérieures de 0.10% à la moyenne
+    // Vérifiez si toutes les variations sont supérieures à la moyenne + 0.10%
     const longElement = document.getElementById(`long_${symbol}`);
-    const variation1 = ((parseFloat(data[0][4]) - parseFloat(data[0][1])) / parseFloat(data[0][1])) * 100;
-    const variation2 = ((parseFloat(data[1][4]) - parseFloat(data[1][1])) / parseFloat(data[1][1])) * 100;
-
-    if (variation1 > average + 0.10 && variation2 > average + 0.10) {
+    if (variations.every(variation => variation > average + 0.10)) {
       longElement.textContent = "LONG";
       longElement.classList.add("long");
     } else {
