@@ -39,7 +39,10 @@ async function fetchCryptoData(symbol) {
     const averageElement = document.getElementById(`average_${symbol}`);
     averageElement.textContent = `${formattedAverageVolume} USDT`;
 
-    // Vérifiez si les volumes de chaque intervalle sont supérieurs à 90% de la moyenne totale
+    // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
+    const percentageThresholdLong = 90;
+
+    // Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
     const longElement = document.getElementById(`long_${symbol}`);
     if (volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100))) {
       longElement.textContent = "LONG";
