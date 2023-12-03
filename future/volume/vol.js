@@ -42,9 +42,8 @@ async function fetchCryptoData(symbol) {
 
     // Utilisez directement le volume dans la condition (90 dans cet exemple)
     const percentageThresholdLong = 90;
-    const percentageThresholdShort = 90;
 
-    // Vérifiez si les volumes de chaque intervalle sont supérieurs à 90% de la moyenne totale pour la position LONG
+    // Vérifiez si les volumes de chaque intervalle sont supérieurs à 90% de la moyenne totale
     const longElement = document.getElementById(`long_${symbol}`);
     if (volume1 > averageVolume * (percentageThresholdLong / 100) && volume2 > averageVolume * (percentageThresholdLong / 100)) {
       longElement.textContent = "LONG";
@@ -53,9 +52,9 @@ async function fetchCryptoData(symbol) {
       longElement.textContent = "-";
     }
 
-    // Vérifiez si les volumes de chaque intervalle sont inférieurs à 90% de la moyenne totale pour la position SHORT
+    // Vérifiez si le volume est inférieur au seuil pour la position SHORT
     const shortElement = document.getElementById(`short_${symbol}`);
-    if (volume1 < averageVolume * (percentageThresholdShort / 100) && volume2 < averageVolume * (percentageThresholdShort / 100)) {
+    if (totalVolume < volumeThresholdShort) {
       shortElement.textContent = "SHORT";
       shortElement.classList.add("short");
     } else {
@@ -69,7 +68,6 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
-
 
 
 
