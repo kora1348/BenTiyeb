@@ -11,21 +11,20 @@ async function fetchCryptoData(symbol) {
     const time2 = new Date(data[1][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric' });
 
     // Récupérez le volume pour chaque intervalle
-    const volume1 = parseFloat(data[0][5]); // Index 5 correspond au volume dans les données Klines
-    const formattedVolume1 = volume1.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+    const volumes = [
+      parseFloat(data[0][5]), // Index 5 correspond au volume dans les données Klines
+      parseFloat(data[1][5])
+    ];
 
-    const volumeElement1 = document.getElementById(`volume_${symbol}_1`);
-    volumeElement1.textContent = `${time1} (${formattedVolume1} USDT)`;
-
-    // Récupérez le volume pour le deuxième intervalle (2)
-    const volume2 = parseFloat(data[1][5]);
-    const formattedVolume2 = volume2.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
-
-    const volumeElement2 = document.getElementById(`volume_${symbol}_2`);
-    volumeElement2.textContent = `${time2} (${formattedVolume2} USDT)`;
+    // Mettez à jour le contenu HTML avec le temps et le volume pour chaque intervalle
+    for (let i = 0; i < 2; i++) {
+      const formattedVolume = volumes[i].toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+      const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
+      volumeElement.textContent = `${time1} (${formattedVolume} USDT)`;
+    }
 
     // Calculez le total des volumes
-    const totalVolume = volume1 + volume2;
+    const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
 
     // Mettez à jour le contenu HTML avec le total
     const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
@@ -33,32 +32,20 @@ async function fetchCryptoData(symbol) {
     totalElement.textContent = `${formattedTotalVolume} USDT`;
 
     // Calculez la moyenne des volumes
-    const averageVolume = totalVolume / 2; // Dans ce cas, 2 représente le nombre d'intervalles
+    const averageVolume = totalVolume / data.length; // Dans ce cas, 2 représente le nombre d'intervalles
 
     // Mettez à jour le contenu HTML avec la moyenne
     const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
     const averageElement = document.getElementById(`average_${symbol}`);
     averageElement.textContent = `${formattedAverageVolume} USDT`;
 
-    // Utilisez directement le volume dans la condition (90 dans cet exemple)
-    const percentageThresholdLong = 90;
-
     // Vérifiez si les volumes de chaque intervalle sont supérieurs à 90% de la moyenne totale
     const longElement = document.getElementById(`long_${symbol}`);
-    if (volume1 > averageVolume * (percentageThresholdLong / 100) && volume2 > averageVolume * (percentageThresholdLong / 100)) {
+    if (volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100))) {
       longElement.textContent = "LONG";
       longElement.classList.add("long");
     } else {
       longElement.textContent = "-";
-    }
-
-    // Vérifiez si le volume est inférieur au seuil pour la position SHORT
-    const shortElement = document.getElementById(`short_${symbol}`);
-    if (totalVolume < volumeThresholdShort) {
-      shortElement.textContent = "SHORT";
-      shortElement.classList.add("short");
-    } else {
-      shortElement.textContent = "-";
     }
 
   } catch (error) {
@@ -68,7 +55,6 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
-
 
 
 
