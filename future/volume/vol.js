@@ -12,27 +12,33 @@ async function fetchCryptoData(symbol) {
 
     // Récupérez le volume pour chaque intervalle
     const volume1 = parseFloat(data[0][5]); // Index 5 correspond au volume dans les données Klines
+    const formattedVolume1 = volume1.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+
     const volumeElement1 = document.getElementById(`volume_${symbol}_1`);
-    volumeElement1.textContent = `${time1} (${volume1.toFixed(2)} USDT)`;
+    volumeElement1.textContent = `${time1} (${formattedVolume1} USDT)`;
 
     // Récupérez le volume pour le deuxième intervalle (2)
     const volume2 = parseFloat(data[1][5]);
+    const formattedVolume2 = volume2.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+
     const volumeElement2 = document.getElementById(`volume_${symbol}_2`);
-    volumeElement2.textContent = `${time2} (${volume2.toFixed(2)} USDT)`;
+    volumeElement2.textContent = `${time2} (${formattedVolume2} USDT)`;
 
     // Calculez le total des volumes
     const totalVolume = volume1 + volume2;
 
     // Mettez à jour le contenu HTML avec le total
+    const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
     const totalElement = document.getElementById(`total_${symbol}`);
-    totalElement.textContent = `${totalVolume.toFixed(2)} USDT`;
+    totalElement.textContent = `${formattedTotalVolume} USDT`;
 
     // Calculez la moyenne des volumes
     const averageVolume = totalVolume / 2; // Dans ce cas, 2 représente le nombre d'intervalles
 
     // Mettez à jour le contenu HTML avec la moyenne
+    const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
     const averageElement = document.getElementById(`average_${symbol}`);
-    averageElement.textContent = `${averageVolume.toFixed(2)} USDT`;
+    averageElement.textContent = `${formattedAverageVolume} USDT`;
 
     // Utilisez directement le volume dans la condition (90 dans cet exemple)
     const volumeThresholdLong = 100000; // Remplacez 100000 par la valeur de volume souhaitée pour le seuil LONG
