@@ -53,6 +53,9 @@ async function fetchCryptoData(symbol) {
       averageElement.classList.add("negative");
     }
 
+
+const cryptoNamesElement = document.getElementById('cryptoNames');
+
 // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
 const percentageThresholdLong = 90;
 
@@ -60,12 +63,11 @@ const percentageThresholdLong = 90;
 const longElement = document.getElementById(`long_${symbol}`);
 if (variations.every(variation => variation > average * (percentageThresholdLong / 100))) {
   longElement.textContent = "LONG";
-  longElement.classList.add("long");
+  longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
+  cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
 } else {
   longElement.textContent = "-";
 }
-
-
 
 const percentageThresholdShort = 90;
 
@@ -73,12 +75,11 @@ const percentageThresholdShort = 90;
 const shortElement = document.getElementById(`short_${symbol}`);
 if (variations.every(variation => variation < average * (percentageThresholdShort / 100))) {
   shortElement.textContent = "SHORT";
-  shortElement.classList.add("short");
+  shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
+  cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
 } else {
   shortElement.textContent = "-";
 }
-
-
 
   } catch (error) {
     console.error(
