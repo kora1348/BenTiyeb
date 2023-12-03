@@ -41,12 +41,11 @@ async function fetchCryptoData(symbol) {
     averageElement.textContent = `${formattedAverageVolume} USDT`;
 
     // Utilisez directement le volume dans la condition (90 dans cet exemple)
-    const volumeThresholdLong = 100000; // Remplacez 100000 par la valeur de volume souhaitée pour le seuil LONG
-    const volumeThresholdShort = 50000; // Remplacez 50000 par la valeur de volume souhaitée pour le seuil SHORT
+    const percentageThresholdLong = 90;
 
-    // Vérifiez si le volume est supérieur au seuil pour la position LONG
+    // Vérifiez si les volumes de chaque intervalle sont supérieurs à 90% de la moyenne totale
     const longElement = document.getElementById(`long_${symbol}`);
-    if (totalVolume > volumeThresholdLong) {
+    if (volume1 > averageVolume * (percentageThresholdLong / 100) && volume2 > averageVolume * (percentageThresholdLong / 100)) {
       longElement.textContent = "LONG";
       longElement.classList.add("long");
     } else {
