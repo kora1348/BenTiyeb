@@ -53,6 +53,8 @@ async function fetchCryptoData(symbol) {
       averageElement.classList.add("negative");
     }
 
+const cryptoNamesElement = document.getElementById('cryptoNames');    
+
 // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
 const percentageThresholdLong = 90;
 
@@ -60,12 +62,11 @@ const percentageThresholdLong = 90;
 const longElement = document.getElementById(`long_${symbol}`);
 if (variations.every(variation => variation > average * (percentageThresholdLong / 100))) {
   longElement.textContent = "LONG";
-  longElement.classList.add("long");
+  longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
+  cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
 } else {
   longElement.textContent = "-";
 }
-
-
 
 const percentageThresholdShort = 90;
 
@@ -73,7 +74,8 @@ const percentageThresholdShort = 90;
 const shortElement = document.getElementById(`short_${symbol}`);
 if (variations.every(variation => variation < average * (percentageThresholdShort / 100))) {
   shortElement.textContent = "SHORT";
-  shortElement.classList.add("short");
+  shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
+  cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
 } else {
   shortElement.textContent = "-";
 }
@@ -87,6 +89,43 @@ if (variations.every(variation => variation < average * (percentageThresholdShor
     );
   }
 }
+
+function mettreAJourHeure() {
+  var elementHeure = document.getElementById('heure');
+  var maintenant = new Date();
+  
+  // Créer une copie de l'heure actuelle
+  var heureActuelle = new Date(maintenant);
+
+  // Ajouter 3 heures et 20 minutes à l'heure actuelle
+  maintenant.setHours(maintenant.getHours() + 3);
+  maintenant.setMinutes(maintenant.getMinutes() + 20);
+
+  var heuresMaintenant = maintenant.getHours();
+  var minutesMaintenant = maintenant.getMinutes();
+  var secondesMaintenant = maintenant.getSeconds();
+
+  var heuresActuelle = heureActuelle.getHours();
+  var minutesActuelle = heureActuelle.getMinutes();
+  var secondesActuelle = heureActuelle.getSeconds();
+
+  // Ajouter un zéro devant les chiffres < 10
+  heuresMaintenant = heuresMaintenant < 10 ? '0' + heuresMaintenant : heuresMaintenant;
+  minutesMaintenant = minutesMaintenant < 10 ? '0' + minutesMaintenant : minutesMaintenant;
+  secondesMaintenant = secondesMaintenant < 10 ? '0' + secondesMaintenant : secondesMaintenant;
+
+  heuresActuelle = heuresActuelle < 10 ? '0' + heuresActuelle : heuresActuelle;
+  minutesActuelle = minutesActuelle < 10 ? '0' + minutesActuelle : minutesActuelle;
+  secondesActuelle = secondesActuelle < 10 ? '0' + secondesActuelle : secondesActuelle;
+
+  // Mettre à jour le contenu de l'élément avec les deux heures
+  elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle;
+}
+
+// Appeler la fonction pour mettre à jour l'heure
+mettreAJourHeure();
+
+
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 fetchCryptoData("1INCH");
   fetchCryptoData("AAVE");
