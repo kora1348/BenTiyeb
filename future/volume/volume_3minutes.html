@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
    <head>
-      <title>Test - Volume</title>
+      <title>Volume - 3 minutes</title>
       <link rel="stylesheet" href="../../style.css">
       <style>
       </style>
@@ -10,25 +10,32 @@
       <button class="button" onclick="window.location.href='/future/future.html'">Retour</button>
       <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
          " onclick="window.location.href='/spot/spot.html'">Retour / Spot</button>
-      <h1>Test - Volume</h1>
+      <h1>Volume - 3 minutes</h1>
       <div id="heure"></div>
       <br>
       <div id="cryptoNames"></div>
+      <table>
       <table>
          <tr>
             <th>Crypto</th>
             <th>Volume 1</th>
             <th>Volume 2</th>
+            <th>Volume 3</th>
+            <th>Volume 4</th>
+            <th>Volume 5</th>
             <th>Total</th>
             <th>Moyenne</th>
             <th>Achat</th>
             <th>Vente</th>
          </tr>
-        <!-- Crypto 1: 1INCH -->
+         <!-- Crypto 1: 1INCH -->
          <tr id="1INCH">
             <td>1INCH (F)</td>
             <td class="text-center" id="volume_1INCH_1"></td>
             <td class="text-center" id="volume_1INCH_2"></td>
+            <td class="text-center" id="volume_1INCH_3"></td>
+            <td class="text-center" id="volume_1INCH_4"></td>
+            <td class="text-center" id="volume_1INCH_5"></td>
             <td class="text-center" id="total_1INCH"></td>
             <td class="text-center" id="average_1INCH"></td>
             <td class="text-center" id="long_1INCH"></td>
@@ -39,6 +46,9 @@
             <td>AAVE (F)</td>
             <td class="text-center" id="volume_AAVE_1"></td>
             <td class="text-center" id="volume_AAVE_2"></td>
+            <td class="text-center" id="volume_AAVE_3"></td>
+            <td class="text-center" id="volume_AAVE_4"></td>
+            <td class="text-center" id="volume_AAVE_5"></td>
             <td class="text-center" id="total_AAVE"></td>
             <td class="text-center" id="average_AAVE"></td>
             <td class="text-center" id="long_AAVE"></td>
@@ -49,6 +59,9 @@
             <td>ACH (F)</td>
             <td class="text-center" id="volume_ACH_1"></td>
             <td class="text-center" id="volume_ACH_2"></td>
+            <td class="text-center" id="volume_ACH_3"></td>
+            <td class="text-center" id="volume_ACH_4"></td>
+            <td class="text-center" id="volume_ACH_5"></td>
             <td class="text-center" id="total_ACH"></td>
             <td class="text-center" id="average_ACH"></td>
             <td class="text-center" id="long_ACH"></td>
@@ -58,6 +71,9 @@
             <td>AGIX (F)</td>
             <td class="text-center" id="volume_AGIX_1"></td>
             <td class="text-center" id="volume_AGIX_2"></td>
+            <td class="text-center" id="volume_AGIX_3"></td>
+            <td class="text-center" id="volume_AGIX_4"></td>
+            <td class="text-center" id="volume_AGIX_5"></td>
             <td class="text-center" id="total_AGIX"></td>
             <td class="text-center" id="average_AGIX"></td>
             <td class="text-center" id="long_AGIX"></td>
@@ -68,6 +84,9 @@
             <td>AGLD (F)</td>
             <td class="text-center" id="volume_AGLD_1"></td>
             <td class="text-center" id="volume_AGLD_2"></td>
+            <td class="text-center" id="volume_AGLD_3"></td>
+            <td class="text-center" id="volume_AGLD_4"></td>
+            <td class="text-center" id="volume_AGLD_5"></td>
             <td class="text-center" id="total_AGLD"></td>
             <td class="text-center" id="average_AGLD"></td>
             <td class="text-center" id="long_AGLD"></td>
@@ -78,6 +97,9 @@
             <td>ALGO (F)</td>
             <td class="text-center" id="volume_ALGO_1"></td>
             <td class="text-center" id="volume_ALGO_2"></td>
+            <td class="text-center" id="volume_ALGO_3"></td>
+            <td class="text-center" id="volume_ALGO_4"></td>
+            <td class="text-center" id="volume_ALGO_5"></td>
             <td class="text-center" id="total_ALGO"></td>
             <td class="text-center" id="average_ALGO"></td>
             <td class="text-center" id="long_ALGO"></td>
@@ -88,6 +110,9 @@
             <td>ALICE (F)</td>
             <td class="text-center" id="volume_ALICE_1"></td>
             <td class="text-center" id="volume_ALICE_2"></td>
+            <td class="text-center" id="volume_ALICE_3"></td>
+            <td class="text-center" id="volume_ALICE_4"></td>
+            <td class="text-center" id="volume_ALICE_5"></td>
             <td class="text-center" id="total_ALICE"></td>
             <td class="text-center" id="average_ALICE"></td>
             <td class="text-center" id="long_ALICE"></td>
@@ -98,6 +123,9 @@
             <td>ALPHA (F)</td>
             <td class="text-center" id="volume_ALPHA_1"></td>
             <td class="text-center" id="volume_ALPHA_2"></td>
+            <td class="text-center" id="volume_ALPHA_3"></td>
+            <td class="text-center" id="volume_ALPHA_4"></td>
+            <td class="text-center" id="volume_ALPHA_5"></td>
             <td class="text-center" id="total_ALPHA"></td>
             <td class="text-center" id="average_ALPHA"></td>
             <td class="text-center" id="long_ALPHA"></td>
@@ -108,6 +136,9 @@
             <td>AMB (F)</td>
             <td class="text-center" id="volume_AMB_1"></td>
             <td class="text-center" id="volume_AMB_2"></td>
+            <td class="text-center" id="volume_AMB_3"></td>
+            <td class="text-center" id="volume_AMB_4"></td>
+            <td class="text-center" id="volume_AMB_5"></td>
             <td class="text-center" id="total_AMB"></td>
             <td class="text-center" id="average_AMB"></td>
             <td class="text-center" id="long_AMB"></td>
@@ -118,6 +149,9 @@
             <td>ANKR (F)</td>
             <td class="text-center" id="volume_ANKR_1"></td>
             <td class="text-center" id="volume_ANKR_2"></td>
+            <td class="text-center" id="volume_ANKR_3"></td>
+            <td class="text-center" id="volume_ANKR_4"></td>
+            <td class="text-center" id="volume_ANKR_5"></td>
             <td class="text-center" id="total_ANKR"></td>
             <td class="text-center" id="average_ANKR"></td>
             <td class="text-center" id="long_ANKR"></td>
@@ -128,6 +162,9 @@
             <td>ANT (F)</td>
             <td class="text-center" id="volume_ANT_1"></td>
             <td class="text-center" id="volume_ANT_2"></td>
+            <td class="text-center" id="volume_ANT_3"></td>
+            <td class="text-center" id="volume_ANT_4"></td>
+            <td class="text-center" id="volume_ANT_5"></td>
             <td class="text-center" id="total_ANT"></td>
             <td class="text-center" id="average_ANT"></td>
             <td class="text-center" id="long_ANT"></td>
@@ -138,6 +175,9 @@
             <td>APE (F)</td>
             <td class="text-center" id="volume_APE_1"></td>
             <td class="text-center" id="volume_APE_2"></td>
+            <td class="text-center" id="volume_APE_3"></td>
+            <td class="text-center" id="volume_APE_4"></td>
+            <td class="text-center" id="volume_APE_5"></td>
             <td class="text-center" id="total_APE"></td>
             <td class="text-center" id="average_APE"></td>
             <td class="text-center" id="long_APE"></td>
@@ -148,6 +188,9 @@
             <td>API3 (F)</td>
             <td class="text-center" id="volume_API3_1"></td>
             <td class="text-center" id="volume_API3_2"></td>
+            <td class="text-center" id="volume_API3_3"></td>
+            <td class="text-center" id="volume_API3_4"></td>
+            <td class="text-center" id="volume_API3_5"></td>
             <td class="text-center" id="total_API3"></td>
             <td class="text-center" id="average_API3"></td>
             <td class="text-center" id="long_API3"></td>
@@ -158,6 +201,9 @@
             <td>APT (F)</td>
             <td class="text-center" id="volume_APT_1"></td>
             <td class="text-center" id="volume_APT_2"></td>
+            <td class="text-center" id="volume_APT_3"></td>
+            <td class="text-center" id="volume_APT_4"></td>
+            <td class="text-center" id="volume_APT_5"></td>
             <td class="text-center" id="total_APT"></td>
             <td class="text-center" id="average_APT"></td>
             <td class="text-center" id="long_APT"></td>
@@ -168,6 +214,9 @@
             <td>ARB (F)</td>
             <td class="text-center" id="volume_ARB_1"></td>
             <td class="text-center" id="volume_ARB_2"></td>
+            <td class="text-center" id="volume_ARB_3"></td>
+            <td class="text-center" id="volume_ARB_4"></td>
+            <td class="text-center" id="volume_ARB_5"></td>
             <td class="text-center" id="total_ARB"></td>
             <td class="text-center" id="average_ARB"></td>
             <td class="text-center" id="long_ARB"></td>
@@ -178,6 +227,9 @@
             <td>ARKM (F)</td>
             <td class="text-center" id="volume_ARKM_1"></td>
             <td class="text-center" id="volume_ARKM_2"></td>
+            <td class="text-center" id="volume_ARKM_3"></td>
+            <td class="text-center" id="volume_ARKM_4"></td>
+            <td class="text-center" id="volume_ARKM_5"></td>
             <td class="text-center" id="total_ARKM"></td>
             <td class="text-center" id="average_ARKM"></td>
             <td class="text-center" id="long_ARKM"></td>
@@ -188,6 +240,9 @@
             <td>ARPA (F)</td>
             <td class="text-center" id="volume_ARPA_1"></td>
             <td class="text-center" id="volume_ARPA_2"></td>
+            <td class="text-center" id="volume_ARPA_3"></td>
+            <td class="text-center" id="volume_ARPA_4"></td>
+            <td class="text-center" id="volume_ARPA_5"></td>
             <td class="text-center" id="total_ARPA"></td>
             <td class="text-center" id="average_ARPA"></td>
             <td class="text-center" id="long_ARPA"></td>
@@ -198,6 +253,9 @@
             <td>AR (F)</td>
             <td class="text-center" id="volume_AR_1"></td>
             <td class="text-center" id="volume_AR_2"></td>
+            <td class="text-center" id="volume_AR_3"></td>
+            <td class="text-center" id="volume_AR_4"></td>
+            <td class="text-center" id="volume_AR_5"></td>
             <td class="text-center" id="total_AR"></td>
             <td class="text-center" id="average_AR"></td>
             <td class="text-center" id="long_AR"></td>
@@ -208,6 +266,9 @@
             <td>ASTR (F)</td>
             <td class="text-center" id="volume_ASTR_1"></td>
             <td class="text-center" id="volume_ASTR_2"></td>
+            <td class="text-center" id="volume_ASTR_3"></td>
+            <td class="text-center" id="volume_ASTR_4"></td>
+            <td class="text-center" id="volume_ASTR_5"></td>
             <td class="text-center" id="total_ASTR"></td>
             <td class="text-center" id="average_ASTR"></td>
             <td class="text-center" id="long_ASTR"></td>
@@ -218,6 +279,9 @@
             <td>ATA (F)</td>
             <td class="text-center" id="volume_ATA_1"></td>
             <td class="text-center" id="volume_ATA_2"></td>
+            <td class="text-center" id="volume_ATA_3"></td>
+            <td class="text-center" id="volume_ATA_4"></td>
+            <td class="text-center" id="volume_ATA_5"></td>
             <td class="text-center" id="total_ATA"></td>
             <td class="text-center" id="average_ATA"></td>
             <td class="text-center" id="long_ATA"></td>
@@ -228,6 +292,9 @@
             <td>ATOM (F)</td>
             <td class="text-center" id="volume_ATOM_1"></td>
             <td class="text-center" id="volume_ATOM_2"></td>
+            <td class="text-center" id="volume_ATOM_3"></td>
+            <td class="text-center" id="volume_ATOM_4"></td>
+            <td class="text-center" id="volume_ATOM_5"></td>
             <td class="text-center" id="total_ATOM"></td>
             <td class="text-center" id="average_ATOM"></td>
             <td class="text-center" id="long_ATOM"></td>
@@ -238,6 +305,9 @@
             <td>AUDIO (F)</td>
             <td class="text-center" id="volume_AUDIO_1"></td>
             <td class="text-center" id="volume_AUDIO_2"></td>
+            <td class="text-center" id="volume_AUDIO_3"></td>
+            <td class="text-center" id="volume_AUDIO_4"></td>
+            <td class="text-center" id="volume_AUDIO_5"></td>
             <td class="text-center" id="total_AUDIO"></td>
             <td class="text-center" id="average_AUDIO"></td>
             <td class="text-center" id="long_AUDIO"></td>
@@ -248,6 +318,9 @@
             <td>AVAX (F)</td>
             <td class="text-center" id="volume_AVAX_1"></td>
             <td class="text-center" id="volume_AVAX_2"></td>
+            <td class="text-center" id="volume_AVAX_3"></td>
+            <td class="text-center" id="volume_AVAX_4"></td>
+            <td class="text-center" id="volume_AVAX_5"></td>
             <td class="text-center" id="total_AVAX"></td>
             <td class="text-center" id="average_AVAX"></td>
             <td class="text-center" id="long_AVAX"></td>
@@ -258,6 +331,9 @@
             <td>AXS (F)</td>
             <td class="text-center" id="volume_AXS_1"></td>
             <td class="text-center" id="volume_AXS_2"></td>
+            <td class="text-center" id="volume_AXS_3"></td>
+            <td class="text-center" id="volume_AXS_4"></td>
+            <td class="text-center" id="volume_AXS_5"></td>
             <td class="text-center" id="total_AXS"></td>
             <td class="text-center" id="average_AXS"></td>
             <td class="text-center" id="long_AXS"></td>
@@ -268,6 +344,9 @@
             <td>BAKE (F)</td>
             <td class="text-center" id="volume_BAKE_1"></td>
             <td class="text-center" id="volume_BAKE_2"></td>
+            <td class="text-center" id="volume_BAKE_3"></td>
+            <td class="text-center" id="volume_BAKE_4"></td>
+            <td class="text-center" id="volume_BAKE_5"></td>
             <td class="text-center" id="total_BAKE"></td>
             <td class="text-center" id="average_BAKE"></td>
             <td class="text-center" id="long_BAKE"></td>
@@ -278,6 +357,9 @@
             <td>BAL (F)</td>
             <td class="text-center" id="volume_BAL_1"></td>
             <td class="text-center" id="volume_BAL_2"></td>
+            <td class="text-center" id="volume_BAL_3"></td>
+            <td class="text-center" id="volume_BAL_4"></td>
+            <td class="text-center" id="volume_BAL_5"></td>
             <td class="text-center" id="total_BAL"></td>
             <td class="text-center" id="average_BAL"></td>
             <td class="text-center" id="long_BAL"></td>
@@ -288,6 +370,9 @@
             <td>BAND (F)</td>
             <td class="text-center" id="volume_BAND_1"></td>
             <td class="text-center" id="volume_BAND_2"></td>
+            <td class="text-center" id="volume_BAND_3"></td>
+            <td class="text-center" id="volume_BAND_4"></td>
+            <td class="text-center" id="volume_BAND_5"></td>
             <td class="text-center" id="total_BAND"></td>
             <td class="text-center" id="average_BAND"></td>
             <td class="text-center" id="long_BAND"></td>
@@ -298,6 +383,9 @@
             <td>BAT (F)</td>
             <td class="text-center" id="volume_BAT_1"></td>
             <td class="text-center" id="volume_BAT_2"></td>
+            <td class="text-center" id="volume_BAT_3"></td>
+            <td class="text-center" id="volume_BAT_4"></td>
+            <td class="text-center" id="volume_BAT_5"></td>
             <td class="text-center" id="total_BAT"></td>
             <td class="text-center" id="average_BAT"></td>
             <td class="text-center" id="long_BAT"></td>
@@ -308,6 +396,9 @@
             <td>BCH (F)</td>
             <td class="text-center" id="volume_BCH_1"></td>
             <td class="text-center" id="volume_BCH_2"></td>
+            <td class="text-center" id="volume_BCH_3"></td>
+            <td class="text-center" id="volume_BCH_4"></td>
+            <td class="text-center" id="volume_BCH_5"></td>
             <td class="text-center" id="total_BCH"></td>
             <td class="text-center" id="average_BCH"></td>
             <td class="text-center" id="long_BCH"></td>
@@ -318,6 +409,9 @@
             <td>BEL (F)</td>
             <td class="text-center" id="volume_BEL_1"></td>
             <td class="text-center" id="volume_BEL_2"></td>
+            <td class="text-center" id="volume_BEL_3"></td>
+            <td class="text-center" id="volume_BEL_4"></td>
+            <td class="text-center" id="volume_BEL_5"></td>
             <td class="text-center" id="total_BEL"></td>
             <td class="text-center" id="average_BEL"></td>
             <td class="text-center" id="long_BEL"></td>
@@ -328,6 +422,9 @@
             <td>BLZ (F)</td>
             <td class="text-center" id="volume_BLZ_1"></td>
             <td class="text-center" id="volume_BLZ_2"></td>
+            <td class="text-center" id="volume_BLZ_3"></td>
+            <td class="text-center" id="volume_BLZ_4"></td>
+            <td class="text-center" id="volume_BLZ_5"></td>
             <td class="text-center" id="total_BLZ"></td>
             <td class="text-center" id="average_BLZ"></td>
             <td class="text-center" id="long_BLZ"></td>
@@ -338,6 +435,9 @@
             <td>BNT (F)</td>
             <td class="text-center" id="volume_BNT_1"></td>
             <td class="text-center" id="volume_BNT_2"></td>
+            <td class="text-center" id="volume_BNT_3"></td>
+            <td class="text-center" id="volume_BNT_4"></td>
+            <td class="text-center" id="volume_BNT_5"></td>
             <td class="text-center" id="total_BNT"></td>
             <td class="text-center" id="average_BNT"></td>
             <td class="text-center" id="long_BNT"></td>
@@ -348,6 +448,9 @@
             <td>BNX (F)</td>
             <td class="text-center" id="volume_BNX_1"></td>
             <td class="text-center" id="volume_BNX_2"></td>
+            <td class="text-center" id="volume_BNX_3"></td>
+            <td class="text-center" id="volume_BNX_4"></td>
+            <td class="text-center" id="volume_BNX_5"></td>
             <td class="text-center" id="total_BNX"></td>
             <td class="text-center" id="average_BNX"></td>
             <td class="text-center" id="long_BNX"></td>
@@ -358,6 +461,9 @@
             <td>BTC (F)</td>
             <td class="text-center" id="volume_BTC_1"></td>
             <td class="text-center" id="volume_BTC_2"></td>
+            <td class="text-center" id="volume_BTC_3"></td>
+            <td class="text-center" id="volume_BTC_4"></td>
+            <td class="text-center" id="volume_BTC_5"></td>
             <td class="text-center" id="total_BTC"></td>
             <td class="text-center" id="average_BTC"></td>
             <td class="text-center" id="long_BTC"></td>
@@ -368,6 +474,9 @@
             <td>C98 (F)</td>
             <td class="text-center" id="volume_C98_1"></td>
             <td class="text-center" id="volume_C98_2"></td>
+            <td class="text-center" id="volume_C98_3"></td>
+            <td class="text-center" id="volume_C98_4"></td>
+            <td class="text-center" id="volume_C98_5"></td>
             <td class="text-center" id="total_C98"></td>
             <td class="text-center" id="average_C98"></td>
             <td class="text-center" id="long_C98"></td>
@@ -378,6 +487,9 @@
             <td>CELO (F)</td>
             <td class="text-center" id="volume_CELO_1"></td>
             <td class="text-center" id="volume_CELO_2"></td>
+            <td class="text-center" id="volume_CELO_3"></td>
+            <td class="text-center" id="volume_CELO_4"></td>
+            <td class="text-center" id="volume_CELO_5"></td>
             <td class="text-center" id="total_CELO"></td>
             <td class="text-center" id="average_CELO"></td>
             <td class="text-center" id="long_CELO"></td>
@@ -388,6 +500,9 @@
             <td>CELR (F)</td>
             <td class="text-center" id="volume_CELR_1"></td>
             <td class="text-center" id="volume_CELR_2"></td>
+            <td class="text-center" id="volume_CELR_3"></td>
+            <td class="text-center" id="volume_CELR_4"></td>
+            <td class="text-center" id="volume_CELR_5"></td>
             <td class="text-center" id="total_CELR"></td>
             <td class="text-center" id="average_CELR"></td>
             <td class="text-center" id="long_CELR"></td>
@@ -398,6 +513,9 @@
             <td>CFX (F)</td>
             <td class="text-center" id="volume_CFX_1"></td>
             <td class="text-center" id="volume_CFX_2"></td>
+            <td class="text-center" id="volume_CFX_3"></td>
+            <td class="text-center" id="volume_CFX_4"></td>
+            <td class="text-center" id="volume_CFX_5"></td>
             <td class="text-center" id="total_CFX"></td>
             <td class="text-center" id="average_CFX"></td>
             <td class="text-center" id="long_CFX"></td>
@@ -408,6 +526,9 @@
             <td>CHR (F)</td>
             <td class="text-center" id="volume_CHR_1"></td>
             <td class="text-center" id="volume_CHR_2"></td>
+            <td class="text-center" id="volume_CHR_3"></td>
+            <td class="text-center" id="volume_CHR_4"></td>
+            <td class="text-center" id="volume_CHR_5"></td>
             <td class="text-center" id="total_CHR"></td>
             <td class="text-center" id="average_CHR"></td>
             <td class="text-center" id="long_CHR"></td>
@@ -418,6 +539,9 @@
             <td>CHZ (F)</td>
             <td class="text-center" id="volume_CHZ_1"></td>
             <td class="text-center" id="volume_CHZ_2"></td>
+            <td class="text-center" id="volume_CHZ_3"></td>
+            <td class="text-center" id="volume_CHZ_4"></td>
+            <td class="text-center" id="volume_CHZ_5"></td>
             <td class="text-center" id="total_CHZ"></td>
             <td class="text-center" id="average_CHZ"></td>
             <td class="text-center" id="long_CHZ"></td>
@@ -428,6 +552,9 @@
             <td>CKB (F)</td>
             <td class="text-center" id="volume_CKB_1"></td>
             <td class="text-center" id="volume_CKB_2"></td>
+            <td class="text-center" id="volume_CKB_3"></td>
+            <td class="text-center" id="volume_CKB_4"></td>
+            <td class="text-center" id="volume_CKB_5"></td>
             <td class="text-center" id="total_CKB"></td>
             <td class="text-center" id="average_CKB"></td>
             <td class="text-center" id="long_CKB"></td>
@@ -438,6 +565,9 @@
             <td>COMBO (F)</td>
             <td class="text-center" id="volume_COMBO_1"></td>
             <td class="text-center" id="volume_COMBO_2"></td>
+            <td class="text-center" id="volume_COMBO_3"></td>
+            <td class="text-center" id="volume_COMBO_4"></td>
+            <td class="text-center" id="volume_COMBO_5"></td>
             <td class="text-center" id="total_COMBO"></td>
             <td class="text-center" id="average_COMBO"></td>
             <td class="text-center" id="long_COMBO"></td>
@@ -448,6 +578,9 @@
             <td>COMP (F)</td>
             <td class="text-center" id="volume_COMP_1"></td>
             <td class="text-center" id="volume_COMP_2"></td>
+            <td class="text-center" id="volume_COMP_3"></td>
+            <td class="text-center" id="volume_COMP_4"></td>
+            <td class="text-center" id="volume_COMP_5"></td>
             <td class="text-center" id="total_COMP"></td>
             <td class="text-center" id="average_COMP"></td>
             <td class="text-center" id="long_COMP"></td>
@@ -458,6 +591,9 @@
             <td>COTI (F)</td>
             <td class="text-center" id="volume_COTI_1"></td>
             <td class="text-center" id="volume_COTI_2"></td>
+            <td class="text-center" id="volume_COTI_3"></td>
+            <td class="text-center" id="volume_COTI_4"></td>
+            <td class="text-center" id="volume_COTI_5"></td>
             <td class="text-center" id="total_COTI"></td>
             <td class="text-center" id="average_COTI"></td>
             <td class="text-center" id="long_COTI"></td>
@@ -468,6 +604,9 @@
             <td>CRV (F)</td>
             <td class="text-center" id="volume_CRV_1"></td>
             <td class="text-center" id="volume_CRV_2"></td>
+            <td class="text-center" id="volume_CRV_3"></td>
+            <td class="text-center" id="volume_CRV_4"></td>
+            <td class="text-center" id="volume_CRV_5"></td>
             <td class="text-center" id="total_CRV"></td>
             <td class="text-center" id="average_CRV"></td>
             <td class="text-center" id="long_CRV"></td>
@@ -478,6 +617,9 @@
             <td>CTK (F)</td>
             <td class="text-center" id="volume_CTK_1"></td>
             <td class="text-center" id="volume_CTK_2"></td>
+            <td class="text-center" id="volume_CTK_3"></td>
+            <td class="text-center" id="volume_CTK_4"></td>
+            <td class="text-center" id="volume_CTK_5"></td>
             <td class="text-center" id="total_CTK"></td>
             <td class="text-center" id="average_CTK"></td>
             <td class="text-center" id="long_CTK"></td>
@@ -488,6 +630,9 @@
             <td>CTSI (F)</td>
             <td class="text-center" id="volume_CTSI_1"></td>
             <td class="text-center" id="volume_CTSI_2"></td>
+            <td class="text-center" id="volume_CTSI_3"></td>
+            <td class="text-center" id="volume_CTSI_4"></td>
+            <td class="text-center" id="volume_CTSI_5"></td>
             <td class="text-center" id="total_CTSI"></td>
             <td class="text-center" id="average_CTSI"></td>
             <td class="text-center" id="long_CTSI"></td>
@@ -498,6 +643,9 @@
             <td>CVX (F)</td>
             <td class="text-center" id="volume_CVX_1"></td>
             <td class="text-center" id="volume_CVX_2"></td>
+            <td class="text-center" id="volume_CVX_3"></td>
+            <td class="text-center" id="volume_CVX_4"></td>
+            <td class="text-center" id="volume_CVX_5"></td>
             <td class="text-center" id="total_CVX"></td>
             <td class="text-center" id="average_CVX"></td>
             <td class="text-center" id="long_CVX"></td>
@@ -508,6 +656,9 @@
             <td>CYBER (F)</td>
             <td class="text-center" id="volume_CYBER_1"></td>
             <td class="text-center" id="volume_CYBER_2"></td>
+            <td class="text-center" id="volume_CYBER_3"></td>
+            <td class="text-center" id="volume_CYBER_4"></td>
+            <td class="text-center" id="volume_CYBER_5"></td>
             <td class="text-center" id="total_CYBER"></td>
             <td class="text-center" id="average_CYBER"></td>
             <td class="text-center" id="long_CYBER"></td>
@@ -518,6 +669,9 @@
             <td>DAR (F)</td>
             <td class="text-center" id="volume_DAR_1"></td>
             <td class="text-center" id="volume_DAR_2"></td>
+            <td class="text-center" id="volume_DAR_3"></td>
+            <td class="text-center" id="volume_DAR_4"></td>
+            <td class="text-center" id="volume_DAR_5"></td>
             <td class="text-center" id="total_DAR"></td>
             <td class="text-center" id="average_DAR"></td>
             <td class="text-center" id="long_DAR"></td>
@@ -528,6 +682,9 @@
             <td>DASH (F)</td>
             <td class="text-center" id="volume_DASH_1"></td>
             <td class="text-center" id="volume_DASH_2"></td>
+            <td class="text-center" id="volume_DASH_3"></td>
+            <td class="text-center" id="volume_DASH_4"></td>
+            <td class="text-center" id="volume_DASH_5"></td>
             <td class="text-center" id="total_DASH"></td>
             <td class="text-center" id="average_DASH"></td>
             <td class="text-center" id="long_DASH"></td>
@@ -538,6 +695,9 @@
             <td>DENT (F)</td>
             <td class="text-center" id="volume_DENT_1"></td>
             <td class="text-center" id="volume_DENT_2"></td>
+            <td class="text-center" id="volume_DENT_3"></td>
+            <td class="text-center" id="volume_DENT_4"></td>
+            <td class="text-center" id="volume_DENT_5"></td>
             <td class="text-center" id="total_DENT"></td>
             <td class="text-center" id="average_DENT"></td>
             <td class="text-center" id="long_DENT"></td>
@@ -548,6 +708,9 @@
             <td>DGB (F)</td>
             <td class="text-center" id="volume_DGB_1"></td>
             <td class="text-center" id="volume_DGB_2"></td>
+            <td class="text-center" id="volume_DGB_3"></td>
+            <td class="text-center" id="volume_DGB_4"></td>
+            <td class="text-center" id="volume_DGB_5"></td>
             <td class="text-center" id="total_DGB"></td>
             <td class="text-center" id="average_DGB"></td>
             <td class="text-center" id="long_DGB"></td>
@@ -558,6 +721,9 @@
             <td>DUSK (F)</td>
             <td class="text-center" id="volume_DUSK_1"></td>
             <td class="text-center" id="volume_DUSK_2"></td>
+            <td class="text-center" id="volume_DUSK_3"></td>
+            <td class="text-center" id="volume_DUSK_4"></td>
+            <td class="text-center" id="volume_DUSK_5"></td>
             <td class="text-center" id="total_DUSK"></td>
             <td class="text-center" id="average_DUSK"></td>
             <td class="text-center" id="long_DUSK"></td>
@@ -568,6 +734,9 @@
             <td>DYDX (F)</td>
             <td class="text-center" id="volume_DYDX_1"></td>
             <td class="text-center" id="volume_DYDX_2"></td>
+            <td class="text-center" id="volume_DYDX_3"></td>
+            <td class="text-center" id="volume_DYDX_4"></td>
+            <td class="text-center" id="volume_DYDX_5"></td>
             <td class="text-center" id="total_DYDX"></td>
             <td class="text-center" id="average_DYDX"></td>
             <td class="text-center" id="long_DYDX"></td>
@@ -578,6 +747,9 @@
             <td>EDU (F)</td>
             <td class="text-center" id="volume_EDU_1"></td>
             <td class="text-center" id="volume_EDU_2"></td>
+            <td class="text-center" id="volume_EDU_3"></td>
+            <td class="text-center" id="volume_EDU_4"></td>
+            <td class="text-center" id="volume_EDU_5"></td>
             <td class="text-center" id="total_EDU"></td>
             <td class="text-center" id="average_EDU"></td>
             <td class="text-center" id="long_EDU"></td>
@@ -588,6 +760,9 @@
             <td>EGLD (F)</td>
             <td class="text-center" id="volume_EGLD_1"></td>
             <td class="text-center" id="volume_EGLD_2"></td>
+            <td class="text-center" id="volume_EGLD_3"></td>
+            <td class="text-center" id="volume_EGLD_4"></td>
+            <td class="text-center" id="volume_EGLD_5"></td>
             <td class="text-center" id="total_EGLD"></td>
             <td class="text-center" id="average_EGLD"></td>
             <td class="text-center" id="long_EGLD"></td>
@@ -598,6 +773,9 @@
             <td>ENJ (F)</td>
             <td class="text-center" id="volume_ENJ_1"></td>
             <td class="text-center" id="volume_ENJ_2"></td>
+            <td class="text-center" id="volume_ENJ_3"></td>
+            <td class="text-center" id="volume_ENJ_4"></td>
+            <td class="text-center" id="volume_ENJ_5"></td>
             <td class="text-center" id="total_ENJ"></td>
             <td class="text-center" id="average_ENJ"></td>
             <td class="text-center" id="long_ENJ"></td>
@@ -608,6 +786,9 @@
             <td>ENS (F)</td>
             <td class="text-center" id="volume_ENS_1"></td>
             <td class="text-center" id="volume_ENS_2"></td>
+            <td class="text-center" id="volume_ENS_3"></td>
+            <td class="text-center" id="volume_ENS_4"></td>
+            <td class="text-center" id="volume_ENS_5"></td>
             <td class="text-center" id="total_ENS"></td>
             <td class="text-center" id="average_ENS"></td>
             <td class="text-center" id="long_ENS"></td>
@@ -618,6 +799,9 @@
             <td>EOS (F)</td>
             <td class="text-center" id="volume_EOS_1"></td>
             <td class="text-center" id="volume_EOS_2"></td>
+            <td class="text-center" id="volume_EOS_3"></td>
+            <td class="text-center" id="volume_EOS_4"></td>
+            <td class="text-center" id="volume_EOS_5"></td>
             <td class="text-center" id="total_EOS"></td>
             <td class="text-center" id="average_EOS"></td>
             <td class="text-center" id="long_EOS"></td>
@@ -628,6 +812,9 @@
             <td>ETC (F)</td>
             <td class="text-center" id="volume_ETC_1"></td>
             <td class="text-center" id="volume_ETC_2"></td>
+            <td class="text-center" id="volume_ETC_3"></td>
+            <td class="text-center" id="volume_ETC_4"></td>
+            <td class="text-center" id="volume_ETC_5"></td>
             <td class="text-center" id="total_ETC"></td>
             <td class="text-center" id="average_ETC"></td>
             <td class="text-center" id="long_ETC"></td>
@@ -638,6 +825,9 @@
             <td>ETH (F)</td>
             <td class="text-center" id="volume_ETH_1"></td>
             <td class="text-center" id="volume_ETH_2"></td>
+            <td class="text-center" id="volume_ETH_3"></td>
+            <td class="text-center" id="volume_ETH_4"></td>
+            <td class="text-center" id="volume_ETH_5"></td>
             <td class="text-center" id="total_ETH"></td>
             <td class="text-center" id="average_ETH"></td>
             <td class="text-center" id="long_ETH"></td>
@@ -648,6 +838,9 @@
             <td>FET (F)</td>
             <td class="text-center" id="volume_FET_1"></td>
             <td class="text-center" id="volume_FET_2"></td>
+            <td class="text-center" id="volume_FET_3"></td>
+            <td class="text-center" id="volume_FET_4"></td>
+            <td class="text-center" id="volume_FET_5"></td>
             <td class="text-center" id="total_FET"></td>
             <td class="text-center" id="average_FET"></td>
             <td class="text-center" id="long_FET"></td>
@@ -658,6 +851,9 @@
             <td>FLM (F)</td>
             <td class="text-center" id="volume_FLM_1"></td>
             <td class="text-center" id="volume_FLM_2"></td>
+            <td class="text-center" id="volume_FLM_3"></td>
+            <td class="text-center" id="volume_FLM_4"></td>
+            <td class="text-center" id="volume_FLM_5"></td>
             <td class="text-center" id="total_FLM"></td>
             <td class="text-center" id="average_FLM"></td>
             <td class="text-center" id="long_FLM"></td>
@@ -668,6 +864,9 @@
             <td>FLOKI (F)</td>
             <td class="text-center" id="volume_FLOKI_1"></td>
             <td class="text-center" id="volume_FLOKI_2"></td>
+            <td class="text-center" id="volume_FLOKI_3"></td>
+            <td class="text-center" id="volume_FLOKI_4"></td>
+            <td class="text-center" id="volume_FLOKI_5"></td>
             <td class="text-center" id="total_FLOKI"></td>
             <td class="text-center" id="average_FLOKI"></td>
             <td class="text-center" id="long_FLOKI"></td>
@@ -678,6 +877,9 @@
             <td>FLOW (F)</td>
             <td class="text-center" id="volume_FLOW_1"></td>
             <td class="text-center" id="volume_FLOW_2"></td>
+            <td class="text-center" id="volume_FLOW_3"></td>
+            <td class="text-center" id="volume_FLOW_4"></td>
+            <td class="text-center" id="volume_FLOW_5"></td>
             <td class="text-center" id="total_FLOW"></td>
             <td class="text-center" id="average_FLOW"></td>
             <td class="text-center" id="long_FLOW"></td>
@@ -688,6 +890,9 @@
             <td>FTM (F)</td>
             <td class="text-center" id="volume_FTM_1"></td>
             <td class="text-center" id="volume_FTM_2"></td>
+            <td class="text-center" id="volume_FTM_3"></td>
+            <td class="text-center" id="volume_FTM_4"></td>
+            <td class="text-center" id="volume_FTM_5"></td>
             <td class="text-center" id="total_FTM"></td>
             <td class="text-center" id="average_FTM"></td>
             <td class="text-center" id="long_FTM"></td>
@@ -698,6 +903,9 @@
             <td>FXS (F)</td>
             <td class="text-center" id="volume_FXS_1"></td>
             <td class="text-center" id="volume_FXS_2"></td>
+            <td class="text-center" id="volume_FXS_3"></td>
+            <td class="text-center" id="volume_FXS_4"></td>
+            <td class="text-center" id="volume_FXS_5"></td>
             <td class="text-center" id="total_FXS"></td>
             <td class="text-center" id="average_FXS"></td>
             <td class="text-center" id="long_FXS"></td>
@@ -708,6 +916,9 @@
             <td>GALA (F)</td>
             <td class="text-center" id="volume_GALA_1"></td>
             <td class="text-center" id="volume_GALA_2"></td>
+            <td class="text-center" id="volume_GALA_3"></td>
+            <td class="text-center" id="volume_GALA_4"></td>
+            <td class="text-center" id="volume_GALA_5"></td>
             <td class="text-center" id="total_GALA"></td>
             <td class="text-center" id="average_GALA"></td>
             <td class="text-center" id="long_GALA"></td>
@@ -718,6 +929,9 @@
             <td>GAL (F)</td>
             <td class="text-center" id="volume_GAL_1"></td>
             <td class="text-center" id="volume_GAL_2"></td>
+            <td class="text-center" id="volume_GAL_3"></td>
+            <td class="text-center" id="volume_GAL_4"></td>
+            <td class="text-center" id="volume_GAL_5"></td>
             <td class="text-center" id="total_GAL"></td>
             <td class="text-center" id="average_GAL"></td>
             <td class="text-center" id="long_GAL"></td>
@@ -728,6 +942,9 @@
             <td>GMT (F)</td>
             <td class="text-center" id="volume_GMT_1"></td>
             <td class="text-center" id="volume_GMT_2"></td>
+            <td class="text-center" id="volume_GMT_3"></td>
+            <td class="text-center" id="volume_GMT_4"></td>
+            <td class="text-center" id="volume_GMT_5"></td>
             <td class="text-center" id="total_GMT"></td>
             <td class="text-center" id="average_GMT"></td>
             <td class="text-center" id="long_GMT"></td>
@@ -738,6 +955,9 @@
             <td>GMX (F)</td>
             <td class="text-center" id="volume_GMX_1"></td>
             <td class="text-center" id="volume_GMX_2"></td>
+            <td class="text-center" id="volume_GMX_3"></td>
+            <td class="text-center" id="volume_GMX_4"></td>
+            <td class="text-center" id="volume_GMX_5"></td>
             <td class="text-center" id="total_GMX"></td>
             <td class="text-center" id="average_GMX"></td>
             <td class="text-center" id="long_GMX"></td>
@@ -748,6 +968,9 @@
             <td>GRT (F)</td>
             <td class="text-center" id="volume_GRT_1"></td>
             <td class="text-center" id="volume_GRT_2"></td>
+            <td class="text-center" id="volume_GRT_3"></td>
+            <td class="text-center" id="volume_GRT_4"></td>
+            <td class="text-center" id="volume_GRT_5"></td>
             <td class="text-center" id="total_GRT"></td>
             <td class="text-center" id="average_GRT"></td>
             <td class="text-center" id="long_GRT"></td>
@@ -758,6 +981,9 @@
             <td>GTC (F)</td>
             <td class="text-center" id="volume_GTC_1"></td>
             <td class="text-center" id="volume_GTC_2"></td>
+            <td class="text-center" id="volume_GTC_3"></td>
+            <td class="text-center" id="volume_GTC_4"></td>
+            <td class="text-center" id="volume_GTC_5"></td>
             <td class="text-center" id="total_GTC"></td>
             <td class="text-center" id="average_GTC"></td>
             <td class="text-center" id="long_GTC"></td>
@@ -768,6 +994,9 @@
             <td>HBAR (F)</td>
             <td class="text-center" id="volume_HBAR_1"></td>
             <td class="text-center" id="volume_HBAR_2"></td>
+            <td class="text-center" id="volume_HBAR_3"></td>
+            <td class="text-center" id="volume_HBAR_4"></td>
+            <td class="text-center" id="volume_HBAR_5"></td>
             <td class="text-center" id="total_HBAR"></td>
             <td class="text-center" id="average_HBAR"></td>
             <td class="text-center" id="long_HBAR"></td>
@@ -778,6 +1007,9 @@
             <td>HFT (F)</td>
             <td class="text-center" id="volume_HFT_1"></td>
             <td class="text-center" id="volume_HFT_2"></td>
+            <td class="text-center" id="volume_HFT_3"></td>
+            <td class="text-center" id="volume_HFT_4"></td>
+            <td class="text-center" id="volume_HFT_5"></td>
             <td class="text-center" id="total_HFT"></td>
             <td class="text-center" id="average_HFT"></td>
             <td class="text-center" id="long_HFT"></td>
@@ -788,6 +1020,9 @@
             <td>HIFI (F)</td>
             <td class="text-center" id="volume_HIFI_1"></td>
             <td class="text-center" id="volume_HIFI_2"></td>
+            <td class="text-center" id="volume_HIFI_3"></td>
+            <td class="text-center" id="volume_HIFI_4"></td>
+            <td class="text-center" id="volume_HIFI_5"></td>
             <td class="text-center" id="total_HIFI"></td>
             <td class="text-center" id="average_HIFI"></td>
             <td class="text-center" id="long_HIFI"></td>
@@ -798,6 +1033,9 @@
             <td>HIGH (F)</td>
             <td class="text-center" id="volume_HIGH_1"></td>
             <td class="text-center" id="volume_HIGH_2"></td>
+            <td class="text-center" id="volume_HIGH_3"></td>
+            <td class="text-center" id="volume_HIGH_4"></td>
+            <td class="text-center" id="volume_HIGH_5"></td>
             <td class="text-center" id="total_HIGH"></td>
             <td class="text-center" id="average_HIGH"></td>
             <td class="text-center" id="long_HIGH"></td>
@@ -808,6 +1046,9 @@
             <td>HOT (F)</td>
             <td class="text-center" id="volume_HOT_1"></td>
             <td class="text-center" id="volume_HOT_2"></td>
+            <td class="text-center" id="volume_HOT_3"></td>
+            <td class="text-center" id="volume_HOT_4"></td>
+            <td class="text-center" id="volume_HOT_5"></td>
             <td class="text-center" id="total_HOT"></td>
             <td class="text-center" id="average_HOT"></td>
             <td class="text-center" id="long_HOT"></td>
@@ -818,6 +1059,9 @@
             <td>ICP (F)</td>
             <td class="text-center" id="volume_ICP_1"></td>
             <td class="text-center" id="volume_ICP_2"></td>
+            <td class="text-center" id="volume_ICP_3"></td>
+            <td class="text-center" id="volume_ICP_4"></td>
+            <td class="text-center" id="volume_ICP_5"></td>
             <td class="text-center" id="total_ICP"></td>
             <td class="text-center" id="average_ICP"></td>
             <td class="text-center" id="long_ICP"></td>
@@ -828,6 +1072,9 @@
             <td>ICX (F)</td>
             <td class="text-center" id="volume_ICX_1"></td>
             <td class="text-center" id="volume_ICX_2"></td>
+            <td class="text-center" id="volume_ICX_3"></td>
+            <td class="text-center" id="volume_ICX_4"></td>
+            <td class="text-center" id="volume_ICX_5"></td>
             <td class="text-center" id="total_ICX"></td>
             <td class="text-center" id="average_ICX"></td>
             <td class="text-center" id="long_ICX"></td>
@@ -838,6 +1085,9 @@
             <td>IDEX (F)</td>
             <td class="text-center" id="volume_IDEX_1"></td>
             <td class="text-center" id="volume_IDEX_2"></td>
+            <td class="text-center" id="volume_IDEX_3"></td>
+            <td class="text-center" id="volume_IDEX_4"></td>
+            <td class="text-center" id="volume_IDEX_5"></td>
             <td class="text-center" id="total_IDEX"></td>
             <td class="text-center" id="average_IDEX"></td>
             <td class="text-center" id="long_IDEX"></td>
@@ -848,6 +1098,9 @@
             <td>ID (F)</td>
             <td class="text-center" id="volume_ID_1"></td>
             <td class="text-center" id="volume_ID_2"></td>
+            <td class="text-center" id="volume_ID_3"></td>
+            <td class="text-center" id="volume_ID_4"></td>
+            <td class="text-center" id="volume_ID_5"></td>
             <td class="text-center" id="total_ID"></td>
             <td class="text-center" id="average_ID"></td>
             <td class="text-center" id="long_ID"></td>
@@ -858,6 +1111,9 @@
             <td>IMX (F)</td>
             <td class="text-center" id="volume_IMX_1"></td>
             <td class="text-center" id="volume_IMX_2"></td>
+            <td class="text-center" id="volume_IMX_3"></td>
+            <td class="text-center" id="volume_IMX_4"></td>
+            <td class="text-center" id="volume_IMX_5"></td>
             <td class="text-center" id="total_IMX"></td>
             <td class="text-center" id="average_IMX"></td>
             <td class="text-center" id="long_IMX"></td>
@@ -868,6 +1124,9 @@
             <td>INJ (F)</td>
             <td class="text-center" id="volume_INJ_1"></td>
             <td class="text-center" id="volume_INJ_2"></td>
+            <td class="text-center" id="volume_INJ_3"></td>
+            <td class="text-center" id="volume_INJ_4"></td>
+            <td class="text-center" id="volume_INJ_5"></td>
             <td class="text-center" id="total_INJ"></td>
             <td class="text-center" id="average_INJ"></td>
             <td class="text-center" id="long_INJ"></td>
@@ -878,6 +1137,9 @@
             <td>IOST (F)</td>
             <td class="text-center" id="volume_IOST_1"></td>
             <td class="text-center" id="volume_IOST_2"></td>
+            <td class="text-center" id="volume_IOST_3"></td>
+            <td class="text-center" id="volume_IOST_4"></td>
+            <td class="text-center" id="volume_IOST_5"></td>
             <td class="text-center" id="total_IOST"></td>
             <td class="text-center" id="average_IOST"></td>
             <td class="text-center" id="long_IOST"></td>
@@ -888,6 +1150,9 @@
             <td>IOTA (F)</td>
             <td class="text-center" id="volume_IOTA_1"></td>
             <td class="text-center" id="volume_IOTA_2"></td>
+            <td class="text-center" id="volume_IOTA_3"></td>
+            <td class="text-center" id="volume_IOTA_4"></td>
+            <td class="text-center" id="volume_IOTA_5"></td>
             <td class="text-center" id="total_IOTA"></td>
             <td class="text-center" id="average_IOTA"></td>
             <td class="text-center" id="long_IOTA"></td>
@@ -898,6 +1163,9 @@
             <td>IOTX (F)</td>
             <td class="text-center" id="volume_IOTX_1"></td>
             <td class="text-center" id="volume_IOTX_2"></td>
+            <td class="text-center" id="volume_IOTX_3"></td>
+            <td class="text-center" id="volume_IOTX_4"></td>
+            <td class="text-center" id="volume_IOTX_5"></td>
             <td class="text-center" id="total_IOTX"></td>
             <td class="text-center" id="average_IOTX"></td>
             <td class="text-center" id="long_IOTX"></td>
@@ -908,6 +1176,9 @@
             <td>JASMY (F)</td>
             <td class="text-center" id="volume_JASMY_1"></td>
             <td class="text-center" id="volume_JASMY_2"></td>
+            <td class="text-center" id="volume_JASMY_3"></td>
+            <td class="text-center" id="volume_JASMY_4"></td>
+            <td class="text-center" id="volume_JASMY_5"></td>
             <td class="text-center" id="total_JASMY"></td>
             <td class="text-center" id="average_JASMY"></td>
             <td class="text-center" id="long_JASMY"></td>
@@ -918,6 +1189,9 @@
             <td>JOE (F)</td>
             <td class="text-center" id="volume_JOE_1"></td>
             <td class="text-center" id="volume_JOE_2"></td>
+            <td class="text-center" id="volume_JOE_3"></td>
+            <td class="text-center" id="volume_JOE_4"></td>
+            <td class="text-center" id="volume_JOE_5"></td>
             <td class="text-center" id="total_JOE"></td>
             <td class="text-center" id="average_JOE"></td>
             <td class="text-center" id="long_JOE"></td>
@@ -928,6 +1202,9 @@
             <td>KAVA (F)</td>
             <td class="text-center" id="volume_KAVA_1"></td>
             <td class="text-center" id="volume_KAVA_2"></td>
+            <td class="text-center" id="volume_KAVA_3"></td>
+            <td class="text-center" id="volume_KAVA_4"></td>
+            <td class="text-center" id="volume_KAVA_5"></td>
             <td class="text-center" id="total_KAVA"></td>
             <td class="text-center" id="average_KAVA"></td>
             <td class="text-center" id="long_KAVA"></td>
@@ -938,6 +1215,9 @@
             <td>KEY (F)</td>
             <td class="text-center" id="volume_KEY_1"></td>
             <td class="text-center" id="volume_KEY_2"></td>
+            <td class="text-center" id="volume_KEY_3"></td>
+            <td class="text-center" id="volume_KEY_4"></td>
+            <td class="text-center" id="volume_KEY_5"></td>
             <td class="text-center" id="total_KEY"></td>
             <td class="text-center" id="average_KEY"></td>
             <td class="text-center" id="long_KEY"></td>
@@ -948,6 +1228,9 @@
             <td>KLAY (F)</td>
             <td class="text-center" id="volume_KLAY_1"></td>
             <td class="text-center" id="volume_KLAY_2"></td>
+            <td class="text-center" id="volume_KLAY_3"></td>
+            <td class="text-center" id="volume_KLAY_4"></td>
+            <td class="text-center" id="volume_KLAY_5"></td>
             <td class="text-center" id="total_KLAY"></td>
             <td class="text-center" id="average_KLAY"></td>
             <td class="text-center" id="long_KLAY"></td>
@@ -958,6 +1241,9 @@
             <td>KNC (F)</td>
             <td class="text-center" id="volume_KNC_1"></td>
             <td class="text-center" id="volume_KNC_2"></td>
+            <td class="text-center" id="volume_KNC_3"></td>
+            <td class="text-center" id="volume_KNC_4"></td>
+            <td class="text-center" id="volume_KNC_5"></td>
             <td class="text-center" id="total_KNC"></td>
             <td class="text-center" id="average_KNC"></td>
             <td class="text-center" id="long_KNC"></td>
@@ -968,6 +1254,9 @@
             <td>KSM (F)</td>
             <td class="text-center" id="volume_KSM_1"></td>
             <td class="text-center" id="volume_KSM_2"></td>
+            <td class="text-center" id="volume_KSM_3"></td>
+            <td class="text-center" id="volume_KSM_4"></td>
+            <td class="text-center" id="volume_KSM_5"></td>
             <td class="text-center" id="total_KSM"></td>
             <td class="text-center" id="average_KSM"></td>
             <td class="text-center" id="long_KSM"></td>
@@ -978,6 +1267,9 @@
             <td>LEVER (F)</td>
             <td class="text-center" id="volume_LEVER_1"></td>
             <td class="text-center" id="volume_LEVER_2"></td>
+            <td class="text-center" id="volume_LEVER_3"></td>
+            <td class="text-center" id="volume_LEVER_4"></td>
+            <td class="text-center" id="volume_LEVER_5"></td>
             <td class="text-center" id="total_LEVER"></td>
             <td class="text-center" id="average_LEVER"></td>
             <td class="text-center" id="long_LEVER"></td>
@@ -988,6 +1280,9 @@
             <td>LINA (F)</td>
             <td class="text-center" id="volume_LINA_1"></td>
             <td class="text-center" id="volume_LINA_2"></td>
+            <td class="text-center" id="volume_LINA_3"></td>
+            <td class="text-center" id="volume_LINA_4"></td>
+            <td class="text-center" id="volume_LINA_5"></td>
             <td class="text-center" id="total_LINA"></td>
             <td class="text-center" id="average_LINA"></td>
             <td class="text-center" id="long_LINA"></td>
@@ -998,6 +1293,9 @@
             <td>LINK (F)</td>
             <td class="text-center" id="volume_LINK_1"></td>
             <td class="text-center" id="volume_LINK_2"></td>
+            <td class="text-center" id="volume_LINK_3"></td>
+            <td class="text-center" id="volume_LINK_4"></td>
+            <td class="text-center" id="volume_LINK_5"></td>
             <td class="text-center" id="total_LINK"></td>
             <td class="text-center" id="average_LINK"></td>
             <td class="text-center" id="long_LINK"></td>
@@ -1008,6 +1306,9 @@
             <td>LIT (F)</td>
             <td class="text-center" id="volume_LIT_1"></td>
             <td class="text-center" id="volume_LIT_2"></td>
+            <td class="text-center" id="volume_LIT_3"></td>
+            <td class="text-center" id="volume_LIT_4"></td>
+            <td class="text-center" id="volume_LIT_5"></td>
             <td class="text-center" id="total_LIT"></td>
             <td class="text-center" id="average_LIT"></td>
             <td class="text-center" id="long_LIT"></td>
@@ -1018,6 +1319,9 @@
             <td>LPT (F)</td>
             <td class="text-center" id="volume_LPT_1"></td>
             <td class="text-center" id="volume_LPT_2"></td>
+            <td class="text-center" id="volume_LPT_3"></td>
+            <td class="text-center" id="volume_LPT_4"></td>
+            <td class="text-center" id="volume_LPT_5"></td>
             <td class="text-center" id="total_LPT"></td>
             <td class="text-center" id="average_LPT"></td>
             <td class="text-center" id="long_LPT"></td>
@@ -1028,6 +1332,9 @@
             <td>LQTY (F)</td>
             <td class="text-center" id="volume_LQTY_1"></td>
             <td class="text-center" id="volume_LQTY_2"></td>
+            <td class="text-center" id="volume_LQTY_3"></td>
+            <td class="text-center" id="volume_LQTY_4"></td>
+            <td class="text-center" id="volume_LQTY_5"></td>
             <td class="text-center" id="total_LQTY"></td>
             <td class="text-center" id="average_LQTY"></td>
             <td class="text-center" id="long_LQTY"></td>
@@ -1038,6 +1345,9 @@
             <td>LRC (F)</td>
             <td class="text-center" id="volume_LRC_1"></td>
             <td class="text-center" id="volume_LRC_2"></td>
+            <td class="text-center" id="volume_LRC_3"></td>
+            <td class="text-center" id="volume_LRC_4"></td>
+            <td class="text-center" id="volume_LRC_5"></td>
             <td class="text-center" id="total_LRC"></td>
             <td class="text-center" id="average_LRC"></td>
             <td class="text-center" id="long_LRC"></td>
@@ -1048,6 +1358,9 @@
             <td>LTC (F)</td>
             <td class="text-center" id="volume_LTC_1"></td>
             <td class="text-center" id="volume_LTC_2"></td>
+            <td class="text-center" id="volume_LTC_3"></td>
+            <td class="text-center" id="volume_LTC_4"></td>
+            <td class="text-center" id="volume_LTC_5"></td>
             <td class="text-center" id="total_LTC"></td>
             <td class="text-center" id="average_LTC"></td>
             <td class="text-center" id="long_LTC"></td>
@@ -1058,6 +1371,9 @@
             <td>LUNA (F)</td>
             <td class="text-center" id="volume_LUNA_1"></td>
             <td class="text-center" id="volume_LUNA_2"></td>
+            <td class="text-center" id="volume_LUNA_3"></td>
+            <td class="text-center" id="volume_LUNA_4"></td>
+            <td class="text-center" id="volume_LUNA_5"></td>
             <td class="text-center" id="total_LUNA"></td>
             <td class="text-center" id="average_LUNA"></td>
             <td class="text-center" id="long_LUNA"></td>
@@ -1068,6 +1384,9 @@
             <td>LUNC (F)</td>
             <td class="text-center" id="volume_LUNC_1"></td>
             <td class="text-center" id="volume_LUNC_2"></td>
+            <td class="text-center" id="volume_LUNC_3"></td>
+            <td class="text-center" id="volume_LUNC_4"></td>
+            <td class="text-center" id="volume_LUNC_5"></td>
             <td class="text-center" id="total_LUNC"></td>
             <td class="text-center" id="average_LUNC"></td>
             <td class="text-center" id="long_LUNC"></td>
@@ -1078,6 +1397,9 @@
             <td>MAGIC (F)</td>
             <td class="text-center" id="volume_MAGIC_1"></td>
             <td class="text-center" id="volume_MAGIC_2"></td>
+            <td class="text-center" id="volume_MAGIC_3"></td>
+            <td class="text-center" id="volume_MAGIC_4"></td>
+            <td class="text-center" id="volume_MAGIC_5"></td>
             <td class="text-center" id="total_MAGIC"></td>
             <td class="text-center" id="average_MAGIC"></td>
             <td class="text-center" id="long_MAGIC"></td>
@@ -1088,6 +1410,9 @@
             <td>MANA (F)</td>
             <td class="text-center" id="volume_MANA_1"></td>
             <td class="text-center" id="volume_MANA_2"></td>
+            <td class="text-center" id="volume_MANA_3"></td>
+            <td class="text-center" id="volume_MANA_4"></td>
+            <td class="text-center" id="volume_MANA_5"></td>
             <td class="text-center" id="total_MANA"></td>
             <td class="text-center" id="average_MANA"></td>
             <td class="text-center" id="long_MANA"></td>
@@ -1098,6 +1423,9 @@
             <td>MASK (F)</td>
             <td class="text-center" id="volume_MASK_1"></td>
             <td class="text-center" id="volume_MASK_2"></td>
+            <td class="text-center" id="volume_MASK_3"></td>
+            <td class="text-center" id="volume_MASK_4"></td>
+            <td class="text-center" id="volume_MASK_5"></td>
             <td class="text-center" id="total_MASK"></td>
             <td class="text-center" id="average_MASK"></td>
             <td class="text-center" id="long_MASK"></td>
@@ -1108,6 +1436,9 @@
             <td>MATIC (F)</td>
             <td class="text-center" id="volume_MATIC_1"></td>
             <td class="text-center" id="volume_MATIC_2"></td>
+            <td class="text-center" id="volume_MATIC_3"></td>
+            <td class="text-center" id="volume_MATIC_4"></td>
+            <td class="text-center" id="volume_MATIC_5"></td>
             <td class="text-center" id="total_MATIC"></td>
             <td class="text-center" id="average_MATIC"></td>
             <td class="text-center" id="long_MATIC"></td>
@@ -1118,6 +1449,9 @@
             <td>MAV (F)</td>
             <td class="text-center" id="volume_MAV_1"></td>
             <td class="text-center" id="volume_MAV_2"></td>
+            <td class="text-center" id="volume_MAV_3"></td>
+            <td class="text-center" id="volume_MAV_4"></td>
+            <td class="text-center" id="volume_MAV_5"></td>
             <td class="text-center" id="total_MAV"></td>
             <td class="text-center" id="average_MAV"></td>
             <td class="text-center" id="long_MAV"></td>
@@ -1128,6 +1462,9 @@
             <td>MDT (F)</td>
             <td class="text-center" id="volume_MDT_1"></td>
             <td class="text-center" id="volume_MDT_2"></td>
+            <td class="text-center" id="volume_MDT_3"></td>
+            <td class="text-center" id="volume_MDT_4"></td>
+            <td class="text-center" id="volume_MDT_5"></td>
             <td class="text-center" id="total_MDT"></td>
             <td class="text-center" id="average_MDT"></td>
             <td class="text-center" id="long_MDT"></td>
@@ -1138,6 +1475,9 @@
             <td>MINA (F)</td>
             <td class="text-center" id="volume_MINA_1"></td>
             <td class="text-center" id="volume_MINA_2"></td>
+            <td class="text-center" id="volume_MINA_3"></td>
+            <td class="text-center" id="volume_MINA_4"></td>
+            <td class="text-center" id="volume_MINA_5"></td>
             <td class="text-center" id="total_MINA"></td>
             <td class="text-center" id="average_MINA"></td>
             <td class="text-center" id="long_MINA"></td>
@@ -1148,6 +1488,9 @@
             <td>MKR (F)</td>
             <td class="text-center" id="volume_MKR_1"></td>
             <td class="text-center" id="volume_MKR_2"></td>
+            <td class="text-center" id="volume_MKR_3"></td>
+            <td class="text-center" id="volume_MKR_4"></td>
+            <td class="text-center" id="volume_MKR_5"></td>
             <td class="text-center" id="total_MKR"></td>
             <td class="text-center" id="average_MKR"></td>
             <td class="text-center" id="long_MKR"></td>
@@ -1158,6 +1501,9 @@
             <td>MTL (F)</td>
             <td class="text-center" id="volume_MTL_1"></td>
             <td class="text-center" id="volume_MTL_2"></td>
+            <td class="text-center" id="volume_MTL_3"></td>
+            <td class="text-center" id="volume_MTL_4"></td>
+            <td class="text-center" id="volume_MTL_5"></td>
             <td class="text-center" id="total_MTL"></td>
             <td class="text-center" id="average_MTL"></td>
             <td class="text-center" id="long_MTL"></td>
@@ -1168,6 +1514,9 @@
             <td>NEAR (F)</td>
             <td class="text-center" id="volume_NEAR_1"></td>
             <td class="text-center" id="volume_NEAR_2"></td>
+            <td class="text-center" id="volume_NEAR_3"></td>
+            <td class="text-center" id="volume_NEAR_4"></td>
+            <td class="text-center" id="volume_NEAR_5"></td>
             <td class="text-center" id="total_NEAR"></td>
             <td class="text-center" id="average_NEAR"></td>
             <td class="text-center" id="long_NEAR"></td>
@@ -1178,6 +1527,9 @@
             <td>NEO (F)</td>
             <td class="text-center" id="volume_NEO_1"></td>
             <td class="text-center" id="volume_NEO_2"></td>
+            <td class="text-center" id="volume_NEO_3"></td>
+            <td class="text-center" id="volume_NEO_4"></td>
+            <td class="text-center" id="volume_NEO_5"></td>
             <td class="text-center" id="total_NEO"></td>
             <td class="text-center" id="average_NEO"></td>
             <td class="text-center" id="long_NEO"></td>
@@ -1188,6 +1540,9 @@
             <td>NKN (F)</td>
             <td class="text-center" id="volume_NKN_1"></td>
             <td class="text-center" id="volume_NKN_2"></td>
+            <td class="text-center" id="volume_NKN_3"></td>
+            <td class="text-center" id="volume_NKN_4"></td>
+            <td class="text-center" id="volume_NKN_5"></td>
             <td class="text-center" id="total_NKN"></td>
             <td class="text-center" id="average_NKN"></td>
             <td class="text-center" id="long_NKN"></td>
@@ -1198,6 +1553,9 @@
             <td>NMR (F)</td>
             <td class="text-center" id="volume_NMR_1"></td>
             <td class="text-center" id="volume_NMR_2"></td>
+            <td class="text-center" id="volume_NMR_3"></td>
+            <td class="text-center" id="volume_NMR_4"></td>
+            <td class="text-center" id="volume_NMR_5"></td>
             <td class="text-center" id="total_NMR"></td>
             <td class="text-center" id="average_NMR"></td>
             <td class="text-center" id="long_NMR"></td>
@@ -1208,6 +1566,9 @@
             <td>OCEAN (F)</td>
             <td class="text-center" id="volume_OCEAN_1"></td>
             <td class="text-center" id="volume_OCEAN_2"></td>
+            <td class="text-center" id="volume_OCEAN_3"></td>
+            <td class="text-center" id="volume_OCEAN_4"></td>
+            <td class="text-center" id="volume_OCEAN_5"></td>
             <td class="text-center" id="total_OCEAN"></td>
             <td class="text-center" id="average_OCEAN"></td>
             <td class="text-center" id="long_OCEAN"></td>
@@ -1218,6 +1579,9 @@
             <td>OGN (F)</td>
             <td class="text-center" id="volume_OGN_1"></td>
             <td class="text-center" id="volume_OGN_2"></td>
+            <td class="text-center" id="volume_OGN_3"></td>
+            <td class="text-center" id="volume_OGN_4"></td>
+            <td class="text-center" id="volume_OGN_5"></td>
             <td class="text-center" id="total_OGN"></td>
             <td class="text-center" id="average_OGN"></td>
             <td class="text-center" id="long_OGN"></td>
@@ -1228,6 +1592,9 @@
             <td>OMG (F)</td>
             <td class="text-center" id="volume_OMG_1"></td>
             <td class="text-center" id="volume_OMG_2"></td>
+            <td class="text-center" id="volume_OMG_3"></td>
+            <td class="text-center" id="volume_OMG_4"></td>
+            <td class="text-center" id="volume_OMG_5"></td>
             <td class="text-center" id="total_OMG"></td>
             <td class="text-center" id="average_OMG"></td>
             <td class="text-center" id="long_OMG"></td>
@@ -1238,6 +1605,9 @@
             <td>OM (F)</td>
             <td class="text-center" id="volume_OM_1"></td>
             <td class="text-center" id="volume_OM_2"></td>
+            <td class="text-center" id="volume_OM_3"></td>
+            <td class="text-center" id="volume_OM_4"></td>
+            <td class="text-center" id="volume_OM_5"></td>
             <td class="text-center" id="total_OM"></td>
             <td class="text-center" id="average_OM"></td>
             <td class="text-center" id="long_OM"></td>
@@ -1248,6 +1618,9 @@
             <td>ONE (F)</td>
             <td class="text-center" id="volume_ONE_1"></td>
             <td class="text-center" id="volume_ONE_2"></td>
+            <td class="text-center" id="volume_ONE_3"></td>
+            <td class="text-center" id="volume_ONE_4"></td>
+            <td class="text-center" id="volume_ONE_5"></td>
             <td class="text-center" id="total_ONE"></td>
             <td class="text-center" id="average_ONE"></td>
             <td class="text-center" id="long_ONE"></td>
@@ -1258,6 +1631,9 @@
             <td>ONT (F)</td>
             <td class="text-center" id="volume_ONT_1"></td>
             <td class="text-center" id="volume_ONT_2"></td>
+            <td class="text-center" id="volume_ONT_3"></td>
+            <td class="text-center" id="volume_ONT_4"></td>
+            <td class="text-center" id="volume_ONT_5"></td>
             <td class="text-center" id="total_ONT"></td>
             <td class="text-center" id="average_ONT"></td>
             <td class="text-center" id="long_ONT"></td>
@@ -1268,6 +1644,9 @@
             <td>PENDLE (F)</td>
             <td class="text-center" id="volume_PENDLE_1"></td>
             <td class="text-center" id="volume_PENDLE_2"></td>
+            <td class="text-center" id="volume_PENDLE_3"></td>
+            <td class="text-center" id="volume_PENDLE_4"></td>
+            <td class="text-center" id="volume_PENDLE_5"></td>
             <td class="text-center" id="total_PENDLE"></td>
             <td class="text-center" id="average_PENDLE"></td>
             <td class="text-center" id="long_PENDLE"></td>
@@ -1278,6 +1657,9 @@
             <td>PEPE (F)</td>
             <td class="text-center" id="volume_PEPE_1"></td>
             <td class="text-center" id="volume_PEPE_2"></td>
+            <td class="text-center" id="volume_PEPE_3"></td>
+            <td class="text-center" id="volume_PEPE_4"></td>
+            <td class="text-center" id="volume_PEPE_5"></td>
             <td class="text-center" id="total_PEPE"></td>
             <td class="text-center" id="average_PEPE"></td>
             <td class="text-center" id="long_PEPE"></td>
@@ -1288,6 +1670,9 @@
             <td>PERP (F)</td>
             <td class="text-center" id="volume_PERP_1"></td>
             <td class="text-center" id="volume_PERP_2"></td>
+            <td class="text-center" id="volume_PERP_3"></td>
+            <td class="text-center" id="volume_PERP_4"></td>
+            <td class="text-center" id="volume_PERP_5"></td>
             <td class="text-center" id="total_PERP"></td>
             <td class="text-center" id="average_PERP"></td>
             <td class="text-center" id="long_PERP"></td>
@@ -1298,6 +1683,9 @@
             <td>PHB (F)</td>
             <td class="text-center" id="volume_PHB_1"></td>
             <td class="text-center" id="volume_PHB_2"></td>
+            <td class="text-center" id="volume_PHB_3"></td>
+            <td class="text-center" id="volume_PHB_4"></td>
+            <td class="text-center" id="volume_PHB_5"></td>
             <td class="text-center" id="total_PHB"></td>
             <td class="text-center" id="average_PHB"></td>
             <td class="text-center" id="long_PHB"></td>
@@ -1308,6 +1696,9 @@
             <td>QNT (F)</td>
             <td class="text-center" id="volume_QNT_1"></td>
             <td class="text-center" id="volume_QNT_2"></td>
+            <td class="text-center" id="volume_QNT_3"></td>
+            <td class="text-center" id="volume_QNT_4"></td>
+            <td class="text-center" id="volume_QNT_5"></td>
             <td class="text-center" id="total_QNT"></td>
             <td class="text-center" id="average_QNT"></td>
             <td class="text-center" id="long_QNT"></td>
@@ -1318,6 +1709,9 @@
             <td>QTUM (F)</td>
             <td class="text-center" id="volume_QTUM_1"></td>
             <td class="text-center" id="volume_QTUM_2"></td>
+            <td class="text-center" id="volume_QTUM_3"></td>
+            <td class="text-center" id="volume_QTUM_4"></td>
+            <td class="text-center" id="volume_QTUM_5"></td>
             <td class="text-center" id="total_QTUM"></td>
             <td class="text-center" id="average_QTUM"></td>
             <td class="text-center" id="long_QTUM"></td>
@@ -1328,6 +1722,9 @@
             <td>RAD (F)</td>
             <td class="text-center" id="volume_RAD_1"></td>
             <td class="text-center" id="volume_RAD_2"></td>
+            <td class="text-center" id="volume_RAD_3"></td>
+            <td class="text-center" id="volume_RAD_4"></td>
+            <td class="text-center" id="volume_RAD_5"></td>
             <td class="text-center" id="total_RAD"></td>
             <td class="text-center" id="average_RAD"></td>
             <td class="text-center" id="long_RAD"></td>
@@ -1338,6 +1735,9 @@
             <td>REEF (F)</td>
             <td class="text-center" id="volume_REEF_1"></td>
             <td class="text-center" id="volume_REEF_2"></td>
+            <td class="text-center" id="volume_REEF_3"></td>
+            <td class="text-center" id="volume_REEF_4"></td>
+            <td class="text-center" id="volume_REEF_5"></td>
             <td class="text-center" id="total_REEF"></td>
             <td class="text-center" id="average_REEF"></td>
             <td class="text-center" id="long_REEF"></td>
@@ -1348,6 +1748,9 @@
             <td>REN (F)</td>
             <td class="text-center" id="volume_REN_1"></td>
             <td class="text-center" id="volume_REN_2"></td>
+            <td class="text-center" id="volume_REN_3"></td>
+            <td class="text-center" id="volume_REN_4"></td>
+            <td class="text-center" id="volume_REN_5"></td>
             <td class="text-center" id="total_REN"></td>
             <td class="text-center" id="average_REN"></td>
             <td class="text-center" id="long_REN"></td>
@@ -1358,6 +1761,9 @@
             <td>RLC (F)</td>
             <td class="text-center" id="volume_RLC_1"></td>
             <td class="text-center" id="volume_RLC_2"></td>
+            <td class="text-center" id="volume_RLC_3"></td>
+            <td class="text-center" id="volume_RLC_4"></td>
+            <td class="text-center" id="volume_RLC_5"></td>
             <td class="text-center" id="total_RLC"></td>
             <td class="text-center" id="average_RLC"></td>
             <td class="text-center" id="long_RLC"></td>
@@ -1368,6 +1774,9 @@
             <td>RNDR (F)</td>
             <td class="text-center" id="volume_RNDR_1"></td>
             <td class="text-center" id="volume_RNDR_2"></td>
+            <td class="text-center" id="volume_RNDR_3"></td>
+            <td class="text-center" id="volume_RNDR_4"></td>
+            <td class="text-center" id="volume_RNDR_5"></td>
             <td class="text-center" id="total_RNDR"></td>
             <td class="text-center" id="average_RNDR"></td>
             <td class="text-center" id="long_RNDR"></td>
@@ -1378,6 +1787,9 @@
             <td>ROSE (F)</td>
             <td class="text-center" id="volume_ROSE_1"></td>
             <td class="text-center" id="volume_ROSE_2"></td>
+            <td class="text-center" id="volume_ROSE_3"></td>
+            <td class="text-center" id="volume_ROSE_4"></td>
+            <td class="text-center" id="volume_ROSE_5"></td>
             <td class="text-center" id="total_ROSE"></td>
             <td class="text-center" id="average_ROSE"></td>
             <td class="text-center" id="long_ROSE"></td>
@@ -1388,6 +1800,9 @@
             <td>RSR (F)</td>
             <td class="text-center" id="volume_RSR_1"></td>
             <td class="text-center" id="volume_RSR_2"></td>
+            <td class="text-center" id="volume_RSR_3"></td>
+            <td class="text-center" id="volume_RSR_4"></td>
+            <td class="text-center" id="volume_RSR_5"></td>
             <td class="text-center" id="total_RSR"></td>
             <td class="text-center" id="average_RSR"></td>
             <td class="text-center" id="long_RSR"></td>
@@ -1398,6 +1813,9 @@
             <td>RUNE (F)</td>
             <td class="text-center" id="volume_RUNE_1"></td>
             <td class="text-center" id="volume_RUNE_2"></td>
+            <td class="text-center" id="volume_RUNE_3"></td>
+            <td class="text-center" id="volume_RUNE_4"></td>
+            <td class="text-center" id="volume_RUNE_5"></td>
             <td class="text-center" id="total_RUNE"></td>
             <td class="text-center" id="average_RUNE"></td>
             <td class="text-center" id="long_RUNE"></td>
@@ -1408,6 +1826,9 @@
             <td>RVN (F)</td>
             <td class="text-center" id="volume_RVN_1"></td>
             <td class="text-center" id="volume_RVN_2"></td>
+            <td class="text-center" id="volume_RVN_3"></td>
+            <td class="text-center" id="volume_RVN_4"></td>
+            <td class="text-center" id="volume_RVN_5"></td>
             <td class="text-center" id="total_RVN"></td>
             <td class="text-center" id="average_RVN"></td>
             <td class="text-center" id="long_RVN"></td>
@@ -1418,6 +1839,9 @@
             <td>SAND (F)</td>
             <td class="text-center" id="volume_SAND_1"></td>
             <td class="text-center" id="volume_SAND_2"></td>
+            <td class="text-center" id="volume_SAND_3"></td>
+            <td class="text-center" id="volume_SAND_4"></td>
+            <td class="text-center" id="volume_SAND_5"></td>
             <td class="text-center" id="total_SAND"></td>
             <td class="text-center" id="average_SAND"></td>
             <td class="text-center" id="long_SAND"></td>
@@ -1428,6 +1852,9 @@
             <td>SEI (F)</td>
             <td class="text-center" id="volume_SEI_1"></td>
             <td class="text-center" id="volume_SEI_2"></td>
+            <td class="text-center" id="volume_SEI_3"></td>
+            <td class="text-center" id="volume_SEI_4"></td>
+            <td class="text-center" id="volume_SEI_5"></td>
             <td class="text-center" id="total_SEI"></td>
             <td class="text-center" id="average_SEI"></td>
             <td class="text-center" id="long_SEI"></td>
@@ -1438,6 +1865,9 @@
             <td>SFP (F)</td>
             <td class="text-center" id="volume_SFP_1"></td>
             <td class="text-center" id="volume_SFP_2"></td>
+            <td class="text-center" id="volume_SFP_3"></td>
+            <td class="text-center" id="volume_SFP_4"></td>
+            <td class="text-center" id="volume_SFP_5"></td>
             <td class="text-center" id="total_SFP"></td>
             <td class="text-center" id="average_SFP"></td>
             <td class="text-center" id="long_SFP"></td>
@@ -1448,6 +1878,9 @@
             <td>SHIB (F)</td>
             <td class="text-center" id="volume_SHIB_1"></td>
             <td class="text-center" id="volume_SHIB_2"></td>
+            <td class="text-center" id="volume_SHIB_3"></td>
+            <td class="text-center" id="volume_SHIB_4"></td>
+            <td class="text-center" id="volume_SHIB_5"></td>
             <td class="text-center" id="total_SHIB"></td>
             <td class="text-center" id="average_SHIB"></td>
             <td class="text-center" id="long_SHIB"></td>
@@ -1458,6 +1891,9 @@
             <td>SKL (F)</td>
             <td class="text-center" id="volume_SKL_1"></td>
             <td class="text-center" id="volume_SKL_2"></td>
+            <td class="text-center" id="volume_SKL_3"></td>
+            <td class="text-center" id="volume_SKL_4"></td>
+            <td class="text-center" id="volume_SKL_5"></td>
             <td class="text-center" id="total_SKL"></td>
             <td class="text-center" id="average_SKL"></td>
             <td class="text-center" id="long_SKL"></td>
@@ -1468,6 +1904,9 @@
             <td>SNX (F)</td>
             <td class="text-center" id="volume_SNX_1"></td>
             <td class="text-center" id="volume_SNX_2"></td>
+            <td class="text-center" id="volume_SNX_3"></td>
+            <td class="text-center" id="volume_SNX_4"></td>
+            <td class="text-center" id="volume_SNX_5"></td>
             <td class="text-center" id="total_SNX"></td>
             <td class="text-center" id="average_SNX"></td>
             <td class="text-center" id="long_SNX"></td>
@@ -1478,6 +1917,9 @@
             <td>SPELL (F)</td>
             <td class="text-center" id="volume_SPELL_1"></td>
             <td class="text-center" id="volume_SPELL_2"></td>
+            <td class="text-center" id="volume_SPELL_3"></td>
+            <td class="text-center" id="volume_SPELL_4"></td>
+            <td class="text-center" id="volume_SPELL_5"></td>
             <td class="text-center" id="total_SPELL"></td>
             <td class="text-center" id="average_SPELL"></td>
             <td class="text-center" id="long_SPELL"></td>
@@ -1488,6 +1930,9 @@
             <td>SSV (F)</td>
             <td class="text-center" id="volume_SSV_1"></td>
             <td class="text-center" id="volume_SSV_2"></td>
+            <td class="text-center" id="volume_SSV_3"></td>
+            <td class="text-center" id="volume_SSV_4"></td>
+            <td class="text-center" id="volume_SSV_5"></td>
             <td class="text-center" id="total_SSV"></td>
             <td class="text-center" id="average_SSV"></td>
             <td class="text-center" id="long_SSV"></td>
@@ -1498,6 +1943,9 @@
             <td>STORJ (F)</td>
             <td class="text-center" id="volume_STORJ_1"></td>
             <td class="text-center" id="volume_STORJ_2"></td>
+            <td class="text-center" id="volume_STORJ_3"></td>
+            <td class="text-center" id="volume_STORJ_4"></td>
+            <td class="text-center" id="volume_STORJ_5"></td>
             <td class="text-center" id="total_STORJ"></td>
             <td class="text-center" id="average_STORJ"></td>
             <td class="text-center" id="long_STORJ"></td>
@@ -1508,6 +1956,9 @@
             <td>STX (F)</td>
             <td class="text-center" id="volume_STX_1"></td>
             <td class="text-center" id="volume_STX_2"></td>
+            <td class="text-center" id="volume_STX_3"></td>
+            <td class="text-center" id="volume_STX_4"></td>
+            <td class="text-center" id="volume_STX_5"></td>
             <td class="text-center" id="total_STX"></td>
             <td class="text-center" id="average_STX"></td>
             <td class="text-center" id="long_STX"></td>
@@ -1518,6 +1969,9 @@
             <td>SUI (F)</td>
             <td class="text-center" id="volume_SUI_1"></td>
             <td class="text-center" id="volume_SUI_2"></td>
+            <td class="text-center" id="volume_SUI_3"></td>
+            <td class="text-center" id="volume_SUI_4"></td>
+            <td class="text-center" id="volume_SUI_5"></td>
             <td class="text-center" id="total_SUI"></td>
             <td class="text-center" id="average_SUI"></td>
             <td class="text-center" id="long_SUI"></td>
@@ -1528,6 +1982,9 @@
             <td>SUSHI (F)</td>
             <td class="text-center" id="volume_SUSHI_1"></td>
             <td class="text-center" id="volume_SUSHI_2"></td>
+            <td class="text-center" id="volume_SUSHI_3"></td>
+            <td class="text-center" id="volume_SUSHI_4"></td>
+            <td class="text-center" id="volume_SUSHI_5"></td>
             <td class="text-center" id="total_SUSHI"></td>
             <td class="text-center" id="average_SUSHI"></td>
             <td class="text-center" id="long_SUSHI"></td>
@@ -1538,6 +1995,9 @@
             <td>SXP (F)</td>
             <td class="text-center" id="volume_SXP_1"></td>
             <td class="text-center" id="volume_SXP_2"></td>
+            <td class="text-center" id="volume_SXP_3"></td>
+            <td class="text-center" id="volume_SXP_4"></td>
+            <td class="text-center" id="volume_SXP_5"></td>
             <td class="text-center" id="total_SXP"></td>
             <td class="text-center" id="average_SXP"></td>
             <td class="text-center" id="long_SXP"></td>
@@ -1548,6 +2008,9 @@
             <td>THETA (F)</td>
             <td class="text-center" id="volume_THETA_1"></td>
             <td class="text-center" id="volume_THETA_2"></td>
+            <td class="text-center" id="volume_THETA_3"></td>
+            <td class="text-center" id="volume_THETA_4"></td>
+            <td class="text-center" id="volume_THETA_5"></td>
             <td class="text-center" id="total_THETA"></td>
             <td class="text-center" id="average_THETA"></td>
             <td class="text-center" id="long_THETA"></td>
@@ -1558,6 +2021,9 @@
             <td>TLM (F)</td>
             <td class="text-center" id="volume_TLM_1"></td>
             <td class="text-center" id="volume_TLM_2"></td>
+            <td class="text-center" id="volume_TLM_3"></td>
+            <td class="text-center" id="volume_TLM_4"></td>
+            <td class="text-center" id="volume_TLM_5"></td>
             <td class="text-center" id="total_TLM"></td>
             <td class="text-center" id="average_TLM"></td>
             <td class="text-center" id="long_TLM"></td>
@@ -1568,6 +2034,9 @@
             <td>TRB (F)</td>
             <td class="text-center" id="volume_TRB_1"></td>
             <td class="text-center" id="volume_TRB_2"></td>
+            <td class="text-center" id="volume_TRB_3"></td>
+            <td class="text-center" id="volume_TRB_4"></td>
+            <td class="text-center" id="volume_TRB_5"></td>
             <td class="text-center" id="total_TRB"></td>
             <td class="text-center" id="average_TRB"></td>
             <td class="text-center" id="long_TRB"></td>
@@ -1578,6 +2047,9 @@
             <td>TRU (F)</td>
             <td class="text-center" id="volume_TRU_1"></td>
             <td class="text-center" id="volume_TRU_2"></td>
+            <td class="text-center" id="volume_TRU_3"></td>
+            <td class="text-center" id="volume_TRU_4"></td>
+            <td class="text-center" id="volume_TRU_5"></td>
             <td class="text-center" id="total_TRU"></td>
             <td class="text-center" id="average_TRU"></td>
             <td class="text-center" id="long_TRU"></td>
@@ -1588,6 +2060,9 @@
             <td>T (F)</td>
             <td class="text-center" id="volume_T_1"></td>
             <td class="text-center" id="volume_T_2"></td>
+            <td class="text-center" id="volume_T_3"></td>
+            <td class="text-center" id="volume_T_4"></td>
+            <td class="text-center" id="volume_T_5"></td>
             <td class="text-center" id="total_T"></td>
             <td class="text-center" id="average_T"></td>
             <td class="text-center" id="long_T"></td>
@@ -1598,6 +2073,9 @@
             <td>UMA (F)</td>
             <td class="text-center" id="volume_UMA_1"></td>
             <td class="text-center" id="volume_UMA_2"></td>
+            <td class="text-center" id="volume_UMA_3"></td>
+            <td class="text-center" id="volume_UMA_4"></td>
+            <td class="text-center" id="volume_UMA_5"></td>
             <td class="text-center" id="total_UMA"></td>
             <td class="text-center" id="average_UMA"></td>
             <td class="text-center" id="long_UMA"></td>
@@ -1608,6 +2086,9 @@
             <td>UNFI (F)</td>
             <td class="text-center" id="volume_UNFI_1"></td>
             <td class="text-center" id="volume_UNFI_2"></td>
+            <td class="text-center" id="volume_UNFI_3"></td>
+            <td class="text-center" id="volume_UNFI_4"></td>
+            <td class="text-center" id="volume_UNFI_5"></td>
             <td class="text-center" id="total_UNFI"></td>
             <td class="text-center" id="average_UNFI"></td>
             <td class="text-center" id="long_UNFI"></td>
@@ -1618,6 +2099,9 @@
             <td>UNI (F)</td>
             <td class="text-center" id="volume_UNI_1"></td>
             <td class="text-center" id="volume_UNI_2"></td>
+            <td class="text-center" id="volume_UNI_3"></td>
+            <td class="text-center" id="volume_UNI_4"></td>
+            <td class="text-center" id="volume_UNI_5"></td>
             <td class="text-center" id="total_UNI"></td>
             <td class="text-center" id="average_UNI"></td>
             <td class="text-center" id="long_UNI"></td>
@@ -1628,6 +2112,9 @@
             <td>VET (F)</td>
             <td class="text-center" id="volume_VET_1"></td>
             <td class="text-center" id="volume_VET_2"></td>
+            <td class="text-center" id="volume_VET_3"></td>
+            <td class="text-center" id="volume_VET_4"></td>
+            <td class="text-center" id="volume_VET_5"></td>
             <td class="text-center" id="total_VET"></td>
             <td class="text-center" id="average_VET"></td>
             <td class="text-center" id="long_VET"></td>
@@ -1638,6 +2125,9 @@
             <td>WAVES (F)</td>
             <td class="text-center" id="volume_WAVES_1"></td>
             <td class="text-center" id="volume_WAVES_2"></td>
+            <td class="text-center" id="volume_WAVES_3"></td>
+            <td class="text-center" id="volume_WAVES_4"></td>
+            <td class="text-center" id="volume_WAVES_5"></td>
             <td class="text-center" id="total_WAVES"></td>
             <td class="text-center" id="average_WAVES"></td>
             <td class="text-center" id="long_WAVES"></td>
@@ -1648,6 +2138,9 @@
             <td>WLD (F)</td>
             <td class="text-center" id="volume_WLD_1"></td>
             <td class="text-center" id="volume_WLD_2"></td>
+            <td class="text-center" id="volume_WLD_3"></td>
+            <td class="text-center" id="volume_WLD_4"></td>
+            <td class="text-center" id="volume_WLD_5"></td>
             <td class="text-center" id="total_WLD"></td>
             <td class="text-center" id="average_WLD"></td>
             <td class="text-center" id="long_WLD"></td>
@@ -1658,6 +2151,9 @@
             <td>WOO (F)</td>
             <td class="text-center" id="volume_WOO_1"></td>
             <td class="text-center" id="volume_WOO_2"></td>
+            <td class="text-center" id="volume_WOO_3"></td>
+            <td class="text-center" id="volume_WOO_4"></td>
+            <td class="text-center" id="volume_WOO_5"></td>
             <td class="text-center" id="total_WOO"></td>
             <td class="text-center" id="average_WOO"></td>
             <td class="text-center" id="long_WOO"></td>
@@ -1668,6 +2164,9 @@
             <td>XEC (F)</td>
             <td class="text-center" id="volume_XEC_1"></td>
             <td class="text-center" id="volume_XEC_2"></td>
+            <td class="text-center" id="volume_XEC_3"></td>
+            <td class="text-center" id="volume_XEC_4"></td>
+            <td class="text-center" id="volume_XEC_5"></td>
             <td class="text-center" id="total_XEC"></td>
             <td class="text-center" id="average_XEC"></td>
             <td class="text-center" id="long_XEC"></td>
@@ -1678,6 +2177,9 @@
             <td>XEM (F)</td>
             <td class="text-center" id="volume_XEM_1"></td>
             <td class="text-center" id="volume_XEM_2"></td>
+            <td class="text-center" id="volume_XEM_3"></td>
+            <td class="text-center" id="volume_XEM_4"></td>
+            <td class="text-center" id="volume_XEM_5"></td>
             <td class="text-center" id="total_XEM"></td>
             <td class="text-center" id="average_XEM"></td>
             <td class="text-center" id="long_XEM"></td>
@@ -1688,6 +2190,9 @@
             <td>XLM (F)</td>
             <td class="text-center" id="volume_XLM_1"></td>
             <td class="text-center" id="volume_XLM_2"></td>
+            <td class="text-center" id="volume_XLM_3"></td>
+            <td class="text-center" id="volume_XLM_4"></td>
+            <td class="text-center" id="volume_XLM_5"></td>
             <td class="text-center" id="total_XLM"></td>
             <td class="text-center" id="average_XLM"></td>
             <td class="text-center" id="long_XLM"></td>
@@ -1698,6 +2203,9 @@
             <td>XMR (F)</td>
             <td class="text-center" id="volume_XMR_1"></td>
             <td class="text-center" id="volume_XMR_2"></td>
+            <td class="text-center" id="volume_XMR_3"></td>
+            <td class="text-center" id="volume_XMR_4"></td>
+            <td class="text-center" id="volume_XMR_5"></td>
             <td class="text-center" id="total_XMR"></td>
             <td class="text-center" id="average_XMR"></td>
             <td class="text-center" id="long_XMR"></td>
@@ -1708,6 +2216,9 @@
             <td>XRP (F)</td>
             <td class="text-center" id="volume_XRP_1"></td>
             <td class="text-center" id="volume_XRP_2"></td>
+            <td class="text-center" id="volume_XRP_3"></td>
+            <td class="text-center" id="volume_XRP_4"></td>
+            <td class="text-center" id="volume_XRP_5"></td>
             <td class="text-center" id="total_XRP"></td>
             <td class="text-center" id="average_XRP"></td>
             <td class="text-center" id="long_XRP"></td>
@@ -1718,6 +2229,9 @@
             <td>XTZ (F)</td>
             <td class="text-center" id="volume_XTZ_1"></td>
             <td class="text-center" id="volume_XTZ_2"></td>
+            <td class="text-center" id="volume_XTZ_3"></td>
+            <td class="text-center" id="volume_XTZ_4"></td>
+            <td class="text-center" id="volume_XTZ_5"></td>
             <td class="text-center" id="total_XTZ"></td>
             <td class="text-center" id="average_XTZ"></td>
             <td class="text-center" id="long_XTZ"></td>
@@ -1728,6 +2242,9 @@
             <td>XVG (F)</td>
             <td class="text-center" id="volume_XVG_1"></td>
             <td class="text-center" id="volume_XVG_2"></td>
+            <td class="text-center" id="volume_XVG_3"></td>
+            <td class="text-center" id="volume_XVG_4"></td>
+            <td class="text-center" id="volume_XVG_5"></td>
             <td class="text-center" id="total_XVG"></td>
             <td class="text-center" id="average_XVG"></td>
             <td class="text-center" id="long_XVG"></td>
@@ -1738,6 +2255,9 @@
             <td>XVS (F)</td>
             <td class="text-center" id="volume_XVS_1"></td>
             <td class="text-center" id="volume_XVS_2"></td>
+            <td class="text-center" id="volume_XVS_3"></td>
+            <td class="text-center" id="volume_XVS_4"></td>
+            <td class="text-center" id="volume_XVS_5"></td>
             <td class="text-center" id="total_XVS"></td>
             <td class="text-center" id="average_XVS"></td>
             <td class="text-center" id="long_XVS"></td>
@@ -1748,6 +2268,9 @@
             <td>YFI (F)</td>
             <td class="text-center" id="volume_YFI_1"></td>
             <td class="text-center" id="volume_YFI_2"></td>
+            <td class="text-center" id="volume_YFI_3"></td>
+            <td class="text-center" id="volume_YFI_4"></td>
+            <td class="text-center" id="volume_YFI_5"></td>
             <td class="text-center" id="total_YFI"></td>
             <td class="text-center" id="average_YFI"></td>
             <td class="text-center" id="long_YFI"></td>
@@ -1758,6 +2281,9 @@
             <td>YGG (F)</td>
             <td class="text-center" id="volume_YGG_1"></td>
             <td class="text-center" id="volume_YGG_2"></td>
+            <td class="text-center" id="volume_YGG_3"></td>
+            <td class="text-center" id="volume_YGG_4"></td>
+            <td class="text-center" id="volume_YGG_5"></td>
             <td class="text-center" id="total_YGG"></td>
             <td class="text-center" id="average_YGG"></td>
             <td class="text-center" id="long_YGG"></td>
@@ -1768,6 +2294,9 @@
             <td>ZEC (F)</td>
             <td class="text-center" id="volume_ZEC_1"></td>
             <td class="text-center" id="volume_ZEC_2"></td>
+            <td class="text-center" id="volume_ZEC_3"></td>
+            <td class="text-center" id="volume_ZEC_4"></td>
+            <td class="text-center" id="volume_ZEC_5"></td>
             <td class="text-center" id="total_ZEC"></td>
             <td class="text-center" id="average_ZEC"></td>
             <td class="text-center" id="long_ZEC"></td>
@@ -1778,6 +2307,9 @@
             <td>ZEN (F)</td>
             <td class="text-center" id="volume_ZEN_1"></td>
             <td class="text-center" id="volume_ZEN_2"></td>
+            <td class="text-center" id="volume_ZEN_3"></td>
+            <td class="text-center" id="volume_ZEN_4"></td>
+            <td class="text-center" id="volume_ZEN_5"></td>
             <td class="text-center" id="total_ZEN"></td>
             <td class="text-center" id="average_ZEN"></td>
             <td class="text-center" id="long_ZEN"></td>
@@ -1788,6 +2320,9 @@
             <td>ZIL (F)</td>
             <td class="text-center" id="volume_ZIL_1"></td>
             <td class="text-center" id="volume_ZIL_2"></td>
+            <td class="text-center" id="volume_ZIL_3"></td>
+            <td class="text-center" id="volume_ZIL_4"></td>
+            <td class="text-center" id="volume_ZIL_5"></td>
             <td class="text-center" id="total_ZIL"></td>
             <td class="text-center" id="average_ZIL"></td>
             <td class="text-center" id="long_ZIL"></td>
@@ -1798,12 +2333,15 @@
             <td>ZRX (F)</td>
             <td class="text-center" id="volume_ZRX_1"></td>
             <td class="text-center" id="volume_ZRX_2"></td>
+            <td class="text-center" id="volume_ZRX_3"></td>
+            <td class="text-center" id="volume_ZRX_4"></td>
+            <td class="text-center" id="volume_ZRX_5"></td>
             <td class="text-center" id="total_ZRX"></td>
             <td class="text-center" id="average_ZRX"></td>
             <td class="text-center" id="long_ZRX"></td>
             <td class="text-center" id="short_ZRX"></td>
          </tr>
       </table>
-      <script src="test.js"></script>
+      <script src="volume_3minutes.js"></script>
    </body>
 </html>
