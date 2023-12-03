@@ -51,6 +51,20 @@ async function fetchCryptoData(symbol) {
       longElement.textContent = "-";
     }
 
+    // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
+    const percentageThresholdShort = 90;
+
+    // Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 90% de la moyenne totale
+    const shortElement = document.getElementById(`short_${symbol}`);
+    if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
+      shortElement.textContent = "SHORT";
+      shortElement.classList.add("short");
+    } else {
+      shortElement.textContent = "-";
+    }
+
+
+
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
