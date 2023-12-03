@@ -6,17 +6,19 @@ async function fetchCryptoData(symbol) {
 
     const data = await response.json();
 
+    // Récupérez l'heure pour chaque intervalle
+    const time1 = new Date(data[0][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric' });
+    const time2 = new Date(data[1][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric' });
+
     // Récupérez le volume pour chaque intervalle
     const volume1 = parseFloat(data[0][5]); // Index 5 correspond au volume dans les données Klines
     const volumeElement1 = document.getElementById(`volume_${symbol}_1`);
-    volumeElement1.textContent = `${volume1.toFixed(2)} USDT`;
-
-    // Vous pouvez également faire d'autres manipulations avec le volume ici si nécessaire
+    volumeElement1.textContent = `${time1} (${volume1.toFixed(2)} USDT)`;
 
     // Récupérez le volume pour le deuxième intervalle (2)
     const volume2 = parseFloat(data[1][5]);
     const volumeElement2 = document.getElementById(`volume_${symbol}_2`);
-    volumeElement2.textContent = `${volume2.toFixed(2)} USDT`;
+    volumeElement2.textContent = `${time2} (${volume2.toFixed(2)} USDT)`;
 
     // Calculez le total des volumes
     const totalVolume = volume1 + volume2;
