@@ -1,63 +1,74 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=2h&limit=2`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=2`
     );
+
     const data = await response.json();
 
-    // Calcul du total des taux de variation sur 4 intervalles de 15 minutes
-    let totalVariation = 0;
+    const volumes = [];
+    const times = [];
 
-    // Mise à jour du tableau avec les données et la couleur
-    const cryptoRow = document.getElementById(symbol);
+    // Récupérez l'heure et le volume pour chaque intervalle
+    for (let i = 0; i < 2; i++) {
+      const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric' });
+      const volume = parseFloat(data[i][5]);
 
-    for (let i = 0; i < data.length; i++) {
-      const openPrice = parseFloat(data[i][1]);
-      const closePrice = parseFloat(data[i][4]);
-      const intervalVariation = ((closePrice - openPrice) / openPrice) * 28;
-      const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+      times.push(time);
+      volumes.push(volume);
 
-      const variationCell = cryptoRow.insertCell(cellIndex);
-      const variationValue = intervalVariation.toFixed(2);
-      const timestamp = parseInt(data[i][0]);
-      const dateValue = new Date(timestamp);
-      const hour = dateValue.getHours();
-      const minute = dateValue.getMinutes();
-      const formattedTime = `${hour.toString().padStart(2, "0")}:${minute
-        .toString()
-        .padStart(2, "0")}`;
-
-      variationCell.textContent = `${formattedTime}: ${variationValue}%`;
-
-      // Ne pas ajouter de classe de couleur aux cellules individuelles
-      totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
+      const formattedVolume = volume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+      const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
+      volumeElement.textContent = `${time} (${formattedVolume} USDT)`;
     }
 
-    // Ajouter la cellule pour afficher le total de variation
-    const totalCell = cryptoRow.insertCell(data.length + 1);
-    const totalValue = totalVariation.toFixed(2);
-    totalCell.textContent = `${totalValue}%`;
+    // Calculez le total des volumes
+    const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
 
-    if (totalVariation >= 28) {
-      totalCell.classList.add("positive");
-    } else if (totalVariation <= -28) {
-      totalCell.classList.add("negative");
+    // Mettez à jour le contenu HTML avec le total
+    const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+    const totalElement = document.getElementById(`total_${symbol}`);
+    totalElement.textContent = `${formattedTotalVolume} USDT`;
+
+    // Calculez la moyenne des volumes
+    const averageVolume = totalVolume / data.length; // Dans ce cas, 2 représente le nombre d'intervalles
+
+    // Mettez à jour le contenu HTML avec la moyenne
+    const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+    const averageElement = document.getElementById(`average_${symbol}`);
+    averageElement.textContent = `${formattedAverageVolume} USDT`;
+
+    // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
+    const percentageThresholdLong = 90;
+
+    // Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
+    const longElement = document.getElementById(`long_${symbol}`);
+    console.log("Symbol:", symbol);
+    console.log("Volumes:", volumes);
+    console.log("Average Volume:", averageVolume);
+    const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
+
+    console.log("Is LONG:", isLong);
+
+    if (isLong) {
+      longElement.textContent = "LONG";
+      longElement.classList.add("long");
+    } else {
+      longElement.textContent = "-";
     }
 
-    if (totalVariation >= 28 || totalVariation <= -28) {
-      // Ajouter le nom de la crypto en dehors du tableau
-      const cryptoNameDiv = document.getElementById("cryptoNames");
-      const cryptoName = document.createElement("p");
-      cryptoName.textContent = `${symbol} : ${totalValue}%`;
-      cryptoNameDiv.appendChild(cryptoName);
+    // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
+    const percentageThresholdShort = 90;
 
-      // Ajouter la classe CSS appropriée
-      if (totalVariation >= 28) {
-        cryptoName.classList.add("positive");
-      } else if (totalVariation <= -28) {
-        cryptoName.classList.add("negative");
-      }
+    // Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 90% de la moyenne totale
+    const shortElement = document.getElementById(`short_${symbol}`);
+    if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
+      shortElement.textContent = "SHORT";
+      shortElement.classList.add("short");
+    } else {
+      shortElement.textContent = "-";
     }
+
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -66,8 +77,11 @@ async function fetchCryptoData(symbol) {
   }
 }
 
-  // Appel de la fonction pour obtenir les taux de variation des cryptos
-  fetchCryptoData("1INCH");
+
+
+
+// Appel de la fonction pour obtenir les taux de variation des cryptos
+fetchCryptoData("1INCH");
   fetchCryptoData("AAVE");
   fetchCryptoData("ACH");
   fetchCryptoData("ADA");
@@ -229,7 +243,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("SXP");
   fetchCryptoData("THETA");
   fetchCryptoData("TLM");
-  fetchCryptoData("TOMO");
   fetchCryptoData("TRB");
   fetchCryptoData("TRU");
   fetchCryptoData("TRX");
