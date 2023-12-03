@@ -72,18 +72,19 @@ async function fetchCryptoData(symbol) {
 			longElement.textContent = "-";
 		}
 
-		// Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
-		const percentageThresholdShort = 90;
+		// Utilisez directement le pourcentage dans la condition (110 dans cet exemple)
+const percentageThresholdShort = 110;
 
-		// Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 90% de la moyenne totale
-		const shortElement = document.getElementById(`short_${symbol}`);
-		if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
-			shortElement.textContent = "SHORT";
-			shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
-			cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
-		} else {
-			shortElement.textContent = "-";
-		}
+// Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 110% de la moyenne totale
+const shortElement = document.getElementById(`short_${symbol}`);
+if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
+    shortElement.textContent = "SHORT";
+    shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
+    cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+} else {
+    shortElement.textContent = "-";
+}
+
 
 	} catch (error) {
 		console.error(
