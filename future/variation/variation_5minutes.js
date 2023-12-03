@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
 	try {
 		const response = await fetch(
-			`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=3`
+			`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=6`
 		);
 
 		const data = await response.json();
@@ -57,7 +57,6 @@ async function fetchCryptoData(symbol) {
 			averageElement.classList.add("negative");
 		}
 
-
 		const cryptoNamesElement = document.getElementById('cryptoNames');
 
 		// Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
@@ -84,6 +83,8 @@ async function fetchCryptoData(symbol) {
 		} else {
 			shortElement.textContent = "-";
 		}
+
+
 
 	} catch (error) {
 		console.error(
@@ -127,7 +128,6 @@ function mettreAJourHeure() {
 
 // Appeler la fonction pour mettre à jour l'heure
 mettreAJourHeure();
-
 
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
