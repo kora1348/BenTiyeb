@@ -20,9 +20,12 @@ async function fetchCryptoData(symbol) {
     for (let i = 0; i < 2; i++) {
       const formattedVolume = volumes[i].toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
       const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
-      volumeElement.textContent = `${time1} (${formattedVolume} USDT)`;
+      
+      // Utilisez time1 pour le premier intervalle et time2 pour le deuxième
+      const time = i === 0 ? time1 : time2;
+      
+      volumeElement.textContent = `${time} (${formattedVolume} USDT)`;
     }
-
     // Calculez le total des volumes
     const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
 
