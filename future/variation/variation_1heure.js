@@ -72,7 +72,7 @@ async function fetchCryptoData(symbol) {
 			longElement.textContent = "-";
 		}
 
-		const percentageThresholdShort = 90;
+		const percentageThresholdShort = 110;
 
 		// Vérifiez si toutes les variations sont en dessous de 90% de la moyenne
 		const shortElement = document.getElementById(`short_${symbol}`);
