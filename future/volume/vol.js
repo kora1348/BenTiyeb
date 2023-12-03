@@ -1,20 +1,20 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=2`
     );
 
     const data = await response.json();
 
     // Récupérez le volume pour chaque intervalle
-    const volume1 = parseFloat(data.volume);
+    const volume1 = parseFloat(data[0][5]); // Index 5 correspond au volume dans les données Klines
     const volumeElement1 = document.getElementById(`volume_${symbol}_1`);
     volumeElement1.textContent = `${volume1.toFixed(2)} USDT`;
 
     // Vous pouvez également faire d'autres manipulations avec le volume ici si nécessaire
 
     // Récupérez le volume pour le deuxième intervalle (2)
-    const volume2 = parseFloat(data.volume);
+    const volume2 = parseFloat(data[1][5]);
     const volumeElement2 = document.getElementById(`volume_${symbol}_2`);
     volumeElement2.textContent = `${volume2.toFixed(2)} USDT`;
 
@@ -61,6 +61,7 @@ async function fetchCryptoData(symbol) {
     );
   }
 }
+
 
 
 
