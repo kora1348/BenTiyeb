@@ -6,26 +6,22 @@ async function fetchCryptoData(symbol) {
 
     const data = await response.json();
 
-    // Récupérez l'heure pour chaque intervalle
-    const time1 = new Date(data[0][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric' });
-    const time2 = new Date(data[1][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric' });
+    const volumes = [];
+    const times = [];
 
-    // Récupérez le volume pour chaque intervalle
-    const volumes = [
-      parseFloat(data[0][5]), // Index 5 correspond au volume dans les données Klines
-      parseFloat(data[1][5])
-    ];
-
-    // Mettez à jour le contenu HTML avec le temps et le volume pour chaque intervalle
+    // Récupérez l'heure et le volume pour chaque intervalle
     for (let i = 0; i < 2; i++) {
-      const formattedVolume = volumes[i].toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
+      const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric' });
+      const volume = parseFloat(data[i][5]);
+
+      times.push(time);
+      volumes.push(volume);
+
+      const formattedVolume = volume.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(',', '.');
       const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
-      
-      // Utilisez time1 pour le premier intervalle et time2 pour le deuxième
-      const time = i === 0 ? time1 : time2;
-      
       volumeElement.textContent = `${time} (${formattedVolume} USDT)`;
     }
+
     // Calculez le total des volumes
     const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
 
@@ -47,7 +43,14 @@ async function fetchCryptoData(symbol) {
 
     // Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
     const longElement = document.getElementById(`long_${symbol}`);
-    if (volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100))) {
+    console.log("Symbol:", symbol);
+    console.log("Volumes:", volumes);
+    console.log("Average Volume:", averageVolume);
+    const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
+
+    console.log("Is LONG:", isLong);
+
+    if (isLong) {
       longElement.textContent = "LONG";
       longElement.classList.add("long");
     } else {
@@ -65,8 +68,6 @@ async function fetchCryptoData(symbol) {
     } else {
       shortElement.textContent = "-";
     }
-
-
 
   } catch (error) {
     console.error(
