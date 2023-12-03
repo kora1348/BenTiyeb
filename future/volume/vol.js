@@ -1,84 +1,58 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=3`
+      `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`
     );
 
     const data = await response.json();
 
-    // Calculez le taux de variation pour chaque intervalle
-    let totalVariation = 0;
-    const variations = [];
+    // Récupérez le volume pour chaque intervalle
+    const volume1 = parseFloat(data.volume);
+    const volumeElement1 = document.getElementById(`volume_${symbol}_1`);
+    volumeElement1.textContent = `${volume1.toFixed(2)} USDT`;
 
-    for (let i = 1; i < data.length; i++) {
-      const openPrice = parseFloat(data[i][1]);
-      const closePrice = parseFloat(data[i][4]);
-      const variation = ((closePrice - openPrice) / openPrice) * 100;
-      const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', { hour: 'numeric', minute: 'numeric', hour12: false });
+    // Vous pouvez également faire d'autres manipulations avec le volume ici si nécessaire
 
-    
-      // Mettez à jour le contenu HTML avec les taux de variation, l'heure et la couleur
-      const element = document.getElementById(`variation_${symbol}_${i}`);
-      element.innerHTML = `${variation.toFixed(2)}% <span class="time">- (${time})</span>`;
-      
-    
-      // Ajoutez la classe de couleur en fonction de la positivité ou de la négativité
-      if (variation > 0) {
-        element.classList.add("positive");
-      } else if (variation < 0) {
-        element.classList.add("negative");
-      }
-    
-      // Calculez le total des taux de variation
-      totalVariation += variation;
-    
-      // Stockez les variations dans le tableau
-      variations.push(variation);
-    }
-    
+    // Récupérez le volume pour le deuxième intervalle (2)
+    const volume2 = parseFloat(data.volume);
+    const volumeElement2 = document.getElementById(`volume_${symbol}_2`);
+    volumeElement2.textContent = `${volume2.toFixed(2)} USDT`;
 
-    // Mettez à jour le contenu HTML avec le total et appliquez la classe de couleur bleue
+    // Calculez le total des volumes
+    const totalVolume = volume1 + volume2;
+
+    // Mettez à jour le contenu HTML avec le total
     const totalElement = document.getElementById(`total_${symbol}`);
-    totalElement.textContent = `${totalVariation.toFixed(2)}%`;
-    totalElement.classList.add("total");
+    totalElement.textContent = `${totalVolume.toFixed(2)} USDT`;
 
-    // Calculez la moyenne et mettez à jour le contenu HTML avec la classe de couleur en fonction de la positivité ou de la négativité
+    // Calculez la moyenne des volumes
+    const averageVolume = totalVolume / 2; // Dans ce cas, 2 représente le nombre d'intervalles
+
+    // Mettez à jour le contenu HTML avec la moyenne
     const averageElement = document.getElementById(`average_${symbol}`);
-    const average = totalVariation / data.length;
-    averageElement.textContent = `${average.toFixed(2)}%`;
+    averageElement.textContent = `${averageVolume.toFixed(2)} USDT`;
 
-    if (average > 0) {
-      averageElement.classList.add("positive");
-    } else if (average < 0) {
-      averageElement.classList.add("negative");
+    // Utilisez directement le volume dans la condition (90 dans cet exemple)
+    const volumeThresholdLong = 100000; // Remplacez 100000 par la valeur de volume souhaitée pour le seuil LONG
+    const volumeThresholdShort = 50000; // Remplacez 50000 par la valeur de volume souhaitée pour le seuil SHORT
+
+    // Vérifiez si le volume est supérieur au seuil pour la position LONG
+    const longElement = document.getElementById(`long_${symbol}`);
+    if (totalVolume > volumeThresholdLong) {
+      longElement.textContent = "LONG";
+      longElement.classList.add("long");
+    } else {
+      longElement.textContent = "-";
     }
 
-// Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
-const percentageThresholdLong = 90;
-
-// Vérifiez si toutes les variations sont supérieures à 90% de la moyenne
-const longElement = document.getElementById(`long_${symbol}`);
-if (variations.every(variation => variation > average * (percentageThresholdLong / 100))) {
-  longElement.textContent = "LONG";
-  longElement.classList.add("long");
-} else {
-  longElement.textContent = "-";
-}
-
-
-
-const percentageThresholdShort = 90;
-
-// Vérifiez si toutes les variations sont en dessous de 90% de la moyenne
-const shortElement = document.getElementById(`short_${symbol}`);
-if (variations.every(variation => variation < average * (percentageThresholdShort / 100))) {
-  shortElement.textContent = "SHORT";
-  shortElement.classList.add("short");
-} else {
-  shortElement.textContent = "-";
-}
-
-
+    // Vérifiez si le volume est inférieur au seuil pour la position SHORT
+    const shortElement = document.getElementById(`short_${symbol}`);
+    if (totalVolume < volumeThresholdShort) {
+      shortElement.textContent = "SHORT";
+      shortElement.classList.add("short");
+    } else {
+      shortElement.textContent = "-";
+    }
 
   } catch (error) {
     console.error(
@@ -87,6 +61,9 @@ if (variations.every(variation => variation < average * (percentageThresholdShor
     );
   }
 }
+
+
+
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 fetchCryptoData("1INCH");
   fetchCryptoData("AAVE");
