@@ -317,6 +317,5 @@ fetchCryptoData("XVS");
 fetchCryptoData("YFI");
 fetchCryptoData("YGG");
 fetchCryptoData("ZEC");
-fetchCryptoData("ZEN");
 fetchCryptoData("ZIL");
 fetchCryptoData("ZRX");

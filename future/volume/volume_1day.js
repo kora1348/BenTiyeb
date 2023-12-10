@@ -1,95 +1,94 @@
 async function fetchCryptoData(symbol) {
-    try {
-        const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1w&limit=5`
-        );
+	try {
+	  const response = await fetch(
+		`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=5`
+	  );
+  
+	  const data = await response.json();
+  
+	  const volumes = [];
+	  const dates = [];
+  
+	  // Récupérez la date et le volume pour chaque intervalle
+	  for (let i = 0; i < 5; i++) {
+		const date = new Date(data[i][0]).toLocaleDateString('fr-FR');
+		const volume = parseFloat(data[i][5]);
+  
+		dates.push(date);
+		volumes.push(volume);
+  
+		const formattedVolume = volume.toLocaleString('fr-FR', {
+		  minimumFractionDigits: 2,
+		  maximumFractionDigits: 2
+		}).replace(',', '.');
+		const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
+		volumeElement.textContent = `${date} (${formattedVolume} USDT)`;
+	  }
+		// Calculez le total des volumes
+		const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
 
-        const data = await response.json();
+		// Mettez à jour le contenu HTML avec le total
+		const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}).replace(',', '.');
+		const totalElement = document.getElementById(`total_${symbol}`);
+		totalElement.textContent = `${formattedTotalVolume} USDT`;
 
-        const volumes = [];
-        const times = [];
+		// Calculez la moyenne des volumes
+		const averageVolume = totalVolume / data.length; // Dans ce cas, 2 représente le nombre d'intervalles
 
-        // Récupérez la date et le volume pour chaque intervalle
-        for (let i = 0; i < 5; i++) {
-            const date = new Date(data[i][0]);
-            const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+		// Mettez à jour le contenu HTML avec la moyenne
+		const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}).replace(',', '.');
+		const averageElement = document.getElementById(`average_${symbol}`);
+		averageElement.textContent = `${formattedAverageVolume} USDT`;
 
-            const volume = parseFloat(data[i][5]);
+		const cryptoNamesElement = document.getElementById('cryptoNames');
 
-            times.push(formattedDate);
-            volumes.push(volume);
+		// Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
+		const percentageThresholdLong = 90;
 
-            const formattedVolume = volume.toLocaleString('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).replace(',', '.');
+		// Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
+		const longElement = document.getElementById(`long_${symbol}`);
+		console.log("Symbol:", symbol);
+		console.log("Volumes:", volumes);
+		console.log("Average Volume:", averageVolume);
+		const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
 
-            const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
-            volumeElement.textContent = `${formattedDate} (${formattedVolume} USDT)`;
-        }
+		console.log("Is LONG:", isLong);
 
-        // Calculez le total des volumes
-        const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
+		if (isLong) {
+			longElement.textContent = "LONG";
+			longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
+			cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+		} else {
+			longElement.textContent = "-";
+		}
 
-        // Mettez à jour le contenu HTML avec le total
-        const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).replace(',', '.');
+		// Utilisez directement le pourcentage dans la condition (110 dans cet exemple)
+const percentageThresholdShort = 110;
 
-        const totalElement = document.getElementById(`total_${symbol}`);
-        totalElement.textContent = `${formattedTotalVolume} USDT`;
-
-        // Calculez la moyenne des volumes
-        const averageVolume = totalVolume / data.length;
-
-        // Mettez à jour le contenu HTML avec la moyenne
-        const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).replace(',', '.');
-
-        const averageElement = document.getElementById(`average_${symbol}`);
-        averageElement.textContent = `${formattedAverageVolume} USDT`;
-
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-
-        // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
-        const percentageThresholdLong = 90;
-
-        // Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
-        const longElement = document.getElementById(`long_${symbol}`);
-        const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
-
-        if (isLong) {
-            longElement.textContent = "LONG";
-            longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-        } else {
-            longElement.textContent = "-";
-        }
-
-        // Utilisez directement le pourcentage dans la condition (110 dans cet exemple)
-        const percentageThresholdShort = 110;
-
-        // Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 110% de la moyenne totale
-        const shortElement = document.getElementById(`short_${symbol}`);
-        if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
-            shortElement.textContent = "SHORT";
-            shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
-        } else {
-            shortElement.textContent = "-";
-        }
-
-    } catch (error) {
-        console.error(
-            `Erreur lors de la récupération des données pour ${symbol}:`,
-            error
-        );
-    }
+// Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 110% de la moyenne totale
+const shortElement = document.getElementById(`short_${symbol}`);
+if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
+    shortElement.textContent = "SHORT";
+    shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
+    cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+} else {
+    shortElement.textContent = "-";
 }
 
+
+	} catch (error) {
+		console.error(
+			`Erreur lors de la récupération des données pour ${symbol}:`,
+			error
+		);
+	}
+}
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
