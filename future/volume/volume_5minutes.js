@@ -10,12 +10,12 @@ async function fetchCryptoData(symbol) {
 		const times = [];
 
 		// Récupérez l'heure et le volume pour chaque intervalle
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < 1; i++) {
 			const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', {
 				hour: 'numeric',
 				minute: 'numeric'
 			});
-			const volume = parseFloat(data[i][5]);
+			const volume = parseFloat(data[i][1]);
 
 			times.push(time);
 			volumes.push(volume);
