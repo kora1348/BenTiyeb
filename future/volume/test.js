@@ -1,12 +1,8 @@
 // Fonction pour vérifier et afficher une notification
 function checkAndNotify(symbol, volumes, averageVolume, percentageThresholdLong) {
     const longElement = document.getElementById(`long_${symbol}`);
-    console.log("Symbol:", symbol);
-    console.log("Volumes:", volumes);
-    console.log("Average Volume:", averageVolume);
     const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
 
-    console.log("Is LONG:", isLong);
 
     if (isLong) {
         longElement.textContent = "LONG";
@@ -15,6 +11,8 @@ function checkAndNotify(symbol, volumes, averageVolume, percentageThresholdLong)
     } else {
         longElement.textContent = "-";
     }
+	// Ajout de la notification de test ici
+    createNotification("Test Crypto", "Ceci est un message de test");
 }
 
 // Fonction pour créer une notification de navigateur
@@ -129,12 +127,9 @@ async function fetchCryptoData(symbol) {
 
 		// Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
 		const longElement = document.getElementById(`long_${symbol}`);
-		console.log("Symbol:", symbol);
-		console.log("Volumes:", volumes);
-		console.log("Average Volume:", averageVolume);
 		const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
 
-		console.log("Is LONG:", isLong);
+
 
 		if (isLong) {
 			longElement.textContent = "LONG";
