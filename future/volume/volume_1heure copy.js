@@ -1,95 +1,86 @@
 async function fetchCryptoData(symbol) {
-    try {
-        const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=5`
-        );
+	try {
+		const response = await fetch(
+			`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=5`
+		);
 
-        const data = await response.json();
+		const data = await response.json();
 
-        const volumes = [];
-        const times = [];
+		const volumes = [];
+		const times = [];
 
-        // Récupérez la date et le volume pour chaque intervalle
-        for (let i = 0; i < 5; i++) {
-            const date = new Date(data[i][0]);
-            const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+		// Récupérez l'heure et le volume pour chaque intervalle
+		for (let i = 0; i < 5; i++) {
+			const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', {
+				hour: 'numeric',
+				minute: 'numeric'
+			});
+			const volume = parseFloat(data[i][5]);
 
-            const volume = parseFloat(data[i][5]);
+			times.push(time);
+			volumes.push(volume);
 
-            times.push(formattedDate);
-            volumes.push(volume);
+			const formattedVolume = volume.toLocaleString('fr-FR', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2
+			}).replace(',', '.');
+			const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
+			volumeElement.textContent = `${time} (${formattedVolume} USDT)`;
+		}
 
-            const formattedVolume = volume.toLocaleString('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).replace(',', '.');
+		// Calculez le total des volumes
+		const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
 
-            const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
-            volumeElement.textContent = `${formattedDate} (${formattedVolume} USDT)`;
-        }
+		// Mettez à jour le contenu HTML avec le total
+		const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}).replace(',', '.');
+		const totalElement = document.getElementById(`total_${symbol}`);
+		totalElement.textContent = `${formattedTotalVolume} USDT`;
 
-        // Calculez le total des volumes
-        const totalVolume = volumes.reduce((acc, volume) => acc + volume, 0);
+		// Calculez la moyenne des volumes
+		const averageVolume = totalVolume / data.length; // Dans ce cas, 2 représente le nombre d'intervalles
 
-        // Mettez à jour le contenu HTML avec le total
-        const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).replace(',', '.');
+		// Mettez à jour le contenu HTML avec la moyenne
+		const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}).replace(',', '.');
+		const averageElement = document.getElementById(`average_${symbol}`);
+		averageElement.textContent = `${formattedAverageVolume} USDT`;
 
-        const totalElement = document.getElementById(`total_${symbol}`);
-        totalElement.textContent = `${formattedTotalVolume} USDT`;
+		const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        // Calculez la moyenne des volumes
-        const averageVolume = totalVolume / data.length;
+		// Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
+		const percentageThresholdLong = 90;
 
-        // Mettez à jour le contenu HTML avec la moyenne
-        const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).replace(',', '.');
+		// Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
+		const longElement = document.getElementById(`long_${symbol}`);
+		console.log("Symbol:", symbol);
+		console.log("Volumes:", volumes);
+		console.log("Average Volume:", averageVolume);
+		const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
 
-        const averageElement = document.getElementById(`average_${symbol}`);
-        averageElement.textContent = `${formattedAverageVolume} USDT`;
+		console.log("Is LONG:", isLong);
 
-        const cryptoNamesElement = document.getElementById('cryptoNames');
+		if (isLong) {
+			longElement.textContent = "LONG";
+			longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
+			cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+		} else {
+			longElement.textContent = "-";
+		}
 
-        // Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
-        const percentageThresholdLong = 90;
 
-        // Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
-        const longElement = document.getElementById(`long_${symbol}`);
-        const isLong = volumes.every(volume => volume > averageVolume * (percentageThresholdLong / 100));
 
-        if (isLong) {
-            longElement.textContent = "LONG";
-            longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-        } else {
-            longElement.textContent = "-";
-        }
-
-        // Utilisez directement le pourcentage dans la condition (110 dans cet exemple)
-        const percentageThresholdShort = 110;
-
-        // Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 110% de la moyenne totale
-        const shortElement = document.getElementById(`short_${symbol}`);
-        if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
-            shortElement.textContent = "SHORT";
-            shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
-        } else {
-            shortElement.textContent = "-";
-        }
-
-    } catch (error) {
-        console.error(
-            `Erreur lors de la récupération des données pour ${symbol}:`,
-            error
-        );
-    }
+	} catch (error) {
+		console.error(
+			`Erreur lors de la récupération des données pour ${symbol}:`,
+			error
+		);
+	}
 }
-
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
@@ -146,25 +137,36 @@ fetchCryptoData("APE");
 fetchCryptoData("API3");
 fetchCryptoData("APT");
 fetchCryptoData("ARB");
+fetchCryptoData("ARK");
 fetchCryptoData("ARKM");
 fetchCryptoData("ARPA");
 fetchCryptoData("AR");
 fetchCryptoData("ASTR");
 fetchCryptoData("ATA");
 fetchCryptoData("ATOM");
+fetchCryptoData("AUCTION");
 fetchCryptoData("AUDIO");
 fetchCryptoData("AVAX");
 fetchCryptoData("AXS");
+fetchCryptoData("BADGER");
 fetchCryptoData("BAKE");
 fetchCryptoData("BAL");
 fetchCryptoData("BAND");
 fetchCryptoData("BAT");
 fetchCryptoData("BCH");
+fetchCryptoData("BEAMX");
 fetchCryptoData("BEL");
+fetchCryptoData("BICO");
+fetchCryptoData("BIGTIME");
+fetchCryptoData("BLUEBIRD");
+fetchCryptoData("BLUR");
 fetchCryptoData("BLZ");
 fetchCryptoData("BNB");
 fetchCryptoData("BNT");
 fetchCryptoData("BNX");
+fetchCryptoData("BOND");
+fetchCryptoData("BSV");
+fetchCryptoData("BTCDOM");
 fetchCryptoData("BTC");
 fetchCryptoData("C98");
 fetchCryptoData("CELO");
@@ -266,6 +268,7 @@ fetchCryptoData("PHB");
 fetchCryptoData("QNT");
 fetchCryptoData("QTUM");
 fetchCryptoData("RAD");
+fetchCryptoData("RATS");
 fetchCryptoData("REEF");
 fetchCryptoData("REN");
 fetchCryptoData("RLC");
@@ -275,6 +278,7 @@ fetchCryptoData("RSR");
 fetchCryptoData("RUNE");
 fetchCryptoData("RVN");
 fetchCryptoData("SAND");
+fetchCryptoData("SATS");
 fetchCryptoData("SEI");
 fetchCryptoData("SFP");
 fetchCryptoData("SHIB");
