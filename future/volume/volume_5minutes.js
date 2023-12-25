@@ -7,18 +7,26 @@ async function fetchCryptoData(symbol) {
         const data = await response.json();
 
         const volumes = [];
+        const times = [];
 
-        // Récupérez le volume pour chaque intervalle
+        // Récupérez le volume et l'heure pour chaque intervalle
         for (let i = 0; i < 5; i++) {
             const volume = parseFloat(data[i][5]);
             volumes.push(volume);
+
+            const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', {
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: false
+            });
+            times.push(time);
 
             const formattedVolume = volume.toLocaleString('fr-FR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).replace(',', '.');
             const volumeElement = document.getElementById(`volume_${symbol}_${i + 1}`);
-            volumeElement.textContent = `(${formattedVolume} USDT)`;
+            volumeElement.textContent = `(${time} - ${formattedVolume} USDT)`;
         }
 
         // Calculez le total des volumes
@@ -47,7 +55,7 @@ async function fetchCryptoData(symbol) {
         // Vérifiez si le dernier volume est supérieur à la moyenne totale
         const lastVolume = volumes[volumes.length - 1];
         const longElement = document.getElementById(`long_${symbol}`);
-		const shortElement = document.getElementById(`short_${symbol}`);
+        const shortElement = document.getElementById(`short_${symbol}`);
         console.log("Symbol:", symbol);
         console.log("Volumes:", volumes);
         console.log("Total Volume:", totalVolume);
@@ -55,17 +63,15 @@ async function fetchCryptoData(symbol) {
 
         if (lastVolume > averageVolume) {
             shortElement.textContent = "SHORT";
-            shortElement.classList.add("short", "negative"); // Ajout de la classe "positive" pour LONG
+            shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
-        } 
-		else if (lastVolume < averageVolume) {
+        } else if (lastVolume < averageVolume) {
             longElement.textContent = "LONG";
-            longElement.classList.add("long", "positive"); // Ajout de la classe "negative" pour SHORT
+            longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-        } 
-		else {
+        } else {
             longElement.textContent = "-";
-			shortElement.textContent = "-";
+            shortElement.textContent = "-";
         }
     } catch (error) {
         console.error(
