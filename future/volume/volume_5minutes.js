@@ -47,6 +47,7 @@ async function fetchCryptoData(symbol) {
         // Vérifiez si le dernier volume est supérieur à la moyenne totale
         const lastVolume = volumes[volumes.length - 1];
         const longElement = document.getElementById(`long_${symbol}`);
+		const shortElement = document.getElementById(`short_${symbol}`);
         console.log("Symbol:", symbol);
         console.log("Volumes:", volumes);
         console.log("Total Volume:", totalVolume);
@@ -56,8 +57,15 @@ async function fetchCryptoData(symbol) {
             longElement.textContent = "LONG";
             longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-        } else {
+        } 
+		else if (lastVolume < averageVolume) {
+            shortElement.textContent = "SHORT";
+            shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+        } 
+		else {
             longElement.textContent = "-";
+			shortElement.textContent = "-";
         }
     } catch (error) {
         console.error(
