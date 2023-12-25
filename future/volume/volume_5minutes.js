@@ -54,14 +54,14 @@ async function fetchCryptoData(symbol) {
         console.log("Average Volume:", averageVolume);
 
         if (lastVolume > averageVolume) {
-            longElement.textContent = "LONG";
-            longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+            shortElement.textContent = "SHORT";
+            shortElement.classList.add("short", "negative"); // Ajout de la classe "positive" pour LONG
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
         } 
 		else if (lastVolume < averageVolume) {
-            shortElement.textContent = "SHORT";
-            shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+            longElement.textContent = "LONG";
+            longElement.classList.add("long", "positive"); // Ajout de la classe "negative" pour SHORT
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         } 
 		else {
             longElement.textContent = "-";
