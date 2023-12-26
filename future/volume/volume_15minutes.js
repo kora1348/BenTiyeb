@@ -1,3 +1,7 @@
+// Déclarez des variables globales pour compter le nombre total de positions LONG et SHORT
+let totalLongPositions = 0;
+let totalShortPositions = 0;
+
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -61,44 +65,38 @@ async function fetchCryptoData(symbol) {
         console.log("Total Volume:", totalVolume);
         console.log("Average Volume:", averageVolume);
 
+
         if (lastVolume > averageVolume) {
             shortElement.textContent = "SHORT";
             shortElement.classList.add("short", "negative"); // Ajout de la classe "negative" pour SHORT
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+            totalShortPositions++; 
         } else if (lastVolume < averageVolume) {
             longElement.textContent = "LONG";
             longElement.classList.add("long", "positive"); // Ajout de la classe "positive" pour LONG
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+            totalLongPositions++;
         } else {
             longElement.textContent = "-";
             shortElement.textContent = "-";
         }
 
-                // Ajoutez ces lignes avant la vérification "if" du dernier volume
-const cryptoNamesContent = cryptoNamesElement.innerHTML;
-const longCount = (cryptoNamesContent.match(/LONG/g) || []).length;
-const shortCount = (cryptoNamesContent.match(/SHORT/g) || []).length;
-const difference = longCount - shortCount;
+        // Mettez à jour les éléments HTML pour afficher le nombre total de positions LONG et SHORT
+const cryptoLongElement = document.getElementById('cryptoLong');
+const cryptoShortElement = document.getElementById('cryptoShort');
+const cryptoDifferenceElement = document.getElementById('cryptoDifference');
 
-// Utilisez ces valeurs comme vous le souhaitez
-console.log("Nombre de LONG :", longCount);
-console.log("Nombre de SHORT :", shortCount);
-console.log("Différence :", difference);
+cryptoLongElement.textContent = `Long : ${totalLongPositions}`;
+cryptoShortElement.textContent = `Short : ${totalShortPositions}`;
+cryptoDifferenceElement.textContent = `Différence : ${totalLongPositions - totalShortPositions}`;
 
-// Mettez à jour le contenu de #cryptoTotal
-const cryptoTotalElement = document.getElementById('cryptoTotal');
-cryptoTotalElement.textContent = `LONG: ${longCount}, SHORT: ${shortCount}, Différence: ${difference}`;
+// Ajoutez la classe "positive" à cryptoLongElement (vert) et "negative" à cryptoShortElement (rouge)
+cryptoLongElement.classList.add("positive");
+cryptoShortElement.classList.add("negative");
 
-// Ajoutez les classes CSS en fonction des valeurs
-if (difference > 0) {
-    cryptoTotalElement.classList.add("positive");
-} else if (difference < 0) {
-    cryptoTotalElement.classList.add("negative");
-} else {
-    // Effacez les classes s'il y a égalité
-    cryptoTotalElement.classList.remove("positive", "negative");
-}
-
+// Ajoutez la classe "positive" à cryptoDifferenceElement si totalLongPositions est plus grand que totalShortPositions, sinon ajoutez "negative"
+cryptoDifferenceElement.classList.toggle("positive", totalLongPositions > totalShortPositions);
+cryptoDifferenceElement.classList.toggle("negative", totalLongPositions <= totalShortPositions);
 
 
     } catch (error) {
