@@ -89,6 +89,17 @@ console.log("Différence :", difference);
 const cryptoTotalElement = document.getElementById('cryptoTotal');
 cryptoTotalElement.textContent = `LONG: ${longCount}, SHORT: ${shortCount}, Différence: ${difference}`;
 
+// Ajoutez les classes CSS en fonction des valeurs
+if (difference > 0) {
+    cryptoTotalElement.classList.add("positive");
+} else if (difference < 0) {
+    cryptoTotalElement.classList.add("negative");
+} else {
+    // Effacez les classes s'il y a égalité
+    cryptoTotalElement.classList.remove("positive", "negative");
+}
+
+
 
     } catch (error) {
         console.error(
