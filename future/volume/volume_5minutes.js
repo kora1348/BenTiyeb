@@ -73,6 +73,23 @@ async function fetchCryptoData(symbol) {
             longElement.textContent = "-";
             shortElement.textContent = "-";
         }
+
+        // Ajoutez ces lignes avant la vérification "if" du dernier volume
+const cryptoNamesContent = cryptoNamesElement.innerHTML;
+const longCount = (cryptoNamesContent.match(/LONG/g) || []).length;
+const shortCount = (cryptoNamesContent.match(/SHORT/g) || []).length;
+const difference = longCount - shortCount;
+
+// Utilisez ces valeurs comme vous le souhaitez
+console.log("Nombre de LONG :", longCount);
+console.log("Nombre de SHORT :", shortCount);
+console.log("Différence :", difference);
+
+// Mettez à jour le contenu de #cryptoTotal
+const cryptoTotalElement = document.getElementById('cryptoTotal');
+cryptoTotalElement.textContent = `LONG: ${longCount}, SHORT: ${shortCount}, Différence: ${difference}`;
+
+
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
