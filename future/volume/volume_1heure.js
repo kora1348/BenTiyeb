@@ -52,10 +52,10 @@ async function fetchCryptoData(symbol) {
 
 		const cryptoNamesElement = document.getElementById('cryptoNames');
 
-		// Utilisez directement le pourcentage dans la condition (90 dans cet exemple)
-		const percentageThresholdLong = 90;
+		// Utilisez directement le pourcentage dans la condition (5 dans cet exemple)
+		const percentageThresholdLong = 5;
 
-		// Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 90% de la moyenne totale
+		// Vérifiez si les volumes de chaque intervalle de volumes sont supérieurs à 5% de la moyenne totale
 		const longElement = document.getElementById(`long_${symbol}`);
 		console.log("Symbol:", symbol);
 		console.log("Volumes:", volumes);
@@ -72,10 +72,10 @@ async function fetchCryptoData(symbol) {
 			longElement.textContent = "-";
 		}
 
-		// Utilisez directement le pourcentage dans la condition (110 dans cet exemple)
-const percentageThresholdShort = 110;
+		// Utilisez directement le pourcentage dans la condition (5 dans cet exemple)
+const percentageThresholdShort = 5;
 
-// Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 110% de la moyenne totale
+// Vérifiez si les volumes de chaque intervalle de volumes sont inférieurs à 5% de la moyenne totale
 const shortElement = document.getElementById(`short_${symbol}`);
 if (volumes.every(volume => volume < averageVolume * (percentageThresholdShort / 100))) {
     shortElement.textContent = "SHORT";
