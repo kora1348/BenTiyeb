@@ -23,9 +23,12 @@ async function fetchCryptoData(symbol) {
             // Ajout du prix à la variation
             const price = parseFloat(data[i][4]);
 
-            // Mettez à jour le contenu HTML avec l'heure, le prix, la variation et appliquez la classe de couleur en fonction de la positivité ou de la négativité
+            // Ajout du volume
+            const volume = parseFloat(data[i][5]);
+
+            // Mettez à jour le contenu HTML avec l'heure, le prix, la variation et le volume, et appliquez la classe de couleur en fonction de la positivité ou de la négativité
             const element = document.getElementById(`variation_${symbol}_${i}`);
-            element.innerHTML = `<span class="time">(${time})</span> - <span class="price">${price.toFixed(2)} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span>`;
+            element.innerHTML = `<span class="time">(${time})</span> - <span class="price">${price.toFixed(2)} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span> - Volume: <span class="volume">${volume.toFixed(2)}</span>`;
 
             // Calculez le total des taux de variation
             totalVariation += variation;
