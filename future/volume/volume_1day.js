@@ -15,33 +15,33 @@ async function fetchCryptoData(symbol) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const variation = ((closePrice - openPrice) / openPrice) * 100;
-            const time = new Date(data[i][0]).toLocaleTimeString('fr-FR', {
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: false
-            });
-
+        
+            // Ajouter la date au format (jour/mois/année heure:minute)
+            const date = new Date(data[i][0]);
+            const formattedDate = `${date.toLocaleDateString()} ${date.getHours().toString().padStart(2, '0')}h${date.getMinutes().toString().padStart(2, '0')}`;
+        
             const price = parseFloat(data[i][4]);
             const volume = parseFloat(data[i][5]);
-
+        
             const formattedPrice = price.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
-
+        
             const formattedVolume = volume.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
-
+        
             const element = document.getElementById(`variation_${symbol}_${i}`);
-            element.innerHTML = `<span class="time">(${time})</span> - <span class="price">${formattedPrice} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span> - Volume: <span class="volume">${formattedVolume}</span>`;
-
+            element.innerHTML = `<span class="time">(${formattedDate})</span> - <span class="price">${formattedPrice} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span> - Volume: <span class="volume">${formattedVolume}</span>`;
+        
             totalVariation += variation;
             totalVolume += volume;
             variations.push(variation);
             volumes.push(volume);
         }
+        
 
         const formattedTotalVariation = totalVariation.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
         const formattedTotalVolume = totalVolume.toLocaleString('en-US', {
