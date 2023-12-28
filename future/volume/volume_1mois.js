@@ -28,10 +28,10 @@ async function fetchCryptoData(symbol) {
                 maximumFractionDigits: 2
             });
         
-            const formattedVolume = volume.toLocaleString('en-US', {
+            const formattedVolume = volume.toLocaleString('fr-FR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-            });
+            }).replace(/,/g, '.').replace(/\./, ',');
         
             const element = document.getElementById(`variation_${symbol}_${i}`);
             element.innerHTML = `<span class="time">(${formattedDate})</span> - <span class="price">${formattedPrice} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span> - Volume: <span class="volume">${formattedVolume}</span>`;
@@ -43,17 +43,17 @@ async function fetchCryptoData(symbol) {
         }
         
 
-        const formattedTotalVariation = totalVariation.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-        const formattedTotalVolume = totalVolume.toLocaleString('en-US', {
+        const formattedTotalVariation = totalVariation.toFixed(2).replace(/,/g, '.').replace(/\./, ',');
+        const formattedTotalVolume = totalVolume.toLocaleString('fr-FR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
 
         const averageVolume = totalVolume / 5;
-        const formattedAverageVolume = averageVolume.toLocaleString('en-US', {
+        const formattedAverageVolume = averageVolume.toLocaleString('fr-FR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-        });
+        }).replace(/,/g, '.').replace(/\./, ',');
 
         const totalElement = document.getElementById(`total_${symbol}`);
         totalElement.innerHTML = `${formattedTotalVariation}% - Volume total: ${formattedTotalVolume}`;
