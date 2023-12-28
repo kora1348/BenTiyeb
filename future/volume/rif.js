@@ -45,7 +45,7 @@ async function fetchCryptoData(symbol) {
 
         // Logique pour déterminer si c'est LONG
         const longElement = document.getElementById(`long_${symbol}`);
-        const isLong = totalVariation > 0 && volumes.every(volume => volume > averageVolume);
+        const isLong = variations[0] < variations[variations.length - 1] && volumes.every(volume => volume > averageVolume);
 
         if (isLong) {
             longElement.textContent = "LONG";
@@ -57,7 +57,7 @@ async function fetchCryptoData(symbol) {
 
         // Logique pour déterminer si c'est SHORT
         const shortElement = document.getElementById(`short_${symbol}`);
-        const isShort = totalVariation < 0 && volumes.every(volume => volume > averageVolume);
+        const isShort = variations[0] > variations[variations.length - 1] && volumes.every(volume => volume > averageVolume);
 
         if (isShort) {
             shortElement.textContent = "SHORT";
