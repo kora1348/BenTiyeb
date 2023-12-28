@@ -52,6 +52,17 @@ async function fetchCryptoData(symbol) {
             longElement.textContent = "-";
         }
 
+        // Logique pour déterminer si c'est SHORT
+        const shortElement = document.getElementById(`short_${symbol}`);
+        const isShort = totalVariation < 0 && volumes.every(volume => volume > averageVolume);
+
+        if (isShort) {
+            shortElement.textContent = "SHORT";
+            shortElement.classList.add("short", "negative");
+        } else {
+            shortElement.textContent = "-";
+        }
+
         // Le reste du code reste inchangé...
 
     } catch (error) {
