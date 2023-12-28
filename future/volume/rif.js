@@ -41,6 +41,8 @@ async function fetchCryptoData(symbol) {
         const averageVolume = totalVolume / data.length; // Calcul de la moyenne du volume
         averageElement.textContent = `Moyenne du volume: ${averageVolume.toFixed(2)}`;
 
+		const cryptoNamesElement = document.getElementById('cryptoNames');
+
         // Logique pour déterminer si c'est LONG
         const longElement = document.getElementById(`long_${symbol}`);
         const isLong = totalVariation > 0 && volumes.every(volume => volume > averageVolume);
@@ -48,6 +50,7 @@ async function fetchCryptoData(symbol) {
         if (isLong) {
             longElement.textContent = "LONG";
             longElement.classList.add("long", "positive");
+			cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         } else {
             longElement.textContent = "-";
         }
@@ -59,6 +62,7 @@ async function fetchCryptoData(symbol) {
         if (isShort) {
             shortElement.textContent = "SHORT";
             shortElement.classList.add("short", "negative");
+			cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
         } else {
             shortElement.textContent = "-";
         }
