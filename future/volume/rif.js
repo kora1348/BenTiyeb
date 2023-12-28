@@ -38,7 +38,7 @@ async function fetchCryptoData(symbol) {
         totalElement.classList.add("total");
 
         const averageElement = document.getElementById(`average_${symbol}`);
-        const averageVolume = totalVolume / data.length; // Calcul de la moyenne du volume
+        const averageVolume = totalVolume / 5; // Calcul de la moyenne du volume
         averageElement.textContent = `Moyenne du volume: ${averageVolume.toFixed(2)}`;
 
 		const cryptoNamesElement = document.getElementById('cryptoNames');
