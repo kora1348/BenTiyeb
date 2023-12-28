@@ -24,8 +24,18 @@ async function fetchCryptoData(symbol) {
             const price = parseFloat(data[i][4]);
             const volume = parseFloat(data[i][5]);
 
+            const formattedPrice = price.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            const formattedVolume = volume.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
             const element = document.getElementById(`variation_${symbol}_${i}`);
-            element.innerHTML = `<span class="time">(${time})</span> - <span class="price">${price.toFixed(2)} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span> - Volume: <span class="volume">${volume.toFixed(2)}</span>`;
+            element.innerHTML = `<span class="time">(${time})</span> - <span class="price">${formattedPrice} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span> - Volume: <span class="volume">${formattedVolume}</span>`;
 
             totalVariation += variation;
             totalVolume += volume;
@@ -33,15 +43,26 @@ async function fetchCryptoData(symbol) {
             volumes.push(volume);
         }
 
+        const formattedTotalVariation = totalVariation.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        const formattedTotalVolume = totalVolume.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        const averageVolume = totalVolume / 5;
+        const formattedAverageVolume = averageVolume.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
         const totalElement = document.getElementById(`total_${symbol}`);
-        totalElement.innerHTML = `${totalVariation.toFixed(2)}% - Volume total: ${totalVolume.toFixed(2)}`;
+        totalElement.innerHTML = `${formattedTotalVariation}% - Volume total: ${formattedTotalVolume}`;
         totalElement.classList.add("total");
 
         const averageElement = document.getElementById(`average_${symbol}`);
-        const averageVolume = totalVolume / 5; // Calcul de la moyenne du volume
-        averageElement.textContent = `Moyenne du volume: ${averageVolume.toFixed(2)}`;
+        averageElement.textContent = `Moyenne du volume: ${formattedAverageVolume}`;
 
-		const cryptoNamesElement = document.getElementById('cryptoNames');
+        const cryptoNamesElement = document.getElementById('cryptoNames');
 
         // Logique pour déterminer si c'est LONG
         const longElement = document.getElementById(`long_${symbol}`);
@@ -50,7 +71,7 @@ async function fetchCryptoData(symbol) {
         if (isLong) {
             longElement.textContent = "LONG";
             longElement.classList.add("long", "positive");
-			cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         } else {
             longElement.textContent = "-";
         }
@@ -62,12 +83,10 @@ async function fetchCryptoData(symbol) {
         if (isShort) {
             shortElement.textContent = "SHORT";
             shortElement.classList.add("short", "negative");
-			cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
         } else {
             shortElement.textContent = "-";
         }
-
-        // Le reste du code reste inchangé...
 
     } catch (error) {
         console.error(
