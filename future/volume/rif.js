@@ -8,6 +8,7 @@ async function fetchCryptoData(symbol) {
 
         // Calculez le taux de variation pour chaque intervalle
         let totalVariation = 0;
+        let totalVolume = 0; // Nouvelle variable pour le total du volume
         const variations = [];
 
         for (let i = 1; i < data.length; i++) {
@@ -33,13 +34,16 @@ async function fetchCryptoData(symbol) {
             // Calculez le total des taux de variation
             totalVariation += variation;
 
+            // Calculez le total des volumes
+            totalVolume += volume;
+
             // Stockez les variations dans le tableau
             variations.push(variation);
         }
 
-        // Mettez à jour le contenu HTML avec le total et appliquez la classe de couleur bleue
+        // Mettez à jour le contenu HTML avec le total de la variation et du volume, et appliquez la classe de couleur bleue
         const totalElement = document.getElementById(`total_${symbol}`);
-        totalElement.textContent = `${totalVariation.toFixed(2)}%`;
+        totalElement.innerHTML = `${totalVariation.toFixed(2)}% - Volume total: ${totalVolume.toFixed(2)}`;
         totalElement.classList.add("total");
 
         // Calculez la moyenne et mettez à jour le contenu HTML avec la classe de couleur en fonction de la positivité ou de la négativité
