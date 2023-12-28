@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=6`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=4`
         );
 
         const data = await response.json();
@@ -49,7 +49,7 @@ async function fetchCryptoData(symbol) {
             maximumFractionDigits: 2
         });
 
-        const averageVolume = totalVolume / 5;
+        const averageVolume = totalVolume / 3;
         const formattedAverageVolume = averageVolume.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
