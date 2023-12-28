@@ -6,9 +6,8 @@ async function fetchCryptoData(symbol) {
 
         const data = await response.json();
 
-        // Calculez le taux de variation pour chaque intervalle
         let totalVariation = 0;
-        let totalVolume = 0; // Nouvelle variable pour le total du volume
+        let totalVolume = 0;
         const variations = [];
 
         for (let i = 1; i < data.length; i++) {
@@ -21,41 +20,26 @@ async function fetchCryptoData(symbol) {
                 hour12: false
             });
 
-            // Ajout du prix à la variation
             const price = parseFloat(data[i][4]);
-
-            // Ajout du volume
             const volume = parseFloat(data[i][5]);
 
-            // Mettez à jour le contenu HTML avec l'heure, le prix, la variation et le volume, et appliquez la classe de couleur en fonction de la positivité ou de la négativité
             const element = document.getElementById(`variation_${symbol}_${i}`);
             element.innerHTML = `<span class="time">(${time})</span> - <span class="price">${price.toFixed(2)} USDT. </span> <span class="variation ${variation > 0 ? 'positive' : variation < 0 ? 'negative' : ''}">${variation.toFixed(2)}%</span> - Volume: <span class="volume">${volume.toFixed(2)}</span>`;
 
-            // Calculez le total des taux de variation
             totalVariation += variation;
-
-            // Calculez le total des volumes
             totalVolume += volume;
-
-            // Stockez les variations dans le tableau
             variations.push(variation);
         }
 
-        // Mettez à jour le contenu HTML avec le total de la variation et du volume, et appliquez la classe de couleur bleue
         const totalElement = document.getElementById(`total_${symbol}`);
         totalElement.innerHTML = `${totalVariation.toFixed(2)}% - Volume total: ${totalVolume.toFixed(2)}`;
         totalElement.classList.add("total");
 
-        // Calculez la moyenne et mettez à jour le contenu HTML avec la classe de couleur en fonction de la positivité ou de la négativité
         const averageElement = document.getElementById(`average_${symbol}`);
-        const average = totalVariation / data.length;
-        averageElement.textContent = `${average.toFixed(2)}%`;
+        const averageVolume = totalVolume / 5; // Calcul de la moyenne du volume
+        averageElement.textContent = `Moyenne du volume: ${averageVolume.toFixed(2)}`;
 
-        if (average > 0) {
-            averageElement.classList.add("positive");
-        } else if (average < 0) {
-            averageElement.classList.add("negative");
-        }
+        // Vous pouvez ajouter la logique de classe de couleur en fonction de la positivité ou de la négativité ici si nécessaire.
 
         // Le reste du code reste inchangé...
 
