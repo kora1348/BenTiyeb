@@ -9,6 +9,7 @@ async function fetchCryptoData(symbol) {
         let totalVariation = 0;
         let totalVolume = 0;
         const variations = [];
+        const volumes = [];
 
         for (let i = 1; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
@@ -29,6 +30,7 @@ async function fetchCryptoData(symbol) {
             totalVariation += variation;
             totalVolume += volume;
             variations.push(variation);
+            volumes.push(volume);
         }
 
         const totalElement = document.getElementById(`total_${symbol}`);
@@ -36,10 +38,19 @@ async function fetchCryptoData(symbol) {
         totalElement.classList.add("total");
 
         const averageElement = document.getElementById(`average_${symbol}`);
-        const averageVolume = totalVolume / 5; // Calcul de la moyenne du volume
+        const averageVolume = totalVolume / data.length; // Calcul de la moyenne du volume
         averageElement.textContent = `Moyenne du volume: ${averageVolume.toFixed(2)}`;
 
-        // Vous pouvez ajouter la logique de classe de couleur en fonction de la positivité ou de la négativité ici si nécessaire.
+        // Logique pour déterminer si c'est LONG
+        const longElement = document.getElementById(`long_${symbol}`);
+        const isLong = totalVariation > 0 && volumes.every(volume => volume > averageVolume);
+
+        if (isLong) {
+            longElement.textContent = "LONG";
+            longElement.classList.add("long", "positive");
+        } else {
+            longElement.textContent = "-";
+        }
 
         // Le reste du code reste inchangé...
 
@@ -50,6 +61,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 
 function mettreAJourHeure() {
