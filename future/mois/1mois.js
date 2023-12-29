@@ -5,7 +5,7 @@ async function fetchCryptoData(symbol) {
       );
       const data = await response.json();
 
-      // Calcul du total des taux de variation sur 8 semaines
+      // Calcul du total des taux de variation sur 3 semaines
       let totalVariation = 0;
 
       // Mise à jour du tableau avec les données et la couleur
@@ -43,6 +43,15 @@ async function fetchCryptoData(symbol) {
       // Ajouter la cellule pour afficher le total de variation
       const totalCell = cryptoRow.insertCell(data.length + 1);
       const totalValue = totalVariation.toFixed(2);
+
+      const cryptoNamesElement = document.getElementById('cryptoNames');
+
+      // Ajouter la classe "positive" pour le total dans la plage spécifiée
+      if (totalVariation >= -108 && totalVariation <= -90) {
+          totalCell.classList.add("positive");
+          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+      }
+
       totalCell.textContent = `${totalValue}%`;
 
   } catch (error) {
@@ -52,6 +61,7 @@ async function fetchCryptoData(symbol) {
       );
   }
 }
+
 
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos

@@ -44,6 +44,16 @@ th, td {
     font-weight: 800;
 }
 
+.orange {
+  color: orange;
+  font-weight: 800;
+}
+
+.blue {
+  color: blue;
+  font-weight: 800;
+}
+
 .total {
   color: blue;
   font-weight: 800;
