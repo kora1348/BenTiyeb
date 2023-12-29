@@ -21,14 +21,16 @@ async function fetchCryptoData(symbol) {
           const variationValue = weeklyVariation.toFixed(2);
           const weekStartDate = new Date(data[i][0]);
           const weekEndDate = new Date(data[i][6]);
-          const options = { year: "2-digit", month: "2-digit", day: "2-digit" };
+          const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+          const optionsEnd = { hour: "numeric", minute: "numeric" };
           variationCell.textContent = `${weekStartDate.toLocaleDateString(
               "fr-FR",
-              options
-          )} - ${weekEndDate.toLocaleDateString(
+              optionsStart
+          )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
               "fr-FR",
-              options
-          )}: ${variationValue}%`;
+              optionsStart
+          )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+          
 
           // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
           if (weeklyVariation > 0) {
@@ -310,3 +312,38 @@ fetchCryptoData("ZEC");
 fetchCryptoData("ZEN");
 fetchCryptoData("ZIL");
 fetchCryptoData("ZRX");
+
+function mettreAJourHeure() {
+	var elementHeure = document.getElementById('heure');
+	var maintenant = new Date();
+
+	// Créer une copie de l'heure actuelle
+	var heureActuelle = new Date(maintenant);
+
+	// Ajouter 3 heures et 20 minutes à l'heure actuelle
+	maintenant.setHours(maintenant.getHours() + 3);
+	maintenant.setMinutes(maintenant.getMinutes() + 20);
+
+	var heuresMaintenant = maintenant.getHours();
+	var minutesMaintenant = maintenant.getMinutes();
+	var secondesMaintenant = maintenant.getSeconds();
+
+	var heuresActuelle = heureActuelle.getHours();
+	var minutesActuelle = heureActuelle.getMinutes();
+	var secondesActuelle = heureActuelle.getSeconds();
+
+	// Ajouter un zéro devant les chiffres < 10
+	heuresMaintenant = heuresMaintenant < 10 ? '0' + heuresMaintenant : heuresMaintenant;
+	minutesMaintenant = minutesMaintenant < 10 ? '0' + minutesMaintenant : minutesMaintenant;
+	secondesMaintenant = secondesMaintenant < 10 ? '0' + secondesMaintenant : secondesMaintenant;
+
+	heuresActuelle = heuresActuelle < 10 ? '0' + heuresActuelle : heuresActuelle;
+	minutesActuelle = minutesActuelle < 10 ? '0' + minutesActuelle : minutesActuelle;
+	secondesActuelle = secondesActuelle < 10 ? '0' + secondesActuelle : secondesActuelle;
+
+	// Mettre à jour le contenu de l'élément avec les deux heures
+	elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle;
+}
+
+// Appeler la fonction pour mettre à jour l'heure
+mettreAJourHeure();
