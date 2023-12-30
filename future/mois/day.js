@@ -53,11 +53,14 @@ async function fetchCryptoData(symbol) {
         const firstVolume = parseFloat(data[0][5]);
         const lastVolume = parseFloat(data[data.length - 1][5]);
 
+        const cryptoNamesElement = document.getElementById('cryptoNames');
+
         if (firstOpenPrice < lastClosePrice && firstVolume < lastVolume) {
             achatCell.textContent = "LONG";
             achatCell.classList.add("positive");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         } else {
-            achatCell.textContent = "-"; // Vous pouvez ajuster ce texte en fonction de vos besoins
+            achatCell.textContent = "-"; 
         }
 
     } catch (error) {
