@@ -37,8 +37,11 @@ async function fetchCryptoData(symbol) {
         }
 
         const totalCell = cryptoRow.insertCell(data.length + 1);
+        const moyenneCell = cryptoRow.insertCell(data.length + 2);
+
         const totalValue = totalVariation.toFixed(2);
         const totalVolumeValue = totalVolume.toFixed(2);
+        const averageVolume = (totalVolume / data.length).toFixed(2);
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
@@ -48,6 +51,7 @@ async function fetchCryptoData(symbol) {
         }
 
         totalCell.textContent = `${totalValue}% (Total Volume: ${totalVolumeValue})`;
+        moyenneCell.textContent = `Moyenne Volume: ${averageVolume}`;
 
     } catch (error) {
         console.error(
