@@ -38,20 +38,27 @@ async function fetchCryptoData(symbol) {
 
         const totalCell = cryptoRow.insertCell(data.length + 1);
         const moyenneCell = cryptoRow.insertCell(data.length + 2);
+        const achatCell = cryptoRow.insertCell(data.length + 3); // Colonne "Achat"
 
         const totalValue = totalVariation.toFixed(2);
         const totalVolumeValue = totalVolume.toFixed(2);
         const averageVolume = (totalVolume / data.length).toFixed(2);
 
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-
-        if (???) {
-            totalCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-        }
-
         totalCell.textContent = `${totalValue}% (Total Volume: ${totalVolumeValue})`;
         moyenneCell.textContent = `Moyenne Volume: ${averageVolume}`;
+
+        // Logique pour afficher "LONG" avec la classe "positive" dans la colonne "Achat"
+        const firstOpenPrice = parseFloat(data[0][1]);
+        const lastClosePrice = parseFloat(data[data.length - 1][4]);
+        const firstVolume = parseFloat(data[0][5]);
+        const lastVolume = parseFloat(data[data.length - 1][5]);
+
+        if (firstOpenPrice < lastClosePrice && firstVolume < lastVolume) {
+            achatCell.textContent = "LONG";
+            achatCell.classList.add("positive");
+        } else {
+            achatCell.textContent = "-"; // Vous pouvez ajuster ce texte en fonction de vos besoins
+        }
 
     } catch (error) {
         console.error(
