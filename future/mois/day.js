@@ -6,6 +6,7 @@ async function fetchCryptoData(symbol) {
         const data = await response.json();
 
         let totalVariation = 0;
+        let totalVolume = 0;
 
         const cryptoRow = document.getElementById(symbol);
 
@@ -23,7 +24,6 @@ async function fetchCryptoData(symbol) {
             const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
             const formattedStartDate = weekStartDate.toLocaleDateString("fr-FR", optionsStart);
 
-            // Mise à jour de cette ligne pour retirer "Open" et "Close"
             variationCell.textContent = `${formattedStartDate}: Variation ${variationValue}%, Prix: ${closePrice}, Volume: ${volume}`;
 
             if (weeklyVariation > 0) {
@@ -33,19 +33,21 @@ async function fetchCryptoData(symbol) {
             }
 
             totalVariation += weeklyVariation;
+            totalVolume += volume;
         }
 
         const totalCell = cryptoRow.insertCell(data.length + 1);
         const totalValue = totalVariation.toFixed(2);
+        const totalVolumeValue = totalVolume.toFixed(2);
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
         if (totalVariation >= -108 && totalVariation <= -90) {
             totalCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%, Total Volume: ${totalVolumeValue}</p>`;
         }
 
-        totalCell.textContent = `${totalValue}%`;
+        totalCell.textContent = `${totalValue}% (Total Volume: ${totalVolumeValue})`;
 
     } catch (error) {
         console.error(
