@@ -45,9 +45,9 @@ async function fetchCryptoData(symbol) {
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        if (totalVariation >= -108 && totalVariation <= -90) {
+        if (???) {
             totalCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%, Total Volume: ${totalVolumeValue}</p>`;
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         }
 
         totalCell.textContent = `${totalValue}% (Total Volume: ${totalVolumeValue})`;
