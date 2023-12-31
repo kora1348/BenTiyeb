@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
    <head>
-      <title>Volume</title>
+      <title>Taux de variation par heures des cryptos</title>
       <link rel="stylesheet" href="../../style.css">
       <style>
       </style>
@@ -9,21 +9,18 @@
    <body>
       <button class="button" onclick="window.location.href='/future/future.html'">Retour</button>
       <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
-      " onclick="window.location.href='/spot/spot.html'">Retour / Spot</button>
-      <h1>Volume</h1>
+         " onclick="window.location.href='/spot/spot.html'">Retour / Spot</button>
+      <h1>Taux de variation par heures des cryptos </h1>
+      <h2> 05% & 10%</h2>
+      <h2> Stop loss <span class="orange">1.5% </span>- Effet de levier <span class="blue">X3</span> !</h2>
+      <div id="heure"></div>
+      <br>
+      <div id="cryptoNames"></div>
       <table>
          <tr>
             <th>Crypto</th>
-            <th>Séance 1</th>
-            <th>Séance 2</th>
-            <th>Séance 3</th>
-            <th>Séance 4</th>
-            <th>Séance 5</th>
-            <th>Séance 6</th>
-            <th>Séance 7</th>
-            <th>Séance 8</th>
+            <th>heure 1</th>
             <th>Total</th>
-            <th>Moyenne</th>
          </tr>
          <tr id="1INCH">
             <td>1INCH (F)</td>
@@ -31,8 +28,14 @@
          <tr id="AAVE">
             <td>AAVE (F)</td>
          </tr>
+         <tr id="ACE">
+            <td>ACE (F)</td>
+         </tr>
          <tr id="ACH">
             <td>ACH (F)</td>
+         </tr>
+         <tr id="ADA">
+            <td>ADA (F)</td>
          </tr>
          <tr id="AGIX">
             <td>AGIX (F)</td>
@@ -67,17 +70,20 @@
          <tr id="APT">
             <td>APT (F)</td>
          </tr>
+         <tr id="AR">
+            <td>AR (F)</td>
+         </tr>
          <tr id="ARB">
             <td>ARB (F)</td>
+         </tr>
+         <tr id="ARK">
+            <td>ARK (F)</td>
          </tr>
          <tr id="ARKM">
             <td>ARKM (F)</td>
          </tr>
          <tr id="ARPA">
             <td>ARPA (F)</td>
-         </tr>
-         <tr id="AR">
-            <td>AR (F)</td>
          </tr>
          <tr id="ASTR">
             <td>ASTR (F)</td>
@@ -88,6 +94,9 @@
          <tr id="ATOM">
             <td>ATOM (F)</td>
          </tr>
+         <tr id="AUCTION">
+            <td>AUCTION (F)</td>
+         </tr>
          <tr id="AUDIO">
             <td>AUDIO (F)</td>
          </tr>
@@ -97,38 +106,20 @@
          <tr id="AXS">
             <td>AXS (F)</td>
          </tr>
-         <tr id="BAKE">
-            <td>BAKE (F)</td>
+         <tr id="BSV">
+            <td>BSV (F)</td>
          </tr>
-         <tr id="BAL">
-            <td>BAL (F)</td>
-         </tr>
-         <tr id="BAND">
-            <td>BAND (F)</td>
-         </tr>
-         <tr id="BAT">
-            <td>BAT (F)</td>
-         </tr>
-         <tr id="BCH">
-            <td>BCH (F)</td>
-         </tr>
-         <tr id="BEL">
-            <td>BEL (F)</td>
-         </tr>
-         <tr id="BLZ">
-            <td>BLZ (F)</td>
-         </tr>
-         <tr id="BNT">
-            <td>BNT (F)</td>
-         </tr>
-         <tr id="BNX">
-            <td>BNX (F)</td>
+         <tr id="BTCDOM">
+            <td>BTCDOM (F)</td>
          </tr>
          <tr id="BTC">
             <td>BTC (F)</td>
          </tr>
          <tr id="C98">
             <td>C98 (F)</td>
+         </tr>
+         <tr id="CAKE">
+            <td>CAKE (F)</td>
          </tr>
          <tr id="CELO">
             <td>CELO (F)</td>
@@ -178,11 +169,23 @@
          <tr id="DASH">
             <td>DASH (F)</td>
          </tr>
+         <tr id="DEFI">
+            <td>DEFI (F)</td>
+         </tr>
          <tr id="DENT">
             <td>DENT (F)</td>
          </tr>
          <tr id="DGB">
             <td>DGB (F)</td>
+         </tr>
+         <tr id="DODOX">
+            <td>DODOX (F)</td>
+         </tr>
+         <tr id="DOGE">
+            <td>DOGE (F)</td>
+         </tr>
+         <tr id="DOT">
+            <td>DOT (F)</td>
          </tr>
          <tr id="DUSK">
             <td>DUSK (F)</td>
@@ -208,11 +211,20 @@
          <tr id="ETC">
             <td>ETC (F)</td>
          </tr>
+         <tr id="ETHBTC">
+            <td>ETHBTC (F)</td>
+         </tr>
          <tr id="ETH">
             <td>ETH (F)</td>
          </tr>
+         <tr id="ETHW">
+            <td>ETHW (F)</td>
+         </tr>
          <tr id="FET">
             <td>FET (F)</td>
+         </tr>
+         <tr id="FIL">
+            <td>FIL (F)</td>
          </tr>
          <tr id="FLM">
             <td>FLM (F)</td>
@@ -222,6 +234,12 @@
          </tr>
          <tr id="FLOW">
             <td>FLOW (F)</td>
+         </tr>
+         <tr id="FOOTBALL">
+            <td>FOOTBALL (F)</td>
+         </tr>
+         <tr id="FRONT">
+            <td>FRONT (F)</td>
          </tr>
          <tr id="FTM">
             <td>FTM (F)</td>
@@ -234,6 +252,12 @@
          </tr>
          <tr id="GAL">
             <td>GAL (F)</td>
+         </tr>
+         <tr id="GAS">
+            <td>GAS (F)</td>
+         </tr>
+         <tr id="GLMR">
+            <td>GLMR (F)</td>
          </tr>
          <tr id="GMT">
             <td>GMT (F)</td>
@@ -259,6 +283,9 @@
          <tr id="HIGH">
             <td>HIGH (F)</td>
          </tr>
+         <tr id="HOOK">
+            <td>HOOK (F)</td>
+         </tr>
          <tr id="HOT">
             <td>HOT (F)</td>
          </tr>
@@ -273,6 +300,9 @@
          </tr>
          <tr id="ID">
             <td>ID (F)</td>
+         </tr>
+         <tr id="ILV">
+            <td>ILV (F)</td>
          </tr>
          <tr id="IMX">
             <td>IMX (F)</td>
@@ -295,6 +325,12 @@
          <tr id="JOE">
             <td>JOE (F)</td>
          </tr>
+         <tr id="JTO">
+            <td>JTO (F)</td>
+         </tr>
+         <tr id="KAS">
+            <td>KAS (F)</td>
+         </tr>
          <tr id="KAVA">
             <td>KAVA (F)</td>
          </tr>
@@ -310,6 +346,9 @@
          <tr id="KSM">
             <td>KSM (F)</td>
          </tr>
+         <tr id="LDO">
+            <td>LDO (F)</td>
+         </tr>
          <tr id="LEVER">
             <td>LEVER (F)</td>
          </tr>
@@ -321,6 +360,9 @@
          </tr>
          <tr id="LIT">
             <td>LIT (F)</td>
+         </tr>
+         <tr id="LOOM">
+            <td>LOOM (F)</td>
          </tr>
          <tr id="LPT">
             <td>LPT (F)</td>
@@ -334,8 +376,8 @@
          <tr id="LTC">
             <td>LTC (F)</td>
          </tr>
-         <tr id="LUNA">
-            <td>LUNA (F)</td>
+         <tr id="LUNA2">
+            <td>LUNA2 (F)</td>
          </tr>
          <tr id="LUNC">
             <td>LUNC (F)</td>
@@ -355,14 +397,23 @@
          <tr id="MAV">
             <td>MAV (F)</td>
          </tr>
+         <tr id="MBL">
+            <td>MBL (F)</td>
+         </tr>
          <tr id="MDT">
             <td>MDT (F)</td>
+         </tr>
+         <tr id="MEME">
+            <td>MEME (F)</td>
          </tr>
          <tr id="MINA">
             <td>MINA (F)</td>
          </tr>
          <tr id="MKR">
             <td>MKR (F)</td>
+         </tr>
+         <tr id="MOVR">
+            <td>MOVR (F)</td>
          </tr>
          <tr id="MTL">
             <td>MTL (F)</td>
@@ -373,11 +424,17 @@
          <tr id="NEO">
             <td>NEO (F)</td>
          </tr>
+         <tr id="NFP">
+            <td>NFP (F)</td>
+         </tr>
          <tr id="NKN">
             <td>NKN (F)</td>
          </tr>
          <tr id="NMR">
             <td>NMR (F)</td>
+         </tr>
+         <tr id="NTRN">
+            <td>NTRN (F)</td>
          </tr>
          <tr id="OCEAN">
             <td>OCEAN (F)</td>
@@ -388,17 +445,32 @@
          <tr id="OMG">
             <td>OMG (F)</td>
          </tr>
-         <tr id="OM">
-            <td>OM (F)</td>
-         </tr>
          <tr id="ONE">
             <td>ONE (F)</td>
+         </tr>
+         <tr id="ONG">
+            <td>ONG (F)</td>
          </tr>
          <tr id="ONT">
             <td>ONT (F)</td>
          </tr>
+         <tr id="OP">
+            <td>OP (F)</td>
+         </tr>
+         <tr id="ORBS">
+            <td>ORBS (F)</td>
+         </tr>
+         <tr id="ORDI">
+            <td>ORDI (F)</td>
+         </tr>
+         <tr id="OXT">
+            <td>OXT (F)</td>
+         </tr>
          <tr id="PENDLE">
             <td>PENDLE (F)</td>
+         </tr>
+         <tr id="PEOPLE">
+            <td>PEOPLE (F)</td>
          </tr>
          <tr id="PEPE">
             <td>PEPE (F)</td>
@@ -409,6 +481,15 @@
          <tr id="PHB">
             <td>PHB (F)</td>
          </tr>
+         <tr id="POLYX">
+            <td>POLYX (F)</td>
+         </tr>
+         <tr id="POWR">
+            <td>POWR (F)</td>
+         </tr>
+         <tr id="PYTH">
+            <td>PYTH (F)</td>
+         </tr>
          <tr id="QNT">
             <td>QNT (F)</td>
          </tr>
@@ -418,11 +499,20 @@
          <tr id="RAD">
             <td>RAD (F)</td>
          </tr>
+         <tr id="RATS">
+            <td>RATS (F)</td>
+         </tr>
+         <tr id="RDNT">
+            <td>RDNT (F)</td>
+         </tr>
          <tr id="REEF">
             <td>REEF (F)</td>
          </tr>
          <tr id="REN">
             <td>REN (F)</td>
+         </tr>
+         <tr id="RIF">
+            <td>RIF (F)</td>
          </tr>
          <tr id="RLC">
             <td>RLC (F)</td>
@@ -445,6 +535,9 @@
          <tr id="SAND">
             <td>SAND (F)</td>
          </tr>
+         <tr id="SATS">
+            <td>SATS (F)</td>
+         </tr>
          <tr id="SEI">
             <td>SEI (F)</td>
          </tr>
@@ -457,8 +550,17 @@
          <tr id="SKL">
             <td>SKL (F)</td>
          </tr>
+         <tr id="SLP">
+            <td>SLP (F)</td>
+         </tr>
+         <tr id="SNT">
+            <td>SNT (F)</td>
+         </tr>
          <tr id="SNX">
             <td>SNX (F)</td>
+         </tr>
+         <tr id="SOL">
+            <td>SOL (F)</td>
          </tr>
          <tr id="SPELL">
             <td>SPELL (F)</td>
@@ -466,14 +568,32 @@
          <tr id="SSV">
             <td>SSV (F)</td>
          </tr>
+         <tr id="STEEM">
+            <td>STEEM (F)</td>
+         </tr>
+         <tr id="STG">
+            <td>STG (F)</td>
+         </tr>
+         <tr id="STMX">
+            <td>STMX (F)</td>
+         </tr>
          <tr id="STORJ">
             <td>STORJ (F)</td>
+         </tr>
+         <tr id="STPT">
+            <td>STPT (F)</td>
+         </tr>
+         <tr id="STRAX">
+            <td>STRAX (F)</td>
          </tr>
          <tr id="STX">
             <td>STX (F)</td>
          </tr>
          <tr id="SUI">
             <td>SUI (F)</td>
+         </tr>
+         <tr id="SUPER">
+            <td>SUPER (F)</td>
          </tr>
          <tr id="SUSHI">
             <td>SUSHI (F)</td>
@@ -484,11 +604,14 @@
          <tr id="THETA">
             <td>THETA (F)</td>
          </tr>
+         <tr id="TIA">
+            <td>TIA (F)</td>
+         </tr>
          <tr id="TLM">
             <td>TLM (F)</td>
          </tr>
-         <tr id="TOMO">
-            <td>TOMO (F)</td>
+         <tr id="TOKEN">
+            <td>TOKEN (F)</td>
          </tr>
          <tr id="TRB">
             <td>TRB (F)</td>
@@ -496,8 +619,14 @@
          <tr id="TRU">
             <td>TRU (F)</td>
          </tr>
+         <tr id="TRX">
+            <td>TRX (F)</td>
+         </tr>
          <tr id="T">
             <td>T (F)</td>
+         </tr>
+         <tr id="TWT">
+            <td>TWT (F)</td>
          </tr>
          <tr id="UMA">
             <td>UMA (F)</td>
@@ -508,11 +637,20 @@
          <tr id="UNI">
             <td>UNI (F)</td>
          </tr>
+         <tr id="USDC">
+            <td>USDC (F)</td>
+         </tr>
+         <tr id="USTC">
+            <td>USTC (F)</td>
+         </tr>
          <tr id="VET">
             <td>VET (F)</td>
          </tr>
          <tr id="WAVES">
             <td>WAVES (F)</td>
+         </tr>
+         <tr id="WAXP">
+            <td>WAXP (F)</td>
          </tr>
          <tr id="WLD">
             <td>WLD (F)</td>
@@ -563,6 +701,6 @@
             <td>ZRX (F)</td>
          </tr>
       </table>
-      <script src="volume.js"></script>
+      <script src="day_trading4h.js"></script>
    </body>
 </html>

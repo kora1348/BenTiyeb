@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=200`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=20`
         );
         const data = await response.json();
 
@@ -39,7 +39,7 @@ async function fetchCryptoData(symbol) {
         const totalCell = cryptoRow.insertCell(data.length + 1);
         const moyenneCell = cryptoRow.insertCell(data.length + 2);
         const achatCell = cryptoRow.insertCell(data.length + 3); // Colonne "Achat"
-        const venteCell = cryptoRow.insertCell(data.length + 4); // Colonne "Achat"
+        const venteCell = cryptoRow.insertCell(data.length + 4); // Colonne "Vente"
 
         const totalValue = totalVariation.toFixed(2);
         const totalVolumeValue = totalVolume.toFixed(2);
