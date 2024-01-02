@@ -39,6 +39,7 @@ async function fetchCryptoData(symbol) {
         const totalCell = cryptoRow.insertCell(data.length + 1);
         const moyenneCell = cryptoRow.insertCell(data.length + 2);
         const achatCell = cryptoRow.insertCell(data.length + 3); // Colonne "Achat"
+        const venteCell = cryptoRow.insertCell(data.length + 4); // Colonne "Vente"
 
         const totalValue = totalVariation.toFixed(2);
         const totalVolumeValue = totalVolume.toFixed(2);
@@ -61,6 +62,14 @@ async function fetchCryptoData(symbol) {
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         } else {
             achatCell.textContent = "-"; 
+        }
+
+        if (firstOpenPrice > lastClosePrice && firstVolume < lastVolume) {
+            venteCell.textContent = "SHORT";
+            venteCell.classList.add("negative");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+        } else {
+            venteCell.textContent = "-"; 
         }
 
     } catch (error) {
