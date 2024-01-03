@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=20`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=5`
         );
         const data = await response.json();
 
@@ -69,7 +69,7 @@ async function fetchCryptoData(symbol) {
             venteCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
         } else {
-            achatCell.textContent = "-"; 
+            venteCell.textContent = "-"; 
         }
 
     } catch (error) {
