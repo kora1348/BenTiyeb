@@ -8,6 +8,7 @@ async function fetchCryptoData(symbol) {
       // Mise à jour du tableau avec les données et la couleur
       const cryptoRow = document.getElementById(symbol);
       let allNegative = true; // Variable pour suivre si toutes les variations sont négatives
+      let allPositive = true; // Variable pour suivre si toutes les variations sont positives
   
       for (let i = 0; i < data.length; i++) {
         const openPrice = parseFloat(data[i][1]);
@@ -41,6 +42,7 @@ async function fetchCryptoData(symbol) {
           allNegative = false; // Si une variation est positive, on met la variable à false
         } else if (weeklyVariation < 0) {
           variationCell.classList.add("negative");
+          allPositive = false; // Si une variation est négative, on met la variable à false
         }
       }
   
@@ -53,8 +55,16 @@ async function fetchCryptoData(symbol) {
         achatCell.textContent = "LONG";
         achatCell.classList.add("positive");
         cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, </p>`;
-      }else {
+      } else {
         achatCell.textContent = "-"; 
+    }
+     if (allPositive) {
+        venteCell.textContent = "SHORT";
+        venteCell.classList.add("negative");
+        cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
+      }
+      else {
+        venteCell.textContent = "-"; 
     }
   
     } catch (error) {
