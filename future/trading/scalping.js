@@ -7,11 +7,11 @@ async function fetchCryptoData(symbol) {
 
     const cryptoRow = document.getElementById(symbol);
 
-    let isLongSignal = data.every(
+    let isShortSignal = data.every(
       (candle) => parseFloat(candle[4]) - parseFloat(candle[1]) > 0
     );
 
-    let isShortSignal = data.every(
+    let isLongSignal = data.every(
       (candle) => parseFloat(candle[4]) - parseFloat(candle[1]) < 0
     );
 
@@ -50,20 +50,20 @@ async function fetchCryptoData(symbol) {
     const venteCell = cryptoRow.insertCell(data.length + 2);
     const cryptoNamesElement = document.getElementById("cryptoNames");
 
+    if (isShortSignal) {
+      venteCell.textContent = "SORTH";
+      venteCell.classList.add("negative");
+      cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SORTH, </p>`;
+    } else {
+      venteCell.textContent = "-";
+    }
+
     if (isLongSignal) {
       achatCell.textContent = "LONG";
       achatCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, </p>`;
     } else {
       achatCell.textContent = "-";
-    }
-
-    if (isShortSignal) {
-      venteCell.textContent = "SHORT";
-      venteCell.classList.add("negative");
-      cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
-    } else {
-      venteCell.textContent = "-";
     }
 
   } catch (error) {
