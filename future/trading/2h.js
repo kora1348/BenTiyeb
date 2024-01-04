@@ -51,9 +51,9 @@ async function fetchCryptoData(symbol) {
     const cryptoNamesElement = document.getElementById("cryptoNames");
 
     if (isShortSignal) {
-      venteCell.textContent = "SORTH";
+      venteCell.textContent = "SHORT";
       venteCell.classList.add("negative");
-      cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SORTH, </p>`;
+      cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
     } else {
       venteCell.textContent = "-";
     }
