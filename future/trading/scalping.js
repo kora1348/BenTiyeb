@@ -1,79 +1,79 @@
 async function fetchCryptoData(symbol) {
-    try {
-      const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=5`
-      );
-      const data = await response.json();
-  
-      // Mise à jour du tableau avec les données et la couleur
-      const cryptoRow = document.getElementById(symbol);
-      let allNegative = true; // Variable pour suivre si toutes les variations sont négatives
-      let allPositive = true; // Variable pour suivre si toutes les variations sont positives
-  
-      for (let i = 0; i < data.length; i++) {
-        const openPrice = parseFloat(data[i][1]);
-        const closePrice = parseFloat(data[i][4]);
-        const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-        const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
-  
-        const variationCell = cryptoRow.insertCell(cellIndex);
-        const variationValue = weeklyVariation.toFixed(2);
-        const weekStartDate = new Date(data[i][0]);
-        const weekEndDate = new Date(data[i][6]);
-        const optionsStart = {
-          year: "2-digit",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "numeric",
-          minute: "numeric",
-        };
-        const optionsEnd = { hour: "numeric", minute: "numeric" };
-        variationCell.textContent = `${weekStartDate.toLocaleDateString(
-          "fr-FR",
-          optionsStart
-        )} - ${weekEndDate.toLocaleDateString(
-          "fr-FR",
-          optionsStart
-        )}: ${variationValue}%`;
-  
-        // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
-        if (weeklyVariation > 0) {
-          variationCell.classList.add("positive");
-          allNegative = false; // Si une variation est positive, on met la variable à false
-        } else if (weeklyVariation < 0) {
-          variationCell.classList.add("negative");
-          allPositive = false; // Si une variation est négative, on met la variable à false
-        }
+  try {
+    const response = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=5`
+    );
+    const data = await response.json();
+
+    const cryptoRow = document.getElementById(symbol);
+
+    let isLongSignal = data.every(
+      (candle) => parseFloat(candle[4]) - parseFloat(candle[1]) > 0
+    );
+
+    let isShortSignal = data.every(
+      (candle) => parseFloat(candle[4]) - parseFloat(candle[1]) < 0
+    );
+
+    for (let i = 0; i < data.length; i++) {
+      const openPrice = parseFloat(data[i][1]);
+      const closePrice = parseFloat(data[i][4]);
+      const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+
+      const cellIndex = i + 1;
+      const variationCell = cryptoRow.insertCell(cellIndex);
+      const variationValue = weeklyVariation.toFixed(2);
+      const weekStartDate = new Date(data[i][0]);
+      const weekEndDate = new Date(data[i][6]);
+
+      const optionsStart = {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "numeric",
+        minute: "numeric",
+      };
+
+      variationCell.textContent = `${weekStartDate.toLocaleDateString(
+        "fr-FR",
+        optionsStart
+      )} - ${weekEndDate.toLocaleDateString("fr-FR", optionsStart)}: ${variationValue}%`;
+
+      if (weeklyVariation > 0) {
+        variationCell.classList.add("positive");
+      } else if (weeklyVariation < 0) {
+        variationCell.classList.add("negative");
       }
-  
-      const achatCell = cryptoRow.insertCell(data.length + 1); // Colonne "Achat"
-      const venteCell = cryptoRow.insertCell(data.length + 2); // Colonne "Vente"
-  
-      const cryptoNamesElement = document.getElementById("cryptoNames");
-  
-      if (allNegative) {
-        achatCell.textContent = "LONG";
-        achatCell.classList.add("positive");
-        cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, </p>`;
-      } else {
-        achatCell.textContent = "-"; 
     }
-     if (allPositive) {
-        venteCell.textContent = "SHORT";
-        venteCell.classList.add("negative");
-        cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
-      }
-      else {
-        venteCell.textContent = "-"; 
+
+    const achatCell = cryptoRow.insertCell(data.length + 1);
+    const venteCell = cryptoRow.insertCell(data.length + 2);
+    const cryptoNamesElement = document.getElementById("cryptoNames");
+
+    if (isLongSignal) {
+      achatCell.textContent = "LONG";
+      achatCell.classList.add("positive");
+      cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, </p>`;
+    } else {
+      achatCell.textContent = "-";
     }
-  
-    } catch (error) {
-      console.error(
-        `Erreur lors de la récupération des données pour ${symbol}:`,
-        error
-      );
+
+    if (isShortSignal) {
+      venteCell.textContent = "SHORT";
+      venteCell.classList.add("negative");
+      cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
+    } else {
+      venteCell.textContent = "-";
     }
+
+  } catch (error) {
+    console.error(
+      `Erreur lors de la récupération des données pour ${symbol}:`,
+      error
+    );
   }
+}
+
   
 
   
