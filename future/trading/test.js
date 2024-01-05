@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=5`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=7`
     );
     const data = await response.json();
 
@@ -88,6 +88,7 @@ function showNotification(message) {
   const options = {
     hour: "numeric",
     minute: "numeric",
+    second: "numeric",
   };
   const currentTime = now.toLocaleTimeString("fr-FR", options);
 
@@ -101,7 +102,7 @@ function showNotification(message) {
     setTimeout(() => {
       notification.close();
       isNotificationDisplayed = false;
-    }, 5000); // Changement ici pour 5 secondes
+    }, 20000); // Changement ici pour 5 secondes
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted" && !isNotificationDisplayed) {
@@ -120,7 +121,7 @@ function rafraichirPage() {
 }
 
 // Utilise setInterval pour appeler la fonction toutes les 3 secondes (3000 millisecondes)
-setInterval(rafraichirPage, 5000);
+setInterval(rafraichirPage, 15000);
 
 
   
