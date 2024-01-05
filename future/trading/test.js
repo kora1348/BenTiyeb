@@ -101,7 +101,7 @@ function showNotification(message) {
     setTimeout(() => {
       notification.close();
       isNotificationDisplayed = false;
-    }, 20000);
+    }, 5000); // Changement ici pour 5 secondes
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted" && !isNotificationDisplayed) {
