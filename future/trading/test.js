@@ -82,9 +82,16 @@ function showNotification(message) {
     return;
   }
 
+  const now = new Date();
+  const options = {
+    hour: "numeric",
+    minute: "numeric",
+  };
+  const currentTime = now.toLocaleTimeString("fr-FR", options);
+
   if (Notification.permission === "granted") {
     const notification = new Notification("Signal Crypto", {
-      body: message,
+      body: `${message} - ${currentTime}`,
     });
 
     setTimeout(() => {
@@ -98,6 +105,7 @@ function showNotification(message) {
     });
   }
 }
+
 
   // Cette fonction sera exécutée toutes les 3 secondes
 function rafraichirPage() {
