@@ -54,6 +54,7 @@ async function fetchCryptoData(symbol) {
       venteCell.textContent = "SHORT";
       venteCell.classList.add("negative");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
+      showNotification(`${symbol}: Signal SHORT`);
     } else {
       venteCell.textContent = "-";
     }
@@ -62,6 +63,7 @@ async function fetchCryptoData(symbol) {
       achatCell.textContent = "LONG";
       achatCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, </p>`;
+      showNotification(`${symbol}: Signal LONG`);
     } else {
       achatCell.textContent = "-";
     }
@@ -71,6 +73,29 @@ async function fetchCryptoData(symbol) {
       `Erreur lors de la récupération des données pour ${symbol}:`,
       error
     );
+  }
+}
+
+function showNotification(message) {
+  if (!("Notification" in window)) {
+    console.error("Ce navigateur ne prend pas en charge les notifications.");
+    return;
+  }
+
+  if (Notification.permission === "granted") {
+    const notification = new Notification("Signal Crypto", {
+      body: message,
+    });
+
+    setTimeout(() => {
+      notification.close();
+    }, 20000);
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        showNotification(message);
+      }
+    });
   }
 }
 
