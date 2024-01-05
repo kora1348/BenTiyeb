@@ -74,7 +74,14 @@ async function fetchCryptoData(symbol) {
   }
 }
 
-  
+  // Cette fonction sera exécutée toutes les 3 secondes
+function rafraichirPage() {
+  location.reload(); // Rafraîchit la page
+}
+
+// Utilise setInterval pour appeler la fonction toutes les 3 secondes (3000 millisecondes)
+setInterval(rafraichirPage, 5000);
+
 
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
