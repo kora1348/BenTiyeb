@@ -54,7 +54,7 @@ async function fetchCryptoData(symbol) {
       venteCell.textContent = "SHORT";
       venteCell.classList.add("negative");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
-      showNotification(`${symbol}: Signal SHORT - 1min`);
+      showNotification(`${symbol}: Signal SHORT - 12h`);
     } else {
       venteCell.textContent = "-";
     }
@@ -63,7 +63,7 @@ async function fetchCryptoData(symbol) {
       achatCell.textContent = "LONG";
       achatCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, </p>`;
-      showNotification(`${symbol}: Signal LONG - 1min`);
+      showNotification(`${symbol}: Signal LONG - 12h`);
     } else {
       achatCell.textContent = "-";
     }
