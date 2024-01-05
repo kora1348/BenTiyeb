@@ -76,6 +76,8 @@ async function fetchCryptoData(symbol) {
   }
 }
 
+let isNotificationDisplayed = false;
+
 function showNotification(message) {
   if (!("Notification" in window)) {
     console.error("Ce navigateur ne prend pas en charge les notifications.");
@@ -89,22 +91,27 @@ function showNotification(message) {
   };
   const currentTime = now.toLocaleTimeString("fr-FR", options);
 
-  if (Notification.permission === "granted") {
+  if (Notification.permission === "granted" && !isNotificationDisplayed) {
     const notification = new Notification("Signal Crypto", {
       body: `${message} - ${currentTime}`,
     });
 
+    isNotificationDisplayed = true;
+
     setTimeout(() => {
       notification.close();
+      isNotificationDisplayed = false;
     }, 20000);
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
-      if (permission === "granted") {
+      if (permission === "granted" && !isNotificationDisplayed) {
         showNotification(message);
       }
     });
   }
 }
+
+
 
 
   // Cette fonction sera exécutée toutes les 3 secondes
