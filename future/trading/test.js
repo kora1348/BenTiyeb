@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=5`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=7`
     );
     const data = await response.json();
 
@@ -54,7 +54,7 @@ async function fetchCryptoData(symbol) {
       venteCell.textContent = "SHORT";
       venteCell.classList.add("negative");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, </p>`;
-      showNotification(`${symbol}: Signal SHORT - test`);
+      showNotification(`${symbol}: Signal SHORT - 1min`);
     } else {
       venteCell.textContent = "-";
     }
@@ -63,7 +63,7 @@ async function fetchCryptoData(symbol) {
       achatCell.textContent = "LONG";
       achatCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, </p>`;
-      showNotification(`${symbol}: Signal LONG - test`);
+      showNotification(`${symbol}: Signal LONG - 1min`);
     } else {
       achatCell.textContent = "-";
     }
