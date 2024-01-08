@@ -48,21 +48,22 @@ async function fetchCryptoData(symbol) {
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
         if (firstOpenPrice < lastClosePrice) {
-            achatCell.textContent = "LONG";
-            achatCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-            showNotification(`${symbol}: Signal LONG - 5m`);
-        } else {
-            achatCell.textContent = "-"; 
-        }
-
-        if (firstOpenPrice > lastClosePrice) {
             venteCell.textContent = "SHORT";
             venteCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
             showNotification(`${symbol}: Signal SHORT - 5m`);
         } else {
             venteCell.textContent = "-"; 
+        }
+
+        if (firstOpenPrice > lastClosePrice) {
+            achatCell.textContent = "LONG";
+            achatCell.classList.add("positive");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+            showNotification(`${symbol}: Signal LONG - 5m`);
+            
+        } else {
+            achatCell.textContent = "-"; 
         }
 
     } catch (error) {
