@@ -1,133 +1,84 @@
 async function fetchCryptoData(symbol) {
-  try {
-      const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=1`
-      );
-      const data = await response.json();
+    try {
+        const response = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=200`
+        );
+        const data = await response.json();
 
-      // Calcul du total des taux de variation sur 3 semaines
-      let totalVariation = 0;
+        let totalVariation = 0;
+        let totalVolume = 0;
 
-      // Mise à jour du tableau avec les données et la couleur
-      const cryptoRow = document.getElementById(symbol);
+        const cryptoRow = document.getElementById(symbol);
 
-      for (let i = 0; i < data.length; i++) {
-          const openPrice = parseFloat(data[i][1]);
-          const closePrice = parseFloat(data[i][4]);
-          const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-          const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+        for (let i = 0; i < data.length; i++) {
+            const openPrice = parseFloat(data[i][1]);
+            const closePrice = parseFloat(data[i][4]);
+            const volume = parseFloat(data[i][5]);
+            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+            const cellIndex = i + 1;
 
-          const variationCell = cryptoRow.insertCell(cellIndex);
-          const variationValue = weeklyVariation.toFixed(2);
-          const weekStartDate = new Date(data[i][0]);
-          const weekEndDate = new Date(data[i][6]);
-          const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-          const optionsEnd = { hour: "numeric", minute: "numeric" };
-          variationCell.textContent = `${weekStartDate.toLocaleDateString(
-              "fr-FR",
-              optionsStart
-          )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
-              "fr-FR",
-              optionsStart
-          )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+            const variationCell = cryptoRow.insertCell(cellIndex);
+            const variationValue = weeklyVariation.toFixed(2);
 
-          // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
-          if (weeklyVariation > 0) {
-              variationCell.classList.add("positive");
-          } else if (weeklyVariation < 0) {
-              variationCell.classList.add("negative");
-          }
+            const weekStartDate = new Date(data[i][0]);
+            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+            const formattedStartDate = weekStartDate.toLocaleDateString("fr-FR", optionsStart);
 
-          totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
-      }
+            variationCell.textContent = `${formattedStartDate}: Variation ${variationValue}%, Prix: ${closePrice}, Volume: ${volume}`;
 
-      // Ajouter la cellule pour afficher le total de variation
-      const totalCell = cryptoRow.insertCell(data.length + 1);
-      const achatCell = cryptoRow.insertCell(data.length + 2);
-      const venteCell = cryptoRow.insertCell(data.length + 3);
-      const totalValue = totalVariation.toFixed(2);
+            if (weeklyVariation > 0) {
+                variationCell.classList.add("positive");
+            } else if (weeklyVariation < 0) {
+                variationCell.classList.add("negative");
+            }
 
-      const cryptoNamesElement = document.getElementById('cryptoNames');
+            totalVariation += weeklyVariation;
+            totalVolume += volume;
+        }
 
-      // Ajouter la classe "positive" pour le total dans la plage spécifiée
-      if (totalVariation >=5.00 && totalVariation <=5.99) {
-          achatCell.textContent = "LONG";
-          achatCell.classList.add("positive");
-          totalCell.classList.add("positive");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-          showNotification(`${symbol}: Signal LONG - 15m`);
-      }else {
-        achatCell.textContent = "-";
-      }
+        const totalCell = cryptoRow.insertCell(data.length + 1);
+        const moyenneCell = cryptoRow.insertCell(data.length + 2);
+        const achatCell = cryptoRow.insertCell(data.length + 3); // Colonne "Achat"
+        const venteCell = cryptoRow.insertCell(data.length + 4); // Colonne "Vente"
 
-      if (totalVariation >=-5.99 && totalVariation <=-5.00) {
-        venteCell.textContent = "SHORT";
-        venteCell.classList.add("negative");
-        totalCell.classList.add("negative");
-        cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
-        showNotification(`${symbol}: Signal SHORT - 15m`);
-    }else {
-      venteCell.textContent = "-";
+        const totalValue = totalVariation.toFixed(2);
+        const totalVolumeValue = totalVolume.toFixed(2);
+        const averageVolume = (totalVolume / data.length).toFixed(2);
+
+        totalCell.textContent = `${totalValue}% (Total Volume: ${totalVolumeValue})`;
+        moyenneCell.textContent = `Moyenne Volume: ${averageVolume}`;
+
+        // Logique pour afficher "LONG" avec la classe "positive" dans la colonne "Achat"
+        const firstOpenPrice = parseFloat(data[0][1]);
+        const lastClosePrice = parseFloat(data[data.length - 1][4]);
+        const firstVolume = parseFloat(data[0][5]);
+        const lastVolume = parseFloat(data[data.length - 1][5]);
+
+        const cryptoNamesElement = document.getElementById('cryptoNames');
+
+        if (firstOpenPrice < lastClosePrice && firstVolume < lastVolume) {
+            achatCell.textContent = "LONG";
+            achatCell.classList.add("positive");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+        } else {
+            achatCell.textContent = "-"; 
+        }
+
+        if (firstOpenPrice > lastClosePrice && firstVolume < lastVolume) {
+            venteCell.textContent = "SHORT";
+            venteCell.classList.add("negative");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+        } else {
+            venteCell.textContent = "-"; 
+        }
+
+    } catch (error) {
+        console.error(
+            `Erreur lors de la récupération des données pour ${symbol}:`,
+            error
+        );
     }
-
-      totalCell.textContent = `${totalValue}%`;
-
-  } catch (error) {
-      console.error(
-          `Erreur lors de la récupération des données pour ${symbol}:`,
-          error
-      );
-  }
 }
-
-
-let isNotificationDisplayed = false;
-
-function showNotification(message) {
-  if (!("Notification" in window)) {
-    console.error("Ce navigateur ne prend pas en charge les notifications.");
-    return;
-  }
-
-  const now = new Date();
-  const options = {
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  };
-  const currentTime = now.toLocaleTimeString("fr-FR", options);
-
-  if (Notification.permission === "granted" && !isNotificationDisplayed) {
-    const notification = new Notification("Signal Crypto", {
-      body: `${message} - ${currentTime}`,
-    });
-
-    isNotificationDisplayed = true;
-
-    setTimeout(() => {
-      notification.close();
-      isNotificationDisplayed = false;
-    }, 20000); // Changement ici pour 5 secondes
-  } else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted" && !isNotificationDisplayed) {
-        showNotification(message);
-      }
-    });
-  }
-}
-
-
-
-
-  // Cette fonction sera exécutée toutes les 3 secondes
-function rafraichirPage() {
-  location.reload(); // Rafraîchit la page
-}
-
-// Utilise setInterval pour appeler la fonction toutes les 3 secondes (3000 millisecondes)
-setInterval(rafraichirPage, 15000);
-
 
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
