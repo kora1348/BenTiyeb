@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=63`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=63`
         );
         const data = await response.json();
 
@@ -51,6 +51,7 @@ async function fetchCryptoData(symbol) {
             achatCell.textContent = "LONG";
             achatCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+            showNotification(`${symbol}: Signal LONG - 5m`);
         } else {
             achatCell.textContent = "-"; 
         }
@@ -59,6 +60,7 @@ async function fetchCryptoData(symbol) {
             venteCell.textContent = "SHORT";
             venteCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+            showNotification(`${symbol}: Signal SHORT - 5m`);
         } else {
             venteCell.textContent = "-"; 
         }
@@ -71,7 +73,54 @@ async function fetchCryptoData(symbol) {
     }
 }
 
-  
+let isNotificationDisplayed = false;
+
+function showNotification(message) {
+  if (!("Notification" in window)) {
+    console.error("Ce navigateur ne prend pas en charge les notifications.");
+    return;
+  }
+
+  const now = new Date();
+  const options = {
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+  const currentTime = now.toLocaleTimeString("fr-FR", options);
+
+  if (Notification.permission === "granted" && !isNotificationDisplayed) {
+    const notification = new Notification("Signal Crypto", {
+      body: `${message} - ${currentTime}`,
+    });
+
+    isNotificationDisplayed = true;
+
+    setTimeout(() => {
+      notification.close();
+      isNotificationDisplayed = false;
+    }, 20000); // Changement ici pour 5 secondes
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted" && !isNotificationDisplayed) {
+        showNotification(message);
+      }
+    });
+  }
+}
+
+
+
+
+  // Cette fonction sera exécutée toutes les 3 secondes
+function rafraichirPage() {
+  location.reload(); // Rafraîchit la page
+}
+
+// Utilise setInterval pour appeler la fonction toutes les 3 secondes (3000 millisecondes)
+setInterval(rafraichirPage, 15000);
+
+
   // Appel de la fonction pour obtenir les taux de variation des cryptos
 
 fetchCryptoData("1INCH");
