@@ -113,7 +113,7 @@ fetchCryptoData("BNT");
 fetchCryptoData("BNX");
 fetchCryptoData("BOND");
 fetchCryptoData("BONK");
-fetchCryptoData("BSV");
+fetchCryptoData("BSW");
 fetchCryptoData("BTCDOM");
 fetchCryptoData("BTC");
 fetchCryptoData("C98");
