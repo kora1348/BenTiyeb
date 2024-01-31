@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
       const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}PLN&interval=1w&limit=1`
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}UAH&interval=1w&limit=1`
       );
       const data = await response.json();
 
@@ -67,6 +67,7 @@ async function fetchCryptoData(symbol) {
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
 
+  fetchCryptoData("BNB");
   fetchCryptoData("BTC");
   fetchCryptoData("ETH");
   fetchCryptoData("USDT");

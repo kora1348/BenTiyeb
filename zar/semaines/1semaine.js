@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
       const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}PLN&interval=1w&limit=1`
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}ZAR&interval=1w&limit=1`
       );
       const data = await response.json();
 
