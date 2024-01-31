@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
       const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}BRL&interval=1w&limit=1`
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}EUR&interval=1w&limit=1`
       );
       const data = await response.json();
 
@@ -68,22 +68,37 @@ async function fetchCryptoData(symbol) {
   // Appel de la fonction pour obtenir les taux de variation des cryptos
 
   fetchCryptoData("ADA");
+  fetchCryptoData("APT");
+  fetchCryptoData("ARB");
+  fetchCryptoData("ATOM");
   fetchCryptoData("AVAX");
-  fetchCryptoData("AXS");
+  fetchCryptoData("BCH");
   fetchCryptoData("BNB");
   fetchCryptoData("BTC");
   fetchCryptoData("CHZ");
   fetchCryptoData("DOGE");
   fetchCryptoData("DOT");
+  fetchCryptoData("EGLD");
   fetchCryptoData("ETH");
+  fetchCryptoData("FTM");
   fetchCryptoData("GALA");
+  fetchCryptoData("GMT");
+  fetchCryptoData("GRT");
+  fetchCryptoData("ICP");
   fetchCryptoData("LINK");
   fetchCryptoData("LTC");
   fetchCryptoData("MATIC");
+  fetchCryptoData("NEAR");
+  fetchCryptoData("OP");
   fetchCryptoData("SHIB");
   fetchCryptoData("SOL");
-  fetchCryptoData("USDT");
+  fetchCryptoData("SUI");
+  fetchCryptoData("TRX");
+  fetchCryptoData("VET");
+  fetchCryptoData("XLM");
   fetchCryptoData("XRP");
+
+
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
