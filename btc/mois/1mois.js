@@ -64,6 +64,7 @@ async function fetchCryptoData(symbol) {
 }
 
 
+
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
 
@@ -113,6 +114,8 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("BNX");
   fetchCryptoData("BOND");
   fetchCryptoData("BONK");
+  fetchCryptoData("BSV");
+  fetchCryptoData("BTCDOM");
   fetchCryptoData("BTC");
   fetchCryptoData("C98");
   fetchCryptoData("CAKE");
@@ -121,9 +124,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("CFX");
   fetchCryptoData("CHR");
   fetchCryptoData("CHZ");
-  fetchCryptoData("CKB");
-  fetchCryptoData("COMBO");
-  fetchCryptoData("COMP");
   fetchCryptoData("COTI");
   fetchCryptoData("CRV");
   fetchCryptoData("CTK");
@@ -132,14 +132,11 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("CYBER");
   fetchCryptoData("DAR");
   fetchCryptoData("DASH");
-  fetchCryptoData("DENT");
-  fetchCryptoData("DGB");
   fetchCryptoData("DOGE");
   fetchCryptoData("DOT");
   fetchCryptoData("DUSK");
   fetchCryptoData("DYDX");
   fetchCryptoData("EDU");
-  fetchCryptoData("EGLD");
   fetchCryptoData("ENJ");
   fetchCryptoData("ENS");
   fetchCryptoData("EOS");
@@ -148,7 +145,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("FET");
   fetchCryptoData("FIL");
   fetchCryptoData("FLM");
-  fetchCryptoData("FLOKI");
   fetchCryptoData("FLOW");
   fetchCryptoData("FRONT");
   fetchCryptoData("FTM");
@@ -163,10 +159,7 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("GTC");
   fetchCryptoData("HBAR");
   fetchCryptoData("HFT");
-  fetchCryptoData("HIFI");
   fetchCryptoData("HIGH");
-  fetchCryptoData("HOOK");
-  fetchCryptoData("HOT");
   fetchCryptoData("ICP");
   fetchCryptoData("ICX");
   fetchCryptoData("IDEX");
@@ -177,16 +170,12 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("IOST");
   fetchCryptoData("IOTA");
   fetchCryptoData("IOTX");
-  fetchCryptoData("JASMY");
   fetchCryptoData("JOE");
-  fetchCryptoData("JTO");
   fetchCryptoData("KAVA");
-  fetchCryptoData("KEY");
   fetchCryptoData("KLAY");
   fetchCryptoData("KNC");
   fetchCryptoData("KSM");
   fetchCryptoData("LDO");
-  fetchCryptoData("LEVER");
   fetchCryptoData("LINA");
   fetchCryptoData("LINK");
   fetchCryptoData("LIT");
@@ -195,16 +184,11 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("LQTY");
   fetchCryptoData("LRC");
   fetchCryptoData("LTC");
-  fetchCryptoData("LUNC");
   fetchCryptoData("MAGIC");
   fetchCryptoData("MANA");
-  fetchCryptoData("MASK");
   fetchCryptoData("MATIC");
   fetchCryptoData("MAV");
-  fetchCryptoData("MBL");
   fetchCryptoData("MDT");
-  fetchCryptoData("MEME");
-  fetchCryptoData("MINA");
   fetchCryptoData("MKR");
   fetchCryptoData("MOVR");
   fetchCryptoData("MTL");
@@ -216,7 +200,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("NTRN");
   fetchCryptoData("OCEAN");
   fetchCryptoData("OGN");
-  fetchCryptoData("OMG");
   fetchCryptoData("ONE");
   fetchCryptoData("ONG");
   fetchCryptoData("ONT");
@@ -225,7 +208,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("OXT");
   fetchCryptoData("PENDLE");
   fetchCryptoData("PEOPLE");
-  fetchCryptoData("PEPE");
   fetchCryptoData("PERP");
   fetchCryptoData("PHB");
   fetchCryptoData("POLYX");
@@ -234,29 +216,23 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("QTUM");
   fetchCryptoData("RAD");
   fetchCryptoData("RDNT");
-  fetchCryptoData("REEF");
   fetchCryptoData("REN");
   fetchCryptoData("RIF");
   fetchCryptoData("RLC");
   fetchCryptoData("RNDR");
   fetchCryptoData("ROSE");
-  fetchCryptoData("RSR");
   fetchCryptoData("RUNE");
   fetchCryptoData("RVN");
   fetchCryptoData("SAND");
   fetchCryptoData("SEI");
   fetchCryptoData("SFP");
-  fetchCryptoData("SHIB");
   fetchCryptoData("SKL");
-  fetchCryptoData("SLP");
   fetchCryptoData("SNT");
   fetchCryptoData("SNX");
   fetchCryptoData("SOL");
-  fetchCryptoData("SPELL");
   fetchCryptoData("SSV");
   fetchCryptoData("STEEM");
   fetchCryptoData("STG");
-  fetchCryptoData("STMX");
   fetchCryptoData("STORJ");
   fetchCryptoData("STPT");
   fetchCryptoData("STRAX");
@@ -271,33 +247,23 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("TRB");
   fetchCryptoData("TRU");
   fetchCryptoData("TRX");
-  fetchCryptoData("T");
   fetchCryptoData("TWT");
   fetchCryptoData("UMA");
   fetchCryptoData("UNFI");
   fetchCryptoData("UNI");
-  fetchCryptoData("USDC");
-  fetchCryptoData("USTC");
   fetchCryptoData("VET");
   fetchCryptoData("WAVES");
   fetchCryptoData("WAXP");
   fetchCryptoData("WLD");
   fetchCryptoData("WOO");
-  fetchCryptoData("XEC");
-  fetchCryptoData("XEM");
   fetchCryptoData("XLM");
-  fetchCryptoData("XMR");
   fetchCryptoData("XRP");
   fetchCryptoData("XTZ");
-  fetchCryptoData("XVG");
   fetchCryptoData("XVS");
   fetchCryptoData("YFI");
   fetchCryptoData("YGG");
-  fetchCryptoData("ZEC");
-  fetchCryptoData("ZEN");
   fetchCryptoData("ZIL");
   fetchCryptoData("ZRX");
-
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
