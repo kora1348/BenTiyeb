@@ -1,5 +1,6 @@
 let totalLongCount = 0;
 let totalShortCount = 0;
+let totalLongShortCount = 0;
 
 async function fetchCryptoData(symbol) {
     try {
@@ -70,8 +71,21 @@ async function fetchCryptoData(symbol) {
 
             totalCell.textContent = `${totalValue}%`;
 
+            totalLongShortCount  = totalLongCount  - totalShortCount ;
+
             // Affichage du nombre de LONG et SHORT dans la balise <div id="cryptoNames"></div>
-            cryptoNamesElement.textContent = `Nombre de LONG: ${totalLongCount}, Nombre de SHORT: ${totalShortCount}`;
+            // cryptoNamesElement.textContent = `Nombre de LONG: ${totalLongCount}, Nombre de SHORT: ${totalShortCount} : ${totalLongShortCount}`;
+            cryptoNamesElement.textContent = `Tendance: ${totalLongShortCount} sur 210`;
+
+            cryptoNamesElement.classList.remove('positive', 'negative'); // Supprime les classes existantes
+
+            if (totalLongShortCount > 0) {
+                cryptoNamesElement.classList.add('positive');
+            } else if (totalLongShortCount < 0) {
+                cryptoNamesElement.classList.add('negative');
+            }
+
+            
         }
 
     } catch (error) {

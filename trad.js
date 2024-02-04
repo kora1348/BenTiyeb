@@ -1,3 +1,7 @@
+let totalLongCount = 0;
+let totalShortCount = 0;
+let totalLongShortCount = 0;
+
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -5,72 +9,84 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
 
+        let longCount = 0;
+        let shortCount = 0;
         let totalVariation = 0;
 
         const cryptoRow = document.getElementById(symbol);
 
-        for (let i = 0; i < data.length; i++) {
-            const openPrice = parseFloat(data[i][1]);
-            const closePrice = parseFloat(data[i][4]);
-            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1;
+        if (data.length > 0) {
+            for (let i = 0; i < data.length; i++) {
+                const openPrice = parseFloat(data[i][1]);
+                const closePrice = parseFloat(data[i][4]);
+                const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+                const cellIndex = i + 1;
 
-            const variationCell = cryptoRow.insertCell(cellIndex);
-            const variationValue = weeklyVariation.toFixed(2);
+                const variationCell = cryptoRow.insertCell(cellIndex);
+                const variationValue = weeklyVariation.toFixed(2);
 
-            const weekStartDate = new Date(data[i][0]);
-            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-            const formattedStartDate = weekStartDate.toLocaleDateString("fr-FR", optionsStart);
+                const weekStartDate = new Date(data[i][0]);
+                const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+                const formattedStartDate = weekStartDate.toLocaleDateString("fr-FR", optionsStart);
 
-            variationCell.textContent = `${formattedStartDate}: Variation ${variationValue}%, Prix: ${closePrice}`;
+                variationCell.textContent = `${formattedStartDate}: Variation ${variationValue}%, Prix: ${closePrice}`;
 
-            if (weeklyVariation > 0) {
-                variationCell.classList.add("positive");
-            } else if (weeklyVariation < 0) {
-                variationCell.classList.add("negative");
+                if (weeklyVariation > 0) {
+                    variationCell.classList.add("positive");
+                    longCount++;
+                } else if (weeklyVariation < 0) {
+                    variationCell.classList.add("negative");
+                    shortCount++;
+                }
+
+                totalVariation += weeklyVariation;
             }
 
-            totalVariation += weeklyVariation;
+            const totalCell = cryptoRow.insertCell(data.length + 1);
+            const achatCell = cryptoRow.insertCell(data.length + 2); // Colonne "Achat"
+            const venteCell = cryptoRow.insertCell(data.length + 3); // Colonne "Vente"
+
+            const totalValue = totalVariation.toFixed(2);
+
+            // Logique pour afficher "LONG" avec la classe "positive" dans la colonne "Achat"
+            const firstOpenPrice = parseFloat(data[0][1]);
+            const lastClosePrice = parseFloat(data[data.length - 1][4]);
+
+            const cryptoNamesElement = document.getElementById('cryptoNames');
+
+            if (firstOpenPrice < lastClosePrice) {
+                achatCell.textContent = "LONG";
+                achatCell.classList.add("positive");
+                showNotification(`${symbol}: Signal LONG - 15m`);
+                totalLongCount++;
+            } else if (firstOpenPrice > lastClosePrice) {
+                venteCell.textContent = "SHORT";
+                venteCell.classList.add("negative");
+                showNotification(`${symbol}: Signal SHORT - 15m`);
+                totalShortCount++;
+            } else {
+                achatCell.textContent = "-";
+                venteCell.textContent = "-";
+            }
+
+            totalCell.textContent = `${totalValue}%`;
+
+            totalLongShortCount  = totalLongCount  - totalShortCount ;
+
+            // Affichage du nombre de LONG et SHORT dans la balise <div id="cryptoNames"></div>
+            // cryptoNamesElement.textContent = `Nombre de LONG: ${totalLongCount}, Nombre de SHORT: ${totalShortCount} : ${totalLongShortCount}`;
+            cryptoNamesElement.textContent = `Tendance: ${totalLongShortCount} sur 210`;
+
+            cryptoNamesElement.classList.remove('positive', 'negative'); // Supprime les classes existantes
+
+            if (totalLongShortCount > 0) {
+                cryptoNamesElement.classList.add('positive');
+            } else if (totalLongShortCount < 0) {
+                cryptoNamesElement.classList.add('negative');
+            }
+
+            
         }
-
-        const totalCell = cryptoRow.insertCell(data.length + 1);
-        const achatCell = cryptoRow.insertCell(data.length + 2); // Colonne "Achat"
-        const venteCell = cryptoRow.insertCell(data.length + 3); // Colonne "Vente"
-
-
-      const totalValue = totalVariation.toFixed(2);
-
-
-
-        // Logique pour afficher "LONG" avec la classe "positive" dans la colonne "Achat"
-        const firstOpenPrice = parseFloat(data[0][1]);
-        const lastClosePrice = parseFloat(data[data.length - 1][4]);
-
-
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-
-
-        if (firstOpenPrice < lastClosePrice) {
-          achatCell.textContent = "LONG";
-          achatCell.classList.add("positive");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-          showNotification(`${symbol}: Signal LONG - 15m`);
-        } else {
-          achatCell.textContent = "-"; 
-        }
-
-        if (firstOpenPrice > lastClosePrice) {
-          venteCell.textContent = "SHORT";
-          venteCell.classList.add("negative");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT ${totalValue}%</p>`;
-          showNotification(`${symbol}: Signal SHORT - 15m`);
-          
-      } else {
-          venteCell.textContent = "-"; 
-
-      }
-
-        totalCell.textContent = `${totalValue}%`;
 
     } catch (error) {
         console.error(
@@ -79,6 +95,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 let isNotificationDisplayed = false;
 
