@@ -97,10 +97,6 @@ function showNotification(message) {
 
     isNotificationDisplayed = true;
 
-    setTimeout(() => {
-      notification.close();
-      isNotificationDisplayed = false;
-    }, 20000); // Changement ici pour 5 secondes
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted" && !isNotificationDisplayed) {
@@ -109,17 +105,6 @@ function showNotification(message) {
     });
   }
 }
-
-
-
-
-  // Cette fonction sera exécutée toutes les 3 secondes
-function rafraichirPage() {
-  location.reload(); // Rafraîchit la page
-}
-
-// Utilise setInterval pour appeler la fonction toutes les 3 secondes (3000 millisecondes)
-setInterval(rafraichirPage, 15000);
 
 
   // Appel de la fonction pour obtenir les taux de variation des cryptos
