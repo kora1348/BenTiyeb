@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=672`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=9`
         );
         const data = await response.json();
 
@@ -49,24 +49,26 @@ async function fetchCryptoData(symbol) {
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
+
         if (firstOpenPrice < lastClosePrice) {
-            venteCell.textContent = "SHORT";
-            venteCell.classList.add("negative");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT ${totalValue}%</p>`;
-            showNotification(`${symbol}: Signal SHORT - 15m`);
+          achatCell.textContent = "LONG";
+          achatCell.classList.add("positive");
+          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+          showNotification(`${symbol}: Signal LONG - 15m`);
         } else {
-            venteCell.textContent = "-"; 
+          achatCell.textContent = "-"; 
         }
 
-        // if (firstOpenPrice > lastClosePrice) {
-        //     achatCell.textContent = "LONG";
-        //     achatCell.classList.add("positive");
-        //     cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-        //     showNotification(`${symbol}: Signal LONG - 15m`);
-            
-        // } else {
-        //     achatCell.textContent = "-"; 
-        // }
+        if (firstOpenPrice > lastClosePrice) {
+          venteCell.textContent = "SHORT";
+          venteCell.classList.add("negative");
+          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT ${totalValue}%</p>`;
+          showNotification(`${symbol}: Signal SHORT - 15m`);
+          
+      } else {
+          venteCell.textContent = "-"; 
+
+      }
 
         totalCell.textContent = `${totalValue}%`;
 
