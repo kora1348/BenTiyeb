@@ -37,7 +37,9 @@ async function fetchCryptoData(symbol) {
         const achatCell = cryptoRow.insertCell(data.length + 2); // Colonne "Achat"
         const venteCell = cryptoRow.insertCell(data.length + 3); // Colonne "Vente"
 
-        const totalValue = totalVariation.toFixed(2);
+
+      const totalValue = totalVariation.toFixed(2);
+
 
 
         // Logique pour afficher "LONG" avec la classe "positive" dans la colonne "Achat"
@@ -50,8 +52,8 @@ async function fetchCryptoData(symbol) {
         if (firstOpenPrice < lastClosePrice) {
             venteCell.textContent = "SHORT";
             venteCell.classList.add("negative");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
-            showNotification(`${symbol}: Signal SHORT - 5m`);
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT ${totalValue}%</p>`;
+            showNotification(`${symbol}: Signal SHORT - 15m`);
         } else {
             venteCell.textContent = "-"; 
         }
@@ -59,12 +61,14 @@ async function fetchCryptoData(symbol) {
         if (firstOpenPrice > lastClosePrice) {
             achatCell.textContent = "LONG";
             achatCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-            showNotification(`${symbol}: Signal LONG - 5m`);
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+            showNotification(`${symbol}: Signal LONG - 15m`);
             
         } else {
             achatCell.textContent = "-"; 
         }
+
+        totalCell.textContent = `${totalValue}%`;
 
     } catch (error) {
         console.error(
