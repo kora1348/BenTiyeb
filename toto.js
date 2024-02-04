@@ -58,15 +58,15 @@ async function fetchCryptoData(symbol) {
             venteCell.textContent = "-"; 
         }
 
-        if (firstOpenPrice > lastClosePrice) {
-            achatCell.textContent = "LONG";
-            achatCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-            showNotification(`${symbol}: Signal LONG - 15m`);
+        // if (firstOpenPrice > lastClosePrice) {
+        //     achatCell.textContent = "LONG";
+        //     achatCell.classList.add("positive");
+        //     cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+        //     showNotification(`${symbol}: Signal LONG - 15m`);
             
-        } else {
-            achatCell.textContent = "-"; 
-        }
+        // } else {
+        //     achatCell.textContent = "-"; 
+        // }
 
         totalCell.textContent = `${totalValue}%`;
 
