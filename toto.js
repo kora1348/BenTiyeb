@@ -53,7 +53,6 @@ async function fetchCryptoData(symbol) {
         if (firstOpenPrice < lastClosePrice) {
           achatCell.textContent = "LONG";
           achatCell.classList.add("positive");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
           showNotification(`${symbol}: Signal LONG - 15m`);
         } else {
           achatCell.textContent = "-"; 
@@ -62,7 +61,6 @@ async function fetchCryptoData(symbol) {
         if (firstOpenPrice > lastClosePrice) {
           venteCell.textContent = "SHORT";
           venteCell.classList.add("negative");
-          
           showNotification(`${symbol}: Signal SHORT - 15m`);
           
       } else {
