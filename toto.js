@@ -62,7 +62,7 @@ async function fetchCryptoData(symbol) {
         if (firstOpenPrice > lastClosePrice) {
           venteCell.textContent = "SHORT";
           venteCell.classList.add("negative");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT ${totalValue}%</p>`;
+          
           showNotification(`${symbol}: Signal SHORT - 15m`);
           
       } else {
