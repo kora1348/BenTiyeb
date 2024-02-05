@@ -1,38 +1,25 @@
-const socket = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
-
-// Écoutez les mises à jour du flux
-socket.addEventListener('message', (event) => {
-  const data = JSON.parse(event.data);
-
-  // Le tableau `data` contient les mini-tickers pour toutes les paires
-  data.forEach((miniTicker) => {
-    const symbol = miniTicker.s;
-    const closePrice = miniTicker.c;
-
-    // Vous pouvez filtrer les nouvelles cryptos en fonction de vos critères
-    // Par exemple, vérifiez si la paire n'existait pas dans votre liste précédente
-    // ou utilisez d'autres critères pour déterminer si c'est une nouvelle crypto
-
-    // Affichez les informations de la nouvelle crypto
-    console.log(`Nouvelle crypto : ${symbol}, Dernier prix de clôture : ${closePrice}`);
-  });
-});
-
-// Gérez les erreurs de connexion
-socket.addEventListener('error', (error) => {
-  console.error('Erreur de connexion WebSocket :', error.message);
-});
-
-// Gérez la fermeture de la connexion
-socket.addEventListener('close', (event) => {
-  if (event.wasClean) {
-    console.log(`Connexion WebSocket fermée proprement, code : ${event.code}, raison : ${event.reason}`);
-  } else {
-    console.error('Connexion WebSocket interrompue de manière inattendue');
+async function getNewCryptos() {
+    try {
+      // Faites une requête à l'API CoinGecko pour obtenir les nouvelles cryptomonnaies.
+      const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=gecko_desc&per_page=5&page=1&sparkline=false');
+  
+      // Vérifiez si la requête a réussi (statut 200 OK).
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP : ${response.status}`);
+      }
+  
+      // Parsez la réponse JSON.
+      const newCryptos = await response.json();
+  
+      // Affichez les informations sur les nouvelles cryptos.
+      newCryptos.forEach(crypto => {
+        console.log(`Nom: ${crypto.name}, Symbole: ${crypto.symbol}, Prix: $${crypto.current_price}`);
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des nouvelles cryptos :', error.message);
+    }
   }
-});
-
-// Gérez les événements d'ouverture de la connexion
-socket.addEventListener('open', () => {
-  console.log('Connexion WebSocket ouverte avec succès');
-});
+  
+  // Appelez la fonction pour obtenir les nouvelles cryptos.
+  getNewCryptos();
+  
