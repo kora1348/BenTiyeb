@@ -158,6 +158,7 @@ mettreAJourHeure();
   fetchCryptoData("CELR");
   fetchCryptoData("CFX");
   fetchCryptoData("CHR");
+  fetchCryptoData("USDT");
   fetchCryptoData("CHZ");
   fetchCryptoData("COMBO");
   fetchCryptoData("COMP");
