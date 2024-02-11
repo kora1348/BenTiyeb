@@ -340,5 +340,7 @@ mettreAJourHeure();
   fetchCryptoData("ZEN");
   fetchCryptoData("ZIL");
   fetchCryptoData("ZRX");
+  fetchCryptoData("USDT");
+  fetchCryptoData("USDT");
 
 
