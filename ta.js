@@ -51,13 +51,11 @@ async function fetchCryptoData(symbol) {
 
       // Ajouter la classe "positive" pour le total dans la plage spécifiée
       if (totalVariation <= -16.00) {
-          totalCell.classList.add("negative");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SORTH, ${totalValue}%</p>`;
+          totalCell.classList.add("positive");
+          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
       }
 
-      if(totalVariation < 0){
-        totalCell.classList.add("negative");
-      }
+
 
       totalCell.textContent = `${totalValue}%`;
 
