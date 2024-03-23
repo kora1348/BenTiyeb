@@ -181,6 +181,7 @@ fetchCryptoData("ENJ");
 fetchCryptoData("ENS");
 fetchCryptoData("EOS");
 fetchCryptoData("ETC");
+fetchCryptoData("ETHFI");
 fetchCryptoData("ETH");
 fetchCryptoData("FET");
 fetchCryptoData("FIL");
