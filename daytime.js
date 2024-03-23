@@ -55,9 +55,8 @@ async function fetchCryptoData(symbol) {
           cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
       }
 
-
-
       totalCell.textContent = `${totalValue}%`;
+      updateCryptoCount(); // Appelez cette fonction après avoir ajouté un nouveau cryptoName
 
   } catch (error) {
       console.error(
@@ -67,6 +66,15 @@ async function fetchCryptoData(symbol) {
   }
 }
 
+function updateCryptoCount() {
+    const cryptoNamesElement = document.getElementById('cryptoNames');
+    const cryptoCountElement = document.getElementById('cryptoCount');
+    
+    if (cryptoNamesElement && cryptoCountElement) {
+        const numberOfCryptos = cryptoNamesElement.getElementsByTagName('p').length;
+        cryptoCountElement.textContent = `Total Cryptos: ${numberOfCryptos}`;
+    }
+}
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
