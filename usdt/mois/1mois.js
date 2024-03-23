@@ -115,6 +115,7 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("BNB");
   fetchCryptoData("BNT");
   fetchCryptoData("BNX");
+  fetchCryptoData("BOME");
   fetchCryptoData("BOND");
   fetchCryptoData("BONK");
   fetchCryptoData("BTC");
@@ -149,6 +150,7 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("EOS");
   fetchCryptoData("ETC");
   fetchCryptoData("ETH");
+  fetchCryptoData("ETHFI");
   fetchCryptoData("FET");
   fetchCryptoData("FIL");
   fetchCryptoData("FLM");
