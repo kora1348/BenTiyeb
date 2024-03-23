@@ -73,8 +73,18 @@ function updateCryptoCount() {
     if (cryptoNamesElement && cryptoCountElement) {
         const numberOfCryptos = cryptoNamesElement.getElementsByTagName('p').length;
         cryptoCountElement.textContent = `Total Cryptos: ${numberOfCryptos}`;
+
+        // Change color based on the number of cryptos
+        if (numberOfCryptos >= 1 && numberOfCryptos <= 5) {
+            cryptoCountElement.style.color = 'green';
+        } else if (numberOfCryptos >= 25 && numberOfCryptos <= 75) {
+            cryptoCountElement.style.color = 'red';
+        } else {
+            cryptoCountElement.style.color = 'black'; // Default color
+        }
     }
 }
+
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
