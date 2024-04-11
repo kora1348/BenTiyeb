@@ -5,7 +5,7 @@ let cryptoCountTotal = 0; // Ajouter ce compteur en haut de votre code
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1M&limit=7`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1M&limit=30`
         );
         const data = await response.json();
   
@@ -55,13 +55,20 @@ async function fetchCryptoData(symbol) {
         totalCell.style.textAlign = 'center';
   
         const cryptoNamesElement = document.getElementById('cryptoNames');
-  
-        // Ajouter la classe "positive" ou "negative" pour le total en fonction de la valeur totale
+        
+        /*
         if (totalVariation >= 1) {
             totalCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-            cryptoCountPositive++; // Incrémenter le compteur si totalVariation >= 1
+            cryptoCountPositive++; 
         } else if (totalVariation <= -1) {
+            totalCell.classList.add("negative");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
+            cryptoCountNegative++;
+        }
+        */
+
+        if (totalVariation <= -100) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
             cryptoCountNegative++;
