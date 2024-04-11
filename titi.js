@@ -71,7 +71,7 @@ const cryptoCountPositiveElement = document.getElementById('cryptoCountPositive'
 // Vérifier si l'élément a été trouvé dans le DOM
 if (cryptoCountPositiveElement) {
     cryptoCountPositiveElement.classList.add("positive"); // Ajouter la classe "positive"
-    cryptoCountPositiveElement.textContent = `Les nombres positifs sont de  : ${cryptoCountPositive}`;
+    cryptoCountPositiveElement.textContent = `Les cryptos positifs sont de  : ${cryptoCountPositive}`;
 } else {
     console.error("L'élément avec l'ID 'cryptoCountPositive' n'a pas été trouvé dans le DOM.");
 }
