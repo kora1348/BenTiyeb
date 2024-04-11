@@ -1,6 +1,8 @@
 let cryptoCountPositive = 0; // Ajouter ce compteur en haut de votre code
 let cryptoCountNegative = 0; // Ajouter ce compteur en haut de votre code
 let cryptoCountTotal = 0; // Ajouter ce compteur en haut de votre code
+let smallestTotalVariation = Infinity; // Ajouter cette variable en haut de votre code
+let cryptoWithSmallestVariation; // Ajouter cette variable en haut de votre code
 
 async function fetchCryptoData(symbol) {
     try {
@@ -66,17 +68,23 @@ async function fetchCryptoData(symbol) {
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
             cryptoCountNegative++;
         }
-       
-          /*
-        if (totalVariation <= -100) {
-            totalCell.classList.add("negative");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
-            cryptoCountNegative++;
-        }
-         */
+
         totalCell.textContent = `${totalValue}%`;
+
+        // Vérifier si cette crypto a la plus petite variation totale
+        if (totalVariation < smallestTotalVariation) {
+            smallestTotalVariation = totalVariation;
+            cryptoWithSmallestVariation = symbol;
+            // Mettre à jour l'élément HTML avec la crypto ayant la plus petite variation totale
+            const cryptoPlusPetitElement = document.getElementById('cryptoPlusPetit');
+            if (cryptoPlusPetitElement) {
+                cryptoPlusPetitElement.textContent = `La crypto avec la plus petite variation totale est : ${cryptoWithSmallestVariation}`;
+            } else {
+                console.error("L'élément avec l'ID 'cryptoPlusPetit' n'a pas été trouvé dans le DOM.");
+            }
+        }
         
-                // Afficher le nombre de cryptos avec totalVariation >= 1
+        // Afficher le nombre de cryptos avec totalVariation >= 1
         const cryptoCountPositiveElement = document.getElementById('cryptoCountPositive');
         // Vérifier si l'élément a été trouvé dans le DOM
         if (cryptoCountPositiveElement) {
@@ -97,27 +105,26 @@ async function fetchCryptoData(symbol) {
 
         const cryptoCountTotalElement = document.getElementById('cryptoCountTotal');
 
-// Vérifier si l'élément a été trouvé dans le DOM
-if (cryptoCountTotalElement) {
-    // Calculer le total des cryptos
-    const totalCryptoSoustraction = cryptoCountPositive - cryptoCountNegative;
-    const totalCryptoAddition = cryptoCountPositive + cryptoCountNegative;
-    // Mettre à jour le texte avec le total
-    //cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
+        // Vérifier si l'élément a été trouvé dans le DOM
+        if (cryptoCountTotalElement) {
+            // Calculer le total des cryptos
+            const totalCryptoSoustraction = cryptoCountPositive - cryptoCountNegative;
+            const totalCryptoAddition = cryptoCountPositive + cryptoCountNegative;
+            // Mettre à jour le texte avec le total
+            //cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
 
-    // Changer la couleur du texte en fonction du total
-    if (totalCryptoSoustraction > (totalCryptoAddition / 2)) {
-        cryptoCountTotalElement.classList.add("positive");
-        // Mettre à jour le texte avec le total
-        cryptoCountTotalElement.textContent = `La tendance est haussière : ${totalCryptoSoustraction}`;
-    } else if (totalCryptoSoustraction < (totalCryptoAddition / 2)) {
-        cryptoCountTotalElement.classList.add("negative");
-        cryptoCountTotalElement.textContent = `La tendance est baissière : ${totalCryptoSoustraction}`;
-    } 
-} else {
-    console.error("L'élément avec l'ID 'cryptoCountTotal' n'a pas été trouvé dans le DOM.");
-}
-
+            // Changer la couleur du texte en fonction du total
+            if (totalCryptoSoustraction > (totalCryptoAddition / 2)) {
+                cryptoCountTotalElement.classList.add("positive");
+                // Mettre à jour le texte avec le total
+                cryptoCountTotalElement.textContent = `La tendance est haussière : ${totalCryptoSoustraction}`;
+            } else if (totalCryptoSoustraction < (totalCryptoAddition / 2)) {
+                cryptoCountTotalElement.classList.add("negative");
+                cryptoCountTotalElement.textContent = `La tendance est baissière : ${totalCryptoSoustraction}`;
+            } 
+        } else {
+            console.error("L'élément avec l'ID 'cryptoCountTotal' n'a pas été trouvé dans le DOM.");
+        }
 
     } catch (error) {
         console.error(
@@ -126,6 +133,7 @@ if (cryptoCountTotalElement) {
         );
     }
 }
+
 
 
 
