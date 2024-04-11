@@ -1,4 +1,5 @@
 let cryptoCountPositive = 0; // Ajouter ce compteur en haut de votre code
+let cryptoCountNegative = 0; // Ajouter ce compteur en haut de votre code
 
 async function fetchCryptoData(symbol) {
     try {
@@ -62,19 +63,29 @@ async function fetchCryptoData(symbol) {
         } else if (totalVariation <= -1) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
+            cryptoCountNegative++;
         }
         
         totalCell.textContent = `${totalValue}%`;
         
-        // Afficher le nombre de cryptos avec totalVariation >= 1
-const cryptoCountPositiveElement = document.getElementById('cryptoCountPositive');
-// Vérifier si l'élément a été trouvé dans le DOM
-if (cryptoCountPositiveElement) {
-    cryptoCountPositiveElement.classList.add("positive"); // Ajouter la classe "positive"
-    cryptoCountPositiveElement.textContent = `Les cryptos positifs sont de  : ${cryptoCountPositive}`;
-} else {
-    console.error("L'élément avec l'ID 'cryptoCountPositive' n'a pas été trouvé dans le DOM.");
-}
+                // Afficher le nombre de cryptos avec totalVariation >= 1
+        const cryptoCountPositiveElement = document.getElementById('cryptoCountPositive');
+        // Vérifier si l'élément a été trouvé dans le DOM
+        if (cryptoCountPositiveElement) {
+            cryptoCountPositiveElement.classList.add("positive"); // Ajouter la classe "positive"
+            cryptoCountPositiveElement.textContent = `Les cryptos positives sont de  : ${cryptoCountPositive}`;
+        } else {
+            console.error("L'élément avec l'ID 'cryptoCountPositive' n'a pas été trouvé dans le DOM.");
+        }
+
+        const cryptoCountNegativeElement = document.getElementById('cryptoCountNegative');
+        // Vérifier si l'élément a été trouvé dans le DOM
+        if (cryptoCountNegativeElement) {
+            cryptoCountNegativeElement.classList.add("negative"); // Ajouter la classe "positive"
+            cryptoCountNegativeElement.textContent = `Les cryptos négatives sont de  : ${cryptoCountNegative}`;
+        } else {
+            console.error("L'élément avec l'ID 'cryptoCountNegative' n'a pas été trouvé dans le DOM.");
+        }
 
     } catch (error) {
         console.error(
