@@ -88,13 +88,29 @@ async function fetchCryptoData(symbol) {
             console.error("L'élément avec l'ID 'cryptoCountNegative' n'a pas été trouvé dans le DOM.");
         }
 
-            const cryptoCountTotalElement = document.getElementById('cryptoCountTotal');
-        // Vérifier si l'élément a été trouvé dans le DOM
-        if (cryptoCountTotalElement) {
-            cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${cryptoCountPositive - cryptoCountNegative}`;
-        } else {
-            console.error("L'élément avec l'ID 'cryptoCountTotal' n'a pas été trouvé dans le DOM.");
-        }
+        const cryptoCountTotalElement = document.getElementById('cryptoCountTotal');
+
+// Vérifier si l'élément a été trouvé dans le DOM
+if (cryptoCountTotalElement) {
+    // Calculer le total des cryptos
+    const totalCrypto = cryptoCountPositive - cryptoCountNegative;
+
+    // Mettre à jour le texte avec le total
+    cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
+
+    // Changer la couleur du texte en fonction du total
+    if (totalCrypto > 0) {
+        cryptoCountTotalElement.classList.add("positive");
+    } else if (totalCrypto < 0) {
+        cryptoCountTotalElement.classList.add("negative");
+    } else {
+        // Si le total est égal à zéro, laisser la couleur par défaut
+        cryptoCountTotalElement.style.color = 'blue'; // Ou une autre couleur par défaut
+    }
+} else {
+    console.error("L'élément avec l'ID 'cryptoCountTotal' n'a pas été trouvé dans le DOM.");
+}
+
 
     } catch (error) {
         console.error(
