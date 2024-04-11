@@ -67,8 +67,15 @@ async function fetchCryptoData(symbol) {
         totalCell.textContent = `${totalValue}%`;
         
         // Afficher le nombre de cryptos avec totalVariation >= 1
-        document.getElementById('cryptoCountPositive').textContent = `Nombre de cryptos avec totalVariation >= 1 : ${cryptoCountPositive}`;
-  
+const cryptoCountPositiveElement = document.getElementById('cryptoCountPositive');
+// Vérifier si l'élément a été trouvé dans le DOM
+if (cryptoCountPositiveElement) {
+    cryptoCountPositiveElement.classList.add("positive"); // Ajouter la classe "positive"
+    cryptoCountPositiveElement.textContent = `Les nombres positifs sont de  : ${cryptoCountPositive}`;
+} else {
+    console.error("L'élément avec l'ID 'cryptoCountPositive' n'a pas été trouvé dans le DOM.");
+}
+
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
