@@ -56,7 +56,7 @@ async function fetchCryptoData(symbol) {
   
         const cryptoNamesElement = document.getElementById('cryptoNames');
         
-        /*
+      
         if (totalVariation >= 1) {
             totalCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
@@ -66,14 +66,14 @@ async function fetchCryptoData(symbol) {
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
             cryptoCountNegative++;
         }
-        */
-
+       
+          /*
         if (totalVariation <= -100) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
             cryptoCountNegative++;
         }
-        
+         */
         totalCell.textContent = `${totalValue}%`;
         
                 // Afficher le nombre de cryptos avec totalVariation >= 1
@@ -106,7 +106,7 @@ if (cryptoCountTotalElement) {
     //cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
 
     // Changer la couleur du texte en fonction du total
-    if (totalCrypto > 0) {
+    if (totalCrypto > 1) {
         cryptoCountTotalElement.classList.add("positive");
         // Mettre à jour le texte avec le total
         cryptoCountTotalElement.textContent = `La tendance est haussière : ${totalCrypto}`;
