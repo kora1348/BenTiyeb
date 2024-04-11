@@ -1,3 +1,5 @@
+let cryptoCountPositive = 0; // Ajouter ce compteur en haut de votre code
+
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -56,14 +58,16 @@ async function fetchCryptoData(symbol) {
         if (totalVariation >= 1) {
             totalCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+            cryptoCountPositive++; // Incrémenter le compteur si totalVariation >= 1
         } else if (totalVariation <= -1) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
         }
         
         totalCell.textContent = `${totalValue}%`;
-    
-
+        
+        // Afficher le nombre de cryptos avec totalVariation >= 1
+        document.getElementById('cryptoCountPositive').textContent = `Nombre de cryptos avec totalVariation >= 1 : ${cryptoCountPositive}`;
   
     } catch (error) {
         console.error(
