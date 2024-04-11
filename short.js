@@ -1,29 +1,30 @@
-let cryptoCountPositive = 0;
-let cryptoCountNegative = 0;
-let cryptoCountTotal = 0;
-let smallestTotalVariation = Infinity;
-let biggestTotalVariation = -Infinity;
-let cryptoWithSmallestVariation;
-let cryptoWithBiggestVariation;
+let cryptoCountPositive = 0; // Ajouter ce compteur en haut de votre code
+let cryptoCountNegative = 0; // Ajouter ce compteur en haut de votre code
+let cryptoCountTotal = 0; // Ajouter ce compteur en haut de votre code
+let smallestTotalVariation = Infinity; // Ajouter cette variable en haut de votre code
+let cryptoWithSmallestVariation; // Ajouter cette variable en haut de votre code
 
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=30`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=2h&limit=30`
         );
         const data = await response.json();
   
-        const cryptoRow = document.getElementById(symbol);
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-      
+        // Initialisation des compteurs
+        let positiveCount = 0;
+        let negativeCount = 0;
         let totalVariation = 0;
+  
+        // Mise à jour du tableau avec les données et la couleur
+        const cryptoRow = document.getElementById(symbol);
   
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1;
-      
+            const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+  
             const variationCell = cryptoRow.insertCell(cellIndex);
             const variationValue = weeklyVariation.toFixed(2);
             const weekStartDate = new Date(data[i][0]);
@@ -37,20 +38,32 @@ async function fetchCryptoData(symbol) {
                 "fr-FR",
                 optionsStart
             )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
-      
-            if (weeklyVariation < 0) {
+  
+            // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
+            if (weeklyVariation > 0) {
+                variationCell.classList.add("positive");
+                positiveCount++; // Incrémenter le compteur de nombres positifs
+            } else if (weeklyVariation < 0) {
                 variationCell.classList.add("negative");
-                cryptoCountNegative++;
+                negativeCount++; // Incrémenter le compteur de nombres négatifs
             }
-      
-            totalVariation += weeklyVariation;
+  
+            totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
         }
   
+        // Ajouter la cellule pour afficher le total de variation
         const totalCell = cryptoRow.insertCell(data.length + 1);
         const totalValue = totalVariation.toFixed(2);
         totalCell.style.textAlign = 'center';
+  
+        const cryptoNamesElement = document.getElementById('cryptoNames');
+        
       
-        if (totalVariation <= -1) {
+        if (totalVariation > 0) {
+            totalCell.classList.add("positive");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+            cryptoCountPositive++; 
+        } else if (totalVariation < 0) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
             cryptoCountNegative++;
@@ -58,38 +71,61 @@ async function fetchCryptoData(symbol) {
 
         totalCell.textContent = `${totalValue}%`;
 
-        if (totalVariation < 0 && totalVariation > smallestTotalVariation) {
+        // Vérifier si cette crypto a la plus petite variation totale
+        if (totalVariation < smallestTotalVariation) {
             smallestTotalVariation = totalVariation;
             cryptoWithSmallestVariation = symbol;
-            const cryptoPlusPetitElement = document.getElementById('cryptoPlusGrand');
+            // Mettre à jour l'élément HTML avec la crypto ayant la plus petite variation totale
+            const cryptoPlusPetitElement = document.getElementById('cryptoPlusPetit');
             if (cryptoPlusPetitElement) {
-                cryptoPlusPetitElement.textContent = `La crypto avec la plus grande variation totale négative est : ${cryptoWithSmallestVariation}`;
+                cryptoPlusPetitElement.textContent = `La crypto avec la plus petite variation totale est : ${cryptoWithSmallestVariation}`;
             } else {
-                console.error("L'élément avec l'ID 'cryptoPlusGrand' n'a pas été trouvé dans le DOM.");
+                console.error("L'élément avec l'ID 'cryptoPlusPetit' n'a pas été trouvé dans le DOM.");
             }
+        }
+        
+        // Afficher le nombre de cryptos avec totalVariation >= 1
+        const cryptoCountPositiveElement = document.getElementById('cryptoCountPositive');
+        // Vérifier si l'élément a été trouvé dans le DOM
+        if (cryptoCountPositiveElement) {
+            cryptoCountPositiveElement.classList.add("positive"); // Ajouter la classe "positive"
+            cryptoCountPositiveElement.textContent = `Les cryptos positives sont de  : ${cryptoCountPositive}`;
+        } else {
+            console.error("L'élément avec l'ID 'cryptoCountPositive' n'a pas été trouvé dans le DOM.");
         }
 
         const cryptoCountNegativeElement = document.getElementById('cryptoCountNegative');
+        // Vérifier si l'élément a été trouvé dans le DOM
         if (cryptoCountNegativeElement) {
-            cryptoCountNegativeElement.classList.add("negative");
-            cryptoCountNegativeElement.textContent = `Les cryptos négatives sont de : ${cryptoCountNegative}`;
+            cryptoCountNegativeElement.classList.add("negative"); // Ajouter la classe "positive"
+            cryptoCountNegativeElement.textContent = `Les cryptos négatives sont de  : ${cryptoCountNegative}`;
         } else {
             console.error("L'élément avec l'ID 'cryptoCountNegative' n'a pas été trouvé dans le DOM.");
         }
 
         const cryptoCountTotalElement = document.getElementById('cryptoCountTotal');
 
+        // Vérifier si l'élément a été trouvé dans le DOM
         if (cryptoCountTotalElement) {
+            // Calculer le total des cryptos
             const totalCryptoSoustraction = cryptoCountPositive - cryptoCountNegative;
             const totalCryptoAddition = cryptoCountPositive + cryptoCountNegative;
-            if (totalCryptoSoustraction < (totalCryptoAddition / 2)) {
+            // Mettre à jour le texte avec le total
+            //cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
+
+            // Changer la couleur du texte en fonction du total
+            if (totalCryptoSoustraction > totalCryptoAddition) {
+                cryptoCountTotalElement.classList.add("positive");
+                // Mettre à jour le texte avec le total
+                cryptoCountTotalElement.textContent = `La tendance est haussière : ${totalCryptoSoustraction}`;
+            } else if (totalCryptoSoustraction < totalCryptoAddition) {
                 cryptoCountTotalElement.classList.add("negative");
                 cryptoCountTotalElement.textContent = `La tendance est baissière : ${totalCryptoSoustraction}`;
             } 
         } else {
             console.error("L'élément avec l'ID 'cryptoCountTotal' n'a pas été trouvé dans le DOM.");
         }
-  
+
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -97,6 +133,8 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
+
 
 
   
