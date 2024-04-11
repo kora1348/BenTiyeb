@@ -96,13 +96,16 @@ if (cryptoCountTotalElement) {
     const totalCrypto = cryptoCountPositive - cryptoCountNegative;
 
     // Mettre à jour le texte avec le total
-    cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
+    //cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
 
     // Changer la couleur du texte en fonction du total
     if (totalCrypto > 0) {
         cryptoCountTotalElement.classList.add("positive");
+        // Mettre à jour le texte avec le total
+        cryptoCountTotalElement.textContent = `La tendance est haussière : ${totalCrypto}`;
     } else if (totalCrypto < 0) {
         cryptoCountTotalElement.classList.add("negative");
+        cryptoCountTotalElement.textContent = `La tendance est baissière : ${totalCrypto}`;
     } else {
         // Si le total est égal à zéro, laisser la couleur par défaut
         cryptoCountTotalElement.style.color = 'blue'; // Ou une autre couleur par défaut
