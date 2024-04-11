@@ -1,5 +1,6 @@
 let cryptoCountPositive = 0; // Ajouter ce compteur en haut de votre code
 let cryptoCountNegative = 0; // Ajouter ce compteur en haut de votre code
+let cryptoCountTotal = 0; // Ajouter ce compteur en haut de votre code
 
 async function fetchCryptoData(symbol) {
     try {
@@ -85,6 +86,14 @@ async function fetchCryptoData(symbol) {
             cryptoCountNegativeElement.textContent = `Les cryptos négatives sont de  : ${cryptoCountNegative}`;
         } else {
             console.error("L'élément avec l'ID 'cryptoCountNegative' n'a pas été trouvé dans le DOM.");
+        }
+
+            const cryptoCountTotalElement = document.getElementById('cryptoCountTotal');
+        // Vérifier si l'élément a été trouvé dans le DOM
+        if (cryptoCountTotalElement) {
+            cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${cryptoCountPositive - cryptoCountNegative}`;
+        } else {
+            console.error("L'élément avec l'ID 'cryptoCountTotal' n'a pas été trouvé dans le DOM.");
         }
 
     } catch (error) {
