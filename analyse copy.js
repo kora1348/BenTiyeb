@@ -2,12 +2,14 @@ let cryptoCountPositive = 0; // Ajouter ce compteur en haut de votre code
 let cryptoCountNegative = 0; // Ajouter ce compteur en haut de votre code
 let cryptoCountTotal = 0; // Ajouter ce compteur en haut de votre code
 let smallestTotalVariation = Infinity; // Ajouter cette variable en haut de votre code
+let biggestTotalVariation = -Infinity; // Ajouter cette variable en haut de votre code
 let cryptoWithSmallestVariation; // Ajouter cette variable en haut de votre code
+let cryptoWithBiggestVariation; // Ajouter cette variable en haut de votre code
 
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=2h&limit=30`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=30`
         );
         const data = await response.json();
   
@@ -59,11 +61,11 @@ async function fetchCryptoData(symbol) {
         const cryptoNamesElement = document.getElementById('cryptoNames');
         
       
-        if (totalVariation > 0) {
+        if (totalVariation >= 1) {
             totalCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
             cryptoCountPositive++; 
-        } else if (totalVariation < 0) {
+        } else if (totalVariation <= -1) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
             cryptoCountNegative++;
@@ -81,6 +83,19 @@ async function fetchCryptoData(symbol) {
                 cryptoPlusPetitElement.textContent = `La crypto avec la plus petite variation totale est : ${cryptoWithSmallestVariation}`;
             } else {
                 console.error("L'élément avec l'ID 'cryptoPlusPetit' n'a pas été trouvé dans le DOM.");
+            }
+        }
+
+        // Vérifier si cette crypto a la plus grande variation totale
+        if (totalVariation > biggestTotalVariation) {
+            biggestTotalVariation = totalVariation;
+            cryptoWithBiggestVariation = symbol;
+            // Mettre à jour l'élément HTML avec la crypto ayant la plus grande variation totale
+            const cryptoPlusGrandElement = document.getElementById('cryptoPlusGrand');
+            if (cryptoPlusGrandElement) {
+                cryptoPlusGrandElement.textContent = `La crypto avec la plus grande variation totale est : ${cryptoWithBiggestVariation}`;
+            } else {
+                console.error("L'élément avec l'ID 'cryptoPlusGrand' n'a pas été trouvé dans le DOM.");
             }
         }
         
@@ -114,11 +129,11 @@ async function fetchCryptoData(symbol) {
             //cryptoCountTotalElement.textContent = `Le total des cryptos est de : ${totalCrypto}`;
 
             // Changer la couleur du texte en fonction du total
-            if (totalCryptoSoustraction > totalCryptoAddition) {
+            if (totalCryptoSoustraction > (totalCryptoAddition / 2)) {
                 cryptoCountTotalElement.classList.add("positive");
                 // Mettre à jour le texte avec le total
                 cryptoCountTotalElement.textContent = `La tendance est haussière : ${totalCryptoSoustraction}`;
-            } else if (totalCryptoSoustraction < totalCryptoAddition) {
+            } else if (totalCryptoSoustraction < (totalCryptoAddition / 2)) {
                 cryptoCountTotalElement.classList.add("negative");
                 cryptoCountTotalElement.textContent = `La tendance est baissière : ${totalCryptoSoustraction}`;
             } 
