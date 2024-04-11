@@ -5,7 +5,9 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
   
-        // Calcul du total des taux de variation sur 3 semaines
+        // Initialisation des compteurs
+        let positiveCount = 0;
+        let negativeCount = 0;
         let totalVariation = 0;
   
         // Mise à jour du tableau avec les données et la couleur
@@ -34,8 +36,10 @@ async function fetchCryptoData(symbol) {
             // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
             if (weeklyVariation > 0) {
                 variationCell.classList.add("positive");
+                positiveCount++; // Incrémenter le compteur de nombres positifs
             } else if (weeklyVariation < 0) {
                 variationCell.classList.add("negative");
+                negativeCount++; // Incrémenter le compteur de nombres négatifs
             }
   
             totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
@@ -48,20 +52,18 @@ async function fetchCryptoData(symbol) {
   
         const cryptoNamesElement = document.getElementById('cryptoNames');
   
-        // Ajouter la classe "positive" pour le total dans la plage spécifiée
+        // Ajouter la classe "positive" ou "negative" pour le total en fonction de la valeur totale
         if (totalVariation >= 1) {
             totalCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-        }
-  
-        if (totalVariation <= -1) {
+        } else if (totalVariation <= -1) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
         }
         
         totalCell.textContent = `${totalValue}%`;
     
-        updateCryptoCount(); // Appelez cette fonction après avoir ajouté un nouveau cryptoName
+
   
     } catch (error) {
         console.error(
@@ -69,30 +71,10 @@ async function fetchCryptoData(symbol) {
             error
         );
     }
-  }
-  
-  function updateCryptoCount() {
-      const cryptoNamesElement = document.getElementById('cryptoNames');
-      const cryptoCountElement = document.getElementById('cryptoCount');
-      
-      if (cryptoNamesElement && cryptoCountElement) {
-          const numberOfCryptos = cryptoNamesElement.getElementsByTagName('p').length;
-          cryptoCountElement.textContent = `TOTAL CRYPTOS: ${numberOfCryptos}`;
-  
-          // Remove all color classes
-          cryptoCountElement.classList.remove('positive', 'negative', 'blue', 'default');
-  
-          // Add color class based on the number of cryptos
-          if (numberOfCryptos >= 1 && numberOfCryptos <= 5) {
-              cryptoCountElement.classList.add('positive');
-          } else if (numberOfCryptos >= 25 && numberOfCryptos <= 75) {
-              cryptoCountElement.classList.add('negative');
-          } else {
-              cryptoCountElement.classList.add('blue'); // Default color
-          }
-      }
-  }
-  
+}
+
+
+
   
     // Appel de la fonction pour obtenir les taux de variation des cryptos
   
