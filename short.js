@@ -7,7 +7,7 @@ let cryptoWithSmallestVariation; // Ajouter cette variable en haut de votre code
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=2h&limit=30`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=30`
         );
         const data = await response.json();
   
@@ -78,7 +78,9 @@ async function fetchCryptoData(symbol) {
             // Mettre à jour l'élément HTML avec la crypto ayant la plus petite variation totale
             const cryptoPlusPetitElement = document.getElementById('cryptoPlusPetit');
             if (cryptoPlusPetitElement) {
-                cryptoPlusPetitElement.textContent = `La crypto avec la plus petite variation totale est : ${cryptoWithSmallestVariation}`;
+                cryptoPlusPetitElement.textContent = `${cryptoWithSmallestVariation}: SHORT, ${totalValue}%*`;
+                cryptoPlusPetitElement.classList.add("negative");
+                
             } else {
                 console.error("L'élément avec l'ID 'cryptoPlusPetit' n'a pas été trouvé dans le DOM.");
             }
