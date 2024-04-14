@@ -1,40 +1,40 @@
 function calculerPrixCrypto() {
     var prixEntree = document.getElementById("decimalInput").value;
     
-    // Calcul de la réduction de 2%
-    var reductionDeuxPourcent = (parseFloat(prixEntree) * 2) / 100; 
-    var prixApresReductionDeuxPourcent = prixEntree - reductionDeuxPourcent;
+    // Calcul de la réduction de 4%
+    var reductionQuatrePourcent = (parseFloat(prixEntree) * 4) / 100; 
+    var prixApresReductionQuatrePourcent = prixEntree - reductionQuatrePourcent;
     
-    // Affichage du résultat après réduction de 2%
-    document.getElementById("result1").innerText = "Résultat après -2% : " + prixApresReductionDeuxPourcent.toFixed(10);
+    // Affichage du résultat après réduction de 4%
+    document.getElementById("result1").innerText = "Résultat après -4% : " + prixApresReductionQuatrePourcent.toFixed(10);
     
-    // Calcul de la réduction supplémentaire de 6% sur le prix d'entrée initial
-    var reductionSixPourcent = (parseFloat(prixEntree) * 6) / 100;
-    var resultatFinal = prixEntree - reductionSixPourcent;
+    // Calcul de la réduction supplémentaire de 8% sur le prix d'entrée initial
+    var reductionHuitPourcent = (parseFloat(prixEntree) * 8) / 100;
+    var resultatFinal = prixEntree - reductionHuitPourcent;
 
-    // Affichage du résultat après réduction de 6%
-    document.getElementById("result2").innerText = "Résultat après -6% : " + resultatFinal.toFixed(10);
+    // Affichage du résultat après réduction de 8%
+    document.getElementById("result2").innerText = "Résultat après -8% : " + resultatFinal.toFixed(10);
 
-    // Calcul de la réduction supplémentaire de 10% sur le prix d'entrée initial
-    var reductionDixPourcent = (parseFloat(prixEntree) * 10) / 100;
-    var resultatFinal = prixEntree - reductionDixPourcent;
+    // Calcul de la réduction supplémentaire de 12% sur le prix d'entrée initial
+    var reductionDouzePourcent = (parseFloat(prixEntree) * 12) / 100;
+    var resultatFinal = prixEntree - reductionDouzePourcent;
 
-    // Affichage du résultat après réduction de 10%
-    document.getElementById("result3").innerText = "Résultat après -10% : " + resultatFinal.toFixed(10);
+    // Affichage du résultat après réduction de 12%
+    document.getElementById("result3").innerText = "Résultat après -12% : " + resultatFinal.toFixed(10);
 
-     // Calcul de la réduction supplémentaire de 14% sur le prix d'entrée initial
-     var reductionQuatorzePourcent = (parseFloat(prixEntree) * 14) / 100;
-     var resultatFinal = prixEntree - reductionQuatorzePourcent;
+     // Calcul de la réduction supplémentaire de 16% sur le prix d'entrée initial
+     var reductionSeizePourcent = (parseFloat(prixEntree) * 16) / 100;
+     var resultatFinal = prixEntree - reductionSeizePourcent;
  
-     // Affichage du résultat après réduction de 14%
-     document.getElementById("result4").innerText = "Résultat après -14% : " + resultatFinal.toFixed(10);
+     // Affichage du résultat après réduction de 16%
+     document.getElementById("result4").innerText = "Résultat après -16% : " + resultatFinal.toFixed(10);
 
-     // Calcul de la réduction supplémentaire de 18% sur le prix d'entrée initial
-    var reductionDixHuitPourcent = (parseFloat(prixEntree) * 18) / 100;
-    var resultatDixHuitPourcent = prixEntree - reductionDixHuitPourcent;
+     // Calcul de la réduction supplémentaire de 20% sur le prix d'entrée initial
+    var reductionVingtPourcent = (parseFloat(prixEntree) * 20) / 100;
+    var resultatVingtPourcent = prixEntree - reductionVingtPourcent;
     
-    // Affichage du résultat après réduction de 18%
-    document.getElementById("result5").innerText = "Résultat après -18% : " + resultatDixHuitPourcent.toFixed(10);
+    // Affichage du résultat après réduction de 20%
+    document.getElementById("result5").innerText = "Résultat après -20% : " + resultatVingtPourcent.toFixed(10);
     
     // Calcul de la réduction supplémentaire de 22% sur le prix d'entrée initial
     var reductionVingtDeuxPourcent = (parseFloat(prixEntree) * 22) / 100;
