@@ -36,17 +36,17 @@ function calculerPrixCrypto() {
     // Affichage du résultat après réduction de 20%
     document.getElementById("result5").innerText = "Résultat après -20% : " + resultatVingtPourcent.toFixed(10);
     
-    // Calcul de la réduction supplémentaire de 22% sur le prix d'entrée initial
-    var reductionVingtDeuxPourcent = (parseFloat(prixEntree) * 22) / 100;
-    var resultatVingtDeuxPourcent = prixEntree - reductionVingtDeuxPourcent;
+    // Calcul de la réduction supplémentaire de 24% sur le prix d'entrée initial
+    var reductionVingtQuatrePourcent = (parseFloat(prixEntree) * 24) / 100;
+    var resultatVingtQuatrePourcent = prixEntree - reductionVingtQuatrePourcent;
     
-    // Affichage du résultat après réduction de 22%
-    document.getElementById("result6").innerText = "Résultat après -22% : " + resultatVingtDeuxPourcent.toFixed(10);
+    // Affichage du résultat après réduction de 24%
+    document.getElementById("result6").innerText = "Résultat après -24% : " + resultatVingtQuatrePourcent.toFixed(10);
 
-    // Calcul de la réduction supplémentaire de 26% sur le prix d'entrée initial
-    var reductionVingtSixPourcent = (parseFloat(prixEntree) * 26) / 100;
-    var resultatVingtSixPourcent = prixEntree - reductionVingtSixPourcent;
+    // Calcul de la réduction supplémentaire de 28% sur le prix d'entrée initial
+    var reductionVingtHuitPourcent = (parseFloat(prixEntree) * 28) / 100;
+    var resultatVingtHuitPourcent = prixEntree - reductionVingtHuitPourcent;
     
-    // Affichage du résultat après réduction de 26%
-    document.getElementById("result7").innerText = "Résultat après -26% : " + resultatVingtSixPourcent.toFixed(10);
+    // Affichage du résultat après réduction de 28%
+    document.getElementById("result7").innerText = "Résultat après -28% : " + resultatVingtHuitPourcent.toFixed(10);
 }
