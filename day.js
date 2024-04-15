@@ -48,6 +48,14 @@ async function fetchCryptoData(symbol) {
         const averageCell = cryptoRow.insertCell(data.length + 1);
         averageCell.style.textAlign = 'center';
         averageCell.textContent = `${averageVariation}%`;
+
+        // Comparer la dernière variation avec la moyenne et ajouter la classe "negative" si nécessaire
+        const lastOpenPrice = parseFloat(data[data.length - 1][1]);
+        const lastClosePrice = parseFloat(data[data.length - 1][4]);
+        const lastWeeklyVariation = ((lastClosePrice - lastOpenPrice) / lastOpenPrice) * 100;
+        if (lastWeeklyVariation < averageVariation) {
+            averageCell.classList.add("negative");
+        }
   
         // Ajouter la cellule pour afficher le total de variation
         const totalCell = cryptoRow.insertCell(data.length + 2);
@@ -74,8 +82,8 @@ async function fetchCryptoData(symbol) {
             error
         );
     }
-  }
-  
+}
+
 
 
 
