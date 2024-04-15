@@ -55,28 +55,18 @@ async function fetchCryptoData(symbol) {
         const lastWeeklyVariation = ((lastClosePrice - lastOpenPrice) / lastOpenPrice) * 100;
         if (lastWeeklyVariation < averageVariation) {
             averageCell.classList.add("negative");
+            document.getElementById('cryptoNames').innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${lastWeeklyVariation.toFixed(2)}%</p>`;
         } else {
             averageCell.classList.add("positive"); // Ajouter la classe "positive" si la condition n'est pas remplie
+            document.getElementById('cryptoNames').innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${lastWeeklyVariation.toFixed(2)}%</p>`;
         }
   
         // Ajouter la cellule pour afficher le total de variation
         const totalCell = cryptoRow.insertCell(data.length + 2);
         const totalValue = totalVariation.toFixed(2);
         totalCell.style.textAlign = 'center';
-        
-        const cryptoNamesElement = document.getElementById('cryptoNames');
   
-        // Ajouter la classe "positive" pour le total dans la plage spécifiée
-        if (totalVariation >= -29.99 && totalVariation <= -16.00) {
-          totalCell.classList.add("positive");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-      }
-  
-      if(totalVariation < 0){
-        totalCell.classList.add("negative");
-      }
-  
-      totalCell.textContent = `${totalValue}%`;
+        totalCell.textContent = `${totalValue}%`;
   
     } catch (error) {
         console.error(
@@ -85,7 +75,6 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
-
 
 
 
