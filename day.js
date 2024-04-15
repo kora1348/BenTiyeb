@@ -55,6 +55,8 @@ async function fetchCryptoData(symbol) {
         const lastWeeklyVariation = ((lastClosePrice - lastOpenPrice) / lastOpenPrice) * 100;
         if (lastWeeklyVariation < averageVariation) {
             averageCell.classList.add("negative");
+        } else {
+            averageCell.classList.add("positive"); // Ajouter la classe "positive" si la condition n'est pas remplie
         }
   
         // Ajouter la cellule pour afficher le total de variation
