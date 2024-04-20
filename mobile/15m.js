@@ -360,3 +360,30 @@ fetchCryptoData("ZEC");
 fetchCryptoData("ZEN");
 fetchCryptoData("ZIL");
 fetchCryptoData("ZRX");
+
+
+
+// Sélection de l'élément HTML où afficher pair ou impair
+const pairImpairElement = document.querySelector('.pairImpair');
+
+// Fonction pour déterminer si le jour est pair ou impair
+function afficherPairOuImpair(date) {
+    const jour = date.getDate();
+    if (jour % 2 === 0) {
+        return 'pair';
+    } else {
+        return 'impair';
+    }
+}
+
+// Fonction pour afficher le résultat dans l'élément HTML
+function afficherResultat(pairOuImpair) {
+    pairImpairElement.textContent = `Aujourd'hui est un jour ${pairOuImpair}.`;
+}
+
+// Récupération de la date actuelle
+const dateActuelle = new Date();
+
+// Appel des fonctions pour afficher le résultat
+const resultat = afficherPairOuImpair(dateActuelle);
+afficherResultat(resultat);
