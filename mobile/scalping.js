@@ -34,10 +34,11 @@ async function fetchCryptoData(symbol) {
                 variationCell.classList.add("negative");
             }
   
-            if (i === data.length - 1 && variationColor <= -0.01) {
+            if (i === data.length - 1 && variationColor <= -0.01 && variationColor >= -0.04) {
                 const cryptoNamesElement = document.getElementById('cryptoNames');
                 cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${variationColor.toFixed(2)}%</p>`;
             }
+            
             
             
         }
