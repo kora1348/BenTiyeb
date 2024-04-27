@@ -34,23 +34,21 @@ async function fetchCryptoData(symbol) {
                 variationCell.classList.add("negative");
             }
   
+            if (i === data.length - 1 && variationColor <= -0.01) {
+                const cryptoNamesElement = document.getElementById('cryptoNames');
+                cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${variationColor.toFixed(2)}%</p>`;
+            }
+            
+            
         }
-  
-  
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-  
-
-  
-        
-
-  
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
             error
         );
     }
-  }
+}
+
 
 
   
