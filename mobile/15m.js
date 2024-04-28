@@ -1,6 +1,6 @@
 async function fetchAndDisplayCryptoData(symbol, limit) {
     try {
-        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=${limit}`);
+        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=${limit}`);
         const data = await response.json();
 
         let totalVariation = 0;
@@ -38,7 +38,7 @@ async function fetchAndDisplayCryptoData(symbol, limit) {
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
         if (limit === 9) {
-            const response21 = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=21`);
+            const response21 = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=21`);
             const data21 = await response21.json();
             let totalVariation21 = 0;
             for (let i = 0; i < data21.length; i++) {
