@@ -37,13 +37,19 @@ async function fetchAndDisplayCryptoData(symbol, limit) {
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        if (totalVariation >= -29.99 && totalVariation <= -20.00) {
-            totalCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-        }
-
-        if (totalVariation < 0) {
-            totalCell.classList.add("negative");
+        if (limit === 9) {
+            const response21 = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=21`);
+            const data21 = await response21.json();
+            let totalVariation21 = 0;
+            for (let i = 0; i < data21.length; i++) {
+                const openPrice = parseFloat(data21[i][1]);
+                const closePrice = parseFloat(data21[i][4]);
+                totalVariation21 += ((closePrice - openPrice) / openPrice) * 100;
+            }
+            if (totalVariation > totalVariation21) {
+                totalCell.classList.add("positive");
+                cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+            }
         }
 
         totalCell.textContent = `${totalValue}%`;
@@ -88,7 +94,6 @@ async function fetchAndDisplayAllCryptoData() {
 
     for (const symbol of symbols) {
         await fetchAndDisplayCryptoData(symbol, 9);
-        await fetchAndDisplayCryptoData(symbol, 21);
     }
 }
 
