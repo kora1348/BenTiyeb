@@ -24,12 +24,10 @@ async function fetchCryptoData(symbol) {
           const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
           const optionsEnd = { hour: "numeric", minute: "numeric" };
           variationCell.textContent = `${weekStartDate.toLocaleDateString(
+             
               "fr-FR",
               optionsStart
-          )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
-              "fr-FR",
-              optionsStart
-          )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+          )} : ${variationValue}%`;
 
           // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
           if (weeklyVariation > 0) {
