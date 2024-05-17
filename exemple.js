@@ -1,56 +1,58 @@
 async function fetchCryptoData(symbol) {
-    try {
-        const currentYear = new Date().getFullYear(); // Année actuelle
-        const previousYear1 = currentYear - 1; // Année précédente
-        const previousYear2 = currentYear - 2; // Deux ans précédents
-  
-        // Récupération des données pour l'année actuelle
-        const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
-        );
-        const data = await response.json();
-  
-        // Récupération des données pour l'année précédente (2023)
-        const responsePrevYear1 = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1&startTime=${new Date(previousYear1, 0, 1).getTime()}&endTime=${new Date(previousYear1 + 1, 0, 1).getTime()}`
-        );
-        const dataPrevYear1 = await responsePrevYear1.json();
-  
-        // Récupération des données pour l'année deux ans précédents (2022)
-        const responsePrevYear2 = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1&startTime=${new Date(previousYear2, 0, 1).getTime()}&endTime=${new Date(previousYear2 + 1, 0, 1).getTime()}`
-        );
-        const dataPrevYear2 = await responsePrevYear2.json();
-  
-        // Calcul du total des taux de variation sur 3 semaines
-        let totalVariation = 0;
-  
-        // Mise à jour du tableau avec les données et la couleur
-        const cryptoRow = document.getElementById(symbol);
-  
-        // Pour l'année actuelle (2024)
-        for (let i = 0; i < data.length; i++) {
-            // Traitement similaire à celui pour l'année actuelle
-        }
-  
-        // Pour l'année précédente (2023)
-        for (let i = 0; i < dataPrevYear1.length; i++) {
-            // Traitement similaire à celui pour l'année actuelle
-        }
-  
-        // Pour l'année deux ans précédents (2022)
-        for (let i = 0; i < dataPrevYear2.length; i++) {
-            // Traitement similaire à celui pour l'année actuelle
-        }
-  
-    } catch (error) {
-        console.error(
-            `Erreur lors de la récupération des données pour ${symbol}:`,
-            error
-        );
-    }
+  try {
+      const response = await fetch(
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
+      );
+      const data = await response.json();
+
+      // Calcul du total des taux de variation sur 3 semaines
+      let totalVariation = 0;
+
+      // Mise à jour du tableau avec les données et la couleur
+      const cryptoRow = document.getElementById(symbol);
+
+      for (let i = 0; i < data.length; i++) {
+          const openPrice = parseFloat(data[i][1]);
+          const closePrice = parseFloat(data[i][4]);
+          const variation = ((closePrice - openPrice) / openPrice) * 100;
+          const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+
+          const variationCell = cryptoRow.insertCell(cellIndex);
+          const variationValue = variation.toFixed(2);
+          const startDate = new Date(data[i][0]);
+          const endDate = new Date(data[i][6]);
+          const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+          const optionsEnd = { hour: "numeric", minute: "numeric" };
+          variationCell.textContent = `${startDate.toLocaleDateString("fr-FR")} - (${startDate.toLocaleTimeString("fr-FR", optionsEnd)}) : (${endDate.toLocaleTimeString("fr-FR", optionsEnd)}) : ${variationValue}%`;
+
+
+
+          // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
+          if (variation > 0) {
+              variationCell.classList.add("positive");
+          } else if (variation < 0) {
+              variationCell.classList.add("negative");
+          }
+
+          totalVariation += variation; // Ajouter la variation hebdomadaire au total
+      }
+
+
+
+      const cryptoNamesElement = document.getElementById('cryptoNames');
+
+    
+
+  } catch (error) {
+      console.error(
+          `Erreur lors de la récupération des données pour ${symbol}:`,
+          error
+      );
   }
-  
+}
+
+
+
 
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
