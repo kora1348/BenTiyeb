@@ -14,64 +14,34 @@ async function fetchCryptoData(symbol) {
       for (let i = 0; i < data.length; i++) {
           const openPrice = parseFloat(data[i][1]);
           const closePrice = parseFloat(data[i][4]);
-          const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+          const variation = ((closePrice - openPrice) / openPrice) * 100;
           const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
 
           const variationCell = cryptoRow.insertCell(cellIndex);
-          const variationValue = weeklyVariation.toFixed(2);
-          const weekStartDate = new Date(data[i][0]);
-          const weekEndDate = new Date(data[i][6]);
+          const variationValue = variation.toFixed(2);
+          const startDate = new Date(data[i][0]);
+          const endDate = new Date(data[i][6]);
           const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
           const optionsEnd = { hour: "numeric", minute: "numeric" };
-          variationCell.textContent = `${weekStartDate.toLocaleDateString(
-             
-              "fr-FR",
-              optionsStart
-          )} - ${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)} : ${variationValue}%`;
-
+          variationCell.textContent = `${startDate.toLocaleDateString("fr-FR")} - (${startDate.toLocaleTimeString("fr-FR", optionsEnd)}) : (${endDate.toLocaleTimeString("fr-FR", optionsEnd)}) : ${variationValue}%`;
 
 
 
           // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
-          if (weeklyVariation > 0) {
+          if (variation > 0) {
               variationCell.classList.add("positive");
-          } else if (weeklyVariation < 0) {
+          } else if (variation < 0) {
               variationCell.classList.add("negative");
           }
 
-          totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
+          totalVariation += variation; // Ajouter la variation hebdomadaire au total
       }
 
-      // Ajouter la cellule pour afficher le total de variation
-      const totalCell = cryptoRow.insertCell(data.length + 1);
-      const achatCell = cryptoRow.insertCell(data.length + 2);
-      const venteCell = cryptoRow.insertCell(data.length + 3);
-      const totalValue = totalVariation.toFixed(2);
+
 
       const cryptoNamesElement = document.getElementById('cryptoNames');
 
-      // Ajouter la classe "positive" pour le total dans la plage spécifiée
-      if (totalVariation <= -7) {
-          achatCell.textContent = "LONG";
-          achatCell.classList.add("positive");
-          totalCell.classList.add("positive");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-          showNotification(`${symbol}: Signal LONG - 5m`);
-      }else {
-        achatCell.textContent = "-";
-      }
-
-      if (totalVariation >= 7) {
-        venteCell.textContent = "SHORT";
-        venteCell.classList.add("negative");
-        totalCell.classList.add("negative");
-        cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
-        showNotification(`${symbol}: Signal SHORT - 5m`);
-    }else {
-      venteCell.textContent = "-";
-    }
-
-      totalCell.textContent = `${totalValue}%`;
+    
 
   } catch (error) {
       console.error(
@@ -82,52 +52,6 @@ async function fetchCryptoData(symbol) {
 }
 
 
-let isNotificationDisplayed = false;
-
-function showNotification(message) {
-  if (!("Notification" in window)) {
-    console.error("Ce navigateur ne prend pas en charge les notifications.");
-    return;
-  }
-
-  const now = new Date();
-  const options = {
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  };
-  const currentTime = now.toLocaleTimeString("fr-FR", options);
-
-  if (Notification.permission === "granted" && !isNotificationDisplayed) {
-    const notification = new Notification("Signal Crypto", {
-      body: `${message} - ${currentTime}`,
-    });
-
-    isNotificationDisplayed = true;
-
-    setTimeout(() => {
-      notification.close();
-      isNotificationDisplayed = false;
-    }, 20000); // Changement ici pour 5 secondes
-  } else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted" && !isNotificationDisplayed) {
-        showNotification(message);
-      }
-    });
-  }
-}
-
-
-
-
-  // Cette fonction sera exécutée toutes les 3 secondes
-function rafraichirPage() {
-  location.reload(); // Rafraîchit la page
-}
-
-// Utilise setInterval pour appeler la fonction toutes les 3 secondes (3000 millisecondes)
-setInterval(rafraichirPage, 15000);
 
 
   
