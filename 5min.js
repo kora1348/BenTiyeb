@@ -1,23 +1,29 @@
 async function fetchCryptoData(symbol) {
     try {
-        // Dates spécifiques pour le 17 mai 2022, 2023 et 2024
-        const date2022 = new Date('2022-05-17').getTime();
-        const date2023 = new Date('2023-05-17').getTime();
-        const date2024 = new Date('2024-05-17').getTime();
+        // Obtenir la date actuelle
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const month = currentDate.getMonth(); // Les mois en JavaScript sont de 0 à 11
+        const day = currentDate.getDate();
 
-        // Requête pour le 17 mai 2024
+        // Dates dynamiques pour les années 2022, 2023 et 2024
+        const date2022 = new Date(currentYear - 2, month, day).getTime();
+        const date2023 = new Date(currentYear - 1, month, day).getTime();
+        const date2024 = new Date(currentYear, month, day).getTime();
+
+        // Requête pour le 17 mai 2024 (ou la date actuelle)
         const response2024 = await fetch(
             `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2024}&endTime=${date2024 + 86400000}&limit=1`
         );
         const data2024 = await response2024.json();
 
-        // Requête pour le 17 mai 2023
+        // Requête pour le 17 mai 2023 (ou la même date un an avant)
         const response2023 = await fetch(
             `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2023}&endTime=${date2023 + 86400000}&limit=1`
         );
         const data2023 = await response2023.json();
 
-        // Requête pour le 17 mai 2022
+        // Requête pour le 17 mai 2022 (ou la même date deux ans avant)
         const response2022 = await fetch(
             `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2022}&endTime=${date2022 + 86400000}&limit=1`
         );
@@ -44,11 +50,11 @@ async function fetchCryptoData(symbol) {
         const cell2022 = cryptoRow.insertCell(1);
         const cell2023 = cryptoRow.insertCell(2);
         const cell2024 = cryptoRow.insertCell(3);
-        const variationCell = cryptoRow.insertCell(4);
 
-        cell2022.textContent = `17/05/2022: ${dailyVariation2022.toFixed(2)}%`;
-        cell2023.textContent = `17/05/2023: ${dailyVariation2023.toFixed(2)}%`;
-        cell2024.textContent = `17/05/2024: ${dailyVariation2024.toFixed(2)}%`;
+
+        cell2022.textContent = `${currentDate.toLocaleDateString("fr-FR")} 2022: ${dailyVariation2022.toFixed(2)}%`;
+        cell2023.textContent = `${currentDate.toLocaleDateString("fr-FR")} 2023: ${dailyVariation2023.toFixed(2)}%`;
+        cell2024.textContent = `${currentDate.toLocaleDateString("fr-FR")} 2024: ${dailyVariation2024.toFixed(2)}%`;
 
         // Ajout des classes CSS en fonction des variations
         if (dailyVariation2022 > 0) {
@@ -69,21 +75,6 @@ async function fetchCryptoData(symbol) {
             cell2024.classList.add("negative");
         }
 
-        // Calcul de la variation annuelle entre 2023 et 2024
-        const annualVariation = ((closePrice2024 - closePrice2023) / closePrice2023) * 100;
-        variationCell.textContent = `${annualVariation.toFixed(2)}%`;
-
-        if (annualVariation > 0) {
-            variationCell.classList.add("positive");
-        } else {
-            variationCell.classList.add("negative");
-        }
-
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-        if (annualVariation >= -29.99 && annualVariation <= -20.00) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${annualVariation.toFixed(2)}%</p>`;
-        }
-
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -91,6 +82,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 
 
