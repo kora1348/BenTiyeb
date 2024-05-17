@@ -7,9 +7,9 @@ async function fetchCryptoData(symbol) {
         const day = currentDate.getDate();
 
         // Dates dynamiques pour les années 2022, 2023 et 2024
-        const date2022 = new Date(currentYear - 2, month, day).getTime();
-        const date2023 = new Date(currentYear - 1, month, day).getTime();
-        const date2024 = new Date(currentYear, month, day).getTime();
+        const date2022 = new Date(currentYear - 2, month, day, 23, 55).getTime();
+        const date2023 = new Date(currentYear - 1, month, day, 23, 55).getTime();
+        const date2024 = new Date(currentYear, month, day, 23, 55).getTime();
 
         // Requête pour le 17 mai 2024 (ou la date actuelle)
         const response2024 = await fetch(
@@ -51,11 +51,17 @@ async function fetchCryptoData(symbol) {
         const cell2023 = cryptoRow.insertCell(2);
         const cell2024 = cryptoRow.insertCell(3);
 
-        const options = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false };
+        const bougieStartHour2022 = new Date(date2022).toLocaleTimeString("fr-FR", optionsEnd);
+        const bougieEndHour2022 = new Date(date2022 + 300000).toLocaleTimeString("fr-FR", optionsEnd);
+        cell2022.textContent = `${new Date(date2022).toLocaleDateString("fr-FR", optionsStart)} ${bougieStartHour2022} - ${bougieEndHour2022}: ${dailyVariation2022.toFixed(2)}%`;
 
-        cell2022.textContent = `${new Date(date2022).toLocaleDateString("fr-FR", options)}: ${dailyVariation2022.toFixed(2)}%`;
-        cell2023.textContent = `${new Date(date2023).toLocaleDateString("fr-FR", options)}: ${dailyVariation2023.toFixed(2)}%`;
-        cell2024.textContent = `${new Date(date2024).toLocaleDateString("fr-FR", options)}: ${dailyVariation2024.toFixed(2)}%`;
+        const bougieStartHour2023 = new Date(date2023).toLocaleTimeString("fr-FR", optionsEnd);
+        const bougieEndHour2023 = new Date(date2023 + 300000).toLocaleTimeString("fr-FR", optionsEnd);
+        cell2023.textContent = `${new Date(date2023).toLocaleDateString("fr-FR", optionsStart)} ${bougieStartHour2023} - ${bougieEndHour2023}: ${dailyVariation2023.toFixed(2)}%`;
+
+        const bougieStartHour2024 = new Date(date2024).toLocaleTimeString("fr-FR", optionsEnd);
+        const bougieEndHour2024 = new Date(date2024 + 300000).toLocaleTimeString("fr-FR", optionsEnd);
+        cell2024.textContent = `${new Date(date2024).toLocaleDateString("fr-FR", optionsStart)} ${bougieStartHour2024} - ${bougieEndHour2024}: ${dailyVariation2024.toFixed(2)}%`;
 
         // Ajout des classes CSS en fonction des variations
         if (dailyVariation2022 > 0) {
