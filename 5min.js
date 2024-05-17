@@ -51,9 +51,11 @@ async function fetchCryptoData(symbol) {
         const cell2023 = cryptoRow.insertCell(2);
         const cell2024 = cryptoRow.insertCell(3);
 
-        cell2022.textContent = `${new Date(date2022).toLocaleDateString("fr-FR")}: ${dailyVariation2022.toFixed(2)}%`;
-        cell2023.textContent = `${new Date(date2023).toLocaleDateString("fr-FR")}: ${dailyVariation2023.toFixed(2)}%`;
-        cell2024.textContent = `${new Date(date2024).toLocaleDateString("fr-FR")}: ${dailyVariation2024.toFixed(2)}%`;
+        const options = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false };
+
+        cell2022.textContent = `${new Date(date2022).toLocaleDateString("fr-FR", options)}: ${dailyVariation2022.toFixed(2)}%`;
+        cell2023.textContent = `${new Date(date2023).toLocaleDateString("fr-FR", options)}: ${dailyVariation2023.toFixed(2)}%`;
+        cell2024.textContent = `${new Date(date2024).toLocaleDateString("fr-FR", options)}: ${dailyVariation2024.toFixed(2)}%`;
 
         // Ajout des classes CSS en fonction des variations
         if (dailyVariation2022 > 0) {
@@ -81,7 +83,6 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
-
 
 
 
