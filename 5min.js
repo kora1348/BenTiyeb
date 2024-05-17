@@ -1,73 +1,65 @@
 async function fetchCryptoData(symbol) {
-  try {
-      const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=1`
-      );
-      const data = await response.json();
+    try {
+        // Dates spécifiques pour le 17 mai 2023 et 2024
+        const date2023 = new Date('2023-05-17').getTime();
+        const date2024 = new Date('2024-05-17').getTime();
 
-      // Calcul du total des taux de variation sur 3 semaines
-      let totalVariation = 0;
+        // Requête pour le 17 mai 2024
+        const response2024 = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2024}&endTime=${date2024 + 86400000}&limit=1`
+        );
+        const data2024 = await response2024.json();
 
-      // Mise à jour du tableau avec les données et la couleur
-      const cryptoRow = document.getElementById(symbol);
+        // Requête pour le 17 mai 2023
+        const response2023 = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2023}&endTime=${date2023 + 86400000}&limit=1`
+        );
+        const data2023 = await response2023.json();
 
-      for (let i = 0; i < data.length; i++) {
-          const openPrice = parseFloat(data[i][1]);
-          const closePrice = parseFloat(data[i][4]);
-          const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-          const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+        if (data2024.length === 0 || data2023.length === 0) {
+            throw new Error('Données non disponibles pour les dates spécifiées.');
+        }
 
-          const variationCell = cryptoRow.insertCell(cellIndex);
-          const variationValue = weeklyVariation.toFixed(2);
-          const weekStartDate = new Date(data[i][0]);
-          const weekEndDate = new Date(data[i][6]);
-          const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-          const optionsEnd = { hour: "numeric", minute: "numeric" };
-          variationCell.textContent = `${weekStartDate.toLocaleDateString(
-              "fr-FR",
-              optionsStart
-          )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
-              "fr-FR",
-              optionsStart
-          )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+        const openPrice2024 = parseFloat(data2024[0][1]);
+        const closePrice2024 = parseFloat(data2024[0][4]);
+        const dailyVariation2024 = ((closePrice2024 - openPrice2024) / openPrice2024) * 100;
 
-          // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
-          if (weeklyVariation > 0) {
-              variationCell.classList.add("positive");
-          } else if (weeklyVariation < 0) {
-              variationCell.classList.add("negative");
-          }
+        const openPrice2023 = parseFloat(data2023[0][1]);
+        const closePrice2023 = parseFloat(data2023[0][4]);
+        const dailyVariation2023 = ((closePrice2023 - openPrice2023) / openPrice2023) * 100;
 
-          totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
-      }
+        // Mise à jour du tableau avec les données et la couleur
+        const cryptoRow = document.getElementById(symbol);
+        const cell2023 = cryptoRow.insertCell(1);
+        const cell2024 = cryptoRow.insertCell(2);
+        const variationCell = cryptoRow.insertCell(3);
 
-      // Ajouter la cellule pour afficher le total de variation
-      const totalCell = cryptoRow.insertCell(data.length + 1);
-      const totalValue = totalVariation.toFixed(2);
-      
-      totalCell.style.textAlign = 'center';
+        cell2023.textContent = `17/05/2023: ${dailyVariation2023.toFixed(2)}%`;
+        cell2024.textContent = `17/05/2024: ${dailyVariation2024.toFixed(2)}%`;
 
-      const cryptoNamesElement = document.getElementById('cryptoNames');
+        // Calcul de la variation annuelle entre les deux dates
+        const annualVariation = ((closePrice2024 - closePrice2023) / closePrice2023) * 100;
+        variationCell.textContent = `${annualVariation.toFixed(2)}%`;
 
-      // Ajouter la classe "positive" pour le total dans la plage spécifiée
-      if (totalVariation >= -29.99 && totalVariation <= -20.00) {
-          totalCell.classList.add("positive");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-      }
+        if (annualVariation > 0) {
+            variationCell.classList.add("positive");
+        } else if (annualVariation < 0) {
+            variationCell.classList.add("negative");
+        }
 
-      if(totalVariation < 0){
-        totalCell.classList.add("negative");
-      }
+        const cryptoNamesElement = document.getElementById('cryptoNames');
+        if (annualVariation >= -29.99 && annualVariation <= -20.00) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${annualVariation.toFixed(2)}%</p>`;
+        }
 
-      totalCell.textContent = `${totalValue}%`;
-
-  } catch (error) {
-      console.error(
-          `Erreur lors de la récupération des données pour ${symbol}:`,
-          error
-      );
-  }
+    } catch (error) {
+        console.error(
+            `Erreur lors de la récupération des données pour ${symbol}:`,
+            error
+        );
+    }
 }
+
 
 
 function mettreAJourHeure() {
