@@ -3,6 +3,9 @@ async function fetchCryptoData(symbol, years = [2023, 2024]) {
         let totalVariation = 0;
         const cryptoRow = document.getElementById(symbol);
 
+        // Inverse l'ordre des années pour afficher d'abord les données de 2023
+        years = years.reverse();
+
         for (const year of years) {
             const startDate = new Date(`05/18/${year} 01:35:00`).getTime();
             const endDate = new Date(`05/18/${year} 01:39:00`).getTime();
@@ -46,7 +49,6 @@ async function fetchCryptoData(symbol, years = [2023, 2024]) {
     }
 }
 
-  
     
     // Appel de la fonction pour obtenir les taux de variation des cryptos
   
