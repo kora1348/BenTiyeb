@@ -3,29 +3,28 @@ async function fetchCryptoData(symbol) {
         // Obtenir la date actuelle
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
-        const month = currentDate.getMonth(); // Les mois en JavaScript sont de 0 à 11
-        const day = currentDate.getDate();
+        const options = { day: "2-digit", month: "2-digit", year: "numeric" };
 
         // Dates dynamiques pour les années 2022, 2023 et 2024
-        const date2022 = new Date(currentYear - 2, month, day).getTime();
-        const date2023 = new Date(currentYear - 1, month, day).getTime();
-        const date2024 = new Date(currentYear, month, day).getTime();
+        const date2022 = new Date(currentYear - 2, currentDate.getMonth(), currentDate.getDate());
+        const date2023 = new Date(currentYear - 1, currentDate.getMonth(), currentDate.getDate());
+        const date2024 = new Date(currentYear, currentDate.getMonth(), currentDate.getDate());
 
         // Requête pour le 17 mai 2024 (ou la date actuelle)
         const response2024 = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2024}&endTime=${date2024 + 86400000}&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2024.getTime()}&endTime=${date2024.getTime() + 86400000}&limit=1`
         );
         const data2024 = await response2024.json();
 
         // Requête pour le 17 mai 2023 (ou la même date un an avant)
         const response2023 = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2023}&endTime=${date2023 + 86400000}&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2023.getTime()}&endTime=${date2023.getTime() + 86400000}&limit=1`
         );
         const data2023 = await response2023.json();
 
         // Requête pour le 17 mai 2022 (ou la même date deux ans avant)
         const response2022 = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2022}&endTime=${date2022 + 86400000}&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2022.getTime()}&endTime=${date2022.getTime() + 86400000}&limit=1`
         );
         const data2022 = await response2022.json();
 
@@ -51,10 +50,9 @@ async function fetchCryptoData(symbol) {
         const cell2023 = cryptoRow.insertCell(2);
         const cell2024 = cryptoRow.insertCell(3);
 
-
-        cell2022.textContent = `${currentDate.toLocaleDateString("fr-FR")} 2022: ${dailyVariation2022.toFixed(2)}%`;
-        cell2023.textContent = `${currentDate.toLocaleDateString("fr-FR")} 2023: ${dailyVariation2023.toFixed(2)}%`;
-        cell2024.textContent = `${currentDate.toLocaleDateString("fr-FR")} 2024: ${dailyVariation2024.toFixed(2)}%`;
+        cell2022.textContent = `${date2022.toLocaleDateString("fr-FR", options)}: ${dailyVariation2022.toFixed(2)}%`;
+        cell2023.textContent = `${date2023.toLocaleDateString("fr-FR", options)}: ${dailyVariation2023.toFixed(2)}%`;
+        cell2024.textContent = `${date2024.toLocaleDateString("fr-FR", options)}: ${dailyVariation2024.toFixed(2)}%`;
 
         // Ajout des classes CSS en fonction des variations
         if (dailyVariation2022 > 0) {
