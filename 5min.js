@@ -1,6 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
-        // Dates spécifiques pour le 17 mai 2023 et 2024
+        // Dates spécifiques pour le 17 mai 2022, 2023 et 2024
+        const date2022 = new Date('2022-05-17').getTime();
         const date2023 = new Date('2023-05-17').getTime();
         const date2024 = new Date('2024-05-17').getTime();
 
@@ -16,7 +17,13 @@ async function fetchCryptoData(symbol) {
         );
         const data2023 = await response2023.json();
 
-        if (data2024.length === 0 || data2023.length === 0) {
+        // Requête pour le 17 mai 2022
+        const response2022 = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${date2022}&endTime=${date2022 + 86400000}&limit=1`
+        );
+        const data2022 = await response2022.json();
+
+        if (data2024.length === 0 || data2023.length === 0 || data2022.length === 0) {
             throw new Error('Données non disponibles pour les dates spécifiées.');
         }
 
@@ -28,22 +35,47 @@ async function fetchCryptoData(symbol) {
         const closePrice2023 = parseFloat(data2023[0][4]);
         const dailyVariation2023 = ((closePrice2023 - openPrice2023) / openPrice2023) * 100;
 
+        const openPrice2022 = parseFloat(data2022[0][1]);
+        const closePrice2022 = parseFloat(data2022[0][4]);
+        const dailyVariation2022 = ((closePrice2022 - openPrice2022) / openPrice2022) * 100;
+
         // Mise à jour du tableau avec les données et la couleur
         const cryptoRow = document.getElementById(symbol);
-        const cell2023 = cryptoRow.insertCell(1);
-        const cell2024 = cryptoRow.insertCell(2);
-        const variationCell = cryptoRow.insertCell(3);
+        const cell2022 = cryptoRow.insertCell(1);
+        const cell2023 = cryptoRow.insertCell(2);
+        const cell2024 = cryptoRow.insertCell(3);
+        const variationCell = cryptoRow.insertCell(4);
 
+        cell2022.textContent = `17/05/2022: ${dailyVariation2022.toFixed(2)}%`;
         cell2023.textContent = `17/05/2023: ${dailyVariation2023.toFixed(2)}%`;
         cell2024.textContent = `17/05/2024: ${dailyVariation2024.toFixed(2)}%`;
 
-        // Calcul de la variation annuelle entre les deux dates
+        // Ajout des classes CSS en fonction des variations
+        if (dailyVariation2022 > 0) {
+            cell2022.classList.add("positive");
+        } else {
+            cell2022.classList.add("negative");
+        }
+
+        if (dailyVariation2023 > 0) {
+            cell2023.classList.add("positive");
+        } else {
+            cell2023.classList.add("negative");
+        }
+
+        if (dailyVariation2024 > 0) {
+            cell2024.classList.add("positive");
+        } else {
+            cell2024.classList.add("negative");
+        }
+
+        // Calcul de la variation annuelle entre 2023 et 2024
         const annualVariation = ((closePrice2024 - closePrice2023) / closePrice2023) * 100;
         variationCell.textContent = `${annualVariation.toFixed(2)}%`;
 
         if (annualVariation > 0) {
             variationCell.classList.add("positive");
-        } else if (annualVariation < 0) {
+        } else {
             variationCell.classList.add("negative");
         }
 
