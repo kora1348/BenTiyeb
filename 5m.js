@@ -27,7 +27,10 @@ async function fetchCryptoData(symbol) {
              
               "fr-FR",
               optionsStart
-          )} : ${variationValue}%`;
+          )} - ${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)} : ${variationValue}%`;
+
+
+
 
           // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
           if (weeklyVariation > 0) {
