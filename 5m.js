@@ -11,7 +11,7 @@ async function fetchCryptoData(symbol, years = [2022, 2023, 2024]) {
             const endDate = new Date(`05/18/${year} 01:39:00`).getTime();
 
             const response = await fetch(
-                `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=1&startTime=${startDate}&endTime=${endDate}`
+                `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1&startTime=${startDate}&endTime=${endDate}`
             );
             const data = await response.json();
 
