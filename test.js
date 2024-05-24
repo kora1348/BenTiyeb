@@ -4,19 +4,19 @@ async function fetchCryptoData(symbol) {
             `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=3`
         );
         const data = await response.json();
-  
+
         // Calcul du total des taux de variation sur 3 intervalles de 15 minutes
         let totalVariation = 0;
-  
+
         // Mise à jour du tableau avec les données et la couleur
         const cryptoRow = document.getElementById(symbol);
-  
+
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
             const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
-  
+
             const variationCell = cryptoRow.insertCell(cellIndex);
             const variationValue = intervalVariation.toFixed(2);
             const intervalStartDate = new Date(data[i][0]);
@@ -30,46 +30,51 @@ async function fetchCryptoData(symbol) {
                 "fr-FR",
                 optionsStart
             )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
-  
+
             // Ajouter la classe "positive" ou "negative" en fonction de la variation
             if (intervalVariation > 0) {
                 variationCell.classList.add("positive");
             } else if (intervalVariation < 0) {
                 variationCell.classList.add("negative");
             }
-  
+
             totalVariation += intervalVariation; // Ajouter la variation de l'intervalle au total
         }
-  
+
         // Calculer la moyenne des variations
         const averageVariation = totalVariation / data.length;
         const averageValue = averageVariation.toFixed(2);
-  
+
         // Ajouter la cellule pour afficher la moyenne des variations
         const averageCell = cryptoRow.insertCell(data.length + 1);
         averageCell.style.textAlign = 'center';
         averageCell.textContent = `Moyenne: ${averageValue}%`;
-  
+
         const cryptoNamesElement = document.getElementById('cryptoNames');
-  
+
         // Ajouter la classe "positive" pour la moyenne dans la plage spécifiée
         if (averageVariation >= -29.99 && averageVariation <= -20.00) {
             averageCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${averageValue}%</p>`;
         }
-  
+
+        // Ajouter une entrée dans cryptoNames si la moyenne est inférieure à -0,05
+        if (averageVariation <= -0.05) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: ${averageValue}%</p>`;
+        }
+
         if (averageVariation < 0) {
             averageCell.classList.add("negative");
         }
-  
+
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
             error
         );
     }
-  }
-  
+}
+
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
