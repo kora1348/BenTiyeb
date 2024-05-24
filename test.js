@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=3`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=50`
         );
         const data = await response.json();
 
@@ -52,14 +52,9 @@ async function fetchCryptoData(symbol) {
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        // Ajouter la classe "positive" pour la moyenne dans la plage spécifiée
-        if (averageVariation >= -29.99 && averageVariation <= -20.00) {
-            averageCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${averageValue}%</p>`;
-        }
 
         // Ajouter une entrée dans cryptoNames si la moyenne est inférieure à -0,05
-        if (averageVariation <= -0.05) {
+        if (averageVariation <= -0.03) {
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: ${averageValue}%</p>`;
         }
 
