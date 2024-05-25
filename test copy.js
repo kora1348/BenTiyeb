@@ -23,40 +23,35 @@ const calculateMA = (data, period) => {
     return sum / period;
 };
 
-// Créer un objet pour stocker les valeurs précédentes pour chaque symbole
-const previousValues = {};
-
 const checkCross = async () => {
+    const tableBody = document.getElementById('crypto-table');
+    tableBody.innerHTML = ''; // Réinitialiser le tableau
+
     for (const symbol of symbols) {
         const data = await fetchKlines(symbol);
-        if (!data) return;
+        if (!data) continue;
 
         const ma7 = calculateMA(data.slice(0, ma7Period), ma7Period);
         const ma25 = calculateMA(data.slice(0, ma25Period), ma25Period);
 
-        // Initialiser les valeurs précédentes si elles n'existent pas
-        if (!previousValues[symbol]) {
-            previousValues[symbol] = { previousMA7: ma7, previousMA25: ma25 };
-            continue; // Continuer au prochain symbole sans vérifier les croisements pour cette itération
+        const row = document.createElement('tr');
+        const cellSymbol = document.createElement('td');
+        const cellStatus = document.createElement('td');
+
+        cellSymbol.textContent = symbol;
+
+        if (ma7 > ma25) {
+            cellStatus.textContent = 'Au-dessus';
+            row.classList.add('above');
+        } else {
+            cellStatus.textContent = 'En dessous';
+            row.classList.add('below');
         }
 
-        const { previousMA7, previousMA25 } = previousValues[symbol];
-
-        // Condition pour MA7 croissant MA25
-        if (ma7 > ma25 && previousMA7 <= previousMA25) {
-            document.getElementById('alert').innerText = `MA7 has crossed above MA25 for ${symbol}!`;
-            document.getElementById('alert').classList.add('positive');
-        }
-
-        // Condition pour MA25 croissant MA7
-        if (ma25 > ma7 && previousMA25 <= previousMA7) {
-            document.getElementById('alert').innerText = `MA25 has crossed above MA7 for ${symbol}!`;
-            document.getElementById('alert').classList.add('negative');
-        }
-
-        // Mettre à jour les valeurs précédentes
-        previousValues[symbol] = { previousMA7: ma7, previousMA25: ma25 };
+        row.appendChild(cellSymbol);
+        row.appendChild(cellStatus);
+        tableBody.appendChild(row);
     }
 };
 
-setInterval(checkCross, 60000); // Vérifier chaque minute
+checkCross(); // Appeler une fois immédiatement pour avoir des données dès le chargement
