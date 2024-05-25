@@ -1,23 +1,115 @@
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  margin: 0;
-  padding: 20px;
+  margin-top:30px;
+  font-size: 15px;
 }
-h1 {
-  color: #333;
+
+      ul {
+      display: flex;
+      list-style-type: none;
+      justify-content: center; /* centre les éléments horizontalement */
+    }
+    li {
+      margin-right: 20px;
+      font-size: 22px;
+    }
+    a {
+      font-size: 22px;
+      text-decoration: none;
+      color: #1b1b1b;
+    }
+
+.container {
+  max-width: 960px;
 }
-.alert {
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 5px;
-  font-size: 16px;
+
+
+/* */
+
+table {
+  border-collapse: collapse;
 }
+
+th, td {
+  border: 1px solid black;
+  padding: 8px;
+}
+
 .positive {
-  background-color: #d4edda;
-  color: #155724;
+  color: green;
+  font-weight: 800;
 }
+
 .negative {
-  background-color: #f8d7da;
-  color: #721c24;
+  color: red;
+  font-weight: 800;
+}
+
+.blue {
+color: blue;
+font-weight: 800;
+}
+
+
+.orange {
+color: orange;
+font-weight: 800;
+}
+
+.blue {
+color: blue;
+font-weight: 800;
+}
+
+.total {
+color: blue;
+font-weight: 800;
+}
+
+.long {
+color: green;
+}
+
+.short {
+color: red;
+}
+
+.text-center {
+text-align: center;
+margin: 0 auto;
+}
+
+.time {
+color: black;
+}
+
+.black {
+color: black;
+font-weight: 800;
+}
+
+.button {
+background-color: #008CBA; /* Couleur de fond */
+color: white; /* Couleur du texte */
+border: none; /* Pas de bordure */
+padding: 10px 20px; /* Espacement du contenu à l'intérieur du bouton */
+text-align: center; /* Centre le texte horizontalement */
+text-decoration: none; /* Pas de soulignement pour le texte */
+display: inline-block; /* Permet au bouton de s'ajuster au contenu */
+font-size: 16px; /* Taille de police */
+margin: 4px 2px; /* Marge autour du bouton */
+cursor: pointer; /* Curseur de la souris en forme de main quand on survole le bouton */
+border-radius: 4px; /* Coins arrondis */
+}
+
+.green-text {
+color: green;
+font-weight: 800;
+}
+
+
+.above {
+  background-color: lightgreen;
+}
+.below {
+  background-color: lightcoral;
 }
