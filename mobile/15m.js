@@ -55,7 +55,7 @@ const checkCross = async () => {
 
         cellSymbol.textContent = symbol;
 
-        if (ma7 > ma25) {
+        if (ma25 > ma7) {
             cellStatus.textContent = 'Au-dessus';
             row.classList.add('above');
         } else {
@@ -69,7 +69,9 @@ const checkCross = async () => {
     }
 };
 
-checkCross(); // Appeler une fois immédiatement pour avoir des données dès le chargement
+// Appeler la fonction checkCross pour vérifier les croisements de moyennes mobiles
+checkCross();
+
 
 function mettreAJourHeure() {
     var elementHeure = document.getElementById('heure');
