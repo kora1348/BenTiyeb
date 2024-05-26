@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=2`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=14`
         );
         const data = await response.json();
 
@@ -9,7 +9,19 @@ async function fetchCryptoData(symbol) {
 
         let firstIntervalVariation = null;
         let secondIntervalVariation = null;
-
+        let thirdIntervalVariation = null;
+        let fourthIntervalVariation = null;
+        let fifthIntervalVariation = null;
+        let sixthIntervalVariation = null;
+        let seventhIntervalVariation = null;
+        let eighthIntervalVariation = null;
+        let ninthIntervalVariation = null;
+        let tenthIntervalVariation = null;
+        let eleventhIntervalVariation = null;
+        let twelfthIntervalVariation = null;
+        let thirteenthIntervalVariation = null;
+        let fourteenthIntervalVariation = null;
+        
         
 
         for (let i = 0; i < data.length; i++) {
@@ -42,14 +54,39 @@ async function fetchCryptoData(symbol) {
                 firstIntervalVariation = intervalVariation;
             } else if (i === 1) {
                 secondIntervalVariation = intervalVariation;
-            } 
+            } else if (i === 2) {
+                thirdIntervalVariation = intervalVariation;
+            } else if (i === 3) {
+                fourthIntervalVariation = intervalVariation;
+            } else if (i === 4) {
+                fifthIntervalVariation = intervalVariation;
+            } else if (i === 5) {
+                sixthIntervalVariation = intervalVariation;
+            } else if (i === 6) {
+                seventhIntervalVariation = intervalVariation;
+            } else if (i === 7) {
+                eighthIntervalVariation = intervalVariation;
+            } else if (i === 8) {
+                ninthIntervalVariation = intervalVariation;
+            } else if (i === 9) {
+                tenthIntervalVariation = intervalVariation;
+            } else if (i === 10) {
+                eleventhIntervalVariation = intervalVariation;
+            } else if (i === 11) {
+                twelfthIntervalVariation = intervalVariation;
+            } else if (i === 12) {
+                thirteenthIntervalVariation = intervalVariation;
+            } else if (i === 13) {
+                fourteenthIntervalVariation = intervalVariation;
+            }
+            
             
         }
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        if (firstIntervalVariation >= 0.05 && secondIntervalVariation >= 0.05 ) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="below ">${symbol}</p>`;
+        if (firstIntervalVariation <= -0.02 && secondIntervalVariation <= -0.02 && thirdIntervalVariation <= -0.02 && fourthIntervalVariation <= -0.02 && fifthIntervalVariation <= -0.02 && sixthIntervalVariation <= -0.02 && seventhIntervalVariation <= -0.02 && eighthIntervalVariation <= -0.02 && ninthIntervalVariation <= -0.02 && tenthIntervalVariation <= -0.02 && eleventhIntervalVariation <= -0.02 && twelfthIntervalVariation <= -0.02 && thirteenthIntervalVariation <= -0.02 && fourteenthIntervalVariation <= -0.02)  {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}</p>`;
         }
 
     } catch (error) {
