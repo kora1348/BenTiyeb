@@ -1,4 +1,3 @@
-
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -6,58 +5,48 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
 
-        let totalVariation = 0;
-
         const cryptoRow = document.getElementById(symbol);
+
+        let firstIntervalVariation = null;
+        let secondIntervalVariation = null;
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
-            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+            const intervalVariation = ((closePrice - openPrice) / openPrice) * 100;
             const cellIndex = i + 1;
 
             const variationCell = cryptoRow.insertCell(cellIndex);
-            const variationValue = weeklyVariation.toFixed(2);
-            const weekStartDate = new Date(data[i][0]);
-            const weekEndDate = new Date(data[i][6]);
+            const variationValue = intervalVariation.toFixed(2);
+            const intervalStartDate = new Date(data[i][0]);
+            const intervalEndDate = new Date(data[i][6]);
             const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
             const optionsEnd = { hour: "numeric", minute: "numeric" };
-            variationCell.textContent = `${weekStartDate.toLocaleDateString(
+            variationCell.textContent = `${intervalStartDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
-            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
+            )} (${intervalStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${intervalEndDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
-            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
 
-            if (weeklyVariation > 0) {
+            if (intervalVariation > 0) {
                 variationCell.classList.add("positive");
-            } else if (weeklyVariation < 0) {
+            } else if (intervalVariation < 0) {
                 variationCell.classList.add("negative");
             }
 
-            totalVariation += weeklyVariation;
+            if (i === 0) {
+                firstIntervalVariation = intervalVariation;
+            } else if (i === 1) {
+                secondIntervalVariation = intervalVariation;
+            }
         }
-
-        const totalCell = cryptoRow.insertCell(data.length + 1);
-        const totalValue = totalVariation.toFixed(2);
-        totalCell.style.textAlign = 'center';
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        const firstIntervalCondition = totalVariation <= -0.30;
-        const secondIntervalCondition = totalVariation >= -0.02 && totalVariation <= 0.02;
-
-        if (firstIntervalCondition) {
-            totalCell.classList.add("negative");
-        } else if (secondIntervalCondition) {
-            totalCell.classList.add("neutral");
-        }
-
-        totalCell.textContent = `${totalValue}%`;
-
-        if (firstIntervalCondition || secondIntervalCondition) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status">${symbol}: ${totalValue}%</p>`;
+        if (firstIntervalVariation <= -0.30 && secondIntervalVariation >= -0.02 && secondIntervalVariation <= -0.01) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status">${symbol}</p>`;
         }
 
     } catch (error) {
