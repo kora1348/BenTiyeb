@@ -108,8 +108,10 @@ font-weight: 800;
 
 
 .above {
-  background-color: lightgreen;
+  color: lightgreen;
+  font-weight: 100;
 }
 .below {
-  background-color: lightcoral;
+  color: lightcoral;
+  font-weight: 800;
 }
