@@ -68,8 +68,8 @@ async function fetchCryptoData(symbol) {
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        if (firstIntervalVariation >= 0.05 && secondIntervalVariation >= 0.05 && thirdIntervalVariation >= 0.05 && fourthIntervalVariation >= 0.05 && fifthIntervalVariation >= 0.05 && sixthIntervalVariation >= 0.05 && seventhIntervalVariation >= 0.05 && eighthIntervalVariation >= 0.05 && ninthIntervalVariation >= 0.05) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="below ">${symbol}</p>`;
+        if (firstIntervalVariation <=  -0.02 && secondIntervalVariation <=  -0.02 && thirdIntervalVariation <=  -0.02 && fourthIntervalVariation <=  -0.02 && fifthIntervalVariation <=  -0.02 && sixthIntervalVariation <=  -0.02 && seventhIntervalVariation <=  -0.02 && eighthIntervalVariation <=  -0.02 && ninthIntervalVariation <=  -0.02) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="above">${symbol}</p>`;
         }
 
     } catch (error) {
