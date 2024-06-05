@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=1439`
         );
         const data = await response.json();
 
@@ -20,30 +20,31 @@ async function fetchCryptoData(symbol) {
         const currentHour = currentDate.getHours();
 
         // Récupérer les données de variation pour les 24 dernières heures
-        for (let i = data.length - currentHour - 1; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
-            const hourlyVariation = ((closePrice - openPrice) / openPrice) * 100;
+            const hourlyVariation = ((closePrice - openPrice) / openPrice) * 100; // Utilisez hourlyVariation au lieu de monthlyVariation
             const variationCell = document.createElement('td');
             const variationValue = hourlyVariation.toFixed(2);
             const hourStartDate = new Date(data[i][0]);
             const formattedDate = `${hourStartDate.toLocaleDateString("fr-FR")} (${hourStartDate.toLocaleTimeString("fr-FR")})`;
-
+        
             variationCell.textContent = `${formattedDate}: ${variationValue}%`;
-
+        
             // Ajouter la classe "positive" ou "negative" en fonction de la variation horaire
             if (hourlyVariation > 0) {
                 variationCell.classList.add("positive");
             } else if (hourlyVariation < 0) {
                 variationCell.classList.add("negative");
             }
-
+        
             cryptoRow.appendChild(variationCell);
             totalVariation += hourlyVariation; // Ajouter la variation horaire au total
-
+        
             // Stocker les variations et les dates pour l'analyse ultérieure
             variations.push({ date: hourStartDate, variation: hourlyVariation });
         }
+        
 
         // Ajouter la cellule pour afficher le total de variation
         const totalCell = document.createElement('td');
