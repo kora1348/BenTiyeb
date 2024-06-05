@@ -27,8 +27,9 @@ async function fetchCryptoData(symbol) {
             const variationCell = document.createElement('td');
             const variationValue = hourlyVariation.toFixed(2);
             const hourStartDate = new Date(data[i][0]);
+            const formattedDate = `${hourStartDate.toLocaleDateString("fr-FR")} (${hourStartDate.toLocaleTimeString("fr-FR")})`;
 
-            variationCell.textContent = `${hourStartDate.toLocaleTimeString("fr-FR")}: ${variationValue}%`;
+            variationCell.textContent = `${formattedDate}: ${variationValue}%`;
 
             // Ajouter la classe "positive" ou "negative" en fonction de la variation horaire
             if (hourlyVariation > 0) {
