@@ -68,10 +68,10 @@ async function fetchCryptoData(symbol) {
         const top1 = variations[0];
         const top2 = variations[1];
 
-        // Calculer le nombre d'intervalles entre les deux dates
-        const interval1 = variations.findIndex(v => v.date.getTime() === top1.date.getTime());
-        const interval2 = variations.findIndex(v => v.date.getTime() === top2.date.getTime());
-        const nombreIntervalles = Math.abs(interval1 - interval2);
+        // Calculer le nombre d'intervalles (bougies) entre les deux dates
+        const interval1 = data.findIndex(d => new Date(d[0]).getTime() === top1.date.getTime());
+        const interval2 = data.findIndex(d => new Date(d[0]).getTime() === top2.date.getTime());
+        const nombreIntervalles = Math.abs(interval1 - interval2) - 1;
 
         // Ajout des informations spécifiques pour ETH
         if (symbol === 'ETH') {
@@ -88,7 +88,6 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
-
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
 	var maintenant = new Date();
