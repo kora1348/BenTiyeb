@@ -13,7 +13,6 @@ async function fetchCryptoData(symbol) {
 
         // Calcul du total des variations mensuelles
         let totalVariation = 0;
-        let variations = [];
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
@@ -34,9 +33,6 @@ async function fetchCryptoData(symbol) {
 
             cryptoRow.appendChild(variationCell);
             totalVariation += monthlyVariation; // Ajouter la variation mensuelle au total
-
-            // Stocker les variations et les dates pour l'analyse ultérieure
-            variations.push({ date: monthStartDate, variation: monthlyVariation });
         }
 
         // Ajouter la cellule pour afficher le total de variation
@@ -63,24 +59,6 @@ async function fetchCryptoData(symbol) {
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
         }
 
-        // Trouver les deux plus grandes variations
-        variations.sort((a, b) => b.variation - a.variation);
-        const top1 = variations[0];
-        const top2 = variations[1];
-
-        // Calculer le nombre d'intervalles entre les deux dates
-        const interval1 = variations.findIndex(v => v.date.getTime() === top1.date.getTime());
-        const interval2 = variations.findIndex(v => v.date.getTime() === top2.date.getTime());
-        const nombreIntervalles = Math.abs(interval1 - interval2);
-
-        // Ajout des informations spécifiques pour ETH
-        if (symbol === 'ETH') {
-            const cryptoList = document.getElementById('cryptoList');
-            const cryptoInfo = `ETH : ${top1.variation.toFixed(2)}% (${top1.date.toLocaleDateString("fr-FR")}) - ${top2.variation.toFixed(2)}% (${top2.date.toLocaleDateString("fr-FR")}) = ${nombreIntervalles}`;
-
-            cryptoList.textContent = cryptoInfo;
-        }
-
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -88,6 +66,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
