@@ -67,8 +67,15 @@ async function fetchCryptoData(symbol) {
 
         // Trouver les deux plus grandes variations
         variations.sort((a, b) => b.variation - a.variation);
-        const top1 = variations[0];
-        const top2 = variations[1];
+        let top1, top2;
+
+        for (let i = 0; i < variations.length - 1; i++) {
+            if (variations[i + 1].date.getTime() < variations[i].date.getTime()) {
+                top1 = variations[i];
+                top2 = variations[i + 1];
+                break;
+            }
+        }
 
         // Calculer le nombre d'intervalles (bougies) entre les deux dates
         const interval1 = data.findIndex(d => new Date(d[0]).getTime() === top1.date.getTime());
