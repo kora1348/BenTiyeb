@@ -28,23 +28,23 @@ async function fetchCryptoData(symbol) {
             const variationValue = hourlyVariation.toFixed(2);
             const hourStartDate = new Date(data[i][0]);
             const formattedDate = `${hourStartDate.toLocaleDateString("fr-FR")} (${hourStartDate.toLocaleTimeString("fr-FR")})`;
-        
+
             variationCell.textContent = `${formattedDate}: ${variationValue}%`;
-        
+
             // Ajouter la classe "positive" ou "negative" en fonction de la variation horaire
             if (hourlyVariation > 0) {
                 variationCell.classList.add("positive");
             } else if (hourlyVariation < 0) {
                 variationCell.classList.add("negative");
             }
-        
+
             cryptoRow.appendChild(variationCell);
             totalVariation += hourlyVariation; // Ajouter la variation horaire au total
-        
+
             // Stocker les variations et les dates pour l'analyse ultérieure
             variations.push({ date: hourStartDate, variation: hourlyVariation });
         }
-        
+
 
         // Ajouter la cellule pour afficher le total de variation
         const totalCell = document.createElement('td');
@@ -80,9 +80,17 @@ async function fetchCryptoData(symbol) {
         const interval2 = data.findIndex(d => new Date(d[0]).getTime() === top2.date.getTime());
         const nombreIntervalles = Math.abs(interval1 - interval2) - 1;
 
+        // Vérifier si l'heure la plus grande fait partie de l'heure courante
+        const isTopHourCurrent = top1.date.getHours() === currentHour || top2.date.getHours() === currentHour;
+
         // Ajouter les informations spécifiques pour chaque crypto
         const cryptoList = document.getElementById('cryptoList');
-        const cryptoInfo = `${symbol} : ${top1.variation.toFixed(2)}% (${top1.date.toLocaleTimeString("fr-FR")}) - ${top2.variation.toFixed(2)}% (${top2.date.toLocaleTimeString("fr-FR")}) = ${nombreIntervalles}`;
+        let cryptoInfo = `${symbol} : ${top1.variation.toFixed(2)}% (${top1.date.toLocaleTimeString("fr-FR")}) - ${top2.variation.toFixed(2)}% (${top2.date.toLocaleTimeString("fr-FR")}) = ${nombreIntervalles}`;
+
+        // Si l'heure la plus grande fait partie de l'heure courante, ajoutez la classe "positive"
+        if (isTopHourCurrent) {
+            cryptoInfo = `<span class="positive">${cryptoInfo}</span>`;
+        }
 
         cryptoList.innerHTML += `<p>${cryptoInfo}</p>`;
 
