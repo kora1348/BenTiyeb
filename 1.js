@@ -80,15 +80,15 @@ async function fetchCryptoData(symbol) {
         const interval2 = data.findIndex(d => new Date(d[0]).getTime() === top2.date.getTime());
         const nombreIntervalles = Math.abs(interval1 - interval2) - 1;
 
-        // Vérifier si l'heure la plus grande fait partie de l'heure courante
-        const isTopHourCurrent = top1.date.getHours() === currentHour || top2.date.getHours() === currentHour;
+        // Vérifier si l'heure la plus grande du premier intervalle fait partie de l'heure courante
+        const isFirstTopHourCurrent = top1.date.getHours() === currentHour;
 
         // Ajouter les informations spécifiques pour chaque crypto
         const cryptoList = document.getElementById('cryptoList');
         let cryptoInfo = `${symbol} : ${top1.variation.toFixed(2)}% (${top1.date.toLocaleTimeString("fr-FR")}) - ${top2.variation.toFixed(2)}% (${top2.date.toLocaleTimeString("fr-FR")}) = ${nombreIntervalles}`;
 
-        // Si l'heure la plus grande fait partie de l'heure courante, ajoutez la classe "positive"
-        if (isTopHourCurrent) {
+        // Si l'heure la plus grande du premier intervalle fait partie de l'heure courante, ajoutez la classe "positive"
+        if (isFirstTopHourCurrent) {
             cryptoInfo = `<span class="positive">${cryptoInfo}</span>`;
         }
 
@@ -101,6 +101,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 
 // Liste des cryptos
