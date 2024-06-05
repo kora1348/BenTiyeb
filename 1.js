@@ -64,11 +64,6 @@ async function fetchCryptoData(symbol) {
         // Ajouter la ligne au tableau
         document.getElementById('cryptoData').appendChild(cryptoRow);
 
-        // Mise à jour du status
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-        if (totalVariation <= -0.01) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-        }
 
         // Trouver les deux plus grandes variations
         variations.sort((a, b) => b.variation - a.variation);
