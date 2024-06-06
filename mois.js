@@ -5,6 +5,12 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
 
+        // Obtenez l'année en cours
+        const currentYear = new Date().getFullYear();
+
+        // Filtrer les données pour l'année en cours
+        const currentYearData = data.filter(d => new Date(d[0]).getFullYear() === currentYear);
+
         // Création d'une nouvelle ligne pour la crypto
         const cryptoRow = document.createElement('tr');
         const cryptoCell = document.createElement('td');
@@ -15,13 +21,13 @@ async function fetchCryptoData(symbol) {
         let totalVariation = 0;
         let variations = [];
 
-        for (let i = 0; i < data.length; i++) {
-            const openPrice = parseFloat(data[i][1]);
-            const closePrice = parseFloat(data[i][4]);
+        for (let i = 0; i < currentYearData.length; i++) {
+            const openPrice = parseFloat(currentYearData[i][1]);
+            const closePrice = parseFloat(currentYearData[i][4]);
             const monthlyVariation = ((closePrice - openPrice) / openPrice) * 100;
             const variationCell = document.createElement('td');
             const variationValue = monthlyVariation.toFixed(2);
-            const monthStartDate = new Date(data[i][0]);
+            const monthStartDate = new Date(currentYearData[i][0]);
 
             variationCell.textContent = `${monthStartDate.toLocaleDateString("fr-FR")}: ${variationValue}%`;
 
@@ -69,8 +75,8 @@ async function fetchCryptoData(symbol) {
         const top2 = variations[1];
 
         // Calculer le nombre d'intervalles (bougies) entre les deux dates
-        const interval1 = data.findIndex(d => new Date(d[0]).getTime() === top1.date.getTime());
-        const interval2 = data.findIndex(d => new Date(d[0]).getTime() === top2.date.getTime());
+        const interval1 = currentYearData.findIndex(d => new Date(d[0]).getTime() === top1.date.getTime());
+        const interval2 = currentYearData.findIndex(d => new Date(d[0]).getTime() === top2.date.getTime());
         const nombreIntervalles = Math.abs(interval1 - interval2) - 1;
 
         // Ajouter les informations spécifiques pour chaque crypto
@@ -97,6 +103,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 
 
