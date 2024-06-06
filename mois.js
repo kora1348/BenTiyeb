@@ -15,10 +15,6 @@ async function fetchCryptoData(symbol) {
         let totalVariation = 0;
         let variations = [];
 
-        // Obtenir la date actuelle
-        const currentDate = new Date();
-
-        // Récupérer les données de variation pour les périodes disponibles
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
@@ -26,9 +22,8 @@ async function fetchCryptoData(symbol) {
             const variationCell = document.createElement('td');
             const variationValue = monthlyVariation.toFixed(2);
             const monthStartDate = new Date(data[i][0]);
-            const formattedDate = monthStartDate.toLocaleDateString("fr-FR");
 
-            variationCell.textContent = `${formattedDate}: ${variationValue}%`;
+            variationCell.textContent = `${monthStartDate.toLocaleDateString("fr-FR")}: ${variationValue}%`;
 
             // Ajouter la classe "positive" ou "negative" en fonction de la variation mensuelle
             if (monthlyVariation > 0) {
@@ -62,10 +57,16 @@ async function fetchCryptoData(symbol) {
         // Ajouter la ligne au tableau
         document.getElementById('cryptoData').appendChild(cryptoRow);
 
+        // Mise à jour du status
+        const cryptoNamesElement = document.getElementById('cryptoNames');
+        if (totalVariation <= -0.01) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+        }
+
         // Trouver les deux plus grandes variations
         variations.sort((a, b) => b.variation - a.variation);
-        let top1 = variations[0];
-        let top2 = variations[1];
+        const top1 = variations[0];
+        const top2 = variations[1];
 
         // Calculer le nombre d'intervalles (bougies) entre les deux dates
         const interval1 = data.findIndex(d => new Date(d[0]).getTime() === top1.date.getTime());
@@ -74,11 +75,17 @@ async function fetchCryptoData(symbol) {
 
         // Ajouter les informations spécifiques pour chaque crypto
         const cryptoList = document.getElementById('cryptoList');
+        const tradingList = document.getElementById('trading');
         let cryptoInfo = `${symbol} : ${top1.variation.toFixed(2)}% (${top1.date.toLocaleDateString("fr-FR")}) - ${top2.variation.toFixed(2)}% (${top2.date.toLocaleDateString("fr-FR")}) = ${nombreIntervalles}`;
 
-        // Si le taux de variation le plus grand pour la date courante est supérieur à celui du second taux de variation le plus grand, ajoutez la classe "positive"
-        if (top1.date.getFullYear() === currentDate.getFullYear() && top1.date.getMonth() === currentDate.getMonth() && top1.variation > top2.variation) {
+        // Ajouter à trading si la condition est remplie
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const isFirstTopMonthCurrent = top1.date.getMonth() === currentMonth;
+
+        if (isFirstTopMonthCurrent) {
             cryptoInfo = `<span class="positive">${cryptoInfo}</span>`;
+            tradingList.innerHTML += `<p>${cryptoInfo}</p>`;
         }
 
         cryptoList.innerHTML += `<p>${cryptoInfo}</p>`;
