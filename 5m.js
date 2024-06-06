@@ -64,15 +64,8 @@ async function fetchCryptoData(symbol) {
 
         // Trouver les deux plus grandes variations
         variations.sort((a, b) => b.variation - a.variation);
-        let top1, top2;
-
-        for (let i = 0; i < variations.length - 1; i++) {
-            if (variations[i + 1].date.getTime() < variations[i].date.getTime()) {
-                top1 = variations[i];
-                top2 = variations[i + 1];
-                break;
-            }
-        }
+        let top1 = variations[0];
+        let top2 = variations[1];
 
         // Calculer le nombre d'intervalles (bougies) entre les deux dates
         const interval1 = data.findIndex(d => new Date(d[0]).getTime() === top1.date.getTime());
@@ -82,6 +75,11 @@ async function fetchCryptoData(symbol) {
         // Ajouter les informations spécifiques pour chaque crypto
         const cryptoList = document.getElementById('cryptoList');
         let cryptoInfo = `${symbol} : ${top1.variation.toFixed(2)}% (${top1.date.toLocaleDateString("fr-FR")}) - ${top2.variation.toFixed(2)}% (${top2.date.toLocaleDateString("fr-FR")}) = ${nombreIntervalles}`;
+
+        // Si le taux de variation le plus grand pour la date courante est supérieur à celui du second taux de variation le plus grand, ajoutez la classe "positive"
+        if (top1.date.getFullYear() === currentDate.getFullYear() && top1.date.getMonth() === currentDate.getMonth() && top1.variation > top2.variation) {
+            cryptoInfo = `<span class="positive">${cryptoInfo}</span>`;
+        }
 
         cryptoList.innerHTML += `<p>${cryptoInfo}</p>`;
 
