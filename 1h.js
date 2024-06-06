@@ -23,7 +23,7 @@ async function fetchCryptoData(symbol) {
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
-            const hourlyVariation = ((closePrice - openPrice) / openPrice) * 100; // Utilisez hourlyVariation au lieu de monthlyVariation
+            const hourlyVariation = ((closePrice - openPrice) / openPrice) * 100;
             const variationCell = document.createElement('td');
             const variationValue = hourlyVariation.toFixed(2);
             const hourStartDate = new Date(data[i][0]);
@@ -31,7 +31,6 @@ async function fetchCryptoData(symbol) {
 
             variationCell.textContent = `${formattedDate}: ${variationValue}%`;
 
-            // Ajouter la classe "positive" ou "negative" en fonction de la variation horaire
             if (hourlyVariation > 0) {
                 variationCell.classList.add("positive");
             } else if (hourlyVariation < 0) {
@@ -39,20 +38,15 @@ async function fetchCryptoData(symbol) {
             }
 
             cryptoRow.appendChild(variationCell);
-            totalVariation += hourlyVariation; // Ajouter la variation horaire au total
-
-            // Stocker les variations et les dates pour l'analyse ultérieure
+            totalVariation += hourlyVariation;
             variations.push({ date: hourStartDate, variation: hourlyVariation });
         }
 
-
-        // Ajouter la cellule pour afficher le total de variation
         const totalCell = document.createElement('td');
         const totalValue = totalVariation.toFixed(2);
         totalCell.style.textAlign = 'center';
         totalCell.textContent = `${totalValue}%`;
 
-        // Ajouter la classe "positive" ou "negative" pour le total
         if (totalVariation > 0) {
             totalCell.classList.add("positive");
         } else if (totalVariation < 0) {
@@ -60,12 +54,8 @@ async function fetchCryptoData(symbol) {
         }
 
         cryptoRow.appendChild(totalCell);
-
-        // Ajouter la ligne au tableau
         document.getElementById('cryptoData').appendChild(cryptoRow);
 
-
-        // Trouver les deux plus grandes variations
         variations.sort((a, b) => b.variation - a.variation);
         let top1, top2;
 
@@ -77,21 +67,18 @@ async function fetchCryptoData(symbol) {
             }
         }
 
-        // Calculer le nombre d'intervalles (bougies) entre les deux dates
         const interval1 = data.findIndex(d => new Date(d[0]).getTime() === top1.date.getTime());
         const interval2 = data.findIndex(d => new Date(d[0]).getTime() === top2.date.getTime());
         const nombreIntervalles = Math.abs(interval1 - interval2) - 1;
-
-        // Vérifier si l'heure la plus grande du premier intervalle fait partie de l'heure courante
         const isFirstTopHourCurrent = top1.date.getHours() === currentHour;
 
-        // Ajouter les informations spécifiques pour chaque crypto
         const cryptoList = document.getElementById('cryptoList');
+        const tradingList = document.getElementById('trading');
         let cryptoInfo = `${symbol} : ${top1.variation.toFixed(2)}% (${top1.date.toLocaleTimeString("fr-FR")}) - ${top2.variation.toFixed(2)}% (${top2.date.toLocaleTimeString("fr-FR")}) = ${nombreIntervalles}`;
 
-        // Si l'heure la plus grande du premier intervalle fait partie de l'heure courante, ajoutez la classe "positive"
         if (isFirstTopHourCurrent) {
             cryptoInfo = `<span class="positive">${cryptoInfo}</span>`;
+            tradingList.innerHTML += `<p>${cryptoInfo}</p>`;
         }
 
         cryptoList.innerHTML += `<p>${cryptoInfo}</p>`;
