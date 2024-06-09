@@ -11,7 +11,7 @@ function calculateChange(current, previous) {
 }
 
 async function updateCryptoRow(symbol) {
-    const intervals = ['1m', '3m', '5m', '15m', '30m', '1h'];
+    const intervals = ['5m', '15m', '30m', '1h'];
     const row = document.getElementById(symbol);
 
     let totalChange = 0;
@@ -21,11 +21,23 @@ async function updateCryptoRow(symbol) {
         const currentClose = parseFloat(data[1][4]);
         const previousClose = parseFloat(data[0][4]);
         const change = calculateChange(currentClose, previousClose);
-        row.insertCell().innerText = change.toFixed(2) + '%';
+        const cell = row.insertCell();
+        cell.innerText = change.toFixed(2) + '%';
+        if (change > 0) {
+            cell.classList.add('positive');
+        } else if (change < 0) {
+            cell.classList.add('negative');
+        }
         totalChange += change;
     }
 
-    row.insertCell().innerText = totalChange.toFixed(2) + '%';
+    const totalCell = row.insertCell();
+    totalCell.innerText = totalChange.toFixed(2) + '%';
+    if (totalChange > 0) {
+        totalCell.classList.add('positive');
+    } else if (totalChange < 0) {
+        totalCell.classList.add('negative');
+    }
 }
 
 async function updateAllCryptoRows() {
