@@ -11,7 +11,7 @@ function calculateChange(current, previous) {
 }
 
 async function updateCryptoRow(symbol) {
-    const intervals = ['5m', '15m', '30m', '1h'];
+    const intervals = ['1d', '3d', '1w', '1M'];
     const row = document.getElementById(symbol);
 
     let totalChange = 0;
