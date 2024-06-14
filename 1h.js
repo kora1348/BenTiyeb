@@ -33,11 +33,24 @@ async function updateCryptoRow(symbol) {
 
     const totalCell = row.insertCell();
     totalCell.innerText = totalChange.toFixed(2) + '%';
+
+    const cryptoNamesElement = document.getElementById('cryptoNames');
+
     if (totalChange > 0) {
         totalCell.classList.add('positive');
     } else if (totalChange < 0) {
         totalCell.classList.add('negative');
     }
+
+        if (totalChange >= -59.99 && totalChange <= -50.00) {
+            totalCell.classList.add("negative");
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalChange.toFixed(2)}%</p>`;
+        }
+    
+
+  
+
+    
 }
 
 async function updateAllCryptoRows() {
