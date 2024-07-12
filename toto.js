@@ -29,11 +29,18 @@ async function fetchCryptoData(symbol) {
             const weekStartDate = new Date(data[i][0]);
             const weekEndDate = new Date(data[i][6]);
             const optionsTime = { hour: "numeric", minute: "numeric" };
+            const optionsDate = { day: "numeric", month: "numeric", year: "numeric" };
 
-            variationCell.textContent = `${weekStartDate.toLocaleTimeString(
+            variationCell.textContent = `${weekStartDate.toLocaleDateString(
+                "fr-FR",
+                optionsDate
+            )} ${weekStartDate.toLocaleTimeString(
                 "fr-FR",
                 optionsTime
-            )} - ${weekEndDate.toLocaleTimeString(
+            )} - ${weekEndDate.toLocaleDateString(
+                "fr-FR",
+                optionsDate
+            )} ${weekEndDate.toLocaleTimeString(
                 "fr-FR",
                 optionsTime
             )}: ${variationValue}%`;
