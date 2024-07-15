@@ -360,3 +360,22 @@ function mettreAJourHeure() {
 
 // Appeler la fonction pour mettre à jour l'heure
 mettreAJourHeure();
+
+// Fonction pour générer une heure aléatoire entre 08:00 et 23:59 avec des minutes multiples de 3
+function getRandomTime() {
+    const startHour = 8;  // 08:00
+    const endHour = 23;   // 23:59
+
+    const randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
+    const randomMinute = Math.floor(Math.random() * 20) * 3;  // Minutes: 0, 3, 6, ..., 57
+
+    const formattedHour = String(randomHour).padStart(2, '0');
+    const formattedMinute = String(randomMinute).padStart(2, '0');
+
+    return `${formattedHour}h${formattedMinute}`;
+}
+
+// Afficher trois heures aléatoires
+document.getElementById('hour1').innerText = getRandomTime();
+document.getElementById('hour2').innerText = getRandomTime();
+document.getElementById('hour3').innerText = getRandomTime();
