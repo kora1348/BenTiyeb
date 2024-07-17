@@ -375,8 +375,28 @@ function getRandomTime() {
     return `${formattedHour}h${formattedMinute}`;
 }
 
-// Afficher trois heures aléatoires
-document.getElementById('hour1').innerText = getRandomTime();
-document.getElementById('hour2').innerText = getRandomTime();
-document.getElementById('hour3').innerText = getRandomTime();
-document.getElementById('hour4').innerText = getRandomTime();
+function generateSortedRandomTimes(count) {
+    const times = [];
+
+    // Générer 'count' heures aléatoires
+    for (let i = 0; i < count; i++) {
+        times.push(getRandomTime());
+    }
+
+    // Convertir les heures en minutes pour trier
+    times.sort((a, b) => {
+        const [hoursA, minutesA] = a.split('h').map(Number);
+        const [hoursB, minutesB] = b.split('h').map(Number);
+
+        return (hoursA * 60 + minutesA) - (hoursB * 60 + minutesB);
+    });
+
+    return times;
+}
+
+// Afficher quatre heures aléatoires triées
+const sortedTimes = generateSortedRandomTimes(4);
+document.getElementById('hour1').innerText = sortedTimes[0];
+document.getElementById('hour2').innerText = sortedTimes[1];
+document.getElementById('hour3').innerText = sortedTimes[2];
+document.getElementById('hour4').innerText = sortedTimes[3];
