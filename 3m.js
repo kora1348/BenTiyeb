@@ -379,3 +379,4 @@ function getRandomTime() {
 document.getElementById('hour1').innerText = getRandomTime();
 document.getElementById('hour2').innerText = getRandomTime();
 document.getElementById('hour3').innerText = getRandomTime();
+document.getElementById('hour4').innerText = getRandomTime();
