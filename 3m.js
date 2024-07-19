@@ -398,5 +398,4 @@ function generateSortedRandomTimes(count) {
 const sortedTimes = generateSortedRandomTimes(4);
 document.getElementById('hour1').innerText = sortedTimes[0];
 document.getElementById('hour2').innerText = sortedTimes[1];
-document.getElementById('hour3').innerText = sortedTimes[2];
-document.getElementById('hour4').innerText = sortedTimes[3];
+
