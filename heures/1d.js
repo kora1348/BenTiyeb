@@ -58,7 +58,7 @@ async function findBestCrypto() {
         "SLP", "SNT", "SNX", "SOL", "SPELL", "SSV", "STEEM", "STG", "STMX", 
         "STORJ", "STPT", "STRAX", "STRK", "STX", "SUI", "SUPER", "SUSHI", 
         "SXP", "THETA", "TIA", "TLM", "TRB", "TRU", "TRX", "T", "TWT", 
-        "UMA", "UNFI", "UNI", "USDC", "USTC", "USDT", "VET", "WAVES", 
+        "UMA", "UNFI", "UNI", "USDC", "USTC", "USDT", "VET", 
         "WAXP", "WIF", "WLD", "WOO", "XEM", "XLM", "XRP", "XTZ", "XVG", 
         "XVS", "YFI", "YGG", "ZEC", "ZEN", "ZIL", "ZRX"
     ]; // Liste des symboles des cryptomonnaies
