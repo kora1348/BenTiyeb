@@ -1,73 +1,82 @@
 async function fetchCryptoData(symbol) {
-    try {
-        const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&limit=6`
-        );
-        const data = await response.json();
+  try {
+      const response = await fetch(
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=1`
+      );
+      const data = await response.json();
 
-        let totalVariation = 0;
-        const cryptoRow = document.getElementById(symbol);
-        let allPositive = true;  // Initialiser une variable pour vérifier si toutes les variations sont positives
+      // Calcul du total des taux de variation sur 3 semaines
+      let totalVariation = 0;
 
-        for (let i = 0; i < data.length; i++) {
-            const openPrice = parseFloat(data[i][1]);
-            const closePrice = parseFloat(data[i][4]);
-            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1;
+      // Mise à jour du tableau avec les données et la couleur
+      const cryptoRow = document.getElementById(symbol);
 
-            const variationCell = cryptoRow.insertCell(cellIndex);
-            const variationValue = weeklyVariation.toFixed(2);
-            const weekStartDate = new Date(data[i][0]);
-            const weekEndDate = new Date(data[i][6]);
-            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-            const optionsEnd = { hour: "numeric", minute: "numeric" };
-            variationCell.textContent = `${weekStartDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+      for (let i = 0; i < data.length; i++) {
+          const openPrice = parseFloat(data[i][1]);
+          const closePrice = parseFloat(data[i][4]);
+          const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+          const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
 
-            if (weeklyVariation > 0) {
-                variationCell.classList.add("positive");
-            } else {
-                allPositive = false;  // Si une variation est négative ou nulle, allPositive devient faux
-                variationCell.classList.add("negative");
-            }
+          const variationCell = cryptoRow.insertCell(cellIndex);
+          const variationValue = weeklyVariation.toFixed(2);
+          const weekStartDate = new Date(data[i][0]);
+          const weekEndDate = new Date(data[i][6]);
+          const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+          const optionsEnd = { hour: "numeric", minute: "numeric" };
+          variationCell.textContent = `${weekStartDate.toLocaleDateString(
+              "fr-FR",
+              optionsStart
+          )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
+              "fr-FR",
+              optionsStart
+          )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
 
-            totalVariation += weeklyVariation;
-        }
+          // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
+          if (weeklyVariation > 0) {
+              variationCell.classList.add("positive");
+          } else if (weeklyVariation < 0) {
+              variationCell.classList.add("negative");
+          }
 
-        const totalCell = cryptoRow.insertCell(data.length + 1);
-        const totalValue = totalVariation.toFixed(2);
-        totalCell.style.textAlign = 'center';
+          totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
+      }
 
-        const cryptoNamesElement = document.getElementById('cryptoNames');
+      // Ajouter la cellule pour afficher le total de variation
+      const totalCell = cryptoRow.insertCell(data.length + 1);
+      const totalValue = totalVariation.toFixed(2);
+      totalCell.style.textAlign = 'center';
 
-        // Si toutes les variations sont positives
-        if (allPositive) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORTH, ${totalValue}%</p>`;
-        } 
+      const cryptoNamesElement = document.getElementById('cryptoNames');
 
-        if (totalVariation < 0) {
-            totalCell.classList.add("negative");
-        }
+      // Ajouter la classe "positive" pour le total dans la plage spécifiée
+      if (totalVariation >= -0.59 && totalVariation <= -0.40) {
+          totalCell.classList.add("positive");
+          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+      }
 
-        if (totalVariation > 0) {
-            totalCell.classList.add("positive");
-        }
-
-        totalCell.textContent = `${totalValue}%`;
-
-    } catch (error) {
-        console.error(
-            `Erreur lors de la récupération des données pour ${symbol}:`,
-            error
-        );
+      if (totalVariation >= 0.40 && totalVariation <= 0.59) {
+        totalCell.classList.add("negative");
+        cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORTH, ${totalValue}%</p>`;
     }
-}
 
+      if(totalVariation < 0){
+        totalCell.classList.add("negative");
+      }
+
+      if(totalVariation > 0){
+        totalCell.classList.add("positive");
+      }
+      
+      totalCell.textContent = `${totalValue}%`;
+
+  } catch (error) {
+      console.error(
+          `Erreur lors de la récupération des données pour ${symbol}:`,
+          error
+      );
+  }
+}
+  
   // Appel de la fonction pour obtenir les taux de variation des cryptos
 
   fetchCryptoData("1INCH");
@@ -351,4 +360,32 @@ function mettreAJourHeure() {
 
 // Appeler la fonction pour mettre à jour l'heure
 mettreAJourHeure();
+
+function getRandomTime() {
+    const startHour = 8;  // 08:00
+    const endHour = 23;   // 23:59
+    const currentDate = new Date();
+    const currentHour = currentDate.getHours();
+    const currentMinute = currentDate.getMinutes();
+
+    let randomHour, randomMinute;
+
+    if (currentHour >= startHour && currentHour <= endHour) {
+        randomHour = Math.floor(Math.random() * (endHour - currentHour + 1)) + currentHour;
+        if (randomHour === currentHour) {
+            const remainingMinutes = Math.floor((60 - currentMinute) / 3);
+            randomMinute = Math.floor(Math.random() * remainingMinutes) * 3 + currentMinute;
+        } else {
+            randomMinute = Math.floor(Math.random() * 20) * 3;  // Minutes: 0, 3, 6, ..., 57
+        }
+    } else {
+        randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
+        randomMinute = Math.floor(Math.random() * 20) * 3;  // Minutes: 0, 3, 6, ..., 57
+    }
+
+    const formattedHour = String(randomHour).padStart(2, '0');
+    const formattedMinute = String(randomMinute).padStart(2, '0');
+
+    return `${formattedHour}h${formattedMinute}`;
+}
 
