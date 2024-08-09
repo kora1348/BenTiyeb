@@ -38,7 +38,7 @@ async function findBestCrypto() {
         "AR", "ARB", "ARK", "ARKM", "ARPA", "ASTR", "ATA", "ATOM", "AUCTION", 
         "AUDIO", "AVAX", "AXL", "AXS", "BADGER", "BAKE", "BAL", "BAND", "BAT", 
         "BCH", "BEAMX", "BEL", "BICO", "BLUR", "BLZ", "BNB", "BNT", "BNX", 
-        "BOME", "BOND", "BONK", "BTC", "C98", "CAKE", "CELO", "CELR", "CFX", 
+        "BOME", "BONK", "BTC", "C98", "CAKE", "CELO", "CELR", "CFX", 
         "CHR", "CHZ", "COMBO", "COMP", "COTI", "CRV", "CTK", "CTSI", "CVX", 
         "CYBER", "DAR", "DASH", "DENT", "DGB", "DOGE", "DOT", "DUSK", "DYM", 
         "DYDX", "EDU", "EGLD", "ENJ", "ENS", "EOS", "ETC", "ETH", "ETHFI", 
