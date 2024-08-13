@@ -51,12 +51,12 @@ async function fetchCryptoData(symbol) {
    
 
       // Ajouter la classe "positive" pour le total dans la plage spécifiée
-      if ( (totalVariation >= 5 && totalVariation <= 5.99) || (totalVariation >= 70.00 && totalVariation <= 79.99)) {
+      if ( (totalVariation >= 5 && totalVariation <= 5.99) || (totalVariation >= -79.99 && totalVariation <= -70.00) ) {
           totalCell.classList.add("positive");
           cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
       }
 
-      if ( (totalVariation >= -5.99 && totalVariation <= -5.00) || (totalVariation >= -79.99 && totalVariation <= -70.00)  ) {
+      if ( (totalVariation >= -5.99 && totalVariation <= -5.00) || (totalVariation >= 70.00 && totalVariation <= 79.99)  ) {
         totalCell.classList.add("negative");
         cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SORTH, ${totalValue}%</p>`;
     }
