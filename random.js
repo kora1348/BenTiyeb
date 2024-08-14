@@ -91,32 +91,33 @@ document.getElementById('minute2').innerText = sortedTimes[1];
 
 ////////////////////////////////////
 
-function getRandomTimeHeures() {
-    const startHour = 8;  // 08:00
-    const endHour = 23;   // 23:59
+function getRandomTimeHeures(previousHour = null) {
+    const startHour = previousHour !== null ? previousHour + 1 : 8;  // Départ à l'heure suivante
+    const endHour = 23;  // 23:59
     const currentDate = new Date();
     const currentHour = currentDate.getHours();
 
     let randomHour;
 
-    if (currentHour >= startHour && currentHour <= endHour) {
+    // Si l'heure actuelle est avant la plage (08h00-23h00), on commence à 08h00
+    if (currentHour < startHour) {
+        randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
+    } else if (currentHour >= startHour && currentHour <= endHour) {
         randomHour = Math.floor(Math.random() * (endHour - currentHour + 1)) + currentHour;
     } else {
         randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
     }
 
-    const formattedHour = String(randomHour).padStart(2, '0');
-
-    return `${formattedHour}h00`;
+    return randomHour;
 }
 
-// Fonction d'affichage des heures aléatoires
+// Fonction d'affichage des heures aléatoires triées
 function displayRandomHours() {
     const hour1 = getRandomTimeHeures();
-    const hour2 = getRandomTimeHeures();
+    const hour2 = getRandomTimeHeures(hour1);
 
-    document.getElementById('hour1').innerText = hour1;
-    document.getElementById('hour2').innerText = hour2;
+    document.getElementById('hour1').innerText = `${String(hour1).padStart(2, '0')}h00`;
+    document.getElementById('hour2').innerText = `${String(hour2).padStart(2, '0')}h00`;
 }
 
 // Appel de la fonction pour afficher les heures
