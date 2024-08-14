@@ -89,56 +89,35 @@ document.getElementById('minute1').innerText = sortedTimes[0];
 document.getElementById('minute2').innerText = sortedTimes[1];
 
 
+////////////////////////////////////
 
 function getRandomTimeHeures() {
     const startHour = 8;  // 08:00
     const endHour = 23;   // 23:59
     const currentDate = new Date();
     const currentHour = currentDate.getHours();
-    const currentMinute = currentDate.getMinutes();
 
-    let randomHour, randomMinute;
+    let randomHour;
 
     if (currentHour >= startHour && currentHour <= endHour) {
         randomHour = Math.floor(Math.random() * (endHour - currentHour + 1)) + currentHour;
-        if (randomHour === currentHour) {
-            const remainingMinutes = Math.floor((60 - currentMinute) / 3);
-            randomMinute = Math.floor(Math.random() * remainingMinutes) * 3 + currentMinute;
-        } else {
-            randomMinute = Math.floor(Math.random() * 20) * 3;  // Minutes: 0, 3, 6, ..., 57
-        }
     } else {
         randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
-        randomMinute = Math.floor(Math.random() * 20) * 3;  // Minutes: 0, 3, 6, ..., 57
     }
 
     const formattedHour = String(randomHour).padStart(2, '0');
-    const formattedMinute = String(randomMinute).padStart(2, '0');
 
-    return `${formattedHour}h${formattedMinute}`;
+    return `${formattedHour}h00`;
 }
 
-function generateSortedRandomTimes(count) {
-    const times = [];
+// Fonction d'affichage des heures aléatoires
+function displayRandomHours() {
+    const hour1 = getRandomTimeHeures();
+    const hour2 = getRandomTimeHeures();
 
-    // Générer 'count' heures aléatoires
-    for (let i = 0; i < count; i++) {
-        times.push(getRandomTime());
-    }
-
-    // Convertir les heures en minutes pour trier
-    times.sort((a, b) => {
-        const [hoursA, minutesA] = a.split('h').map(Number);
-        const [hoursB, minutesB] = b.split('h').map(Number);
-
-        return (hoursA * 60 + minutesA) - (hoursB * 60 + minutesB);
-    });
-
-    return times;
+    document.getElementById('hour1').innerText = hour1;
+    document.getElementById('hour2').innerText = hour2;
 }
 
-// Afficher quatre heures aléatoires triées
-const sortedTimesHeures = getRandomTimeHeures(2);
-document.getElementById('hour1').innerText = sortedTimes[0];
-document.getElementById('hour2').innerText = sortedTimes[1];
-
+// Appel de la fonction pour afficher les heures
+displayRandomHours();
