@@ -409,15 +409,7 @@ function generateSortedRandomTimes(count) {
 }
 
 // Afficher quatre heures aléatoires triées
-const sortedTimes = generateSortedRandomTimes(10);
+const sortedTimes = generateSortedRandomTimes(2);
 document.getElementById('hour1').innerText = sortedTimes[0];
 document.getElementById('hour2').innerText = sortedTimes[1];
-document.getElementById('hour3').innerText = sortedTimes[2];
-document.getElementById('hour4').innerText = sortedTimes[3];
-document.getElementById('hour5').innerText = sortedTimes[4];
-document.getElementById('hour6').innerText = sortedTimes[5];
-document.getElementById('hour7').innerText = sortedTimes[6];
-document.getElementById('hour8').innerText = sortedTimes[7];
-document.getElementById('hour9').innerText = sortedTimes[8];
-document.getElementById('hour10').innerText = sortedTimes[9];
 
