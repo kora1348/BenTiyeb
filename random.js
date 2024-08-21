@@ -36,40 +36,29 @@ function mettreAJourHeure() {
 // Appeler la fonction pour mettre à jour l'heure
 mettreAJourHeure();
 
-function getRandomTime() {
-    const startHour = 8;  // 08:00
-    const endHour = 23;   // 23:59
-    const currentDate = new Date();
-    const currentHour = currentDate.getHours();
-    const currentMinute = currentDate.getMinutes();
 
-    let randomHour, randomMinute;
+function getRandomTime(existingTimes) {
+    const startHour = 9;  // 09:00
+    const endHour = 24;   // 00:00
+    let randomHour, randomMinute, formattedTime;
 
-    if (currentHour >= startHour && currentHour <= endHour) {
-        randomHour = Math.floor(Math.random() * (endHour - currentHour + 1)) + currentHour;
-        if (randomHour === currentHour) {
-            const remainingMinutes = Math.floor((60 - currentMinute) / 3);
-            randomMinute = Math.floor(Math.random() * remainingMinutes) * 3 + currentMinute;
-        } else {
-            randomMinute = Math.floor(Math.random() * 20) * 3;  // Minutes: 0, 3, 6, ..., 57
-        }
-    } else {
-        randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
-        randomMinute = Math.floor(Math.random() * 20) * 3;  // Minutes: 0, 3, 6, ..., 57
-    }
+    do {
+        randomHour = Math.floor(Math.random() * (endHour - startHour)) + startHour;
+        randomMinute = Math.floor(Math.random() * 12) * 5;  // Minutes: 0, 5, 10, ..., 55
+        const formattedHour = String(randomHour).padStart(2, '0');
+        const formattedMinute = String(randomMinute).padStart(2, '0');
+        formattedTime = `${formattedHour}h${formattedMinute}`;
+    } while (existingTimes.includes(formattedTime));
 
-    const formattedHour = String(randomHour).padStart(2, '0');
-    const formattedMinute = String(randomMinute).padStart(2, '0');
-
-    return `${formattedHour}h${formattedMinute}`;
+    return formattedTime;
 }
 
 function generateSortedRandomTimes(count) {
     const times = [];
 
-    // Générer 'count' heures aléatoires
+    // Générer 'count' heures aléatoires sans doublons
     for (let i = 0; i < count; i++) {
-        times.push(getRandomTime());
+        times.push(getRandomTime(times));
     }
 
     // Convertir les heures en minutes pour trier
@@ -83,42 +72,10 @@ function generateSortedRandomTimes(count) {
     return times;
 }
 
-// Afficher quatre heures aléatoires triées
-const sortedTimes = generateSortedRandomTimes(2);
-document.getElementById('minute1').innerText = sortedTimes[0];
-document.getElementById('minute2').innerText = sortedTimes[1];
-
-
-////////////////////////////////////
-
-function getRandomTimeHeures(previousHour = null) {
-    const startHour = previousHour !== null ? previousHour + 1 : 8;  // Départ à l'heure suivante
-    const endHour = 23;  // 23:59
-    const currentDate = new Date();
-    const currentHour = currentDate.getHours();
-
-    let randomHour;
-
-    // Si l'heure actuelle est avant la plage (08h00-23h00), on commence à 08h00
-    if (currentHour < startHour) {
-        randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
-    } else if (currentHour >= startHour && currentHour <= endHour) {
-        randomHour = Math.floor(Math.random() * (endHour - currentHour + 1)) + currentHour;
-    } else {
-        randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
-    }
-
-    return randomHour;
-}
-
-// Fonction d'affichage des heures aléatoires triées
-function displayRandomHours() {
-    const hour1 = getRandomTimeHeures();
-    const hour2 = getRandomTimeHeures(hour1);
-
-    document.getElementById('hour1').innerText = `${String(hour1).padStart(2, '0')}h00`;
-    document.getElementById('hour2').innerText = `${String(hour2).padStart(2, '0')}h00`;
-}
-
-// Appel de la fonction pour afficher les heures
-displayRandomHours();
+// Afficher cinq heures aléatoires triées
+const sortedTimes = generateSortedRandomTimes(5);
+document.getElementById('hour1').innerText = sortedTimes[0];
+document.getElementById('hour2').innerText = sortedTimes[1];
+document.getElementById('hour3').innerText = sortedTimes[2];
+document.getElementById('hour4').innerText = sortedTimes[3];
+document.getElementById('hour5').innerText = sortedTimes[4];
