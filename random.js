@@ -1,81 +1,55 @@
+function getRandomHour(existingTimes, startHour, endHour) {
+    let randomHour, formattedTime;
+    let possibleHours = [];
 
-  
+    // Crée une liste des heures disponibles
+    for (let hour = startHour; hour < endHour; hour++) {
+        let formattedHour = `${String(hour).padStart(2, '0')}h00`;
+        if (!existingTimes.includes(formattedHour)) {
+            possibleHours.push(formattedHour);
+        }
+    }
 
-function mettreAJourHeure() {
-	var elementHeure = document.getElementById('heure');
-	var maintenant = new Date();
+    // Si aucune heure n'est disponible, retourne null
+    if (possibleHours.length === 0) {
+        return null;
+    }
 
-	// Créer une copie de l'heure actuelle
-	var heureActuelle = new Date(maintenant);
-
-	// Ajouter 3 heures et 20 minutes à l'heure actuelle
-	maintenant.setHours(maintenant.getHours() + 3);
-	maintenant.setMinutes(maintenant.getMinutes() + 20);
-
-	var heuresMaintenant = maintenant.getHours();
-	var minutesMaintenant = maintenant.getMinutes();
-	var secondesMaintenant = maintenant.getSeconds();
-
-	var heuresActuelle = heureActuelle.getHours();
-	var minutesActuelle = heureActuelle.getMinutes();
-	var secondesActuelle = heureActuelle.getSeconds();
-
-	// Ajouter un zéro devant les chiffres < 10
-	heuresMaintenant = heuresMaintenant < 10 ? '0' + heuresMaintenant : heuresMaintenant;
-	minutesMaintenant = minutesMaintenant < 10 ? '0' + minutesMaintenant : minutesMaintenant;
-	secondesMaintenant = secondesMaintenant < 10 ? '0' + secondesMaintenant : secondesMaintenant;
-
-	heuresActuelle = heuresActuelle < 10 ? '0' + heuresActuelle : heuresActuelle;
-	minutesActuelle = minutesActuelle < 10 ? '0' + minutesActuelle : minutesActuelle;
-	secondesActuelle = secondesActuelle < 10 ? '0' + secondesActuelle : secondesActuelle;
-
-	// Mettre à jour le contenu de l'élément avec les deux heures
-	elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle;
-}
-
-// Appeler la fonction pour mettre à jour l'heure
-mettreAJourHeure();
-
-
-function getRandomTime(existingTimes) {
-    const startHour = 9;  // 09:00
-    const endHour = 24;   // 00:00
-    let randomHour, randomMinute, formattedTime;
-
-    do {
-        randomHour = Math.floor(Math.random() * (endHour - startHour)) + startHour;
-        randomMinute = Math.floor(Math.random() * 12) * 5;  // Minutes: 0, 5, 10, ..., 55
-        const formattedHour = String(randomHour).padStart(2, '0');
-        const formattedMinute = String(randomMinute).padStart(2, '0');
-        formattedTime = `${formattedHour}h${formattedMinute}`;
-    } while (existingTimes.includes(formattedTime));
+    // Choisir une heure aléatoire parmi les heures disponibles
+    formattedTime = possibleHours[Math.floor(Math.random() * possibleHours.length)];
 
     return formattedTime;
 }
 
-function generateSortedRandomTimes(count) {
+function generateSortedRandomHours(count) {
     const times = [];
+    const currentHour = new Date().getHours(); // Heure actuelle
+    const startHour = Math.max(9, currentHour + 1);  // Commence à l'heure suivante ou à 09:00, selon ce qui est le plus tard
+    const endHour = 24;  // 24:00
 
-    // Générer 'count' heures aléatoires sans doublons
     for (let i = 0; i < count; i++) {
-        times.push(getRandomTime(times));
+        const newTime = getRandomHour(times, startHour, endHour);
+        if (newTime !== null) {
+            times.push(newTime);
+        } else {
+            break;
+        }
     }
 
-    // Convertir les heures en minutes pour trier
+    // Les heures sont déjà triées grâce à la méthode de génération
     times.sort((a, b) => {
-        const [hoursA, minutesA] = a.split('h').map(Number);
-        const [hoursB, minutesB] = b.split('h').map(Number);
-
-        return (hoursA * 60 + minutesA) - (hoursB * 60 + minutesB);
+        const hoursA = parseInt(a.split('h')[0], 10);
+        const hoursB = parseInt(b.split('h')[0], 10);
+        return hoursA - hoursB;
     });
 
     return times;
 }
 
 // Afficher cinq heures aléatoires triées
-const sortedTimes = generateSortedRandomTimes(5);
-document.getElementById('hour1').innerText = sortedTimes[0];
-document.getElementById('hour2').innerText = sortedTimes[1];
-document.getElementById('hour3').innerText = sortedTimes[2];
-document.getElementById('hour4').innerText = sortedTimes[3];
-document.getElementById('hour5').innerText = sortedTimes[4];
+const sortedTimes = generateSortedRandomHours(5);
+document.getElementById('hour1').innerText = sortedTimes[0] || 'N/A';
+document.getElementById('hour2').innerText = sortedTimes[1] || 'N/A';
+document.getElementById('hour3').innerText = sortedTimes[2] || 'N/A';
+document.getElementById('hour4').innerText = sortedTimes[3] || 'N/A';
+document.getElementById('hour5').innerText = sortedTimes[4] || 'N/A';
