@@ -72,32 +72,32 @@ const positiveCryptos = [];
   
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 const cryptos = [
-    "1INCH", "AAVE", "ACE", "ACH", "ADA", "AEVO", "AGIX", "AGLD", "ALGO", "ALICE",
-    "ALPHA", "ALT", "AMB", "ANKR", "ANT", "APE", "API3", "APT", "AR", "ARB",
-    "ARK", "ARKM", "ARPA", "ASTR", "ATA", "ATOM", "AUCTION", "AUDIO", "AVAX", "AXL",
-    "AXS", "BADGER", "BAKE", "BAL", "BAND", "BAT", "BCH", "BEAMX", "BEL", "BICO",
-    "BLUR", "BLZ", "BNB", "BNT", "BNX", "BOME", "BOND", "BONK", "BTC", "C98",
-    "CAKE", "CELO", "CELR", "CFX", "CHR", "CHZ", "COMBO", "COMP", "COTI", "CRV",
-    "CTK", "CTSI", "CVX", "CYBER", "DAR", "DASH", "DENT", "DGB", "DOGE", "DOT",
-    "DUSK", "DYM", "DYDX", "EDU", "EGLD", "ENJ", "ENS", "EOS", "ETC", "ETH",
-    "ETHFI", "FET", "FIL", "FLM", "FLOKI", "FLOW", "FRONT", "FTM", "FXS", "GALA",
-    "GAL", "GAS", "GLMR", "GMT", "GMX", "GRT", "GTC", "HBAR", "HFT", "HIFI",
-    "HIGH", "HOOK", "HOT", "ICP", "ICX", "IDEX", "ID", "ILV", "IMX", "INJ",
-    "IOST", "IOTA", "IOTX", "JASMY", "JOE", "JTO", "JUP", "KAVA", "KEY", "KLAY",
-    "KNC", "KSM", "LDO", "LEVER", "LINA", "LINK", "LIT", "LOOM", "LPT", "LQTY",
-    "LRC", "LSK", "LTC", "LUNC", "MAGIC", "MANTA", "MANA", "MASK", "MATIC", "MAV",
-    "MBL", "MDT", "MEME", "METIS", "MINA", "MKR", "MOVR", "MTL", "NEAR", "NEO",
-    "NFP", "NKN", "NMR", "NTRN", "OCEAN", "OGN", "OMG", "ONE", "ONDO", "ONG",
-    "ONT", "OP", "ORBS", "ORDI", "OXT", "PENDLE", "PEOPLE", "PEPE", "PERP", "PHB",
-    "PIXEL", "POLYX", "PORTAL", "POWR", "PYTH", "QNT", "QTUM", "RAD", "RDNT", "REEF",
-    "REN", "RLC", "RNDR", "RONIN", "ROSE", "RSR", "RUNE", "RVN", "SAND", "1000SATS",
-    "SEI", "SFP", "SHIB", "SKL", "SLP", "SNT", "SNX", "SOL", "SPELL", "SSV",
-    "STEEM", "STG", "STMX", "STORJ", "STPT", "STRAX", "STRK", "STX", "SUI", "SUPER",
-    "SUSHI", "SXP", "THETA", "TIA", "TLM", "TRB", "TRU", "TRX", "T", "TWT",
-    "UMA", "UNFI", "UNI", "USDC", "USTC", "USDT", "VET", "WAVES", "WAXP", "WIF",
-    "WLD", "WOO", "XEM", "XLM", "XRP", "XTZ", "XVG", "XVS", "YFI", "YGG",
-    "ZEC", "ZEN", "ZIL", "ZRX"
-  ];
+    "1INCH", "AAVE", "ACE", "ACH", "ADA", "AEVO", "AGLD", "AI", "ALGO",
+    "ALICE", "ALPACA", "ALPHA", "ALT", "AMB", "ANKR", "APE", "API3", "APT", "ARB",
+    "ARKM", "ARK", "ARPA", "AR", "ASTR", "ATA", "ATOM", "AUCTION", "AVAX", "AXL",
+    "AXS", "BADGER", "BAKE", "BAL", "BANANA", "BAND", "BAT", "BB", "BCH", "BEAMX",
+    "BEL", "BICO", "BLUR", "BLZ", "BNB", "BNT", "BNX", "BOME", "BOND", "BONK",
+    "BTC", "C98", "CAKE", "CELO", "CELR", "CFX", "CHR", "CHZ", "CKB", "COMBO",
+    "COMP", "COTI", "CRV", "CTSI", "CYBER", "DAR", "DASH", "DENT", "DOGE", "DOT",
+    "DUSK", "DYDX", "DYM", "EDU", "EGLD", "ENA", "ENJ", "ENS", "EOS", "ETC",
+    "ETHFI", "ETH", "FET", "FIL", "FLM", "FLOKI", "FLOW", "FTM", "FXS", "GALA",
+    "GAS", "GLM", "GMT", "GMX", "GRT", "GTC", "G", "HBAR", "HFT", "HIFI", "HIGH",
+    "HOOK", "HOT", "ICP", "ICX", "ID", "ILV", "IMX", "INJ", "IOST", "IOTA", "IOTX",
+    "IO", "JASMY", "JOE", "JTO", "JUP", , "KAVA", "KEY", "KLAY", "KNC", "KSM",
+    "LDO", "LEVER", "LINA", "LINK", "LISTA", "LIT", "LOOM", "LPT", "LQTY", "LRC",
+    "LSK", "LTC", "LUNC", "MAGIC", "MANA", "MANTA", "MASK", "MATIC", "MAV", "MEME",
+    "METIS", "MINA", "MKR", "MOVR", "MTL", "NEAR", "NEO", "NFP", "NKN", "NMR",
+    "NOT", "NTRN", "OGN", "OMG", "OMNI", "OM", "ONE", "ONG", "ONT", "OP", "ORDI",
+    "OXT", "PENDLE", "PEOPLE", "PEPE", "PERP", "PHB", "PIXEL", "POLYX", "PORTAL",
+    "POWR", "PYTH", "QNT", "QTUM", "RARE", "RATS", "RDNT", "REEF", "RENDER", "REN",
+    "REZ", "RIF", "RLC", "RONIN", "ROSE", "RSR", "RUNE", "RVN", "SAGA", "SAND",
+    "SATS ", "SEI", "SFP", "SHIB", "SKL", "SNX", "SOL", "SPELL", "SSV", "STEEM",
+    "STG", "STMX", "STORJ", "STRK", "STX", "SUI", "SUN", "SUPER", "SUSHI", "SXP",
+    "SYN", "SYS", "TAO", "THETA", "TIA", "TLM", "TNSR", "TON", "TRB", "TRU", "TRX",
+    "TWT", "UMA", "UNFI", "UNI", "USTC", "VANRY", "VET", "VIDT", "VOXEL", "WAXP",
+    "WIF", "WLD", "WOO", "W", "XAI", "XEC", "XEM", "XLM", "XMR", "XRP", "XTZ",
+    "XVG", "XVS", "YFI", "YGG", "ZEC", "ZIL", "ZK", "ZRO", "ZRX" 
+];
   
 cryptos.forEach(symbol => fetchCryptoData(symbol));
 
