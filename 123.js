@@ -1,8 +1,3 @@
-let positiveCountItem1 = 0;
-let negativeCountItem1 = 0;
-let positiveCountItem2 = 0;
-let negativeCountItem2 = 0;
-
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -10,47 +5,68 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
   
+        // Calcul du total des taux de variation sur 3 semaines
         let totalVariation = 0;
+  
+        // Mise à jour du tableau avec les données et la couleur
         const cryptoRow = document.getElementById(symbol);
   
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const variationValue = weeklyVariation.toFixed(2);
-
-            const variationCell = cryptoRow.insertCell(i + 1);
-            variationCell.textContent = `${variationValue}%`;
+            const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
   
+            const variationCell = cryptoRow.insertCell(cellIndex);
+            const variationValue = weeklyVariation.toFixed(2);
+            const weekStartDate = new Date(data[i][0]);
+            const weekEndDate = new Date(data[i][6]);
+            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+            const optionsEnd = { hour: "numeric", minute: "numeric" };
+            variationCell.textContent = `${weekStartDate.toLocaleDateString(
+                "fr-FR",
+                optionsStart
+            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
+                "fr-FR",
+                optionsStart
+            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+  
+            // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
             if (weeklyVariation > 0) {
                 variationCell.classList.add("positive");
-                if (i === 0) positiveCountItem1++;
-                if (i === 1) positiveCountItem2++;
             } else if (weeklyVariation < 0) {
                 variationCell.classList.add("negative");
-                if (i === 0) negativeCountItem1++;
-                if (i === 1) negativeCountItem2++;
             }
   
-            totalVariation += weeklyVariation;
+            totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
         }
   
+        // Ajouter la cellule pour afficher le total de variation
         const totalCell = cryptoRow.insertCell(data.length + 1);
-        totalCell.style.textAlign = 'center';
         const totalValue = totalVariation.toFixed(2);
-        totalCell.textContent = `${totalValue}%`;
-        totalCell.classList.add(totalVariation > 0 ? "positive" : "negative");
+        totalCell.style.textAlign = 'center';
+  
+           if(totalVariation < 0){
+          totalCell.classList.add("negative");
+        }
+  
+        if(totalVariation > 0){
+          totalCell.classList.add("positive");
+        }
         
+        totalCell.textContent = `${totalValue}%`;
+  
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
             error
         );
     }
-}
+  }
+    
+    // Appel de la fonction pour obtenir les taux de variation des cryptos
   
-// Appel de la fonction pour obtenir les taux de variation des cryptos
-fetchCryptoData("1INCH");
+    fetchCryptoData("1INCH");
 fetchCryptoData("AAVE");
 fetchCryptoData("ACE");
 fetchCryptoData("ACH");
@@ -304,34 +320,6 @@ fetchCryptoData("ZRO");
 fetchCryptoData("ZRX");
 
     
-// Ajoutez ici les autres cryptos
-
-// Affichage des résultats finaux
-function afficherResultats() {
-    const differenceItem1 = positiveCountItem1 - negativeCountItem1;
-    const differenceItem2 = positiveCountItem2 - negativeCountItem2;
-
-    const itemResult1 = document.getElementById("itemResult1");
-    itemResult1.innerHTML = `
-        <div class="positive">Positifs: ${positiveCountItem1}</div>
-        <div class="negative">Négatifs: ${negativeCountItem1}</div>
-        <div class="${differenceItem1 >= 0 ? 'positive' : 'negative'}">Différence: ${differenceItem1}</div>
-    `;
-
-    const itemResult2 = document.getElementById("itemResult2");
-    itemResult2.innerHTML = `
-        <div class="positive">Positifs: ${positiveCountItem2}</div>
-        <div class="negative">Négatifs: ${negativeCountItem2}</div>
-        <div class="${differenceItem2 >= 0 ? 'positive' : 'negative'}">Différence: ${differenceItem2}</div>
-    `;
-}
-
-// Appel de la fonction après avoir récupéré les données de toutes les cryptos
-setTimeout(afficherResultats, 2000);
-
-// Appel de la fonction pour obtenir les taux de variation des cryptos
-
-   
     
   
   function mettreAJourHeure() {
