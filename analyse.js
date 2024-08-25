@@ -19,8 +19,20 @@ async function fetchCryptoData(symbol) {
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
             const variationValue = weeklyVariation.toFixed(2);
 
+            // Ajout des dates et heures de début et de fin
+            const weekStartDate = new Date(data[i][0]);
+            const weekEndDate = new Date(data[i][6]);
+            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+            const optionsEnd = { hour: "numeric", minute: "numeric" };
+  
             const variationCell = cryptoRow.insertCell(i + 1);
-            variationCell.textContent = `${variationValue}%`;
+            variationCell.textContent = `${weekStartDate.toLocaleDateString(
+                "fr-FR",
+                optionsStart
+            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
+                "fr-FR",
+                optionsStart
+            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
   
             if (weeklyVariation > 0) {
                 variationCell.classList.add("positive");
@@ -303,9 +315,6 @@ fetchCryptoData("ZK");
 fetchCryptoData("ZRO");
 fetchCryptoData("ZRX");
 
-    
-// Ajoutez ici les autres cryptos
-
 // Affichage des résultats finaux
 function afficherResultats() {
     const differenceItem1 = positiveCountItem1 - negativeCountItem1;
@@ -328,6 +337,7 @@ function afficherResultats() {
 
 // Appel de la fonction après avoir récupéré les données de toutes les cryptos
 setTimeout(afficherResultats, 2000);
+
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
 
