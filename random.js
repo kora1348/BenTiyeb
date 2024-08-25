@@ -47,9 +47,8 @@ function generateSortedRandomHours(count) {
 }
 
 // Afficher cinq heures aléatoires triées
-const sortedTimes = generateSortedRandomHours(5);
+const sortedTimes = generateSortedRandomHours(3);
 document.getElementById('hour1').innerText = sortedTimes[0] || 'N/A';
 document.getElementById('hour2').innerText = sortedTimes[1] || 'N/A';
 document.getElementById('hour3').innerText = sortedTimes[2] || 'N/A';
-document.getElementById('hour4').innerText = sortedTimes[3] || 'N/A';
-document.getElementById('hour5').innerText = sortedTimes[4] || 'N/A';
+
