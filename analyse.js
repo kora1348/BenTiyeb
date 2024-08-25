@@ -323,15 +323,15 @@ function afficherResultats() {
     const itemResult1 = document.getElementById("itemResult1");
     itemResult1.innerHTML = `
         <div class="positive">Positifs: ${positiveCountItem1}</div>
-        <div class="negative">Négatifs: ${negativeCountItem1}</div>
-        <div class="${differenceItem1 >= 0 ? 'positive' : 'negative'}">Différence: ${differenceItem1}</div>
+        <div class="negative">Negatifs: ${negativeCountItem1}</div>
+        <div class="${differenceItem1 >= 0 ? 'positive' : 'negative'}">Difference: ${differenceItem1}</div>
     `;
 
     const itemResult2 = document.getElementById("itemResult2");
     itemResult2.innerHTML = `
         <div class="positive">Positifs: ${positiveCountItem2}</div>
-        <div class="negative">Négatifs: ${negativeCountItem2}</div>
-        <div class="${differenceItem2 >= 0 ? 'positive' : 'negative'}">Différence: ${differenceItem2}</div>
+        <div class="negative">Negatifs: ${negativeCountItem2}</div>
+        <div class="${differenceItem2 >= 0 ? 'positive' : 'negative'}">Difference: ${differenceItem2}</div>
     `;
 }
 
