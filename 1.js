@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=2`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1M&limit=6`
         );
         const data = await response.json();
   
@@ -45,6 +45,22 @@ async function fetchCryptoData(symbol) {
         const totalCell = cryptoRow.insertCell(data.length + 1);
         const totalValue = totalVariation.toFixed(2);
         totalCell.style.textAlign = 'center';
+  
+        const cryptoNamesElement = document.getElementById('cryptoNames');
+  
+     
+  
+        // Ajouter la classe "positive" pour le total dans la plage spécifiée
+        if ( (totalVariation >= -79.99 && totalVariation <= -70.00) ) {
+          totalCell.classList.add("negative");
+          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SORTH, ${totalValue}%</p>`;
+        }
+  
+        if ( (totalVariation >= 70.00 && totalVariation <= 79.99)  ) {
+          totalCell.classList.add("positive");
+          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+  
+        }
   
            if(totalVariation < 0){
           totalCell.classList.add("negative");
