@@ -1,4 +1,3 @@
-
 function calculate() {
     const number = parseFloat(document.getElementById('numberInput').value);
     let output = '';
@@ -8,6 +7,9 @@ function calculate() {
         const result = number + (number * i / 100);
         output += `<div class="positive">${result.toFixed(2)}</div>`;
     }
+
+    // Ajout de la valeur de l'input avec la classe "blue"
+    output += `<div class="blue">${number.toFixed(2)}</div>`;
 
     // Calcul des résultats pour les multiplications négatives
     for (let i = -1; i >= -10; i--) {
