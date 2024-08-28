@@ -52,23 +52,3 @@ document.getElementById('hour1').innerText = sortedTimes[0] || 'N/A';
 document.getElementById('hour2').innerText = sortedTimes[1] || 'N/A';
 document.getElementById('hour3').innerText = sortedTimes[2] || 'N/A';
 
-
-function calculate() {
-    const number = parseFloat(document.getElementById('numberInput').value);
-    let output = '';
-
-    // Calcul des résultats pour les multiplications positives (affichage inverse)
-    for (let i = 10; i >= 1; i--) {
-        const result = number + (number * i / 100);
-        output += `<div class="positive">${number} * ${i} = ${result.toFixed(2)}</div>`;
-    }
-
-    // Calcul des résultats pour les multiplications négatives
-    for (let i = -1; i >= -10; i--) {
-        const result = number + (number * i / 100);
-        output += `<div class="negative">${number} * ${i} = ${result.toFixed(2)}</div>`;
-    }
-
-    // Affichage des résultats
-    document.getElementById('output').innerHTML = output;
-}
