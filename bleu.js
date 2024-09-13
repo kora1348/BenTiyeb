@@ -107,7 +107,7 @@ setTimeout(() => {
         const randomIndex = Math.floor(Math.random() * cryptos.length);
         const randomCrypto = cryptos[randomIndex];
         const pileOuFace = Math.random() < 0.5 ? "POSITIF" : "NEGATIF";
-        document.getElementById('cryptoNames').innerHTML = `<p>${randomCrypto}: ${pileOuFace}</p>`;
+        document.getElementById('cryptoNames').innerHTML = `<p>${randomCrypto}</p>`;
     } else {
         document.getElementById('cryptoNames').innerHTML = `<p>Aucune crypto trouvée.</p>`;
     }
