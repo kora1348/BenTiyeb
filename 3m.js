@@ -147,6 +147,7 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("DASH");
   fetchCryptoData("DENT");
   fetchCryptoData("DOGE");
+  fetchCryptoData("DOGS");
   fetchCryptoData("DOT");
   fetchCryptoData("DUSK");
   fetchCryptoData("DYDX");
