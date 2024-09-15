@@ -1,90 +1,53 @@
-async function fetchHourlyCryptoData(symbol, year) {
-    try {
-        const startTime = new Date(`${year}-01-01T00:00:00Z`).getTime();
-        const endTime = new Date(`${year}-12-31T23:59:59Z`).getTime();
+async function fetchCryptoDataAtTime(symbol, year, cellIndex) {
+    const targetDate = new Date(year, 8, 15, 15, 45); // 15 septembre de l'année en cours à 15h45
+    const startTime = targetDate.getTime(); // Convertir en timestamp
 
+    try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startTime}&endTime=${endTime}&limit=1000`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&startTime=${startTime}&limit=1`
         );
         const data = await response.json();
 
-        if (data.length > 0) {
-            let totalVariation = 0;
-            let count = 0;
-
-            for (let i = 1; i < data.length; i++) {
-                const openPrice = parseFloat(data[i - 1][4]);
-                const closePrice = parseFloat(data[i][4]);
-
-                const hourlyVariation = ((closePrice - openPrice) / openPrice) * 100;
-
-                totalVariation += hourlyVariation;
-                count++;
-            }
-
-            const averageVariation = totalVariation / count;
-            return averageVariation.toFixed(2);
-        } else {
-            return "Pas de données";
+        if (data.length === 0) {
+            console.log(`Aucune donnée trouvée pour ${symbol} à ${year}`);
+            return;
         }
+
+        const openPrice = parseFloat(data[0][1]);
+        const closePrice = parseFloat(data[0][4]);
+        const variation = ((closePrice - openPrice) / openPrice) * 100;
+
+        const dateTime = new Date(data[0][0]);
+        const options = { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" };
+
+        const formattedDate = dateTime.toLocaleDateString("fr-FR", options);
+
+        // Insérer la variation dans la cellule correspondante du tableau
+        const cryptoRow = document.getElementById(symbol);
+        const variationCell = cryptoRow.insertCell(cellIndex); // Insérer la cellule dans la colonne correspondante
+        variationCell.textContent = `${formattedDate} : ${variation.toFixed(2)}%`;
+
+        // Ajouter la classe "positive" ou "negative" en fonction de la variation
+        if (variation > 0) {
+            variationCell.classList.add("positive");
+        } else if (variation < 0) {
+            variationCell.classList.add("negative");
+        }
+
     } catch (error) {
-        console.error(`Erreur lors de la récupération des données pour ${symbol} en ${year}:`, error);
-        return "Erreur";
+        console.error(
+            `Erreur lors de la récupération des données pour ${symbol} à ${year}:`,
+            error
+        );
     }
 }
 
-// Fonction pour récupérer et afficher les variations pour plusieurs cryptos
-async function displayCryptoVariations() {
-    const symbols = ["BTC", "ETH"]; // Ajoute d'autres cryptos ici
-    const years = [2021, 2022, 2023];
-    
-    symbols.forEach(async (symbol) => {
-        const cryptoRow = document.getElementById(symbol);
-        let totalVariation = 0;
+// Appel de la fonction pour obtenir les taux de variation du BTC pour 2021, 2022, 2023 à 15h45
+fetchCryptoDataAtTime("BTC", 2021, 1); // Cellule pour 2021
+fetchCryptoDataAtTime("BTC", 2022, 2); // Cellule pour 2022
+fetchCryptoDataAtTime("BTC", 2023, 3); // Cellule pour 2023
 
-        for (let i = 0; i < years.length; i++) {
-            const variation = await fetchHourlyCryptoData(symbol, years[i]);
-            const variationCell = cryptoRow.insertCell(i + 1);
-
-            const startTime = new Date(`${years[i]}-01-01T12:00:00Z`).toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'Europe/Paris'
-            });
-            const endTime = new Date(`${years[i]}-01-01T12:59:59Z`).toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'Europe/Paris'
-            });
-            
-            variationCell.textContent = `${years[i]}: ${startTime} - ${endTime} ${variation}%`;
-
-            if (variation > 0) {
-                variationCell.classList.add("positive");
-            } else if (variation < 0) {
-                variationCell.classList.add("negative");
-            }
-
-            totalVariation += parseFloat(variation) || 0;
-        }
-
-        const totalCell = cryptoRow.insertCell(years.length + 1);
-        totalCell.textContent = `Total: ${totalVariation.toFixed(2)}%`;
-        totalCell.style.textAlign = 'center';
-
-        if (totalVariation > 0) {
-            totalCell.classList.add("positive");
-        } else {
-            totalCell.classList.add("negative");
-        }
-    });
-}
-
-displayCryptoVariations();
-
-
-
-
+  
 
 
 function mettreAJourHeure() {
