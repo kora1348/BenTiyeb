@@ -1,6 +1,15 @@
-async function fetchCryptoDataAtTime(symbol, year, cellIndex) {
-    const targetDate = new Date(year, 8, 15, 16, 0); // 15 septembre de l'année en cours à 15h45
-    const startTime = targetDate.getTime(); // Convertir en timestamp
+async function fetchCryptoDataAtTime(symbol, yearOffset, cellIndex) {
+    // Récupérer la date et l'heure actuelles
+    const currentDate = new Date();
+
+    // Calculer l'année cible en fonction de l'offset
+    const targetYear = currentDate.getFullYear() - yearOffset;
+
+    // Ajuster l'année de la date cible
+    currentDate.setFullYear(targetYear);
+    
+    // Convertir la date cible en timestamp (date actuelle mais avec une année différente)
+    const startTime = currentDate.getTime(); 
 
     try {
         const response = await fetch(
@@ -9,7 +18,7 @@ async function fetchCryptoDataAtTime(symbol, year, cellIndex) {
         const data = await response.json();
 
         if (data.length === 0) {
-            console.log(`Aucune donnée trouvée pour ${symbol} à ${year}`);
+            console.log(`Aucune donnée trouvée pour ${symbol} à ${targetYear}`);
             return;
         }
 
@@ -36,16 +45,17 @@ async function fetchCryptoDataAtTime(symbol, year, cellIndex) {
 
     } catch (error) {
         console.error(
-            `Erreur lors de la récupération des données pour ${symbol} à ${year}:`,
+            `Erreur lors de la récupération des données pour ${symbol} à ${targetYear}:`,
             error
         );
     }
 }
 
-// Appel de la fonction pour obtenir les taux de variation du BTC pour 2021, 2022, 2023 à 15h45
-fetchCryptoDataAtTime("BTC", 2021, 1); // Cellule pour 2021
-fetchCryptoDataAtTime("BTC", 2022, 2); // Cellule pour 2022
-fetchCryptoDataAtTime("BTC", 2023, 3); // Cellule pour 2023
+// Appel de la fonction pour obtenir les taux de variation du BTC pour les 3 dernières années à la date et l'heure actuelles
+fetchCryptoDataAtTime("BTC", 3, 1); // Cellule pour il y a 3 ans
+fetchCryptoDataAtTime("BTC", 2, 2); // Cellule pour il y a 2 ans
+fetchCryptoDataAtTime("BTC", 1, 3); // Cellule pour l'année dernière
+
 
   
 
