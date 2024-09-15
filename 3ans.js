@@ -1,5 +1,5 @@
 async function fetchCryptoDataAtTime(symbol, year, cellIndex) {
-    const targetDate = new Date(year, 8, 15, 15, 45); // 15 septembre de l'année en cours à 15h45
+    const targetDate = new Date(year, 8, 15, 16, 0); // 15 septembre de l'année en cours à 15h45
     const startTime = targetDate.getTime(); // Convertir en timestamp
 
     try {
