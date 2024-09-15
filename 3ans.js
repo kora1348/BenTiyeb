@@ -1,338 +1,98 @@
-async function fetchCryptoData(symbol) {
-  try {
-      const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=1`
-      );
-      const data = await response.json();
+async function fetchHourlyCryptoData(symbol, year) {
+    try {
+        // Définir les timestamps pour la première et la dernière heure de chaque année
+        const startTime = new Date(`${year}-01-01T00:00:00Z`).getTime(); // 1er janvier à 00:00 UTC
+        const endTime = new Date(`${year}-12-31T23:59:59Z`).getTime(); // 31 décembre à 23:59 UTC
 
-      // Calcul du total des taux de variation sur 3 semaines
-      let totalVariation = 0;
+        const response = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startTime}&endTime=${endTime}&limit=1000`
+        );
+        const data = await response.json();
 
-      // Mise à jour du tableau avec les données et la couleur
-      const cryptoRow = document.getElementById(symbol);
+        if (data.length > 0) {
+            let totalVariation = 0;
+            let count = 0;
 
-      for (let i = 0; i < data.length; i++) {
-          const openPrice = parseFloat(data[i][1]);
-          const closePrice = parseFloat(data[i][4]);
-          const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-          const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+            // Parcours de toutes les données par heure
+            for (let i = 1; i < data.length; i++) {
+                const openPrice = parseFloat(data[i - 1][4]); // Prix de fermeture de la période précédente
+                const closePrice = parseFloat(data[i][4]); // Prix de fermeture de la période actuelle
 
-          const variationCell = cryptoRow.insertCell(cellIndex);
-          const variationValue = weeklyVariation.toFixed(2);
-          const weekStartDate = new Date(data[i][0]);
-          const weekEndDate = new Date(data[i][6]);
-          const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-          const optionsEnd = { hour: "numeric", minute: "numeric" };
-          variationCell.textContent = `${weekStartDate.toLocaleDateString(
-              "fr-FR",
-              optionsStart
-          )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
-              "fr-FR",
-              optionsStart
-          )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+                // Calcul du taux de variation horaire
+                const hourlyVariation = ((closePrice - openPrice) / openPrice) * 100;
 
-          // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
-          if (weeklyVariation > 0) {
-              variationCell.classList.add("positive");
-          } else if (weeklyVariation < 0) {
-              variationCell.classList.add("negative");
-          }
+                totalVariation += hourlyVariation;
+                count++;
+            }
 
-          totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
-      }
+            // Retourner la moyenne des variations horaires
+            const averageVariation = totalVariation / count;
+            return averageVariation.toFixed(2);
+        } else {
+            return "Pas de données";
+        }
+    } catch (error) {
+        console.error(`Erreur lors de la récupération des données pour ${symbol} en ${year}:`, error);
+        return "Erreur";
+    }
+}
 
-      // Ajouter la cellule pour afficher le total de variation
-      const totalCell = cryptoRow.insertCell(data.length + 1);
-      const totalValue = totalVariation.toFixed(2);
-      totalCell.style.textAlign = 'center';
+// Fonction pour récupérer et afficher les variations horaires pour plusieurs années
+async function displayBTCVariations() {
+    const symbol = "BTC";
+    const years = [2021, 2022, 2023];
+    const cryptoRow = document.getElementById(symbol);
+    
+    let totalVariation = 0;
 
-      const cryptoNamesElement = document.getElementById('cryptoNames');
+    for (let i = 0; i < years.length; i++) {
+        const variation = await fetchHourlyCryptoData(symbol, years[i]);
+        const variationCell = cryptoRow.insertCell(i + 1);
+        
+        // Formater l'heure d'ouverture et de fermeture en français
+       // Formater l'heure d'ouverture et de fermeture en heure locale
+       const startTime = new Date(`${years[i]}-01-01T12:00:00Z`).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Paris' // Remplace par ton fuseau horaire si nécessaire
+    });
+    const endTime = new Date(`${years[i]}-01-01T12:59:59Z`).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Paris' // Fuseau horaire
+    });
+        
+        variationCell.textContent = `${years[i]}: ${startTime} - ${endTime} ${variation}%`;
 
-      // Ajouter la classe "positive" pour le total dans la plage spécifiée
-      if (totalVariation >= -0.59 && totalVariation <= -0.40) {
-          totalCell.classList.add("positive");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-      }
+        // Ajouter la classe "positive" ou "negative" selon la variation
+        if (variation > 0) {
+            variationCell.classList.add("positive");
+        } else if (variation < 0) {
+            variationCell.classList.add("negative");
+        }
 
-      if (totalVariation >= 0.40 && totalVariation <= 0.59) {
-        totalCell.classList.add("negative");
-        cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORTH, ${totalValue}%</p>`;
+        totalVariation += parseFloat(variation) || 0;
     }
 
-      if(totalVariation < 0){
-        totalCell.classList.add("negative");
-      }
+    // Ajouter la cellule pour le total
+    const totalCell = cryptoRow.insertCell(years.length + 1);
+    totalCell.textContent = `Total: ${totalVariation.toFixed(2)}%`;
+    totalCell.style.textAlign = 'center';
 
-      if(totalVariation > 0){
+    // Coloration selon le total
+    if (totalVariation > 0) {
         totalCell.classList.add("positive");
-      }
-      
-      totalCell.textContent = `${totalValue}%`;
-
-  } catch (error) {
-      console.error(
-          `Erreur lors de la récupération des données pour ${symbol}:`,
-          error
-      );
-  }
+    } else {
+        totalCell.classList.add("negative");
+    }
 }
-  
-  // Appel de la fonction pour obtenir les taux de variation des cryptos
 
-  fetchCryptoData("1INCH");
-  fetchCryptoData("AAVE");
-  fetchCryptoData("ACE");
-  fetchCryptoData("ACH");
-  fetchCryptoData("ADA");
-  fetchCryptoData("AEVO");
-  fetchCryptoData("AGLD");
-  fetchCryptoData("AI");
-  fetchCryptoData("ALGO");
-  fetchCryptoData("ALICE");
-  fetchCryptoData("ALPACA");
-  fetchCryptoData("ALPHA");
-  fetchCryptoData("ALT");
-  fetchCryptoData("AMB");
-  fetchCryptoData("ANKR");
-  fetchCryptoData("APE");
-  fetchCryptoData("API3");
-  fetchCryptoData("APT");
-  fetchCryptoData("ARB");
-  fetchCryptoData("ARKM");
-  fetchCryptoData("ARK");
-  fetchCryptoData("ARPA");
-  fetchCryptoData("AR");
-  fetchCryptoData("ASTR");
-  fetchCryptoData("ATA");
-  fetchCryptoData("ATOM");
-  fetchCryptoData("AUCTION");
-  fetchCryptoData("AVAX");
-  fetchCryptoData("AXL");
-  fetchCryptoData("AXS");
-  fetchCryptoData("BADGER");
-  fetchCryptoData("BAKE");
-  fetchCryptoData("BAL");
-  fetchCryptoData("BANANA");
-  fetchCryptoData("BAND");
-  fetchCryptoData("BAT");
-  fetchCryptoData("BB");
-  fetchCryptoData("BCH");
-  fetchCryptoData("BEAMX");
-  fetchCryptoData("BEL");
-  fetchCryptoData("BICO");
-  fetchCryptoData("BLUR");
-  fetchCryptoData("BLZ");
-  fetchCryptoData("BNB");
-  fetchCryptoData("BNT");
-  fetchCryptoData("BNX");
-  fetchCryptoData("BOME");
-  fetchCryptoData("BOND");
-  fetchCryptoData("BONK");
-  fetchCryptoData("BTC");
-  fetchCryptoData("C98");
-  fetchCryptoData("CAKE");
-  fetchCryptoData("CELO");
-  fetchCryptoData("CELR");
-  fetchCryptoData("CFX");
-  fetchCryptoData("CHR");
-  fetchCryptoData("CHZ");
-  fetchCryptoData("CKB");
-  fetchCryptoData("COMBO");
-  fetchCryptoData("COMP");
-  fetchCryptoData("COTI");
-  fetchCryptoData("CRV");
-  fetchCryptoData("CTSI");
-  fetchCryptoData("CYBER");
-  fetchCryptoData("DAR");
-  fetchCryptoData("DASH");
-  fetchCryptoData("DENT");
-  fetchCryptoData("DOGE");
-  fetchCryptoData("DOGS");
-  fetchCryptoData("DOT");
-  fetchCryptoData("DUSK");
-  fetchCryptoData("DYDX");
-  fetchCryptoData("DYM");
-  fetchCryptoData("EDU");
-  fetchCryptoData("EGLD");
-  fetchCryptoData("ENA");
-  fetchCryptoData("ENJ");
-  fetchCryptoData("ENS");
-  fetchCryptoData("EOS");
-  fetchCryptoData("ETC");
-  fetchCryptoData("ETHFI");
-  fetchCryptoData("ETH");
-  fetchCryptoData("FET");
-  fetchCryptoData("FIL");
-  fetchCryptoData("FLM");
-  fetchCryptoData("FLOKI");
-  fetchCryptoData("FLOW");
-  fetchCryptoData("FTM");
-  fetchCryptoData("FXS");
-  fetchCryptoData("GALA");
-  fetchCryptoData("GAS");
-  fetchCryptoData("GLM");
-  fetchCryptoData("GMT");
-  fetchCryptoData("GMX");
-  fetchCryptoData("GRT");
-  fetchCryptoData("GTC");
-  fetchCryptoData("G");
-  fetchCryptoData("HBAR");
-  fetchCryptoData("HFT");
-  fetchCryptoData("HIFI");
-  fetchCryptoData("HIGH");
-  fetchCryptoData("HOOK");
-  fetchCryptoData("HOT");
-  fetchCryptoData("ICP");
-  fetchCryptoData("ICX");
-  fetchCryptoData("ID");
-  fetchCryptoData("ILV");
-  fetchCryptoData("IMX");
-  fetchCryptoData("INJ");
-  fetchCryptoData("IOST");
-  fetchCryptoData("IOTA");
-  fetchCryptoData("IOTX");
-  fetchCryptoData("IO");
-  fetchCryptoData("JASMY");
-  fetchCryptoData("JOE");
-  fetchCryptoData("JTO");
-  fetchCryptoData("JUP");
-  fetchCryptoData("KAVA");
-  fetchCryptoData("KEY");
-  fetchCryptoData("KLAY");
-  fetchCryptoData("KNC");
-  fetchCryptoData("KSM");
-  fetchCryptoData("LDO");
-  fetchCryptoData("LEVER");
-  fetchCryptoData("LINA");
-  fetchCryptoData("LINK");
-  fetchCryptoData("LISTA");
-  fetchCryptoData("LIT");
-  fetchCryptoData("LOOM");
-  fetchCryptoData("LPT");
-  fetchCryptoData("LQTY");
-  fetchCryptoData("LRC");
-  fetchCryptoData("LSK");
-  fetchCryptoData("LTC");
-  fetchCryptoData("LUNC");
-  fetchCryptoData("MAGIC");
-  fetchCryptoData("MANA");
-  fetchCryptoData("MANTA");
-  fetchCryptoData("MASK");
-  fetchCryptoData("MATIC");
-  fetchCryptoData("MAV");
-  fetchCryptoData("MEME");
-  fetchCryptoData("METIS");
-  fetchCryptoData("MINA");
-  fetchCryptoData("MKR");
-  fetchCryptoData("MOVR");
-  fetchCryptoData("MTL");
-  fetchCryptoData("NEAR");
-  fetchCryptoData("NEO");
-  fetchCryptoData("NFP");
-  fetchCryptoData("NKN");
-  fetchCryptoData("NMR");
-  fetchCryptoData("NOT");
-  fetchCryptoData("NTRN");
-  fetchCryptoData("OGN");
-  fetchCryptoData("OMG");
-  fetchCryptoData("OMNI");
-  fetchCryptoData("OM");
-  fetchCryptoData("ONE");
-  fetchCryptoData("ONG");
-  fetchCryptoData("ONT");
-  fetchCryptoData("OP");
-  fetchCryptoData("ORDI");
-  fetchCryptoData("OXT");
-  fetchCryptoData("PENDLE");
-  fetchCryptoData("PEOPLE");
-  fetchCryptoData("PEPE");
-  fetchCryptoData("PERP");
-  fetchCryptoData("PHB");
-  fetchCryptoData("PIXEL");
-  fetchCryptoData("POLYX");
-  fetchCryptoData("PORTAL");
-  fetchCryptoData("POWR");
-  fetchCryptoData("PYTH");
-  fetchCryptoData("QNT");
-  fetchCryptoData("QTUM");
-  fetchCryptoData("RARE");
-  fetchCryptoData("RATS");
-  fetchCryptoData("RDNT");
-  fetchCryptoData("REEF");
-  fetchCryptoData("RENDER");
-  fetchCryptoData("REN");
-  fetchCryptoData("REZ");
-  fetchCryptoData("RIF");
-  fetchCryptoData("RLC");
-  fetchCryptoData("RONIN");
-  fetchCryptoData("ROSE");
-  fetchCryptoData("RSR");
-  fetchCryptoData("RUNE");
-  fetchCryptoData("RVN");
-  fetchCryptoData("SAGA");
-  fetchCryptoData("SAND");
-  fetchCryptoData("SATS");
-  fetchCryptoData("SEI");
-  fetchCryptoData("SFP");
-  fetchCryptoData("SHIB");
-  fetchCryptoData("SKL");
-  fetchCryptoData("SNX");
-  fetchCryptoData("SOL");
-  fetchCryptoData("SPELL");
-  fetchCryptoData("SSV");
-  fetchCryptoData("STEEM");
-  fetchCryptoData("STG");
-  fetchCryptoData("STMX");
-  fetchCryptoData("STORJ");
-  fetchCryptoData("STRK");
-  fetchCryptoData("STX");
-  fetchCryptoData("SUI");
-  fetchCryptoData("SUN");
-  fetchCryptoData("SUPER");
-  fetchCryptoData("SUSHI");
-  fetchCryptoData("SXP");
-  fetchCryptoData("SYN");
-  fetchCryptoData("SYS");
-  fetchCryptoData("TAO");
-  fetchCryptoData("THETA");
-  fetchCryptoData("TIA");
-  fetchCryptoData("TLM");
-  fetchCryptoData("TNSR");
-  fetchCryptoData("TON");
-  fetchCryptoData("TRB");
-  fetchCryptoData("TRU");
-  fetchCryptoData("TRX");
-  fetchCryptoData("TWT");
-  fetchCryptoData("UMA");
-  fetchCryptoData("UNFI");
-  fetchCryptoData("UNI");
-  fetchCryptoData("USTC");
-  fetchCryptoData("VANRY");
-  fetchCryptoData("VET");
-  fetchCryptoData("VIDT");
-  fetchCryptoData("VOXEL");
-  fetchCryptoData("WAXP");
-  fetchCryptoData("WIF");
-  fetchCryptoData("WLD");
-  fetchCryptoData("WOO");
-  fetchCryptoData("W");
-  fetchCryptoData("XAI");
-  fetchCryptoData("XEC");
-  fetchCryptoData("XEM");
-  fetchCryptoData("XLM");
-  fetchCryptoData("XMR");
-  fetchCryptoData("XRP");
-  fetchCryptoData("XTZ");
-  fetchCryptoData("XVG");
-  fetchCryptoData("XVS");
-  fetchCryptoData("YFI");
-  fetchCryptoData("YGG");
-  fetchCryptoData("ZEC");
-  fetchCryptoData("ZIL");
-  fetchCryptoData("ZK");
-  fetchCryptoData("ZRO");
-  fetchCryptoData("ZRX");
-  
+displayBTCVariations();
+
+
+
+
+
 
 function mettreAJourHeure() {
 	var elementHeure = document.getElementById('heure');
