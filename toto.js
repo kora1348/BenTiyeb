@@ -1,14 +1,14 @@
 async function fetchCryptoData(symbol) {
     try {
         // Dates en dur
-        const startDate = new Date('2022-07-12T00:00:00Z');
-        const endDate = new Date('2022-07-12T23:57:00Z');
+        const startDate = new Date('2022-09-15T13:00:00Z');
+        const endDate = new Date('2022-09-15T13:59:00Z');
         
         const startTime = startDate.getTime();
         const endTime = endDate.getTime();
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&startTime=${startTime}&endTime=${endTime}&limit=440`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startTime}&endTime=${endTime}&limit=1`
         );
         const data = await response.json();
 
