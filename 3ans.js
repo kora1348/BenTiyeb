@@ -1,8 +1,7 @@
 async function fetchHourlyCryptoData(symbol, year) {
     try {
-        // Définir les timestamps pour la première et la dernière heure de chaque année
-        const startTime = new Date(`${year}-01-01T00:00:00Z`).getTime(); // 1er janvier à 00:00 UTC
-        const endTime = new Date(`${year}-12-31T23:59:59Z`).getTime(); // 31 décembre à 23:59 UTC
+        const startTime = new Date(`${year}-01-01T00:00:00Z`).getTime();
+        const endTime = new Date(`${year}-12-31T23:59:59Z`).getTime();
 
         const response = await fetch(
             `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startTime}&endTime=${endTime}&limit=1000`
@@ -13,19 +12,16 @@ async function fetchHourlyCryptoData(symbol, year) {
             let totalVariation = 0;
             let count = 0;
 
-            // Parcours de toutes les données par heure
             for (let i = 1; i < data.length; i++) {
-                const openPrice = parseFloat(data[i - 1][4]); // Prix de fermeture de la période précédente
-                const closePrice = parseFloat(data[i][4]); // Prix de fermeture de la période actuelle
+                const openPrice = parseFloat(data[i - 1][4]);
+                const closePrice = parseFloat(data[i][4]);
 
-                // Calcul du taux de variation horaire
                 const hourlyVariation = ((closePrice - openPrice) / openPrice) * 100;
 
                 totalVariation += hourlyVariation;
                 count++;
             }
 
-            // Retourner la moyenne des variations horaires
             const averageVariation = totalVariation / count;
             return averageVariation.toFixed(2);
         } else {
@@ -37,57 +33,54 @@ async function fetchHourlyCryptoData(symbol, year) {
     }
 }
 
-// Fonction pour récupérer et afficher les variations horaires pour plusieurs années
-async function displayBTCVariations() {
-    const symbol = "BTC";
+// Fonction pour récupérer et afficher les variations pour plusieurs cryptos
+async function displayCryptoVariations() {
+    const symbols = ["BTC", "ETH"]; // Ajoute d'autres cryptos ici
     const years = [2021, 2022, 2023];
-    const cryptoRow = document.getElementById(symbol);
     
-    let totalVariation = 0;
+    symbols.forEach(async (symbol) => {
+        const cryptoRow = document.getElementById(symbol);
+        let totalVariation = 0;
 
-    for (let i = 0; i < years.length; i++) {
-        const variation = await fetchHourlyCryptoData(symbol, years[i]);
-        const variationCell = cryptoRow.insertCell(i + 1);
-        
-        // Formater l'heure d'ouverture et de fermeture en français
-       // Formater l'heure d'ouverture et de fermeture en heure locale
-       const startTime = new Date(`${years[i]}-01-01T12:00:00Z`).toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Europe/Paris' // Remplace par ton fuseau horaire si nécessaire
-    });
-    const endTime = new Date(`${years[i]}-01-01T12:59:59Z`).toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Europe/Paris' // Fuseau horaire
-    });
-        
-        variationCell.textContent = `${years[i]}: ${startTime} - ${endTime} ${variation}%`;
+        for (let i = 0; i < years.length; i++) {
+            const variation = await fetchHourlyCryptoData(symbol, years[i]);
+            const variationCell = cryptoRow.insertCell(i + 1);
 
-        // Ajouter la classe "positive" ou "negative" selon la variation
-        if (variation > 0) {
-            variationCell.classList.add("positive");
-        } else if (variation < 0) {
-            variationCell.classList.add("negative");
+            const startTime = new Date(`${years[i]}-01-01T12:00:00Z`).toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Europe/Paris'
+            });
+            const endTime = new Date(`${years[i]}-01-01T12:59:59Z`).toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Europe/Paris'
+            });
+            
+            variationCell.textContent = `${years[i]}: ${startTime} - ${endTime} ${variation}%`;
+
+            if (variation > 0) {
+                variationCell.classList.add("positive");
+            } else if (variation < 0) {
+                variationCell.classList.add("negative");
+            }
+
+            totalVariation += parseFloat(variation) || 0;
         }
 
-        totalVariation += parseFloat(variation) || 0;
-    }
+        const totalCell = cryptoRow.insertCell(years.length + 1);
+        totalCell.textContent = `Total: ${totalVariation.toFixed(2)}%`;
+        totalCell.style.textAlign = 'center';
 
-    // Ajouter la cellule pour le total
-    const totalCell = cryptoRow.insertCell(years.length + 1);
-    totalCell.textContent = `Total: ${totalVariation.toFixed(2)}%`;
-    totalCell.style.textAlign = 'center';
-
-    // Coloration selon le total
-    if (totalVariation > 0) {
-        totalCell.classList.add("positive");
-    } else {
-        totalCell.classList.add("negative");
-    }
+        if (totalVariation > 0) {
+            totalCell.classList.add("positive");
+        } else {
+            totalCell.classList.add("negative");
+        }
+    });
 }
 
-displayBTCVariations();
+displayCryptoVariations();
 
 
 
