@@ -1,19 +1,27 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=1`
         );
         const data = await response.json();
   
         const openPrice = parseFloat(data[0][1]);
         const closePrice = parseFloat(data[0][4]);
         const numTrades = data[0][8];
+        const openTime = new Date(data[0][0]);  // Open Time
+        const closeTime = new Date(data[0][6]); // Close Time
   
         const cryptoRow = document.getElementById(symbol);
   
-        // Insertion de la cellule pour afficher le nombre de trades
+        // Formatage des dates
+        const optionsDate = { year: "2-digit", month: "2-digit", day: "2-digit" };
+        const optionsTime = { hour: "numeric", minute: "numeric" };
+        const openDateStr = `${openTime.toLocaleDateString("fr-FR", optionsDate)} ${openTime.toLocaleTimeString("fr-FR", optionsTime)}`;
+        const closeDateStr = `${closeTime.toLocaleDateString("fr-FR", optionsDate)} ${closeTime.toLocaleTimeString("fr-FR", optionsTime)}`;
+  
+        // Insertion de la cellule pour afficher le nombre de trades avec les dates
         const tradeCell = cryptoRow.insertCell(1);
-        tradeCell.textContent = `Trades: ${numTrades}`;
+        tradeCell.textContent = `${openDateStr} - ${closeDateStr}: Trades: ${numTrades}`;
   
         // Identifier la tendance
         let trend = '';
