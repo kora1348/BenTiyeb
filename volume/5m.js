@@ -45,7 +45,7 @@ async function fetchCryptoData(symbol) {
         percentageCell.textContent = `${percentageDifference.toFixed(2)}%`;
 
         // Affichage des valeurs de pourcentage spécifiques
-        if ((percentageDifference >= 80 && percentageDifference <= 89) || (percentageDifference >= -89 && percentageDifference <= -80)) {
+        if ((percentageDifference >= 60 && percentageDifference <= 69) || (percentageDifference >= -69 && percentageDifference <= -60)) {
             const cryptoNamesDiv = document.getElementById('cryptoNames');
             const cryptoInfo = document.createElement('div');
             cryptoInfo.classList.add(percentageDifference > 0 ? 'positive' : 'negative');
