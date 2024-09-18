@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=1`
         );
         const data = await response.json();
   
@@ -45,7 +45,7 @@ async function fetchCryptoData(symbol) {
         percentageCell.textContent = `${percentageDifference.toFixed(2)}%`;
 
         // Affichage des valeurs de pourcentage spécifiques
-        if ((percentageDifference >= 60 && percentageDifference <= 69) || (percentageDifference >= -69 && percentageDifference <= -60)) {
+        if ((percentageDifference >= 80 && percentageDifference <= 89) || (percentageDifference >= -89 && percentageDifference <= -80)) {
             const cryptoNamesDiv = document.getElementById('cryptoNames');
             const cryptoInfo = document.createElement('div');
             cryptoInfo.classList.add(percentageDifference > 0 ? 'positive' : 'negative');
