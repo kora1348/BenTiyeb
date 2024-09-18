@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=1`
         );
         const data = await response.json();
   
@@ -31,16 +31,19 @@ async function fetchCryptoData(symbol) {
         const dominanceCell = cryptoRow.insertCell(3);
         if (takerBuyVolume > takerSellVolume) {
             dominanceCell.textContent = 'Plus d\'acheteurs';
-            dominanceCell.classList.add('positive'); // Ajout de la classe CSS positive
+            cryptoRow.classList.add('positive'); // Ajout de la classe CSS positive à la ligne entière
         } else {
             dominanceCell.textContent = 'Plus de vendeurs';
-            dominanceCell.classList.add('negative'); // Ajout de la classe CSS negative
+            cryptoRow.classList.add('negative'); // Ajout de la classe CSS negative à la ligne entière
         }
 
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
+
+
+
 
 
 // Appel de la fonction pour obtenir les données des cryptos
