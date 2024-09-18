@@ -37,11 +37,17 @@ async function fetchCryptoData(symbol) {
             cryptoRow.classList.add('negative'); // Ajout de la classe CSS negative à la ligne entière
         }
 
+        // Calcul du pourcentage de différence entre les achats et les ventes
+        const percentageDifference = ((takerBuyVolume - takerSellVolume) / totalVolume) * 100;
+
+        // Insertion de la cellule pour afficher le pourcentage
+        const percentageCell = cryptoRow.insertCell(4);
+        percentageCell.textContent = `${percentageDifference.toFixed(2)}%`;
+
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
-
 
 
 
