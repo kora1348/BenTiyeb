@@ -5,7 +5,7 @@ let highestTrend = '';
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
         );
         const data = await response.json();
   
@@ -13,7 +13,8 @@ async function fetchCryptoData(symbol) {
         const closePrice = parseFloat(data[0][4]);
         const numTrades = data[0][8];
         const takerBuyVolume = parseFloat(data[0][9]);   // Volume des acheteurs initiateurs
-        const takerBuyQuoteVolume = parseFloat(data[0][10]);  // Volume total des ventes
+        const totalVolume = parseFloat(data[0][5]);      // Volume total de la période
+        const takerSellVolume = totalVolume - takerBuyVolume; // Volume des vendeurs (on le déduit)
         const openTime = new Date(data[0][0]);  // Open Time
         const closeTime = new Date(data[0][6]); // Close Time
   
@@ -45,9 +46,9 @@ async function fetchCryptoData(symbol) {
         const trendCell = cryptoRow.insertCell(2);
         trendCell.textContent = `Tendance: ${trend}`;
   
-        // Affichage du volume des acheteurs initiateurs et du volume total des ventes
+        // Affichage du volume des acheteurs et vendeurs séparément
         const volumeCell = cryptoRow.insertCell(3);
-        volumeCell.textContent = `Acheteurs initiateurs: ${takerBuyVolume}, Volume total des ventes: ${takerBuyQuoteVolume}`;
+        volumeCell.textContent = `Acheteurs: ${takerBuyVolume.toFixed(2)}, Vendeurs: ${takerSellVolume.toFixed(2)}`;
 
         // Vérification du plus grand nombre de trades
         if (numTrades > highestTrades) {
@@ -78,7 +79,9 @@ async function fetchCryptoData(symbol) {
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
-} 
+}
+
+
 // Appel de la fonction pour obtenir les données des cryptos
 fetchCryptoData("1INCH");
 
