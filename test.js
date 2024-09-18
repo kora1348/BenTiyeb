@@ -1,7 +1,3 @@
-let highestTrades = 0;
-let highestSymbol = '';
-let highestTrend = '';
-
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -9,9 +5,6 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
   
-        const openPrice = parseFloat(data[0][1]);
-        const closePrice = parseFloat(data[0][4]);
-        const numTrades = data[0][8];
         const takerBuyVolume = parseFloat(data[0][9]);   // Volume des acheteurs initiateurs
         const totalVolume = parseFloat(data[0][5]);      // Volume total de la période
         const takerSellVolume = totalVolume - takerBuyVolume; // Volume des vendeurs (on le déduit)
@@ -26,54 +19,22 @@ async function fetchCryptoData(symbol) {
         const openDateStr = `${openTime.toLocaleDateString("fr-FR", optionsDate)} ${openTime.toLocaleTimeString("fr-FR", optionsTime)}`;
         const closeDateStr = `${closeTime.toLocaleDateString("fr-FR", optionsDate)} ${closeTime.toLocaleTimeString("fr-FR", optionsTime)}`;
   
-        // Insertion de la cellule pour afficher le nombre de trades avec les dates
-        const tradeCell = cryptoRow.insertCell(1);
-        tradeCell.textContent = `${openDateStr} - ${closeDateStr}: Trades: ${numTrades}`;
-  
-        // Identifier la tendance
-        let trend = '';
-        if (closePrice > openPrice) {
-            trend = 'Haussière';
-            tradeCell.classList.add('positive'); // Ajout d'une classe si tendance haussière
-        } else if (closePrice < openPrice) {
-            trend = 'Baissière';
-            tradeCell.classList.add('negative'); // Ajout d'une classe si tendance baissière
-        } else {
-            trend = 'Neutre';
-        }
-  
-        // Affichage de la tendance
-        const trendCell = cryptoRow.insertCell(2);
-        trendCell.textContent = `Tendance: ${trend}`;
+        // Insertion de la cellule pour afficher les dates
+        const dateCell = cryptoRow.insertCell(1);
+        dateCell.textContent = `${openDateStr} - ${closeDateStr}`;
   
         // Affichage du volume des acheteurs et vendeurs séparément
-        const volumeCell = cryptoRow.insertCell(3);
+        const volumeCell = cryptoRow.insertCell(2);
         volumeCell.textContent = `Acheteurs: ${takerBuyVolume.toFixed(2)}, Vendeurs: ${takerSellVolume.toFixed(2)}`;
 
-        // Vérification du plus grand nombre de trades
-        if (numTrades > highestTrades) {
-            highestTrades = numTrades;
-            highestSymbol = symbol;
-            highestTrend = trend;
-
-            // Mettre à jour l'élément `cryptoNames` avec les nouvelles informations
-            const cryptoNamesDiv = document.getElementById('cryptoNames');
-            cryptoNamesDiv.innerHTML = `
-                <p>
-                    Symbole: ${highestSymbol}, Nombre de trades: ${highestTrades}, Tendance: ${highestTrend}
-                </p>
-            `;
-
-            // Ajouter la classe CSS "positive" ou "negative"
-            if (highestTrend === 'Haussière') {
-                cryptoNamesDiv.classList.add('positive');
-                cryptoNamesDiv.classList.remove('negative');
-            } else if (highestTrend === 'Baissière') {
-                cryptoNamesDiv.classList.add('negative');
-                cryptoNamesDiv.classList.remove('positive');
-            } else {
-                cryptoNamesDiv.classList.remove('positive', 'negative');
-            }
+        // Ajouter une nouvelle colonne pour indiquer si le marché est dominé par les acheteurs ou les vendeurs
+        const dominanceCell = cryptoRow.insertCell(3);
+        if (takerBuyVolume > takerSellVolume) {
+            dominanceCell.textContent = 'Plus d\'acheteurs';
+            dominanceCell.classList.add('positive'); // Ajout de la classe CSS positive
+        } else {
+            dominanceCell.textContent = 'Plus de vendeurs';
+            dominanceCell.classList.add('negative'); // Ajout de la classe CSS negative
         }
 
     } catch (error) {
