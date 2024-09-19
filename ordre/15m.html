@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Taux de variation par mois des cryptos</title>
+      <link rel="stylesheet" href="../../style.css">
+      <style>
+      </style>
+   </head>
+   <body>
+      <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
+      <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
+         " onclick="window.location.href='../../index.html'">Accueil</button>
+      <h1>Taux de variation par mois des cryptos </h1>
+      <h2>Future</h2>
+      <p style="font-weight: bold;">Mise à jour : 11/02/2024</p>
+      <div id="heure"></div>
+      <br>
+      <h2>15 Minutes</h2>
+      <div id="cryptoNames_15m"></div>
+      <br>
+<table>
+<tr>
+   <th>Crypto</th>
+   <th>Date</th>
+   <th>Volume Acheteurs et Vendeurs</th>
+   <th>Tendance Vol</th>
+   <th>Pourcentage Vol</th>
+   <th>Nombre d'Ordres Limit Achat</th>
+   <th>Nombre d'Ordres Limit Vente</th>
+   <th>Prix Ordre Limit Achat</th>
+   <th>Prix Ordre Limit Vente</th>
+</tr>
+<tr id="1INCH_15m">
+   <td>1INCH</td>
+</tr>
+<tr id="AAVE_15m">
+   <td>AAVE</td>
+</tr>
+<tr id="ACE_15m">
+   <td>ACE</td>
+</tr>
+<tr id="ACH_15m">
+   <td>ACH</td>
+</tr>
+<tr id="ADA_15m">
+   <td>ADA</td>
+</tr>
+<tr id="AEVO_15m">
+   <td>AEVO</td>
+</tr>
+<tr id="AGLD_15m">
+   <td>AGLD</td>
+</tr>
+<tr id="AI_15m">
+   <td>AI</td>
+</tr>
+<tr id="ALGO_15m">
+   <td>ALGO</td>
+</tr>
+<tr id="ALICE_15m">
+   <td>ALICE</td>
+</tr>
+<tr id="ALPACA_15m">
+   <td>ALPACA</td>
+</tr>
+<tr id="ALPHA_15m">
+   <td>ALPHA</td>
+</tr>
+<tr id="ALT_15m">
+   <td>ALT</td>
+</tr>
+<tr id="AMB_15m">
+   <td>AMB</td>
+</tr>
+<tr id="ANKR_15m">
+   <td>ANKR</td>
+</tr>
+<tr id="APE_15m">
+   <td>APE</td>
+</tr>
+<tr id="API3_15m">
+   <td>API3</td>
+</tr>
+<tr id="APT_15m">
+   <td>APT</td>
+</tr>
+<tr id="ARB_15m">
+   <td>ARB</td>
+</tr>
+<tr id="ARKM_15m">
+   <td>ARKM</td>
+</tr>
+<tr id="ARK_15m">
+   <td>ARK</td>
+</tr>
+<tr id="ARPA_15m">
+   <td>ARPA</td>
+</tr>
+<tr id="AR_15m">
+   <td>AR</td>
+</tr>
+<tr id="ASTR_15m">
+   <td>ASTR</td>
+</tr>
+<tr id="ATA_15m">
+   <td>ATA</td>
+</tr>
+<tr id="ATOM_15m">
+   <td>ATOM</td>
+</tr>
+<tr id="AUCTION_15m">
+   <td>AUCTION</td>
+</tr>
+<tr id="AVAX_15m">
+   <td>AVAX</td>
+</tr>
+<tr id="AXL_15m">
+   <td>AXL</td>
+</tr>
+<tr id="AXS_15m">
+   <td>AXS</td>
+</tr>
+<tr id="BADGER_15m">
+   <td>BADGER</td>
+</tr>
+<tr id="BAKE_15m">
+   <td>BAKE</td>
+</tr>
+<tr id="BAL_15m">
+   <td>BAL</td>
+</tr>
+<tr id="BANANA_15m">
+   <td>BANANA</td>
+</tr>
+<tr id="BAND_15m">
+   <td>BAND</td>
+</tr>
+<tr id="BAT_15m">
+   <td>BAT</td>
+</tr>
+<tr id="BB_15m">
+   <td>BB</td>
+</tr>
+<tr id="BCH_15m">
+   <td>BCH</td>
+</tr>
+<tr id="BEAMX_15m">
+   <td>BEAMX</td>
+</tr>
+<tr id="BEL_15m">
+   <td>BEL</td>
+</tr>
+<tr id="BICO_15m">
+   <td>BICO</td>
+</tr>
+<tr id="BLUR_15m">
+   <td>BLUR</td>
+</tr>
+<tr id="BLZ_15m">
+   <td>BLZ</td>
+</tr>
+<tr id="BNB_15m">
+   <td>BNB</td>
+</tr>
+<tr id="BNT_15m">
+   <td>BNT</td>
+</tr>
+<tr id="BNX_15m">
+   <td>BNX</td>
+</tr>
+<tr id="BOME_15m">
+   <td>BOME</td>
+</tr>
+<tr id="BONK_15m">
+   <td>BONK</td>
+</tr>
+<tr id="BOND_15m">
+   <td>BOND</td>
+</tr>
+<tr id="BTC_15m">
+   <td>BTC</td>
+</tr>
+<tr id="C98_15m">
+   <td>C98</td>
+</tr>
+<tr id="CAKE_15m">
+   <td>CAKE</td>
+</tr>
+<tr id="CELO_15m">
+   <td>CELO</td>
+</tr>
+<tr id="CELR_15m">
+   <td>CELR</td>
+</tr>
+<tr id="CFX_15m">
+   <td>CFX</td>
+</tr>
+<tr id="CHR_15m">
+   <td>CHR</td>
+</tr>
+<tr id="CHZ_15m">
+   <td>CHZ</td>
+</tr>
+<tr id="CKB_15m">
+   <td>CKB</td>
+</tr>
+<tr id="COMBO_15m">
+   <td>COMBO</td>
+</tr>
+<tr id="COMP_15m">
+   <td>COMP</td>
+</tr>
+<tr id="COTI_15m">
+   <td>COTI</td>
+</tr>
+<tr id="CRV_15m">
+   <td>CRV</td>
+</tr>
+<tr id="CTSI_15m">
+   <td>CTSI</td>
+</tr>
+<tr id="CYBER_15m">
+   <td>CYBER</td>
+</tr>
+<tr id="DAR_15m">
+   <td>DAR</td>
+</tr>
+<tr id="DASH_15m">
+   <td>DASH</td>
+</tr>
+<tr id="DENT_15m">
+   <td>DENT</td>
+</tr>
+<tr id="DOGE_15m">
+   <td>DOGE</td>
+</tr>
+<tr id="DOGS_15m">
+   <td>DOGS</td>
+</tr>
+<tr id="DOT_15m">
+   <td>DOT</td>
+</tr>
+<tr id="DUSK_15m">
+   <td>DUSK</td>
+</tr>
+<tr id="DYDX_15m">
+   <td>DYDX</td>
+</tr>
+<tr id="DYM_15m">
+   <td>DYM</td>
+</tr>
+<tr id="EDU_15m">
+   <td>EDU</td>
+</tr>
+<tr id="EGLD_15m">
+   <td>EGLD</td>
+</tr>
+<tr id="ENA_15m">
+   <td>ENA</td>
+</tr>
+<tr id="ENJ_15m">
+   <td>ENJ</td>
+</tr>
+<tr id="ENS_15m">
+   <td>ENS</td>
+</tr>
+<tr id="EOS_15m">
+   <td>EOS</td>
+</tr>
+<tr id="ETC_15m">
+   <td>ETC</td>
+</tr>
+<tr id="ETHFI_15m">
+   <td>ETHFI</td>
+</tr>
+<tr id="ETH_15m">
+   <td>ETH</td>
+</tr>
+<tr id="FET_15m">
+   <td>FET</td>
+</tr>
+<tr id="FIL_15m">
+   <td>FIL</td>
+</tr>
+<tr id="FLM_15m">
+   <td>FLM</td>
+</tr>
+<tr id="FLOKI_15m">
+   <td>FLOKI</td>
+</tr>
+<tr id="FLOW_15m">
+   <td>FLOW</td>
+</tr>
+<tr id="FTM_15m">
+   <td>FTM</td>
+</tr>
+<tr id="FXS_15m">
+   <td>FXS</td>
+</tr>
+<tr id="GALA_15m">
+   <td>GALA</td>
+</tr>
+<tr id="GAS_15m">
+   <td>GAS</td>
+</tr>
+<tr id="GLM_15m">
+   <td>GLM</td>
+</tr>
+<tr id="GMT_15m">
+   <td>GMT</td>
+</tr>
+<tr id="GMX_15m">
+   <td>GMX</td>
+</tr>
+<tr id="GRT_15m">
+   <td>GRT</td>
+</tr>
+<tr id="GTC_15m">
+   <td>GTC</td>
+</tr>
+<tr id="G_15m">
+   <td>G</td>
+</tr>
+<tr id="HBAR_15m">
+   <td>HBAR</td>
+</tr>
+<tr id="HFT_15m">
+   <td>HFT</td>
+</tr>
+<tr id="HIFI_15m">
+   <td>HIFI</td>
+</tr>
+<tr id="HIGH_15m">
+   <td>HIGH</td>
+</tr>
+<tr id="HOOK_15m">
+   <td>HOOK</td>
+</tr>
+<tr id="HOT_15m">
+   <td>HOT</td>
+</tr>
+<tr id="ICP_15m">
+   <td>ICP</td>
+</tr>
+<tr id="ICX_15m">
+   <td>ICX</td>
+</tr>
+<tr id="ID_15m">
+   <td>ID</td>
+</tr>
+<tr id="ILV_15m">
+   <td>ILV</td>
+</tr>
+<tr id="IMX_15m">
+   <td>IMX</td>
+</tr>
+<tr id="INJ_15m">
+   <td>INJ</td>
+</tr>
+<tr id="IOST_15m">
+   <td>IOST</td>
+</tr>
+<tr id="IOTA_15m">
+   <td>IOTA</td>
+</tr>
+<tr id="IOTX_15m">
+   <td>IOTX</td>
+</tr>
+<tr id="IO_15m">
+   <td>IO</td>
+</tr>
+<tr id="JASMY_15m">
+   <td>JASMY</td>
+</tr>
+<tr id="JOE_15m">
+   <td>JOE</td>
+</tr>
+<tr id="JTO_15m">
+   <td>JTO</td>
+</tr>
+<tr id="JUP_15m">
+   <td>JUP</td>
+</tr>
+<tr id="KAVA_15m">
+   <td>KAVA</td>
+</tr>
+<tr id="KEY_15m">
+   <td>KEY</td>
+</tr>
+<tr id="KLAY_15m">
+   <td>KLAY</td>
+</tr>
+<tr id="KNC_15m">
+   <td>KNC</td>
+</tr>
+<tr id="KSM_15m">
+   <td>KSM</td>
+</tr>
+<tr id="LDO_15m">
+   <td>LDO</td>
+</tr>
+<tr id="LEVER_15m">
+   <td>LEVER</td>
+</tr>
+<tr id="LINA_15m">
+   <td>LINA</td>
+</tr>
+<tr id="LINK_15m">
+   <td>LINK</td>
+</tr>
+<tr id="LISTA_15m">
+   <td>LISTA</td>
+</tr>
+<tr id="LIT_15m">
+   <td>LIT</td>
+</tr>
+<tr id="LOOM_15m">
+   <td>LOOM</td>
+</tr>
+<tr id="LPT_15m">
+   <td>LPT</td>
+</tr>
+<tr id="LQTY_15m">
+   <td>LQTY</td>
+</tr>
+<tr id="LRC_15m">
+   <td>LRC</td>
+</tr>
+<tr id="LSK_15m">
+   <td>LSK</td>
+</tr>
+<tr id="LTC_15m">
+   <td>LTC</td>
+</tr>
+<tr id="LUNC_15m">
+   <td>LUNC</td>
+</tr>
+<tr id="MAGIC_15m">
+   <td>MAGIC</td>
+</tr>
+<tr id="MANA_15m">
+   <td>MANA</td>
+</tr>
+<tr id="MANTA_15m">
+   <td>MANTA</td>
+</tr>
+<tr id="MASK_15m">
+   <td>MASK</td>
+</tr>
+<tr id="MATIC_15m">
+   <td>MATIC</td>
+</tr>
+<tr id="MAV_15m">
+   <td>MAV</td>
+</tr>
+<tr id="MEME_15m">
+   <td>MEME</td>
+</tr>
+<tr id="METIS_15m">
+   <td>METIS</td>
+</tr>
+<tr id="MINA_15m">
+   <td>MINA</td>
+</tr>
+<tr id="MKR_15m">
+   <td>MKR</td>
+</tr>
+<tr id="MOVR_15m">
+   <td>MOVR</td>
+</tr>
+<tr id="MTL_15m">
+   <td>MTL</td>
+</tr>
+<tr id="NEAR_15m">
+   <td>NEAR</td>
+</tr>
+<tr id="NEO_15m">
+   <td>NEO</td>
+</tr>
+<tr id="NFP_15m">
+   <td>NFP</td>
+</tr>
+<tr id="NKN_15m">
+   <td>NKN</td>
+</tr>
+<tr id="NMR_15m">
+   <td>NMR</td>
+</tr>
+<tr id="NOT_15m">
+   <td>NOT</td>
+</tr>
+<tr id="NTRN_15m">
+   <td>NTRN</td>
+</tr>
+<tr id="OGN_15m">
+   <td>OGN</td>
+</tr>
+<tr id="OMG_15m">
+   <td>OMG</td>
+</tr>
+<tr id="OMNI_15m">
+   <td>OMNI</td>
+</tr>
+<tr id="OM_15m">
+   <td>OM</td>
+</tr>
+<tr id="ONE_15m">
+   <td>ONE</td>
+</tr>
+<tr id="ONG_15m">
+   <td>ONG</td>
+</tr>
+<tr id="ONT_15m">
+   <td>ONT</td>
+</tr>
+<tr id="OP_15m">
+   <td>OP</td>
+</tr>
+<tr id="ORDI_15m">
+   <td>ORDI</td>
+</tr>
+<tr id="OXT_15m">
+   <td>OXT</td>
+</tr>
+<tr id="PENDLE_15m">
+   <td>PENDLE</td>
+</tr>
+<tr id="PEOPLE_15m">
+   <td>PEOPLE</td>
+</tr>
+<tr id="PEPE_15m">
+   <td>PEPE</td>
+</tr>
+<tr id="PERP_15m">
+   <td>PERP</td>
+</tr>
+<tr id="PHB_15m">
+   <td>PHB</td>
+</tr>
+<tr id="PIXEL_15m">
+   <td>PIXEL</td>
+</tr>
+<tr id="POLYX_15m">
+   <td>POLYX</td>
+</tr>
+<tr id="PORTAL_15m">
+   <td>PORTAL</td>
+</tr>
+<tr id="POWR_15m">
+   <td>POWR</td>
+</tr>
+<tr id="PYTH_15m">
+   <td>PYTH</td>
+</tr>
+<tr id="QNT_15m">
+   <td>QNT</td>
+</tr>
+<tr id="QTUM_15m">
+   <td>QTUM</td>
+</tr>
+<tr id="RARE_15m">
+   <td>RARE</td>
+</tr>
+<tr id="RDNT_15m">
+   <td>RDNT</td>
+</tr>
+<tr id="REEF_15m">
+   <td>REEF</td>
+</tr>
+<tr id="RENDER_15m">
+   <td>RENDER</td>
+</tr>
+<tr id="REN_15m">
+   <td>REN</td>
+</tr>
+<tr id="REZ_15m">
+   <td>REZ</td>
+</tr>
+<tr id="RIF_15m">
+   <td>RIF</td>
+</tr>
+<tr id="RLC_15m">
+   <td>RLC</td>
+</tr>
+<tr id="RONIN_15m">
+   <td>RONIN</td>
+</tr>
+<tr id="ROSE_15m">
+   <td>ROSE</td>
+</tr>
+<tr id="RSR_15m">
+   <td>RSR</td>
+</tr>
+<tr id="RUNE_15m">
+   <td>RUNE</td>
+</tr>
+<tr id="RVN_15m">
+   <td>RVN</td>
+</tr>
+<tr id="SAGA_15m">
+   <td>SAGA</td>
+</tr>
+<tr id="SAND_15m">
+   <td>SAND</td>
+</tr>
+<tr id="SEI_15m">
+   <td>SEI</td>
+</tr>
+<tr id="SFP_15m">
+   <td>SFP</td>
+</tr>
+<tr id="SHIB_15m">
+   <td>SHIB</td>
+</tr>
+<tr id="SKL_15m">
+   <td>SKL</td>
+</tr>
+<tr id="SNX_15m">
+   <td>SNX</td>
+</tr>
+<tr id="SOL_15m">
+   <td>SOL</td>
+</tr>
+<tr id="SPELL_15m">
+   <td>SPELL</td>
+</tr>
+<tr id="SSV_15m">
+   <td>SSV</td>
+</tr>
+<tr id="STEEM_15m">
+   <td>STEEM</td>
+</tr>
+<tr id="STG_15m">
+   <td>STG</td>
+</tr>
+<tr id="STMX_15m">
+   <td>STMX</td>
+</tr>
+<tr id="STORJ_15m">
+   <td>STORJ</td>
+</tr>
+<tr id="STRK_15m">
+   <td>STRK</td>
+</tr>
+<tr id="STX_15m">
+   <td>STX</td>
+</tr>
+<tr id="SUI_15m">
+   <td>SUI</td>
+</tr>
+<tr id="SUN_15m">
+   <td>SUN</td>
+</tr>
+<tr id="SUPER_15m">
+   <td>SUPER</td>
+</tr>
+<tr id="SUSHI_15m">
+   <td>SUSHI</td>
+</tr>
+<tr id="SXP_15m">
+   <td>SXP</td>
+</tr>
+<tr id="SYN_15m">
+   <td>SYN</td>
+</tr>
+<tr id="SYS_15m">
+   <td>SYS</td>
+</tr>
+<tr id="TAO_15m">
+   <td>TAO</td>
+</tr>
+<tr id="THETA_15m">
+   <td>THETA</td>
+</tr>
+<tr id="TIA_15m">
+   <td>TIA</td>
+</tr>
+<tr id="TLM_15m">
+   <td>TLM</td>
+</tr>
+<tr id="TNSR_15m">
+   <td>TNSR</td>
+</tr>
+<tr id="TON_15m">
+   <td>TON</td>
+</tr>
+<tr id="TRB_15m">
+   <td>TRB</td>
+</tr>
+<tr id="TRU_15m">
+   <td>TRU</td>
+</tr>
+<tr id="TRX_15m">
+   <td>TRX</td>
+</tr>
+<tr id="TWT_15m">
+   <td>TWT</td>
+</tr>
+<tr id="UMA_15m">
+   <td>UMA</td>
+</tr>
+<tr id="UNFI_15m">
+   <td>UNFI</td>
+</tr>
+<tr id="UNI_15m">
+   <td>UNI</td>
+</tr>
+<tr id="USTC_15m">
+   <td>USTC</td>
+</tr>
+<tr id="VANRY_15m">
+   <td>VANRY</td>
+</tr>
+<tr id="VET_15m">
+   <td>VET</td>
+</tr>
+<tr id="VIDT_15m">
+   <td>VIDT</td>
+</tr>
+<tr id="VOXEL_15m">
+   <td>VOXEL</td>
+</tr>
+<tr id="WAXP_15m">
+   <td>WAXP</td>
+</tr>
+<tr id="WIF_15m">
+   <td>WIF</td>
+</tr>
+<tr id="WLD_15m">
+   <td>WLD</td>
+</tr>
+<tr id="WOO_15m">
+   <td>WOO</td>
+</tr>
+<tr id="W_15m">
+   <td>W</td>
+</tr>
+<tr id="XAI_15m">
+   <td>XAI</td>
+</tr>
+<tr id="XEC_15m">
+   <td>XEC</td>
+</tr>
+<tr id="XEM_15m">
+   <td>XEM</td>
+</tr>
+<tr id="XLM_15m">
+   <td>XLM</td>
+</tr>
+<tr id="XMR_15m">
+   <td>XMR</td>
+</tr>
+<tr id="XRP_15m">
+   <td>XRP</td>
+</tr>
+<tr id="XTZ_15m">
+   <td>XTZ</td>
+</tr>
+<tr id="XVG_15m">
+   <td>XVG</td>
+</tr>
+<tr id="XVS_15m">
+   <td>XVS</td>
+</tr>
+<tr id="YFI_15m">
+   <td>YFI</td>
+</tr>
+<tr id="YGG_15m">
+   <td>YGG</td>
+</tr>
+<tr id="ZEC_15m">
+   <td>ZEC</td>
+</tr>
+<tr id="ZIL_15m">
+   <td>ZIL</td>
+</tr>
+<tr id="ZK_15m">
+   <td>ZK</td>
+</tr>
+<tr id="ZRO_15m">
+   <td>ZRO</td>
+</tr>
+<tr id="ZRX_15m">
+   <td>ZRX</td>
+</tr>
+</table>
+      
+      <script src="/ordre/15m.js"></script>
+   </body>
+</html>
