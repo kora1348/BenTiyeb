@@ -1,38 +1,45 @@
-// Objets pour stocker les résultats des deux intervalles
-const cryptoResults1h = {};
+async function fetchAllDepthData(symbol) {
+    let allBids = [];
+    let allAsks = [];
+    let lastBidPrice = null;
+    let lastAskPrice = null;
+    let hasMoreData = true;
 
-// Fonction pour vérifier et afficher dans le div #cryptoNames si les deux conditions sont remplies
-function checkAndDisplayLong(symbol) {
-    const percentageVolume1h = cryptoResults1h[symbol];
+    while (hasMoreData) {
+        try {
+            // Construit la requête pour récupérer la tranche actuelle d'ordres
+            const depthResponse = await fetch(`https://api.binance.com/api/v3/depth?symbol=${symbol}USDT&limit=500`);
+            const depthData = await depthResponse.json();
 
-    // Vérifie si les deux pourcentages sont dans les plages définies
+            // Récupère les ordres actuels
+            const currentBids = depthData.bids;
+            const currentAsks = depthData.asks;
 
-    //// 1 Heure //// 
-    
-    if ( (percentageVolume1h >= 80 && percentageVolume1h <= 89 ) ) {
-        const cryptoNamesDiv_1h = document.getElementById('cryptoNames_1h');
-        const cryptoInfo = `${symbol}: LONG, ${percentageVolume1h.toFixed(2)}%`;
-        
-        if (!cryptoNamesDiv_1h.textContent.includes(cryptoInfo)) {
-            const cryptoInfoElement = document.createElement('p');
-            cryptoInfoElement.textContent = cryptoInfo;
-            cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
-            cryptoNamesDiv_1h.appendChild(cryptoInfoElement);
-        }
-    } else if ( (percentageVolume1h >= -89 && percentageVolume1h <= -80 ) ) {
-        const cryptoNamesDiv_1h = document.getElementById('cryptoNames_1h');
-        const cryptoInfo = `${symbol}: SORTH, ${percentageVolume1h.toFixed(2)}%`;
-        
-        if (!cryptoNamesDiv_1h.textContent.includes(cryptoInfo)) {
-            const cryptoInfoElement = document.createElement('p');
-            cryptoInfoElement.textContent = cryptoInfo;
-            cryptoInfoElement.classList.add('negative'); // Ajoute une classe negative
-            cryptoNamesDiv_1h.appendChild(cryptoInfoElement);
+            // Ajoute les ordres actuels à la liste complète
+            allBids = allBids.concat(currentBids);
+            allAsks = allAsks.concat(currentAsks);
+
+            // Si la longueur de la réponse est inférieure à 500, cela signifie qu'il n'y a plus de données à récupérer
+            if (currentBids.length < 500 && currentAsks.length < 500) {
+                hasMoreData = false;
+            } else {
+                // Met à jour le dernier prix pour les enchères et les ventes
+                lastBidPrice = currentBids[currentBids.length - 1][0];
+                lastAskPrice = currentAsks[currentAsks.length - 1][0];
+            }
+
+            // Petit délai pour ne pas surcharger l'API
+            await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+            console.error("Erreur lors de la récupération des ordres :", error);
+            break;
         }
     }
+
+    return { allBids, allAsks };
 }
 
-// Fonction pour récupérer les données de Binance pour l'intervalle de 15 minutes
+// Utilisation dans ta fonction principale
 async function fetchCryptoData1h(symbol) {
     try {
         // Récupérer les données de volume (comme avant)
@@ -47,14 +54,13 @@ async function fetchCryptoData1h(symbol) {
         // Enregistre le résultat dans l'objet global
         cryptoResults1h[symbol] = percentageDifference;
 
-        // Récupérer les informations des ordres limit
-        const depthResponse = await fetch(`https://api.binance.com/api/v3/depth?symbol=${symbol}USDT&limit=500`);
-        const depthData = await depthResponse.json();
+        // Récupérer tous les ordres (au-delà de la limite de 500)
+        const depthData = await fetchAllDepthData(symbol);
 
-        const limitBuyOrders = depthData.bids.length; // Nombre d'ordres d'achat
-        const limitSellOrders = depthData.asks.length; // Nombre d'ordres de vente
-        const limitBuyPrice = parseFloat(depthData.bids[0][0]); // Prix du premier ordre d'achat
-        const limitSellPrice = parseFloat(depthData.asks[0][0]); // Prix du premier ordre de vente
+        const limitBuyOrders = depthData.allBids.length; // Nombre total d'ordres d'achat
+        const limitSellOrders = depthData.allAsks.length; // Nombre total d'ordres de vente
+        const limitBuyPrice = parseFloat(depthData.allBids[0][0]); // Prix du premier ordre d'achat
+        const limitSellPrice = parseFloat(depthData.allAsks[0][0]); // Prix du premier ordre de vente
 
         // Logique pour remplir les cellules du tableau
         const cryptoRow = document.getElementById(`${symbol}_1h`);
