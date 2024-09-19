@@ -11,7 +11,7 @@ function checkAndDisplayLong(symbol) {
 
     //// 5 Minutes //// 
 
-    if ( (percentageVolume5m >= 80 && percentageVolume5m <= 89 ) ) {
+    if ( (percentageVolume5m >= 90 && percentageVolume5m <= 99 ) ) {
         const cryptoNamesDiv_5m = document.getElementById('cryptoNames_5m');
         const cryptoInfo = `${symbol}: LONG, ${percentageVolume5m.toFixed(2)}%`;
         
@@ -21,7 +21,7 @@ function checkAndDisplayLong(symbol) {
             cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
             cryptoNamesDiv_5m.appendChild(cryptoInfoElement);
         }
-    } else if ( (percentageVolume5m >= -89 && percentageVolume5m <= -80 ) ) {
+    } else if ( (percentageVolume5m >= -99 && percentageVolume5m <= -90 ) ) {
         const cryptoNamesDiv_5m = document.getElementById('cryptoNames_5m');
         const cryptoInfo = `${symbol}: SORTH, ${percentageVolume5m.toFixed(2)}%`;
         
@@ -35,7 +35,7 @@ function checkAndDisplayLong(symbol) {
 
     //// 15 Minutes //// 
     
-    if ( (percentageVolume15m >= 80 && percentageVolume15m <= 89 ) ) {
+    if ( (percentageVolume15m >= 90 && percentageVolume15m <= 99 ) ) {
         const cryptoNamesDiv_15m = document.getElementById('cryptoNames_15m');
         const cryptoInfo = `${symbol}: LONG, ${percentageVolume15m.toFixed(2)}%`;
         
@@ -45,7 +45,7 @@ function checkAndDisplayLong(symbol) {
             cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
             cryptoNamesDiv_15m.appendChild(cryptoInfoElement);
         }
-    } else if ( (percentageVolume15m >= -89 && percentageVolume15m <= -80 ) ) {
+    } else if ( (percentageVolume15m >= -99 && percentageVolume15m <= -90 ) ) {
         const cryptoNamesDiv_15m = document.getElementById('cryptoNames_15m');
         const cryptoInfo = `${symbol}: SORTH, ${percentageVolume15m.toFixed(2)}%`;
         
