@@ -4,29 +4,60 @@ const cryptoResults15m = {};
 
 // Fonction pour vérifier et afficher dans le div #cryptoNames si les deux conditions sont remplies
 function checkAndDisplayLong(symbol) {
-    const percentage5m = cryptoResults5m[symbol];
-    const percentage15m = cryptoResults15m[symbol];
+    const percentageVolume5m = cryptoResults5m[symbol];
+    const percentageVolume15m = cryptoResults15m[symbol];
 
     // Vérifie si les deux pourcentages sont dans les plages définies
-    if (percentage5m >= 60 && percentage5m <= 69 && percentage15m >= 80 && percentage15m <= 89) {
-        const cryptoNamesDiv = document.getElementById('cryptoNames');
-        const cryptoInfo = `${symbol}: LONG`;
-    
-        const cryptoInfoElement = document.createElement('p');
-        cryptoInfoElement.textContent = cryptoInfo;
-        cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
-        cryptoNamesDiv.appendChild(cryptoInfoElement);
-    } else if (percentage5m >= -69 && percentage5m <= -60 && percentage15m >= -89 && percentage15m <= -80) {
-        const cryptoNamesDiv = document.getElementById('cryptoNames');
-        const cryptoInfo = `${symbol}: SORTH`;
-    
-        const cryptoInfoElement = document.createElement('p');
-        cryptoInfoElement.textContent = cryptoInfo;
-        cryptoInfoElement.classList.add('negative'); // Ajoute une classe negative
-        cryptoNamesDiv.appendChild(cryptoInfoElement);
+
+    //// 5 Minutes //// 
+
+    if ( (percentageVolume5m >= 80 && percentageVolume5m <= 89 ) ) {
+        const cryptoNamesDiv_5m = document.getElementById('cryptoNames_5m');
+        const cryptoInfo = `${symbol}: LONG, ${percentageVolume5m.toFixed(2)}%`;
+        
+        if (!cryptoNamesDiv_5m.textContent.includes(cryptoInfo)) {
+            const cryptoInfoElement = document.createElement('p');
+            cryptoInfoElement.textContent = cryptoInfo;
+            cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
+            cryptoNamesDiv_5m.appendChild(cryptoInfoElement);
+        }
+    } else if ( (percentageVolume5m >= -89 && percentageVolume5m <= -80 ) ) {
+        const cryptoNamesDiv_5m = document.getElementById('cryptoNames_5m');
+        const cryptoInfo = `${symbol}: SORTH, ${percentageVolume5m.toFixed(2)}%`;
+        
+        if (!cryptoNamesDiv_5m.textContent.includes(cryptoInfo)) {
+            const cryptoInfoElement = document.createElement('p');
+            cryptoInfoElement.textContent = cryptoInfo;
+            cryptoInfoElement.classList.add('negative'); // Ajoute une classe negative
+            cryptoNamesDiv_5m.appendChild(cryptoInfoElement);
+        }
     }
+
+    //// 15 Minutes //// 
     
+    if ( (percentageVolume15m >= 80 && percentageVolume15m <= 89 ) ) {
+        const cryptoNamesDiv_15m = document.getElementById('cryptoNames_15m');
+        const cryptoInfo = `${symbol}: LONG, ${percentageVolume15m.toFixed(2)}%`;
+        
+        if (!cryptoNamesDiv_15m.textContent.includes(cryptoInfo)) {
+            const cryptoInfoElement = document.createElement('p');
+            cryptoInfoElement.textContent = cryptoInfo;
+            cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
+            cryptoNamesDiv_15m.appendChild(cryptoInfoElement);
+        }
+    } else if ( (percentageVolume15m >= -89 && percentageVolume15m <= -80 ) ) {
+        const cryptoNamesDiv_15m = document.getElementById('cryptoNames_15m');
+        const cryptoInfo = `${symbol}: SORTH, ${percentageVolume15m.toFixed(2)}%`;
+        
+        if (!cryptoNamesDiv_15m.textContent.includes(cryptoInfo)) {
+            const cryptoInfoElement = document.createElement('p');
+            cryptoInfoElement.textContent = cryptoInfo;
+            cryptoInfoElement.classList.add('negative'); // Ajoute une classe negative
+            cryptoNamesDiv_15m.appendChild(cryptoInfoElement);
+        }
+    }
 }
+
 
 // Fonction pour récupérer les données de Binance pour l'intervalle de 5 minutes
 async function fetchCryptoData5Min(symbol) {
