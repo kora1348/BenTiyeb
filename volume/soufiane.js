@@ -11,7 +11,7 @@ function checkAndDisplayLong(symbol) {
 
     //// 5 Minutes //// 
 
-    if ( (percentageVolume5m >= 90 && percentageVolume5m <= 99 ) ) {
+    if ( (percentageVolume5m === 100 ) ) {
         const cryptoNamesDiv_5m = document.getElementById('cryptoNames_5m');
         const cryptoInfo = `${symbol}: LONG, ${percentageVolume5m.toFixed(2)}%`;
         
@@ -21,7 +21,7 @@ function checkAndDisplayLong(symbol) {
             cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
             cryptoNamesDiv_5m.appendChild(cryptoInfoElement);
         }
-    } else if ( (percentageVolume5m >= -99 && percentageVolume5m <= -90 ) ) {
+    } else if ( (percentageVolume5m === -100 ) ) {
         const cryptoNamesDiv_5m = document.getElementById('cryptoNames_5m');
         const cryptoInfo = `${symbol}: SORTH, ${percentageVolume5m.toFixed(2)}%`;
         
@@ -35,7 +35,7 @@ function checkAndDisplayLong(symbol) {
 
     //// 15 Minutes //// 
     
-    if ( (percentageVolume15m >= 90 && percentageVolume15m <= 99 ) ) {
+    if ( (percentageVolume15m === 100 ) ) {
         const cryptoNamesDiv_15m = document.getElementById('cryptoNames_15m');
         const cryptoInfo = `${symbol}: LONG, ${percentageVolume15m.toFixed(2)}%`;
         
@@ -45,7 +45,7 @@ function checkAndDisplayLong(symbol) {
             cryptoInfoElement.classList.add('positive'); // Ajoute une classe positive
             cryptoNamesDiv_15m.appendChild(cryptoInfoElement);
         }
-    } else if ( (percentageVolume15m >= -99 && percentageVolume15m <= -90 ) ) {
+    } else if ( (percentageVolume15m === -100 ) ) {
         const cryptoNamesDiv_15m = document.getElementById('cryptoNames_15m');
         const cryptoInfo = `${symbol}: SORTH, ${percentageVolume15m.toFixed(2)}%`;
         
@@ -82,16 +82,20 @@ async function fetchCryptoData5Min(symbol) {
         const volumeCell = cryptoRow.insertCell(2);
         const dominanceCell = cryptoRow.insertCell(3);
         const percentageCell = cryptoRow.insertCell(4);
+        const variationCell = cryptoRow.insertCell(5); // Nouvelle colonne pour le taux de variation
 
         dateCell.textContent = new Date(data[0][0]).toLocaleString("fr-FR");
         volumeCell.textContent = `Acheteurs: ${takerBuyVolume.toFixed(2)}, Vendeurs: ${takerSellVolume.toFixed(2)}`;
         dominanceCell.textContent = takerBuyVolume > takerSellVolume ? 'Plus d\'acheteurs' : 'Plus de vendeurs';
         percentageCell.textContent = `${percentageDifference.toFixed(2)}%`;
+        variationCell.textContent = `${((data[0][4] - data[0][1]) / data[0][1] * 100).toFixed(2)}%`; // Calcul du taux de variation
 
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol} (5m):`, error);
     }
 }
+
+
 
 // Fonction pour récupérer les données de Binance pour l'intervalle de 15 minutes
 async function fetchCryptoData15Min(symbol) {
@@ -103,6 +107,7 @@ async function fetchCryptoData15Min(symbol) {
         const totalVolume = parseFloat(data[0][5]);
         const takerSellVolume = totalVolume - takerBuyVolume;
         const percentageDifference = ((takerBuyVolume - takerSellVolume) / totalVolume) * 100;
+
 
         // Enregistre le résultat dans l'objet global
         cryptoResults15m[symbol] = percentageDifference;
@@ -116,11 +121,13 @@ async function fetchCryptoData15Min(symbol) {
         const volumeCell = cryptoRow.insertCell(2);
         const dominanceCell = cryptoRow.insertCell(3);
         const percentageCell = cryptoRow.insertCell(4);
+        const variationCell = cryptoRow.insertCell(5); // Nouvelle colonne pour le taux de variation
 
         dateCell.textContent = new Date(data[0][0]).toLocaleString("fr-FR");
         volumeCell.textContent = `Acheteurs: ${takerBuyVolume.toFixed(2)}, Vendeurs: ${takerSellVolume.toFixed(2)}`;
         dominanceCell.textContent = takerBuyVolume > takerSellVolume ? 'Plus d\'acheteurs' : 'Plus de vendeurs';
         percentageCell.textContent = `${percentageDifference.toFixed(2)}%`;
+        variationCell.textContent = `${((data[0][4] - data[0][1]) / data[0][1] * 100).toFixed(2)}%`; // Calcul du taux de variation
 
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol} (15m):`, error);
@@ -152,3 +159,40 @@ symbols.forEach(symbol => {
     fetchCryptoData5Min(symbol);  // Pour l'intervalle de 5 minutes
     fetchCryptoData15Min(symbol); // Pour l'intervalle de 15 minutes
 });
+
+
+
+function mettreAJourHeure() {
+    var elementHeure = document.getElementById('heure');
+    var maintenant = new Date();
+
+    // Créer une copie de l'heure actuelle
+    var heureActuelle = new Date(maintenant);
+
+    // Ajouter 3 heures et 20 minutes à l'heure actuelle
+    maintenant.setHours(maintenant.getHours() + 3);
+    maintenant.setMinutes(maintenant.getMinutes() + 20);
+
+    var heuresMaintenant = maintenant.getHours();
+    var minutesMaintenant = maintenant.getMinutes();
+    var secondesMaintenant = maintenant.getSeconds();
+
+    var heuresActuelle = heureActuelle.getHours();
+    var minutesActuelle = heureActuelle.getMinutes();
+    var secondesActuelle = heureActuelle.getSeconds();
+
+    // Ajouter un zéro devant les chiffres < 10
+    heuresMaintenant = heuresMaintenant < 10 ? '0' + heuresMaintenant : heuresMaintenant;
+    minutesMaintenant = minutesMaintenant < 10 ? '0' + minutesMaintenant : minutesMaintenant;
+    secondesMaintenant = secondesMaintenant < 10 ? '0' + secondesMaintenant : secondesMaintenant;
+
+    heuresActuelle = heuresActuelle < 10 ? '0' + heuresActuelle : heuresActuelle;
+    minutesActuelle = minutesActuelle < 10 ? '0' + minutesActuelle : minutesActuelle;
+    secondesActuelle = secondesActuelle < 10 ? '0' + secondesActuelle : secondesActuelle;
+
+    // Mettre à jour le contenu de l'élément avec les deux heures
+    elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle;
+}
+
+// Appeler la fonction pour mettre à jour l'heure
+mettreAJourHeure();
