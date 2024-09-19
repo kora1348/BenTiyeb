@@ -62,7 +62,6 @@ function checkAndDisplayLong(symbol) {
 // Fonction pour récupérer les données de Binance pour l'intervalle de 5 minutes
 async function fetchCryptoData5Min(symbol) {
     try {
-        // Récupérer les données de volume (comme avant)
         const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`);
         const data = await response.json();
 
@@ -74,14 +73,8 @@ async function fetchCryptoData5Min(symbol) {
         // Enregistre le résultat dans l'objet global
         cryptoResults5m[symbol] = percentageDifference;
 
-        // Récupérer les informations des ordres limit
-        const depthResponse = await fetch(`https://api.binance.com/api/v3/depth?symbol=${symbol}USDT&limit=5`);
-        const depthData = await depthResponse.json();
-
-        const limitBuyOrders = depthData.bids.length; // Nombre d'ordres d'achat
-        const limitSellOrders = depthData.asks.length; // Nombre d'ordres de vente
-        const limitBuyPrice = parseFloat(depthData.bids[0][0]); // Prix du premier ordre d'achat
-        const limitSellPrice = parseFloat(depthData.asks[0][0]); // Prix du premier ordre de vente
+        // Vérifie si la condition avec fetchCryptoData15Min est aussi remplie
+        checkAndDisplayLong(symbol);
 
         // Logique pour remplir les cellules du tableau
         const cryptoRow = document.getElementById(`${symbol}_5m`);
@@ -89,30 +82,20 @@ async function fetchCryptoData5Min(symbol) {
         const volumeCell = cryptoRow.insertCell(2);
         const dominanceCell = cryptoRow.insertCell(3);
         const percentageCell = cryptoRow.insertCell(4);
-        const buyOrdersCell = cryptoRow.insertCell(5);
-        const sellOrdersCell = cryptoRow.insertCell(6);
-        const buyPriceCell = cryptoRow.insertCell(7);
-        const sellPriceCell = cryptoRow.insertCell(8);
 
         dateCell.textContent = new Date(data[0][0]).toLocaleString("fr-FR");
         volumeCell.textContent = `Acheteurs: ${takerBuyVolume.toFixed(2)}, Vendeurs: ${takerSellVolume.toFixed(2)}`;
         dominanceCell.textContent = takerBuyVolume > takerSellVolume ? 'Plus d\'acheteurs' : 'Plus de vendeurs';
         percentageCell.textContent = `${percentageDifference.toFixed(2)}%`;
-        buyOrdersCell.textContent = limitBuyOrders;
-        sellOrdersCell.textContent = limitSellOrders;
-        buyPriceCell.textContent = `${limitBuyPrice.toFixed(2)} USDT`;
-        sellPriceCell.textContent = `${limitSellPrice.toFixed(2)} USDT`;
 
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol} (5m):`, error);
     }
 }
 
-
 // Fonction pour récupérer les données de Binance pour l'intervalle de 15 minutes
 async function fetchCryptoData15Min(symbol) {
     try {
-        // Récupérer les données de volume (comme avant)
         const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=1`);
         const data = await response.json();
 
@@ -124,14 +107,8 @@ async function fetchCryptoData15Min(symbol) {
         // Enregistre le résultat dans l'objet global
         cryptoResults15m[symbol] = percentageDifference;
 
-        // Récupérer les informations des ordres limit
-        const depthResponse = await fetch(`https://api.binance.com/api/v3/depth?symbol=${symbol}USDT&limit=5`);
-        const depthData = await depthResponse.json();
-
-        const limitBuyOrders = depthData.bids.length; // Nombre d'ordres d'achat
-        const limitSellOrders = depthData.asks.length; // Nombre d'ordres de vente
-        const limitBuyPrice = parseFloat(depthData.bids[0][0]); // Prix du premier ordre d'achat
-        const limitSellPrice = parseFloat(depthData.asks[0][0]); // Prix du premier ordre de vente
+        // Vérifie si la condition avec fetchCryptoData5Min est aussi remplie
+        checkAndDisplayLong(symbol);
 
         // Logique pour remplir les cellules du tableau
         const cryptoRow = document.getElementById(`${symbol}_15m`);
@@ -139,25 +116,16 @@ async function fetchCryptoData15Min(symbol) {
         const volumeCell = cryptoRow.insertCell(2);
         const dominanceCell = cryptoRow.insertCell(3);
         const percentageCell = cryptoRow.insertCell(4);
-        const buyOrdersCell = cryptoRow.insertCell(5);
-        const sellOrdersCell = cryptoRow.insertCell(6);
-        const buyPriceCell = cryptoRow.insertCell(7);
-        const sellPriceCell = cryptoRow.insertCell(8);
 
         dateCell.textContent = new Date(data[0][0]).toLocaleString("fr-FR");
         volumeCell.textContent = `Acheteurs: ${takerBuyVolume.toFixed(2)}, Vendeurs: ${takerSellVolume.toFixed(2)}`;
         dominanceCell.textContent = takerBuyVolume > takerSellVolume ? 'Plus d\'acheteurs' : 'Plus de vendeurs';
         percentageCell.textContent = `${percentageDifference.toFixed(2)}%`;
-        buyOrdersCell.textContent = limitBuyOrders;
-        sellOrdersCell.textContent = limitSellOrders;
-        buyPriceCell.textContent = `${limitBuyPrice.toFixed(2)} USDT`;
-        sellPriceCell.textContent = `${limitSellPrice.toFixed(2)} USDT`;
 
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol} (15m):`, error);
     }
 }
-
 
 // Liste des symboles de cryptomonnaies
 const symbols = [
