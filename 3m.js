@@ -320,7 +320,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("XEC");
   fetchCryptoData("XEM");
   fetchCryptoData("XLM");
-  fetchCryptoData("XMR");
   fetchCryptoData("XRP");
   fetchCryptoData("XTZ");
   fetchCryptoData("XVG");
