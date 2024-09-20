@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=24`
         );
         const data = await response.json();
 
@@ -49,6 +49,7 @@ async function fetchCryptoData(symbol) {
         const lastCell = cryptoRow.insertCell(data.length + 1);
         if (lastLowPrice === lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
+            lastCell.classList.add("negative");
         } else {
             lastCell.textContent = "";
         }
