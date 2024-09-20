@@ -207,7 +207,6 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("MANA");
   fetchCryptoData("MANTA");
   fetchCryptoData("MASK");
-  fetchCryptoData("MATIC");
   fetchCryptoData("MAV");
   fetchCryptoData("MEME");
   fetchCryptoData("METIS");
