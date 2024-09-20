@@ -21,17 +21,17 @@ async function fetchCryptoData(symbol) {
 
             const variationCell = cryptoRow.insertCell(cellIndex);
             const variationValue = weeklyVariation.toFixed(2);
-            const weekStartDate = new Date(data[i][0]);
-            const weekEndDate = new Date(data[i][6]);
+            const intervalStartDate = new Date(data[i][0]);
+            const intervalEndDate = new Date(data[i][6]);
             const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
             const optionsEnd = { hour: "numeric", minute: "numeric" };
-            variationCell.textContent = `${weekStartDate.toLocaleDateString(
+            variationCell.textContent = `${intervalStartDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
-            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
+            )} (${intervalStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${intervalEndDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
-            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
 
             // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
             if (weeklyVariation > 0) {
@@ -48,7 +48,7 @@ async function fetchCryptoData(symbol) {
 
         // Ajout de la dernière cellule avec l'information si le dernier prix bas est le plus bas
         const lastCell = cryptoRow.insertCell(data.length + 1);
-        if (lastLowPrice === lowestPrice) {
+        if (lastLowPrice <= lowestPrice) {  // Si le dernier prix est le plus bas ou égal au plus bas global
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
             lastCell.classList.add("negative");
 
@@ -56,10 +56,10 @@ async function fetchCryptoData(symbol) {
             const cryptoNamesElement = document.getElementById('cryptoNames');
             const symbolElement = document.createElement('div');
             symbolElement.textContent = symbol;  // Affiche le symbole
-            symbolElement.classList.add('negative');  // Ajoute la classe 'negative' pour la couleur rouge
+            symbolElement.classList.add('positive');  // Ajoute la classe 'negative' pour la couleur rouge
             cryptoNamesElement.appendChild(symbolElement);  // Ajoute l'élément dans le div
         } else {
-            lastCell.textContent = "";
+            lastCell.textContent = "";  // Si le dernier prix n'est pas le plus bas, ne rien afficher
         }
 
     } catch (error) {
@@ -69,6 +69,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 
   
