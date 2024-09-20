@@ -11,6 +11,7 @@ async function fetchCryptoData(symbol) {
         let lowestPrice = Infinity;
         let lastLowPrice = parseFloat(data[data.length - 1][3]); // Prix bas (mèche basse) du dernier intervalle
 
+        // Boucle pour trouver le prix le plus bas de tous les intervalles
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
@@ -39,7 +40,7 @@ async function fetchCryptoData(symbol) {
                 variationCell.classList.add("negative");
             }
 
-            // Vérification du prix le plus bas (en tenant compte des mèches)
+            // Mise à jour du prix le plus bas global
             if (lowPrice < lowestPrice) {
                 lowestPrice = lowPrice;
             }
@@ -50,6 +51,13 @@ async function fetchCryptoData(symbol) {
         if (lastLowPrice === lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
             lastCell.classList.add("negative");
+
+            // Afficher le symbole dans la div avec la classe 'negative'
+            const cryptoNamesElement = document.getElementById('cryptoNames');
+            const symbolElement = document.createElement('div');
+            symbolElement.textContent = symbol;  // Affiche le symbole
+            symbolElement.classList.add('negative');  // Ajoute la classe 'negative' pour la couleur rouge
+            cryptoNamesElement.appendChild(symbolElement);  // Ajoute l'élément dans le div
         } else {
             lastCell.textContent = "";
         }
