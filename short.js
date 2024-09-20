@@ -5,19 +5,17 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
 
-        // Mise à jour du tableau avec les données et la couleur
         const cryptoRow = document.getElementById(symbol);
         
         let lowestPrice = Infinity;
-        let lastLowPrice = parseFloat(data[data.length - 1][3]); // Prix bas (mèche basse) du dernier intervalle
+        let lastLowPrice = parseFloat(data[data.length - 1][3]);
 
-        // Boucle pour trouver le prix le plus bas de tous les intervalles
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
-            const lowPrice = parseFloat(data[i][3]); // Mèche basse
+            const lowPrice = parseFloat(data[i][3]);
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+            const cellIndex = i + 1;
 
             const variationCell = cryptoRow.insertCell(cellIndex);
             const variationValue = weeklyVariation.toFixed(2);
@@ -33,33 +31,29 @@ async function fetchCryptoData(symbol) {
                 optionsStart
             )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
 
-            // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
             if (weeklyVariation > 0) {
                 variationCell.classList.add("positive");
             } else if (weeklyVariation < 0) {
                 variationCell.classList.add("negative");
             }
 
-            // Mise à jour du prix le plus bas global
             if (lowPrice < lowestPrice) {
                 lowestPrice = lowPrice;
             }
         }
 
-        // Ajout de la dernière cellule avec l'information si le dernier prix bas est le plus bas
         const lastCell = cryptoRow.insertCell(data.length + 1);
-        if (lastLowPrice <= lowestPrice) {  // Si le dernier prix est le plus bas ou égal au plus bas global
+        if (lastLowPrice <= lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
             lastCell.classList.add("positive");
 
-            // Afficher le symbole dans la div avec la classe 'negative'
             const cryptoNamesElement = document.getElementById('cryptoNames');
             const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;  // Affiche le symbole
-            symbolElement.classList.add('positive');  // Ajoute la classe 'negative' pour la couleur rouge
-            cryptoNamesElement.appendChild(symbolElement);  // Ajoute l'élément dans le div
+            symbolElement.textContent = symbol;
+            symbolElement.classList.add('positive');
+            cryptoNamesElement.appendChild(symbolElement);
         } else {
-            lastCell.textContent = "";  // Si le dernier prix n'est pas le plus bas, ne rien afficher
+            lastCell.textContent = "";
         }
 
     } catch (error) {
@@ -69,7 +63,6 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
-
 
 
   
