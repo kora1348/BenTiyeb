@@ -1,22 +1,23 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=2`
         );
         const data = await response.json();
-  
-        // Calcul du total des taux de variation sur 3 semaines
-        let totalVariation = 0;
-  
+
         // Mise à jour du tableau avec les données et la couleur
         const cryptoRow = document.getElementById(symbol);
-  
+        
+        let lowestPrice = Infinity;
+        let lastLowPrice = parseFloat(data[data.length - 1][3]); // Prix bas (mèche basse) du dernier intervalle
+
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
+            const lowPrice = parseFloat(data[i][3]); // Mèche basse
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
             const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
-  
+
             const variationCell = cryptoRow.insertCell(cellIndex);
             const variationValue = weeklyVariation.toFixed(2);
             const weekStartDate = new Date(data[i][0]);
@@ -30,52 +31,37 @@ async function fetchCryptoData(symbol) {
                 "fr-FR",
                 optionsStart
             )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
-  
+
             // Ajouter la classe "positive" ou "negative" en fonction de la variation hebdomadaire
             if (weeklyVariation > 0) {
                 variationCell.classList.add("positive");
             } else if (weeklyVariation < 0) {
                 variationCell.classList.add("negative");
             }
-  
-            totalVariation += weeklyVariation; // Ajouter la variation hebdomadaire au total
+
+            // Vérification du prix le plus bas (en tenant compte des mèches)
+            if (lowPrice < lowestPrice) {
+                lowestPrice = lowPrice;
+            }
         }
-  
-        // Ajouter la cellule pour afficher le total de variation
-        const totalCell = cryptoRow.insertCell(data.length + 1);
-        const totalValue = totalVariation.toFixed(2);
-        totalCell.style.textAlign = 'center';
-  
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-  
-        // Ajouter la classe "positive" pour le total dans la plage spécifiée
-        if (totalVariation >= -0.59 && totalVariation <= -0.40) {
-            totalCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
+
+        // Ajout de la dernière cellule avec l'information si le dernier prix bas est le plus bas
+        const lastCell = cryptoRow.insertCell(data.length + 1);
+        if (lastLowPrice === lowestPrice) {
+            lastCell.textContent = "Prix le plus bas (avec mèche)!";
+        } else {
+            lastCell.textContent = "";
         }
-  
-        if (totalVariation >= 0.40 && totalVariation <= 0.59) {
-          totalCell.classList.add("negative");
-          cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORTH, ${totalValue}%</p>`;
-      }
-  
-        if(totalVariation < 0){
-          totalCell.classList.add("negative");
-        }
-  
-        if(totalVariation > 0){
-          totalCell.classList.add("positive");
-        }
-        
-        totalCell.textContent = `${totalValue}%`;
-  
+
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
             error
         );
     }
-  }
+}
+
+
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
 
