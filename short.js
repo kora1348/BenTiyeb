@@ -50,7 +50,7 @@ async function fetchCryptoData(symbol) {
         const lastCell = cryptoRow.insertCell(data.length + 1);
         if (lastLowPrice <= lowestPrice) {  // Si le dernier prix est le plus bas ou égal au plus bas global
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
-            lastCell.classList.add("negative");
+            lastCell.classList.add("positive");
 
             // Afficher le symbole dans la div avec la classe 'negative'
             const cryptoNamesElement = document.getElementById('cryptoNames');
