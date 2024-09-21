@@ -8,12 +8,15 @@ async function fetchCryptoData(symbol) {
         const cryptoRow = document.getElementById(symbol);
         
         let lowestPrice = Infinity;
+        let highestPrice = -Infinity;  // Variable pour le prix le plus haut
         let lastLowPrice = parseFloat(data[data.length - 1][3]);
+        let lastHighPrice = parseFloat(data[data.length - 1][2]);  // Le prix haut de la dernière intervalle
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const lowPrice = parseFloat(data[i][3]);
+            const highPrice = parseFloat(data[i][2]);  // Récupération du prix le plus haut
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
             const cellIndex = i + 1;
 
@@ -40,9 +43,15 @@ async function fetchCryptoData(symbol) {
             if (lowPrice < lowestPrice) {
                 lowestPrice = lowPrice;
             }
+
+            if (highPrice > highestPrice) {  // Mise à jour du prix le plus haut
+                highestPrice = highPrice;
+            }
         }
 
         const lastCell = cryptoRow.insertCell(data.length + 1);
+
+        // Vérification pour le prix le plus bas
         if (lastLowPrice <= lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
             lastCell.classList.add("positive");
@@ -51,6 +60,17 @@ async function fetchCryptoData(symbol) {
             const symbolElement = document.createElement('div');
             symbolElement.textContent = symbol;
             symbolElement.classList.add('positive');
+            cryptoNamesElement.appendChild(symbolElement);
+        }
+        // Vérification pour le prix le plus haut
+        else if (lastHighPrice >= highestPrice) {
+            lastCell.textContent = "Prix le plus haut!";
+            lastCell.classList.add("negative");
+
+            const cryptoNamesElement = document.getElementById('cryptoNames');
+            const symbolElement = document.createElement('div');
+            symbolElement.textContent = symbol;
+            symbolElement.classList.add('negative');
             cryptoNamesElement.appendChild(symbolElement);
         } else {
             lastCell.textContent = "";
