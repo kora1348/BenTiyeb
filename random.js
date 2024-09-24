@@ -38,3 +38,33 @@ function generateRandomMinutes() {
 
 // Générer les minutes aléatoires au chargement
 generateRandomMinutes();
+
+
+function generateRandomHour() {
+    const startHour = 8; // 08h00
+    const endHour = 22;  // 22h00
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    const validHours = [];
+
+    // Boucle pour ajouter les heures valides
+    for (let hour = startHour; hour <= endHour; hour++) {
+        if (hour >= currentHour) {
+            validHours.push(hour);
+        }
+    }
+
+    // Mélanger les heures valides
+    validHours.sort(() => Math.random() - 0.5);
+
+    // Sélectionner une heure aléatoire
+    const randomHour = validHours[0];
+
+    // Formater et afficher l'heure sélectionnée
+    const formattedHour = `${randomHour.toString().padStart(2, '0')}:00`;
+    document.getElementById('heure1').innerText = formattedHour;
+}
+
+// Générer l'heure aléatoire au chargement
+generateRandomHour();
