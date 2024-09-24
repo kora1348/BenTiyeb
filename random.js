@@ -58,13 +58,16 @@ function generateRandomHour() {
     // Mélanger les heures valides
     validHours.sort(() => Math.random() - 0.5);
 
-    // Sélectionner une heure aléatoire
-    const randomHour = validHours[0];
+    // Sélectionner deux heures aléatoires
+    const randomHour1 = validHours[0];
+    const randomHour2 = validHours[1];
 
-    // Formater et afficher l'heure sélectionnée
-    const formattedHour = `${randomHour.toString().padStart(2, '0')}:00`;
-    document.getElementById('heure1').innerText = formattedHour;
+    // Formater et afficher les heures sélectionnées
+    const formattedHour1 = `${randomHour1.toString().padStart(2, '0')}:00`;
+    const formattedHour2 = `${randomHour2.toString().padStart(2, '0')}:00`;
+    document.getElementById('heure1').innerText = formattedHour1;
+    document.getElementById('heure2').innerText = formattedHour2;
 }
 
-// Générer l'heure aléatoire au chargement
+// Générer les heures aléatoires au chargement
 generateRandomHour();
