@@ -58,9 +58,9 @@ function generateRandomHour() {
     // Mélanger les heures valides
     validHours.sort(() => Math.random() - 0.5);
 
-    // Sélectionner deux heures aléatoires
+    // Sélectionner deux heures aléatoires sans doublons et dans l'ordre croissant
     const randomHour1 = validHours[0];
-    const randomHour2 = validHours[1];
+    let randomHour2 = validHours.find(hour => hour > randomHour1);
 
     // Formater et afficher les heures sélectionnées
     const formattedHour1 = `${randomHour1.toString().padStart(2, '0')}:00`;
