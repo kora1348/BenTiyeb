@@ -1,6 +1,6 @@
 function generateRandomMinutes() {
     const startHour = 8; // 08h00
-    const endHour = 22;  // 23h00
+    const endHour = 22;  // 22h00
     const interval = 5;  // 5 minutes
     const now = new Date();
     const currentHour = now.getHours();
@@ -21,7 +21,7 @@ function generateRandomMinutes() {
     validTimes.sort(() => Math.random() - 0.5);
 
     // Trier ensuite les minutes sélectionnées dans l'ordre croissant
-    const randomMinutes = validTimes.slice(0, 5).sort((a, b) => {
+    const randomMinutes = validTimes.slice(0, 3).sort((a, b) => {
         if (a.hour === b.hour) {
             return a.minute - b.minute;
         }
@@ -36,38 +36,33 @@ function generateRandomMinutes() {
     }
 }
 
-// Générer les minutes aléatoires au chargement
-generateRandomMinutes();
 
-
-function generateRandomHour() {
-    const startHour = 8; // 08h00
-    const endHour = 22;  // 22h00
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    const validHours = [];
-
-    // Boucle pour ajouter les heures valides
-    for (let hour = startHour; hour <= endHour; hour++) {
-        if (hour >= currentHour) {
-            validHours.push(hour);
-        }
-    }
-
-    // Mélanger les heures valides
-    validHours.sort(() => Math.random() - 0.5);
-
-    // Sélectionner deux heures aléatoires sans doublons et dans l'ordre croissant
-    const randomHour1 = validHours[0];
-    let randomHour2 = validHours.find(hour => hour > randomHour1);
-
-    // Formater et afficher les heures sélectionnées
-    const formattedHour1 = `${randomHour1.toString().padStart(2, '0')}:00`;
-    const formattedHour2 = `${randomHour2.toString().padStart(2, '0')}:00`;
-    document.getElementById('heure1').innerText = formattedHour1;
-    document.getElementById('heure2').innerText = formattedHour2;
+function getRandomTime() {
+    // Générer une heure aléatoire entre 08:00 et 22:00 (comme dans ton intervalle)
+    const randomHour = Math.floor(Math.random() * (22 - 8 + 1)) + 8; // de 08 à 22 heures
+    const randomMinute = Math.floor(Math.random() * 60); // de 0 à 59
+    
+    // Ajouter un zéro si les minutes ou les heures sont inférieurs à 10
+    const hour = randomHour.toString().padStart(2, '0');
+    const minute = randomMinute.toString().padStart(2, '0');
+    
+    return `${hour}:${minute}`;
 }
 
-// Générer les heures aléatoires au chargement
-generateRandomHour();
+function displayRandomTime() {
+    // Récupérer l'élément DOM pour l'affichage de l'heure
+    const timeElement = document.getElementById('random-time');
+    
+    if (timeElement) {
+        // Afficher l'heure aléatoire si l'élément existe
+        timeElement.textContent = getRandomTime();
+    } else {
+        console.error('Élément #random-time non trouvé.');
+    }
+}
+
+// Attendre que le DOM soit complètement chargé avant d'exécuter le script
+window.onload = function() {
+    generateRandomMinutes();  // Générer les minutes
+    displayRandomTime();      // Générer l'heure aléatoire
+};
