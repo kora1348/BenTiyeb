@@ -38,13 +38,19 @@ function generateRandomMinutes() {
 
 function getRandomTimes() {
     const randomTimes = new Set(); // Utiliser un Set pour éviter les doublons
-
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
     // Générer des heures aléatoires uniques entre 08:00 et 22:00
     while (randomTimes.size < 3) {
         const randomHour = Math.floor(Math.random() * (22 - 8 + 1)) + 8; // de 08 à 22 heures
-        const hour = randomHour.toString().padStart(2, '0');
-        const minute = '00'; // minutes fixes à 00
-        randomTimes.add(`${hour}:${minute}`); // Ajoute uniquement les heures uniques
+        const randomMinute = '00'; // minutes fixes à 00
+        
+        // Vérifier si l'heure générée est supérieure à l'heure actuelle
+        if (randomHour > currentHour || (randomHour === currentHour && randomMinute >= currentMinute)) {
+            randomTimes.add(`${randomHour.toString().padStart(2, '0')}:${randomMinute}`);
+        }
     }
 
     // Convertir le Set en tableau, puis trier les heures dans l'ordre croissant
