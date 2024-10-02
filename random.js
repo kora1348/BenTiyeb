@@ -13,7 +13,7 @@ function getRandomTimes() {
     let times = new Set(); // Utilisation d'un Set pour éviter les doublons
 
     // Boucle jusqu'à obtenir 3 heures uniques avec des minutes
-    while (times.size < 3) {
+    while (times.size < 20) {
         let randomHour = Math.floor(Math.random() * 24); // Heures entre 0 et 23
         
         // Filtrer les heures pour ne pas inclure celles entre 22h00 et 07h00
@@ -34,7 +34,7 @@ function getRandomHours() {
     let times = new Set(); // Utilisation d'un Set pour éviter les doublons
 
     // Boucle jusqu'à obtenir 3 heures uniques
-    while (times.size < 3) {
+    while (times.size < 10) {
         let randomHour = Math.floor(Math.random() * 24); // Heures entre 0 et 23
 
         // Filtrer les heures pour ne pas inclure celles entre 22h00 et 07h00
@@ -54,6 +54,13 @@ function displayRandomTimes() {
     document.getElementById('minute1').innerText = randomTimes[0];
     document.getElementById('minute2').innerText = randomTimes[1];
     document.getElementById('minute3').innerText = randomTimes[2];
+    document.getElementById('minute4').innerText = randomTimes[3];
+    document.getElementById('minute5').innerText = randomTimes[4];
+    document.getElementById('minute6').innerText = randomTimes[5];
+    document.getElementById('minute7').innerText = randomTimes[6];
+    document.getElementById('minute8').innerText = randomTimes[7];
+    document.getElementById('minute9').innerText = randomTimes[8];
+    document.getElementById('minute10').innerText = randomTimes[9];
 }
 
 function displayRandomHours() {
