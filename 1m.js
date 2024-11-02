@@ -12,21 +12,26 @@ async function fetchCryptoData(symbol) {
         let lastLowPrice = parseFloat(data[data.length - 1][3]);
         let lastHighPrice = parseFloat(data[data.length - 1][2]);
 
-        const firstOpenPrice = parseFloat(data[0][1]);
-        const lastClosePrice = parseFloat(data[data.length - 1][4]);
-        const overallVariation = ((lastClosePrice - firstOpenPrice) / firstOpenPrice) * 100;
+        const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
+        const optionsEnd = { hour: "numeric", minute: "numeric" };
 
+        // Parcourir les intervalles pour afficher chaque taux de variation et format de date
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const lowPrice = parseFloat(data[i][3]);
             const highPrice = parseFloat(data[i][2]);
-            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+            const variation = ((closePrice - openPrice) / openPrice) * 100;
+            
+            const intervalStartDate = new Date(data[i][0]);
+            const intervalEndDate = new Date(data[i][6]);
 
+            // Affichage formaté de la date et du taux de variation dans chaque cellule
             const variationCell = cryptoRow.insertCell(i + 1);
-            variationCell.textContent = `${weeklyVariation.toFixed(2)}%`;
-            variationCell.classList.add(weeklyVariation > 0 ? "positive" : "negative");
+            variationCell.textContent = `${intervalStartDate.toLocaleDateString("fr-FR", optionsStart)} (${intervalStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${intervalEndDate.toLocaleDateString("fr-FR", optionsStart)} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variation.toFixed(2)}%`;
+            variationCell.classList.add(variation > 0 ? "positive" : "negative");
 
+            // Mettre à jour les valeurs les plus hautes et basses pour l'analyse globale
             if (lowPrice < lowestPrice) {
                 lowestPrice = lowPrice;
             }
@@ -37,15 +42,16 @@ async function fetchCryptoData(symbol) {
 
         const lastCell = cryptoRow.insertCell(data.length + 1);
 
+        // Vérification pour le prix le plus bas ou le plus haut et ajout au div cryptoNames si applicable
         const cryptoNamesElement = document.getElementById("cryptoNames");
-
-        // Vérification pour le prix le plus bas et le prix le plus haut
+        const lastVariation = ((data[data.length - 1][4] - data[data.length - 1][1]) / data[data.length - 1][1]) * 100;
+        const symbolElement = document.createElement("div");
+        
         if (lastLowPrice <= lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
             lastCell.classList.add("negative");
 
-            const symbolElement = document.createElement("div");
-            symbolElement.textContent = `${symbol}: ${overallVariation.toFixed(2)}%`;
+            symbolElement.textContent = `${symbol}: ${lastVariation.toFixed(2)}%`;
             symbolElement.classList.add("negative");
             cryptoNamesElement.appendChild(symbolElement);
 
@@ -53,19 +59,19 @@ async function fetchCryptoData(symbol) {
             lastCell.textContent = "Prix le plus haut (avec mèche)!";
             lastCell.classList.add("positive");
 
-            const symbolElement = document.createElement("div");
-            symbolElement.textContent = `${symbol}: ${overallVariation.toFixed(2)}%`;
+            symbolElement.textContent = `${symbol}: ${lastVariation.toFixed(2)}%`;
             symbolElement.classList.add("positive");
             cryptoNamesElement.appendChild(symbolElement);
 
         } else {
-            lastCell.textContent = ""; // Pas d'affichage supplémentaire dans #cryptoNames
+            lastCell.textContent = ""; // Pas d'affichage supplémentaire dans #cryptoNames si les conditions ne sont pas remplies
         }
 
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
+
 
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
