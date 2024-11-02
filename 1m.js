@@ -6,11 +6,16 @@ async function fetchCryptoData(symbol) {
         const data = await response.json();
 
         const cryptoRow = document.getElementById(symbol);
-        
+
         let lowestPrice = Infinity;
         let highestPrice = -Infinity;  // Variable pour le prix le plus haut
         let lastLowPrice = parseFloat(data[data.length - 1][3]);
         let lastHighPrice = parseFloat(data[data.length - 1][2]);  // Le prix haut de la dernière intervalle
+
+        // Variables pour calculer le taux de variation global sur 60 minutes
+        const firstOpenPrice = parseFloat(data[0][1]); // Prix d'ouverture de la première intervalle
+        const lastClosePrice = parseFloat(data[data.length - 1][4]); // Prix de clôture de la dernière intervalle
+        const overallVariation = ((lastClosePrice - firstOpenPrice) / firstOpenPrice) * 100;
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
@@ -55,26 +60,28 @@ async function fetchCryptoData(symbol) {
         if (lastLowPrice <= lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
             lastCell.classList.add("negative");
-
-            const cryptoNamesElement = document.getElementById('cryptoNames');
-            const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;
-            symbolElement.classList.add('negative');
-            cryptoNamesElement.appendChild(symbolElement);
         }
         // Vérification pour le prix le plus haut
         else if (lastHighPrice >= highestPrice) {
             lastCell.textContent = "Prix le plus haut!";
             lastCell.classList.add("positive");
-
-            const cryptoNamesElement = document.getElementById('cryptoNames');
-            const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;
-            symbolElement.classList.add('positive');
-            cryptoNamesElement.appendChild(symbolElement);
         } else {
             lastCell.textContent = "";
         }
+
+        // Affichage dans le div #cryptoNames
+        const cryptoNamesElement = document.getElementById('cryptoNames');
+        const symbolElement = document.createElement('div');
+        symbolElement.textContent = `${symbol}: ${overallVariation.toFixed(2)}%`;
+        
+        // Application de la classe CSS en fonction du taux de variation
+        if (overallVariation > 0) {
+            symbolElement.classList.add('positive');
+        } else if (overallVariation < 0) {
+            symbolElement.classList.add('negative');
+        }
+
+        cryptoNamesElement.appendChild(symbolElement);
 
     } catch (error) {
         console.error(
@@ -83,7 +90,6 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
-
 
   
   // Appel de la fonction pour obtenir les taux de variation des cryptos
