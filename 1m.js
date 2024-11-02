@@ -45,26 +45,30 @@ async function fetchCryptoData(symbol) {
         // Vérification pour le prix le plus bas ou le plus haut et ajout au div cryptoNames si applicable
         const cryptoNamesElement = document.getElementById("cryptoNames");
         const lastVariation = ((data[data.length - 1][4] - data[data.length - 1][1]) / data[data.length - 1][1]) * 100;
-        const symbolElement = document.createElement("div");
-        
-        if (lastLowPrice <= lowestPrice) {
-            lastCell.textContent = "Prix le plus bas (avec mèche)!";
-            lastCell.classList.add("negative");
 
-            symbolElement.textContent = `${symbol}: ${lastVariation.toFixed(2)}%`;
-            symbolElement.classList.add("negative");
-            cryptoNamesElement.appendChild(symbolElement);
+        if (lastVariation !== 0.00) { // Vérification pour ne pas afficher 0.00%
+            const symbolElement = document.createElement("div");
+            
+            if (lastLowPrice <= lowestPrice) {
+                lastCell.textContent = "Prix le plus bas (avec mèche)!";
+                lastCell.classList.add("negative");
 
-        } else if (lastHighPrice >= highestPrice) {
-            lastCell.textContent = "Prix le plus haut (avec mèche)!";
-            lastCell.classList.add("positive");
+                symbolElement.textContent = `${symbol}: ${lastVariation.toFixed(2)}%`;
+                symbolElement.classList.add(lastVariation < 0 ? "negative" : "positive");
+                cryptoNamesElement.appendChild(symbolElement);
 
-            symbolElement.textContent = `${symbol}: ${lastVariation.toFixed(2)}%`;
-            symbolElement.classList.add("positive");
-            cryptoNamesElement.appendChild(symbolElement);
+            } else if (lastHighPrice >= highestPrice) {
+                lastCell.textContent = "Prix le plus haut (avec mèche)!";
+                lastCell.classList.add("positive");
 
+                symbolElement.textContent = `${symbol}: ${lastVariation.toFixed(2)}%`;
+                symbolElement.classList.add(lastVariation < 0 ? "negative" : "positive");
+                cryptoNamesElement.appendChild(symbolElement);
+            } else {
+                lastCell.textContent = ""; // Pas d'affichage supplémentaire dans #cryptoNames si les conditions ne sont pas remplies
+            }
         } else {
-            lastCell.textContent = ""; // Pas d'affichage supplémentaire dans #cryptoNames si les conditions ne sont pas remplies
+            lastCell.textContent = ""; // Ne rien afficher si lastVariation est 0.00%
         }
 
     } catch (error) {
