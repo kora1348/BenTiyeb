@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=2h&limit=60`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=60`
         );
         const data = await response.json();
 
@@ -54,23 +54,23 @@ async function fetchCryptoData(symbol) {
         // Vérification pour le prix le plus bas
         if (lastLowPrice <= lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
-            lastCell.classList.add("positive");
-
-            const cryptoNamesElement = document.getElementById('cryptoNames');
-            const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;
-            symbolElement.classList.add('positive');
-            cryptoNamesElement.appendChild(symbolElement);
-        }
-        // Vérification pour le prix le plus haut
-        else if (lastHighPrice >= highestPrice) {
-            lastCell.textContent = "Prix le plus haut!";
             lastCell.classList.add("negative");
 
             const cryptoNamesElement = document.getElementById('cryptoNames');
             const symbolElement = document.createElement('div');
             symbolElement.textContent = symbol;
             symbolElement.classList.add('negative');
+            cryptoNamesElement.appendChild(symbolElement);
+        }
+        // Vérification pour le prix le plus haut
+        else if (lastHighPrice >= highestPrice) {
+            lastCell.textContent = "Prix le plus haut!";
+            lastCell.classList.add("positive");
+
+            const cryptoNamesElement = document.getElementById('cryptoNames');
+            const symbolElement = document.createElement('div');
+            symbolElement.textContent = symbol;
+            symbolElement.classList.add('positive');
             cryptoNamesElement.appendChild(symbolElement);
         } else {
             lastCell.textContent = "";
