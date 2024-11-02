@@ -8,86 +8,62 @@ async function fetchCryptoData(symbol) {
         const cryptoRow = document.getElementById(symbol);
 
         let lowestPrice = Infinity;
-        let highestPrice = -Infinity;  // Variable pour le prix le plus haut
+        let highestPrice = -Infinity;
         let lastLowPrice = parseFloat(data[data.length - 1][3]);
-        let lastHighPrice = parseFloat(data[data.length - 1][2]);  // Le prix haut de la dernière intervalle
+        let lastHighPrice = parseFloat(data[data.length - 1][2]);
 
-        // Variables pour calculer le taux de variation global sur 60 minutes
-        const firstOpenPrice = parseFloat(data[0][1]); // Prix d'ouverture de la première intervalle
-        const lastClosePrice = parseFloat(data[data.length - 1][4]); // Prix de clôture de la dernière intervalle
+        const firstOpenPrice = parseFloat(data[0][1]);
+        const lastClosePrice = parseFloat(data[data.length - 1][4]);
         const overallVariation = ((lastClosePrice - firstOpenPrice) / firstOpenPrice) * 100;
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const lowPrice = parseFloat(data[i][3]);
-            const highPrice = parseFloat(data[i][2]);  // Récupération du prix le plus haut
+            const highPrice = parseFloat(data[i][2]);
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1;
 
-            const variationCell = cryptoRow.insertCell(cellIndex);
-            const variationValue = weeklyVariation.toFixed(2);
-            const intervalStartDate = new Date(data[i][0]);
-            const intervalEndDate = new Date(data[i][6]);
-            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-            const optionsEnd = { hour: "numeric", minute: "numeric" };
-            variationCell.textContent = `${intervalStartDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${intervalStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${intervalEndDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
-
-            if (weeklyVariation > 0) {
-                variationCell.classList.add("positive");
-            } else if (weeklyVariation < 0) {
-                variationCell.classList.add("negative");
-            }
+            const variationCell = cryptoRow.insertCell(i + 1);
+            variationCell.textContent = `${weeklyVariation.toFixed(2)}%`;
+            variationCell.classList.add(weeklyVariation > 0 ? "positive" : "negative");
 
             if (lowPrice < lowestPrice) {
                 lowestPrice = lowPrice;
             }
-
-            if (highPrice > highestPrice) {  // Mise à jour du prix le plus haut
+            if (highPrice > highestPrice) {
                 highestPrice = highPrice;
             }
         }
 
         const lastCell = cryptoRow.insertCell(data.length + 1);
 
-        // Vérification pour le prix le plus bas
+        const cryptoNamesElement = document.getElementById("cryptoNames");
+
+        // Vérification pour le prix le plus bas et le prix le plus haut
         if (lastLowPrice <= lowestPrice) {
             lastCell.textContent = "Prix le plus bas (avec mèche)!";
             lastCell.classList.add("negative");
-        }
-        // Vérification pour le prix le plus haut
-        else if (lastHighPrice >= highestPrice) {
-            lastCell.textContent = "Prix le plus haut!";
+
+            const symbolElement = document.createElement("div");
+            symbolElement.textContent = `${symbol}: ${overallVariation.toFixed(2)}%`;
+            symbolElement.classList.add("negative");
+            cryptoNamesElement.appendChild(symbolElement);
+
+        } else if (lastHighPrice >= highestPrice) {
+            lastCell.textContent = "Prix le plus haut (avec mèche)!";
             lastCell.classList.add("positive");
+
+            const symbolElement = document.createElement("div");
+            symbolElement.textContent = `${symbol}: ${overallVariation.toFixed(2)}%`;
+            symbolElement.classList.add("positive");
+            cryptoNamesElement.appendChild(symbolElement);
+
         } else {
-            lastCell.textContent = "";
+            lastCell.textContent = ""; // Pas d'affichage supplémentaire dans #cryptoNames
         }
-
-        // Affichage dans le div #cryptoNames
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-        const symbolElement = document.createElement('div');
-        symbolElement.textContent = `${symbol}: ${overallVariation.toFixed(2)}%`;
-        
-        // Application de la classe CSS en fonction du taux de variation
-        if (overallVariation > 0) {
-            symbolElement.classList.add('positive');
-        } else if (overallVariation < 0) {
-            symbolElement.classList.add('negative');
-        }
-
-        cryptoNamesElement.appendChild(symbolElement);
 
     } catch (error) {
-        console.error(
-            `Erreur lors de la récupération des données pour ${symbol}:`,
-            error
-        );
+        console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
 
