@@ -21,23 +21,23 @@ function calculate() {
     document.getElementById('output').innerHTML = output;
 }
 
-function calculateScalping() {
+function calculateDay() {
     const number = parseFloat(document.getElementById('numberInputS').value);
     let output = '';
 
     // Calcul des résultats pour les multiplications positives (affichage inversé)
-    for (let i = 10; i >= 1; i--) { // Boucle dans l'ordre décroissant
-        const result = number + (number * (i * 0.1) / 100); // Utilisation de 0,1 % par itération
-        output += `<div class="negative">${result.toFixed(5)}</div>`;
+    for (let i = 10; i >= 1; i--) {
+        const result = number + (number * i / 100);
+        output += `<div class="negative">${result.toFixed(10)}</div>`;
     }
 
     // Ajout de la valeur de l'input avec la classe "blue"
-    output += `<div class="blue">${number.toFixed(4)}*</div>`;
+    output += `<div class="blue">${number.toFixed(10)}*</div>`;
 
     // Calcul des résultats pour les multiplications négatives (affichage inversé)
-    for (let i = 1; i <= 10; i++) {
-        const result = number - (number * (i * 0.1) / 100); // Utilisation de 0,1 % par itération
-        output += `<div class="positive">${result.toFixed(5)}</div>`;
+    for (let i = -1; i >= -10; i--) {
+        const result = number + (number * i / 100);
+        output += `<div class="positive">${result.toFixed(10)}</div>`;
     }
 
     // Affichage des résultats
