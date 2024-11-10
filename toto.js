@@ -1,79 +1,70 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=14`
         );
         const data = await response.json();
 
         const cryptoRow = document.getElementById(symbol);
-        
+
         let lowestPrice = Infinity;
-        let highestPrice = -Infinity;  // Variable pour le prix le plus haut
-        let lastLowPrice = parseFloat(data[data.length - 1][3]);
-        let lastHighPrice = parseFloat(data[data.length - 1][2]);  // Le prix haut de la dernière intervalle
+        let lowestPriceIndex = -1;
+        let secondLowestPrice = Infinity;
+        let firstCandleVariation, fourteenthCandleVariation;
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
-            const closePrice = parseFloat(data[i][4]);
             const lowPrice = parseFloat(data[i][3]);
-            const highPrice = parseFloat(data[i][2]);  // Récupération du prix le plus haut
-            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1;
+            const variation = ((lowPrice - openPrice) / openPrice) * 100; // Taux de variation de chaque bougie
 
-            const variationCell = cryptoRow.insertCell(cellIndex);
-            const variationValue = weeklyVariation.toFixed(2);
+            if (i === 0) {
+                firstCandleVariation = variation; // Variation de la première bougie
+            } else if (i === 13) {
+                fourteenthCandleVariation = variation; // Variation de la quatorzième bougie
+            }
+
+            // Mettre à jour les prix les plus bas
+            if (lowPrice < lowestPrice) {
+                secondLowestPrice = lowestPrice;
+                lowestPrice = lowPrice;
+                lowestPriceIndex = i;
+            } else if (lowPrice < secondLowestPrice) {
+                secondLowestPrice = lowPrice;
+            }
+
+            // Formatage de la cellule avec les informations d'intervalle et de variation
             const intervalStartDate = new Date(data[i][0]);
             const intervalEndDate = new Date(data[i][6]);
             const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
             const optionsEnd = { hour: "numeric", minute: "numeric" };
+
+            const cellIndex = i + 1;
+            const variationCell = cryptoRow.insertCell(cellIndex);
             variationCell.textContent = `${intervalStartDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
             )} (${intervalStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${intervalEndDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
-            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variation.toFixed(2)}%`;
 
-            if (weeklyVariation > 0) {
+            // Couleurs pour la variation
+            if (variation > 0) {
                 variationCell.classList.add("positive");
-            } else if (weeklyVariation < 0) {
+            } else if (variation < 0) {
                 variationCell.classList.add("negative");
             }
-
-            if (lowPrice < lowestPrice) {
-                lowestPrice = lowPrice;
-            }
-
-            if (highPrice > highestPrice) {  // Mise à jour du prix le plus haut
-                highestPrice = highPrice;
-            }
         }
 
-        const lastCell = cryptoRow.insertCell(data.length + 1);
+        const resultCell = cryptoRow.insertCell(data.length + 1);
 
-        // Vérification pour le prix le plus bas
-        if (lastLowPrice <= lowestPrice) {
-            lastCell.textContent = "Prix le plus bas (avec mèche)!";
-            lastCell.classList.add("positive");
-
-            const cryptoNamesElement = document.getElementById('cryptoNames');
-            const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;
-            symbolElement.classList.add('positive');
-            cryptoNamesElement.appendChild(symbolElement);
-        }
-        // Vérification pour le prix le plus haut
-        else if (lastHighPrice >= highestPrice) {
-            lastCell.textContent = "Prix le plus haut!";
-            lastCell.classList.add("negative");
-
-            const cryptoNamesElement = document.getElementById('cryptoNames');
-            const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;
-            symbolElement.classList.add('negative');
-            cryptoNamesElement.appendChild(symbolElement);
+        // Vérification des conditions sur les bougies
+        if (lowestPriceIndex === 13 && parseFloat(data[0][3]) === secondLowestPrice) {
+            resultCell.textContent = `14e bougie la plus basse et 1ère bougie la deuxième plus basse`;
+            resultCell.classList.add("positive");
         } else {
-            lastCell.textContent = "";
+            resultCell.textContent = `Conditions non remplies`;
+            resultCell.classList.add("negative");
         }
 
     } catch (error) {
