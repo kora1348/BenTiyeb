@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=14`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=14`
         );
         const data = await response.json();
 
@@ -10,20 +10,25 @@ async function fetchCryptoData(symbol) {
         let lowestPrice = Infinity;
         let lowestPriceIndex = -1;
         let secondLowestPrice = Infinity;
+        let highestPrice = -Infinity;
+        let highestPriceIndex = -1;
+        let secondHighestPrice = -Infinity;
         let firstCandleVariation, fourteenthCandleVariation;
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const lowPrice = parseFloat(data[i][3]);
-            const variation = ((lowPrice - openPrice) / openPrice) * 100; // Taux de variation de chaque bougie
+            const highPrice = parseFloat(data[i][2]);
+            const variation = ((lowPrice - openPrice) / openPrice) * 100;
 
+            // Enregistrer les variations pour la première et la quatorzième bougie
             if (i === 0) {
-                firstCandleVariation = variation; // Variation de la première bougie
+                firstCandleVariation = variation;
             } else if (i === 13) {
-                fourteenthCandleVariation = variation; // Variation de la quatorzième bougie
+                fourteenthCandleVariation = variation;
             }
 
-            // Mettre à jour les prix les plus bas
+            // Mise à jour des prix les plus bas
             if (lowPrice < lowestPrice) {
                 secondLowestPrice = lowestPrice;
                 lowestPrice = lowPrice;
@@ -32,7 +37,16 @@ async function fetchCryptoData(symbol) {
                 secondLowestPrice = lowPrice;
             }
 
-            // Formatage de la cellule avec les informations d'intervalle et de variation
+            // Mise à jour des prix les plus hauts
+            if (highPrice > highestPrice) {
+                secondHighestPrice = highestPrice;
+                highestPrice = highPrice;
+                highestPriceIndex = i;
+            } else if (highPrice > secondHighestPrice) {
+                secondHighestPrice = highPrice;
+            }
+
+            // Formatage de la cellule avec la date, heure et variation
             const intervalStartDate = new Date(data[i][0]);
             const intervalEndDate = new Date(data[i][6]);
             const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
@@ -48,7 +62,6 @@ async function fetchCryptoData(symbol) {
                 optionsStart
             )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variation.toFixed(2)}%`;
 
-            // Couleurs pour la variation
             if (variation > 0) {
                 variationCell.classList.add("positive");
             } else if (variation < 0) {
@@ -58,13 +71,19 @@ async function fetchCryptoData(symbol) {
 
         const resultCell = cryptoRow.insertCell(data.length + 1);
 
-        // Vérification des conditions sur les bougies
+        // Vérification pour les prix bas
         if (lowestPriceIndex === 13 && parseFloat(data[0][3]) === secondLowestPrice) {
             resultCell.textContent = `14e bougie la plus basse et 1ère bougie la deuxième plus basse`;
             resultCell.classList.add("positive");
-        } else {
-            resultCell.textContent = `Conditions non remplies`;
+        }
+        // Vérification pour les prix hauts (opposé des conditions précédentes)
+        else if (highestPriceIndex === 13 && parseFloat(data[0][2]) === secondHighestPrice) {
+            resultCell.textContent = `14e bougie la plus haute et 1ère bougie la deuxième plus haute`;
             resultCell.classList.add("negative");
+        } 
+        else {
+            resultCell.textContent = `Conditions non remplies`;
+            resultCell.classList.add("bleu");
         }
 
     } catch (error) {
@@ -74,6 +93,7 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
+
 
 
   
