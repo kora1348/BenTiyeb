@@ -70,15 +70,15 @@ async function fetchCryptoData(symbol) {
 
         // Vérification pour les prix bas
         if (lowestPriceIndex === 13 && parseFloat(data[0][3]) === secondLowestPrice) {
-            resultCell.textContent = `14e bougie la plus basse et 1ère bougie la deuxième plus basse`;
-            resultCell.classList.add("positive");
-            cryptoNamesDiv.innerHTML += `<span>${symbol}</span><br/>`; // Saut de ligne
+            resultCell.textContent = `Cela baisse, on achète!`;
+            resultCell.classList.add("negative");
+            cryptoNamesDiv.innerHTML += `<span class="positive">${symbol}</span><br/>`; // Saut de ligne avec classe CSS
         }
         // Vérification pour les prix hauts (opposé des conditions précédentes)
         else if (highestPriceIndex === 13 && parseFloat(data[0][2]) === secondHighestPrice) {
-            resultCell.textContent = `14e bougie la plus haute et 1ère bougie la deuxième plus haute`;
-            resultCell.classList.add("negative");
-            cryptoNamesDiv.innerHTML += `<span class="positive">${symbol}</span><br/>`; // Saut de ligne avec classe CSS
+            resultCell.textContent = `Cela monte, on vend !`;
+            resultCell.classList.add("positive");
+            cryptoNamesDiv.innerHTML += `<span class="negative">${symbol}</span><br/>`; // Saut de ligne avec classe CSS
         } 
         else {
             resultCell.textContent = `Conditions non remplies`;
