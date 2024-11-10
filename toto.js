@@ -21,14 +21,12 @@ async function fetchCryptoData(symbol) {
             const highPrice = parseFloat(data[i][2]);
             const variation = ((lowPrice - openPrice) / openPrice) * 100;
 
-            // Enregistrer les variations pour la première et la quatorzième bougie
             if (i === 0) {
                 firstCandleVariation = variation;
             } else if (i === 13) {
                 fourteenthCandleVariation = variation;
             }
 
-            // Mise à jour des prix les plus bas
             if (lowPrice < lowestPrice) {
                 secondLowestPrice = lowestPrice;
                 lowestPrice = lowPrice;
@@ -37,7 +35,6 @@ async function fetchCryptoData(symbol) {
                 secondLowestPrice = lowPrice;
             }
 
-            // Mise à jour des prix les plus hauts
             if (highPrice > highestPrice) {
                 secondHighestPrice = highestPrice;
                 highestPrice = highPrice;
@@ -46,7 +43,6 @@ async function fetchCryptoData(symbol) {
                 secondHighestPrice = highPrice;
             }
 
-            // Formatage de la cellule avec la date, heure et variation
             const intervalStartDate = new Date(data[i][0]);
             const intervalEndDate = new Date(data[i][6]);
             const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
@@ -70,16 +66,19 @@ async function fetchCryptoData(symbol) {
         }
 
         const resultCell = cryptoRow.insertCell(data.length + 1);
+        const cryptoNamesDiv = document.getElementById("cryptoNames");
 
         // Vérification pour les prix bas
         if (lowestPriceIndex === 13 && parseFloat(data[0][3]) === secondLowestPrice) {
             resultCell.textContent = `14e bougie la plus basse et 1ère bougie la deuxième plus basse`;
             resultCell.classList.add("positive");
+            cryptoNamesDiv.innerHTML += `<span>${symbol}</span><br/>`; // Saut de ligne
         }
         // Vérification pour les prix hauts (opposé des conditions précédentes)
         else if (highestPriceIndex === 13 && parseFloat(data[0][2]) === secondHighestPrice) {
             resultCell.textContent = `14e bougie la plus haute et 1ère bougie la deuxième plus haute`;
             resultCell.classList.add("negative");
+            cryptoNamesDiv.innerHTML += `<span class="positive">${symbol}</span><br/>`; // Saut de ligne avec classe CSS
         } 
         else {
             resultCell.textContent = `Conditions non remplies`;
@@ -93,7 +92,6 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
-
 
 
   
