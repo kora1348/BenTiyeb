@@ -1,88 +1,79 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=14`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=30m&limit=60`
         );
         const data = await response.json();
 
         const cryptoRow = document.getElementById(symbol);
-
+        
         let lowestPrice = Infinity;
-        let lowestPriceIndex = -1;
-        let secondLowestPrice = Infinity;
-        let highestPrice = -Infinity;
-        let highestPriceIndex = -1;
-        let secondHighestPrice = -Infinity;
-        let firstCandleVariation, fourteenthCandleVariation;
+        let highestPrice = -Infinity;  // Variable pour le prix le plus haut
+        let lastLowPrice = parseFloat(data[data.length - 1][3]);
+        let lastHighPrice = parseFloat(data[data.length - 1][2]);  // Le prix haut de la dernière intervalle
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
+            const closePrice = parseFloat(data[i][4]);
             const lowPrice = parseFloat(data[i][3]);
-            const highPrice = parseFloat(data[i][2]);
-            const variation = ((lowPrice - openPrice) / openPrice) * 100;
+            const highPrice = parseFloat(data[i][2]);  // Récupération du prix le plus haut
+            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+            const cellIndex = i + 1;
 
-            if (i === 0) {
-                firstCandleVariation = variation;
-            } else if (i === 13) {
-                fourteenthCandleVariation = variation;
-            }
-
-            if (lowPrice < lowestPrice) {
-                secondLowestPrice = lowestPrice;
-                lowestPrice = lowPrice;
-                lowestPriceIndex = i;
-            } else if (lowPrice < secondLowestPrice) {
-                secondLowestPrice = lowPrice;
-            }
-
-            if (highPrice > highestPrice) {
-                secondHighestPrice = highestPrice;
-                highestPrice = highPrice;
-                highestPriceIndex = i;
-            } else if (highPrice > secondHighestPrice) {
-                secondHighestPrice = highPrice;
-            }
-
+            const variationCell = cryptoRow.insertCell(cellIndex);
+            const variationValue = weeklyVariation.toFixed(2);
             const intervalStartDate = new Date(data[i][0]);
             const intervalEndDate = new Date(data[i][6]);
             const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
             const optionsEnd = { hour: "numeric", minute: "numeric" };
-
-            const cellIndex = i + 1;
-            const variationCell = cryptoRow.insertCell(cellIndex);
             variationCell.textContent = `${intervalStartDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
             )} (${intervalStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${intervalEndDate.toLocaleDateString(
                 "fr-FR",
                 optionsStart
-            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variation.toFixed(2)}%`;
+            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
 
-            if (variation > 0) {
+            if (weeklyVariation > 0) {
                 variationCell.classList.add("positive");
-            } else if (variation < 0) {
+            } else if (weeklyVariation < 0) {
                 variationCell.classList.add("negative");
+            }
+
+            if (lowPrice < lowestPrice) {
+                lowestPrice = lowPrice;
+            }
+
+            if (highPrice > highestPrice) {  // Mise à jour du prix le plus haut
+                highestPrice = highPrice;
             }
         }
 
-        const resultCell = cryptoRow.insertCell(data.length + 1);
-        const cryptoNamesDiv = document.getElementById("cryptoNames");
+        const lastCell = cryptoRow.insertCell(data.length + 1);
 
-        // Vérification pour les prix bas
-        if (lowestPriceIndex === 13 && parseFloat(data[0][3]) === secondLowestPrice) {
-            resultCell.textContent = `Cela baisse, on achète!`;
-            resultCell.classList.add("negative");
-            cryptoNamesDiv.innerHTML += `<span class="positive">${symbol}</span><br/>`; // Saut de ligne avec classe CSS
+        // Vérification pour le prix le plus bas
+        if (lastLowPrice <= lowestPrice) {
+            lastCell.textContent = "Prix le plus bas (avec mèche)!";
+            lastCell.classList.add("positive");
+
+            const cryptoNamesElement = document.getElementById('cryptoNames');
+            const symbolElement = document.createElement('div');
+            symbolElement.textContent = symbol;
+            symbolElement.classList.add('positive');
+            cryptoNamesElement.appendChild(symbolElement);
         }
-        // Vérification pour les prix hauts (opposé des conditions précédentes)
-        else if (highestPriceIndex === 13 && parseFloat(data[0][2]) === secondHighestPrice) {
-            resultCell.textContent = `Cela monte, on vend !`;
-            resultCell.classList.add("positive");
-            cryptoNamesDiv.innerHTML += `<span class="negative">${symbol}</span><br/>`; // Saut de ligne avec classe CSS
-        } 
-        else {
-            resultCell.textContent = `Conditions non remplies`;
-            resultCell.classList.add("bleu");
+        // Vérification pour le prix le plus haut
+        else if (lastHighPrice >= highestPrice) {
+            lastCell.textContent = "Prix le plus haut!";
+            lastCell.classList.add("negative");
+
+            const cryptoNamesElement = document.getElementById('cryptoNames');
+            const symbolElement = document.createElement('div');
+            symbolElement.textContent = symbol;
+            symbolElement.classList.add('negative');
+            cryptoNamesElement.appendChild(symbolElement);
+        } else {
+            lastCell.textContent = "";
         }
 
     } catch (error) {
