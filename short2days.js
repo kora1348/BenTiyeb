@@ -15,8 +15,8 @@ async function fetchCryptoData(symbol) {
         // Extraire les données d'il y a 2 jours
         const twoDaysAgoData = data[data.length - 3];
         const openPrice = parseFloat(twoDaysAgoData[1]);
-        const closePrice = parseFloat(twoDaysAgoData[4]);
-        const variation = ((closePrice - openPrice) / openPrice) * 100;
+        const highPrice = parseFloat(twoDaysAgoData[2]); // Prix le plus haut (mèche)
+        const variation = ((highPrice - openPrice) / openPrice) * 100;
 
         // Formatage des dates
         const startDate = new Date(twoDaysAgoData[0]); // Date de début
