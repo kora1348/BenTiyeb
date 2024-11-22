@@ -8,15 +8,20 @@ async function fetchCryptoData(symbol) {
 
         // Vérifier s'il y a suffisamment de données
         if (data.length < 3) {
-            console.error("Pas assez de données pour calculer la variation d'il y a 2 jours.");
+            console.error("Pas assez de données pour calculer les variations.");
             return;
         }
 
         // Extraire les données d'il y a 2 jours
         const twoDaysAgoData = data[data.length - 3];
         const openPrice = parseFloat(twoDaysAgoData[1]);
-        const highPrice = parseFloat(twoDaysAgoData[2]); // Prix le plus haut (mèche)
-        const variation = ((highPrice - openPrice) / openPrice) * 100;
+        const highPrice = parseFloat(twoDaysAgoData[2]); // Prix le plus haut
+        const lowPrice = parseFloat(twoDaysAgoData[3]); // Prix le plus bas
+        const highVariation = ((highPrice - openPrice) / openPrice) * 100;
+        const lowVariation = ((lowPrice - openPrice) / openPrice) * 100;
+
+        // Calcul de la différence totale
+        const totalVariation = highVariation - Math.abs(lowVariation);
 
         // Formatage des dates
         const startDate = new Date(twoDaysAgoData[0]); // Date de début
@@ -32,21 +37,25 @@ async function fetchCryptoData(symbol) {
 
         // Mise à jour du tableau
         const cryptoRow = document.getElementById(symbol);
-        const variationCell = cryptoRow.insertCell();
-        variationCell.textContent = `${formattedStartDate} - ${formattedEndDate}: ${variation.toFixed(2)}%`;
 
-        // Ajouter la classe "positive" ou "negative" en fonction de la variation
-        if (variation > 0) {
-            variationCell.classList.add("positive");
-        } else if (variation < 0) {
-            variationCell.classList.add("negative");
-        }
+        // Colonne Item 1 (date et heure)
+        const item1Cell = cryptoRow.insertCell();
+        item1Cell.textContent = `${formattedStartDate} - ${formattedEndDate}`;
 
-        // Ajouter le statut à cryptoNames si la variation est dans une plage spécifique
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-        if (variation >= -79.99 && variation <= -70.00) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${variation.toFixed(2)}%</p>`;
-        }
+        // Colonne Prix le plus haut
+        const highPriceCell = cryptoRow.insertCell();
+        highPriceCell.textContent = `${highVariation.toFixed(2)}%`;
+        highPriceCell.classList.add(highVariation > 0 ? "positive" : "negative");
+
+        // Colonne Prix le plus bas
+        const lowPriceCell = cryptoRow.insertCell();
+        lowPriceCell.textContent = `${lowVariation.toFixed(2)}%`;
+        lowPriceCell.classList.add(lowVariation > 0 ? "positive" : "negative");
+
+        // Colonne Total (différence)
+        const totalCell = cryptoRow.insertCell();
+        totalCell.textContent = `${totalVariation.toFixed(2)}%`;
+        totalCell.classList.add(totalVariation > 0 ? "positive" : "negative");
 
     } catch (error) {
         console.error(
@@ -55,7 +64,6 @@ async function fetchCryptoData(symbol) {
         );
     }
 }
-
 
     // Appel de la fonction pour obtenir les taux de variation des cryptos
   
