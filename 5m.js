@@ -58,8 +58,8 @@ async function fetchCryptoData(symbol) {
 
             const cryptoNamesElement = document.getElementById('cryptoNames');
             const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;
-            symbolElement.classList.add('positive');
+            symbolElement.textContent = `${symbol} - LONG (Tendance baissière) `;
+            symbolElement.classList.add('negative');
             cryptoNamesElement.appendChild(symbolElement);
         }
         // Vérification pour le prix le plus haut
@@ -69,8 +69,8 @@ async function fetchCryptoData(symbol) {
 
             const cryptoNamesElement = document.getElementById('cryptoNames');
             const symbolElement = document.createElement('div');
-            symbolElement.textContent = symbol;
-            symbolElement.classList.add('negative');
+            symbolElement.textContent = `${symbol} - SHORT (Tendance haussière)`;
+            symbolElement.classList.add('positive');
             cryptoNamesElement.appendChild(symbolElement);
         } else {
             lastCell.textContent = "";
