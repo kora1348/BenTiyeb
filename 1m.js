@@ -1,24 +1,19 @@
 // Fonction pour afficher une notification système
 function showPopup(message) {
-    // Obtenez la date actuelle
     const currentDate = new Date().toLocaleString();
-
-    // Ajouter la date au message
     const messageWithDate = `${message} - ${currentDate}`;
 
-    // Vérifier si les notifications sont autorisées
     if (Notification.permission === "granted") {
         new Notification("Signal Crypto", {
             body: messageWithDate,
-            icon: "https://example.com/icon.png", // Remplacez par une URL d'icône appropriée
+            icon: "https://example.com/icon.png",
         });
     } else if (Notification.permission !== "denied") {
-        // Demander la permission si elle n'a pas encore été donnée
         Notification.requestPermission().then((permission) => {
             if (permission === "granted") {
                 new Notification("Signal Crypto", {
                     body: messageWithDate,
-                    icon: "https://example.com/icon.png", // Remplacez par une URL d'icône appropriée
+                    icon: "https://example.com/icon.png",
                 });
             }
         });
@@ -28,14 +23,14 @@ function showPopup(message) {
 // Fonction pour effacer les notifications précédentes
 function clearNotifications() {
     const cryptoNamesElement = document.getElementById("cryptoNames");
-    cryptoNamesElement.innerHTML = '';  // Vider les notifications précédentes
+    cryptoNamesElement.innerHTML = '';
 }
 
 // Fonction pour récupérer et afficher les données crypto
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=1`
         );
         const data = await response.json();
 
@@ -64,20 +59,15 @@ async function fetchCryptoData(symbol) {
             totalVariation += variation;
         }
 
-        // Calcul du total
         const totalCell = cryptoRow.insertCell(-1);
         totalCell.textContent = `${totalVariation.toFixed(2)}%`;
         totalCell.style.textAlign = "center";
 
-        // Effacer les notifications avant d'en afficher de nouvelles
         clearNotifications();
 
         const cryptoNamesElement = document.getElementById("cryptoNames");
-
-        // Supprimer l'ancien statut
         document.querySelector(`#${symbol}_status`)?.remove();
 
-        // Ajouter le nouveau statut
         if (totalVariation >= -3.99 && totalVariation <= -3.00) {
             totalCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalVariation.toFixed(2)}%</p>`;
@@ -90,6 +80,18 @@ async function fetchCryptoData(symbol) {
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
+}
+
+// Fonction pour calculer et ajuster l'intervalle de rafraîchissement
+function calculerProchainRafraichissement() {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+
+    // Calculer l'écart en secondes jusqu'au prochain 2 minutes 30
+    const nextRefreshInSeconds = (2 * 60 + 30) - (minutes * 60 + seconds) % (2 * 60 + 30);
+
+    return nextRefreshInSeconds * 1000; // Convertir en millisecondes
 }
 
 // Démarrage de l'actualisation
@@ -113,25 +115,23 @@ function startAutoRefresh() {
     "STEEM", "STG", "STMX", "STORJ", "STRK", "STX", "SUI", "SUN", "SUPER", "SUSHI", "SXP", "SYN", 
     "SYS", "TAO", "THETA", "TIA", "TLM", "TNSR", "TON", "TRB", "TRU", "TRX", "TWT", "UMA", "UNFI", 
     "UNI", "USTC", "VANRY", "VET", "VIDT", "VOXEL", "WAXP", "WIF", "WLD", "WOO", "W", "XAI", "XEC", 
-    "XEM", "XLM", "XRP", "XTZ", "XVG", "XVS", "YFI", "YGG", "ZEC", "ZIL", "ZK", "ZRO", "ZRX" ]; // Ajoutez d'autres symboles crypto si nécessaire
+    "XEM", "XLM", "XRP", "XTZ", "XVG", "XVS", "YFI", "YGG", "ZEC", "ZIL", "ZK", "ZRO", "ZRX"]; // Ajoutez d'autres symboles crypto si nécessaire
     cryptoSymbols.forEach((symbol) => fetchCryptoData(symbol));
 
-    // Mettre à jour l'heure à chaque rafraîchissement
     mettreAJourHeure();
 }
-
-// Lancer l'actualisation immédiate, puis la répéter toutes les 150 secondes
-startAutoRefresh();
-setInterval(startAutoRefresh, 150000);
 
 // Fonction pour mettre à jour l'heure
 function mettreAJourHeure() {
     var elementHeure = document.getElementById('heure');
     var maintenant = new Date();
 
-    // Formater l'heure
     var heureFormatee = maintenant.toLocaleString();
-
-    // Mettre à jour l'élément avec l'heure actuelle
     elementHeure.textContent = heureFormatee;
 }
+
+// Lancer l'actualisation immédiate, puis la répéter toutes les 2 minutes 30
+startAutoRefresh();
+setInterval(() => {
+    startAutoRefresh();
+}, calculerProchainRafraichissement());
