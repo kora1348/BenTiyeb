@@ -88,8 +88,8 @@ function calculerProchainRafraichissement() {
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
 
-    // Calculer l'écart en secondes jusqu'au prochain 2 minutes 30
-    const nextRefreshInSeconds = (2 * 60 + 30) - (minutes * 60 + seconds) % (2 * 60 + 30);
+    // Calculer l'écart en secondes jusqu'au prochain 0 minutes 40
+    const nextRefreshInSeconds = (1 * 60 + 30) - (minutes * 60 + seconds) % (1 * 60 + 30);
 
     return nextRefreshInSeconds * 1000; // Convertir en millisecondes
 }
