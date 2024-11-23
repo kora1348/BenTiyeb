@@ -115,46 +115,23 @@ function startAutoRefresh() {
     "UNI", "USTC", "VANRY", "VET", "VIDT", "VOXEL", "WAXP", "WIF", "WLD", "WOO", "W", "XAI", "XEC", 
     "XEM", "XLM", "XRP", "XTZ", "XVG", "XVS", "YFI", "YGG", "ZEC", "ZIL", "ZK", "ZRO", "ZRX" ]; // Ajoutez d'autres symboles crypto si nécessaire
     cryptoSymbols.forEach((symbol) => fetchCryptoData(symbol));
+
+    // Mettre à jour l'heure à chaque rafraîchissement
+    mettreAJourHeure();
 }
 
-// Lancer l'actualisation immédiate, puis la répéter toutes les 10 secondes
+// Lancer l'actualisation immédiate, puis la répéter toutes les 150 secondes
 startAutoRefresh();
 setInterval(startAutoRefresh, 150000);
 
-
-  
-
+// Fonction pour mettre à jour l'heure
 function mettreAJourHeure() {
-	var elementHeure = document.getElementById('heure');
-	var maintenant = new Date();
+    var elementHeure = document.getElementById('heure');
+    var maintenant = new Date();
 
-	// Créer une copie de l'heure actuelle
-	var heureActuelle = new Date(maintenant);
+    // Formater l'heure
+    var heureFormatee = maintenant.toLocaleString();
 
-	// Ajouter 3 heures et 20 minutes à l'heure actuelle
-	maintenant.setHours(maintenant.getHours() + 3);
-	maintenant.setMinutes(maintenant.getMinutes() + 20);
-
-	var heuresMaintenant = maintenant.getHours();
-	var minutesMaintenant = maintenant.getMinutes();
-	var secondesMaintenant = maintenant.getSeconds();
-
-	var heuresActuelle = heureActuelle.getHours();
-	var minutesActuelle = heureActuelle.getMinutes();
-	var secondesActuelle = heureActuelle.getSeconds();
-
-	// Ajouter un zéro devant les chiffres < 10
-	heuresMaintenant = heuresMaintenant < 10 ? '0' + heuresMaintenant : heuresMaintenant;
-	minutesMaintenant = minutesMaintenant < 10 ? '0' + minutesMaintenant : minutesMaintenant;
-	secondesMaintenant = secondesMaintenant < 10 ? '0' + secondesMaintenant : secondesMaintenant;
-
-	heuresActuelle = heuresActuelle < 10 ? '0' + heuresActuelle : heuresActuelle;
-	minutesActuelle = minutesActuelle < 10 ? '0' + minutesActuelle : minutesActuelle;
-	secondesActuelle = secondesActuelle < 10 ? '0' + secondesActuelle : secondesActuelle;
-
-	// Mettre à jour le contenu de l'élément avec les deux heures
-	elementHeure.innerHTML = heuresActuelle + ':' + minutesActuelle + ':' + secondesActuelle;
+    // Mettre à jour l'élément avec l'heure actuelle
+    elementHeure.textContent = heureFormatee;
 }
-
-// Appeler la fonction pour mettre à jour l'heure
-mettreAJourHeure();
