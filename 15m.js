@@ -1,92 +1,52 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=4`
         );
         const data = await response.json();
 
         const cryptoRow = document.getElementById(symbol);
-        
-        let lowestPrice = Infinity;
-        let highestPrice = -Infinity;  // Variable pour le prix le plus haut
-        let lastLowPrice = parseFloat(data[data.length - 1][3]);
-        let lastHighPrice = parseFloat(data[data.length - 1][2]);  // Le prix haut de la dernière intervalle
+
+        // Variables pour suivre les variations et calculer le total
+        let variations = [];
+        let totalVariation = 0;
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
-            const lowPrice = parseFloat(data[i][3]);
-            const highPrice = parseFloat(data[i][2]);  // Récupération du prix le plus haut
-            const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1;
+            const variation = ((closePrice - openPrice) / openPrice) * 100;
 
-            const variationCell = cryptoRow.insertCell(cellIndex);
-            const variationValue = weeklyVariation.toFixed(2);
-            const intervalStartDate = new Date(data[i][0]);
-            const intervalEndDate = new Date(data[i][6]);
-            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-            const optionsEnd = { hour: "numeric", minute: "numeric" };
-            variationCell.textContent = `${intervalStartDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${intervalStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${intervalEndDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${intervalEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+            variations.push(variation); // Stocke les variations dans un tableau
+            totalVariation += variation; // Additionne les variations pour le total
 
-            if (weeklyVariation > 0) {
-                variationCell.classList.add("positive");
-            } else if (weeklyVariation < 0) {
-                variationCell.classList.add("negative");
-            }
-
-            if (lowPrice < lowestPrice) {
-                lowestPrice = lowPrice;
-            }
-
-            if (highPrice > highestPrice) {  // Mise à jour du prix le plus haut
-                highestPrice = highPrice;
-            }
+            // Ajout dans la table pour chaque intervalle
+            const variationCell = cryptoRow.insertCell(i + 1);
+            variationCell.textContent = `${variation.toFixed(2)}%`;
+            variationCell.classList.add(variation > 0 ? "positive" : "negative");
         }
 
-        const lastCell = cryptoRow.insertCell(data.length + 1);
+        // Ajoute le total des variations dans la dernière cellule
+        const totalCell = cryptoRow.insertCell(data.length + 1);
+        totalCell.textContent = `${totalVariation.toFixed(2)}%`;
+        totalCell.style.textAlign = "center";
+        totalCell.classList.add(totalVariation > 0 ? "positive" : "negative");
 
-        // Vérification pour le prix le plus bas
-        if (lastLowPrice <= lowestPrice) {
-            lastCell.textContent = "Prix le plus bas (avec mèche)!";
-            lastCell.classList.add("positive");
-
-            const cryptoNamesElement = document.getElementById('cryptoNames');
-            const symbolElement = document.createElement('div');
-            symbolElement.textContent = `${symbol} - LONG (Tendance baissière) `;
-            symbolElement.classList.add('negative');
-            cryptoNamesElement.appendChild(symbolElement);
-        }
-        // Vérification pour le prix le plus haut
-        else if (lastHighPrice >= highestPrice) {
-            lastCell.textContent = "Prix le plus haut!";
-            lastCell.classList.add("negative");
-
-            const cryptoNamesElement = document.getElementById('cryptoNames');
-            const symbolElement = document.createElement('div');
-            symbolElement.textContent = `${symbol} - SHORT (Tendance haussière)`;
-            symbolElement.classList.add('positive');
-            cryptoNamesElement.appendChild(symbolElement);
-        } else {
-            lastCell.textContent = "";
+        // Vérifie les conditions pour afficher dans #cryptoNames
+        const cryptoNamesElement = document.getElementById("cryptoNames");
+        if (
+            variations[0] < 0 && // Premier intervalle négatif
+            variations[1] > 0 && // Deuxième intervalle positif
+            variations[2] > 0 && // Troisième intervalle positif
+            variations[3] > 0    // Quatrième intervalle positif
+        ) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG (Total: ${totalVariation.toFixed(2)}%)</p>`;
         }
 
     } catch (error) {
-        console.error(
-            `Erreur lors de la récupération des données pour ${symbol}:`,
-            error
-        );
+        console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
 
-
-  
-  // Appel de la fonction pour obtenir les taux de variation des cryptos
 
   fetchCryptoData("1INCH");
   fetchCryptoData("AAVE");
@@ -94,37 +54,36 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("ACH");
   fetchCryptoData("ADA");
   fetchCryptoData("AEVO");
+  fetchCryptoData("AGIX");
   fetchCryptoData("AGLD");
-  fetchCryptoData("AI");
   fetchCryptoData("ALGO");
   fetchCryptoData("ALICE");
-  fetchCryptoData("ALPACA");
   fetchCryptoData("ALPHA");
   fetchCryptoData("ALT");
   fetchCryptoData("AMB");
   fetchCryptoData("ANKR");
+  fetchCryptoData("ANT");
   fetchCryptoData("APE");
   fetchCryptoData("API3");
   fetchCryptoData("APT");
-  fetchCryptoData("ARB");
-  fetchCryptoData("ARKM");
-  fetchCryptoData("ARK");
-  fetchCryptoData("ARPA");
   fetchCryptoData("AR");
+  fetchCryptoData("ARB");
+  fetchCryptoData("ARK");
+  fetchCryptoData("ARKM");
+  fetchCryptoData("ARPA");
   fetchCryptoData("ASTR");
   fetchCryptoData("ATA");
   fetchCryptoData("ATOM");
   fetchCryptoData("AUCTION");
+  fetchCryptoData("AUDIO");
   fetchCryptoData("AVAX");
   fetchCryptoData("AXL");
   fetchCryptoData("AXS");
   fetchCryptoData("BADGER");
   fetchCryptoData("BAKE");
   fetchCryptoData("BAL");
-  fetchCryptoData("BANANA");
   fetchCryptoData("BAND");
   fetchCryptoData("BAT");
-  fetchCryptoData("BB");
   fetchCryptoData("BCH");
   fetchCryptoData("BEAMX");
   fetchCryptoData("BEL");
@@ -145,46 +104,47 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("CFX");
   fetchCryptoData("CHR");
   fetchCryptoData("CHZ");
-  fetchCryptoData("CKB");
   fetchCryptoData("COMBO");
   fetchCryptoData("COMP");
   fetchCryptoData("COTI");
   fetchCryptoData("CRV");
+  fetchCryptoData("CTK");
   fetchCryptoData("CTSI");
+  fetchCryptoData("CVX");
   fetchCryptoData("CYBER");
   fetchCryptoData("DAR");
   fetchCryptoData("DASH");
   fetchCryptoData("DENT");
+  fetchCryptoData("DGB");
   fetchCryptoData("DOGE");
-  fetchCryptoData("DOGS");
   fetchCryptoData("DOT");
   fetchCryptoData("DUSK");
-  fetchCryptoData("DYDX");
   fetchCryptoData("DYM");
+  fetchCryptoData("DYDX");
   fetchCryptoData("EDU");
   fetchCryptoData("EGLD");
-  fetchCryptoData("ENA");
   fetchCryptoData("ENJ");
   fetchCryptoData("ENS");
   fetchCryptoData("EOS");
   fetchCryptoData("ETC");
-  fetchCryptoData("ETHFI");
   fetchCryptoData("ETH");
+  fetchCryptoData("ETHFI");
   fetchCryptoData("FET");
   fetchCryptoData("FIL");
   fetchCryptoData("FLM");
   fetchCryptoData("FLOKI");
   fetchCryptoData("FLOW");
+  fetchCryptoData("FRONT");
   fetchCryptoData("FTM");
   fetchCryptoData("FXS");
   fetchCryptoData("GALA");
+  fetchCryptoData("GAL");
   fetchCryptoData("GAS");
-  fetchCryptoData("GLM");
+  fetchCryptoData("GLMR");
   fetchCryptoData("GMT");
   fetchCryptoData("GMX");
   fetchCryptoData("GRT");
   fetchCryptoData("GTC");
-  fetchCryptoData("G");
   fetchCryptoData("HBAR");
   fetchCryptoData("HFT");
   fetchCryptoData("HIFI");
@@ -193,6 +153,7 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("HOT");
   fetchCryptoData("ICP");
   fetchCryptoData("ICX");
+  fetchCryptoData("IDEX");
   fetchCryptoData("ID");
   fetchCryptoData("ILV");
   fetchCryptoData("IMX");
@@ -200,20 +161,19 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("IOST");
   fetchCryptoData("IOTA");
   fetchCryptoData("IOTX");
-  fetchCryptoData("IO");
   fetchCryptoData("JASMY");
   fetchCryptoData("JOE");
   fetchCryptoData("JTO");
   fetchCryptoData("JUP");
   fetchCryptoData("KAVA");
   fetchCryptoData("KEY");
+  fetchCryptoData("KLAY");
   fetchCryptoData("KNC");
   fetchCryptoData("KSM");
   fetchCryptoData("LDO");
   fetchCryptoData("LEVER");
   fetchCryptoData("LINA");
   fetchCryptoData("LINK");
-  fetchCryptoData("LISTA");
   fetchCryptoData("LIT");
   fetchCryptoData("LOOM");
   fetchCryptoData("LPT");
@@ -223,11 +183,13 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("LTC");
   fetchCryptoData("LUNC");
   fetchCryptoData("MAGIC");
-  fetchCryptoData("MANA");
   fetchCryptoData("MANTA");
+  fetchCryptoData("MANA");
   fetchCryptoData("MASK");
   fetchCryptoData("MATIC");
   fetchCryptoData("MAV");
+  fetchCryptoData("MBL");
+  fetchCryptoData("MDT");
   fetchCryptoData("MEME");
   fetchCryptoData("METIS");
   fetchCryptoData("MINA");
@@ -239,16 +201,16 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("NFP");
   fetchCryptoData("NKN");
   fetchCryptoData("NMR");
-  fetchCryptoData("NOT");
   fetchCryptoData("NTRN");
+  fetchCryptoData("OCEAN");
   fetchCryptoData("OGN");
   fetchCryptoData("OMG");
-  fetchCryptoData("OMNI");
-  fetchCryptoData("OM");
   fetchCryptoData("ONE");
+  fetchCryptoData("ONDO")
   fetchCryptoData("ONG");
   fetchCryptoData("ONT");
   fetchCryptoData("OP");
+  fetchCryptoData("ORBS");
   fetchCryptoData("ORDI");
   fetchCryptoData("OXT");
   fetchCryptoData("PENDLE");
@@ -263,27 +225,25 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("PYTH");
   fetchCryptoData("QNT");
   fetchCryptoData("QTUM");
-  fetchCryptoData("RARE");
-  fetchCryptoData("RATS");
+  fetchCryptoData("RAD");
   fetchCryptoData("RDNT");
   fetchCryptoData("REEF");
-  fetchCryptoData("RENDER");
   fetchCryptoData("REN");
-  fetchCryptoData("REZ");
-  fetchCryptoData("RIF");
   fetchCryptoData("RLC");
+  fetchCryptoData("RNDR");
   fetchCryptoData("RONIN");
   fetchCryptoData("ROSE");
   fetchCryptoData("RSR");
   fetchCryptoData("RUNE");
   fetchCryptoData("RVN");
-  fetchCryptoData("SAGA");
   fetchCryptoData("SAND");
-  fetchCryptoData("SATS");
+  fetchCryptoData("1000SATS");
   fetchCryptoData("SEI");
   fetchCryptoData("SFP");
   fetchCryptoData("SHIB");
   fetchCryptoData("SKL");
+  fetchCryptoData("SLP");
+  fetchCryptoData("SNT");
   fetchCryptoData("SNX");
   fetchCryptoData("SOL");
   fetchCryptoData("SPELL");
@@ -292,40 +252,34 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("STG");
   fetchCryptoData("STMX");
   fetchCryptoData("STORJ");
+  fetchCryptoData("STPT");
+  fetchCryptoData("STRAX");
   fetchCryptoData("STRK");
   fetchCryptoData("STX");
   fetchCryptoData("SUI");
-  fetchCryptoData("SUN");
   fetchCryptoData("SUPER");
   fetchCryptoData("SUSHI");
   fetchCryptoData("SXP");
-  fetchCryptoData("SYN");
-  fetchCryptoData("SYS");
-  fetchCryptoData("TAO");
   fetchCryptoData("THETA");
   fetchCryptoData("TIA");
   fetchCryptoData("TLM");
-  fetchCryptoData("TNSR");
-  fetchCryptoData("TON");
   fetchCryptoData("TRB");
   fetchCryptoData("TRU");
   fetchCryptoData("TRX");
+  fetchCryptoData("T");
   fetchCryptoData("TWT");
   fetchCryptoData("UMA");
   fetchCryptoData("UNFI");
   fetchCryptoData("UNI");
+  fetchCryptoData("USDC");
   fetchCryptoData("USTC");
-  fetchCryptoData("VANRY");
+  fetchCryptoData("USDT");
   fetchCryptoData("VET");
-  fetchCryptoData("VIDT");
-  fetchCryptoData("VOXEL");
+  fetchCryptoData("WAVES");
   fetchCryptoData("WAXP");
   fetchCryptoData("WIF");
   fetchCryptoData("WLD");
   fetchCryptoData("WOO");
-  fetchCryptoData("W");
-  fetchCryptoData("XAI");
-  fetchCryptoData("XEC");
   fetchCryptoData("XEM");
   fetchCryptoData("XLM");
   fetchCryptoData("XRP");
@@ -334,10 +288,11 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("XVS");
   fetchCryptoData("YFI");
   fetchCryptoData("YGG");
+  fetchCryptoData("ZEC");
+  fetchCryptoData("ZEN");
   fetchCryptoData("ZIL");
-  fetchCryptoData("ZK");
-  fetchCryptoData("ZRO");
   fetchCryptoData("ZRX");
+  
   
 
 function mettreAJourHeure() {
@@ -374,4 +329,3 @@ function mettreAJourHeure() {
 
 // Appeler la fonction pour mettre à jour l'heure
 mettreAJourHeure();
-
