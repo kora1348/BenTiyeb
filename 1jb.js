@@ -58,7 +58,7 @@ async function fetchCryptoData(symbol) {
 
             const cryptoNamesElement = document.getElementById('cryptoNames');
             const symbolElement = document.createElement('div');
-            symbolElement.textContent = `${symbol} - LONG`;
+            symbolElement.textContent = `${symbol} - LONG // Tendance baissière`;
             symbolElement.classList.add('negative');
             cryptoNamesElement.appendChild(symbolElement);
         }
@@ -69,7 +69,7 @@ async function fetchCryptoData(symbol) {
 
             const cryptoNamesElement = document.getElementById('cryptoNames');
             const symbolElement = document.createElement('div');
-            symbolElement.textContent = `${symbol} - SORTH`;
+            symbolElement.textContent = `${symbol} - SORTH // Tendance haussière`;
             symbolElement.classList.add('positive');
             cryptoNamesElement.appendChild(symbolElement);
         } else {
