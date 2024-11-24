@@ -1,5 +1,8 @@
-let highestVariation = -Infinity; // Variable pour stocker la plus grande variation
+let highestVariation = -Infinity; // Stocke la plus grande variation
 let highestSymbol = ""; // Stocke le symbole correspondant à la plus grande variation
+
+let lowestVariation = Infinity; // Stocke la plus petite variation
+let lowestSymbol = ""; // Stocke le symbole correspondant à la plus petite variation
 
 async function fetchCryptoData(symbol) {
     try {
@@ -46,14 +49,27 @@ async function fetchCryptoData(symbol) {
 
         const cryptoNamesElement = document.getElementById("cryptoNames");
 
+        // Vérification pour la plus grande variation
         if (totalVariation > highestVariation) {
-            // Mettre à jour les informations pour la plus grande variation
             highestVariation = totalVariation;
             highestSymbol = symbol;
-
-            // Afficher uniquement le symbole avec la plus grande variation
-            cryptoNamesElement.innerHTML = `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${highestVariation.toFixed(2)}%</p>`;
         }
+
+        // Vérification pour la plus petite variation
+        if (totalVariation < lowestVariation) {
+            lowestVariation = totalVariation;
+            lowestSymbol = symbol;
+        }
+
+        // Mise à jour de l'affichage global
+        cryptoNamesElement.innerHTML = `
+            <p id="${highestSymbol}_highest" class="positive">
+                Plus grande variation : ${highestSymbol} - ${highestVariation.toFixed(2)}%
+            </p>
+            <p id="${lowestSymbol}_lowest" class="negative">
+                Plus petite variation : ${lowestSymbol} - ${lowestVariation.toFixed(2)}%
+            </p>
+        `;
 
         if (totalVariation < 0) {
             totalCell.classList.add("negative");
@@ -73,6 +89,7 @@ fetchCryptoData("1INCH");
 fetchCryptoData("AAVE");
 fetchCryptoData("ACE");
 fetchCryptoData("ACH");
+
 
   fetchCryptoData("ADA");
   fetchCryptoData("AEVO");
