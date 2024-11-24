@@ -52,8 +52,24 @@ async function fetchCryptoData(symbol) {
             const closePrice = parseFloat(data[i][4]);
             const variation = ((closePrice - openPrice) / openPrice) * 100;
 
+            // Options pour le formatage de la date et l'heure
+            const optionsDate = { day: "2-digit", month: "2-digit", year: "2-digit" };
+            const optionsTime = { hour: "2-digit", minute: "2-digit" };
+
+            // Récupérer les dates de début et de fin
+            const weekStartDate = new Date(data[i][0]); // Timestamp de début
+            const weekEndDate = new Date(data[i][6]);   // Timestamp de fin
+
+            // Ajouter la variation avec l'intervalle
             const variationCell = cryptoRow.insertCell(i + 1);
-            variationCell.textContent = `${variation.toFixed(2)}%`;
+            variationCell.textContent = `${weekStartDate.toLocaleDateString(
+                "fr-FR",
+                optionsDate
+            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsTime)}) - ${weekEndDate.toLocaleDateString(
+                "fr-FR",
+                optionsDate
+            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsTime)}): ${variation.toFixed(2)}%`;
+
             variationCell.classList.add(variation > 0 ? "positive" : "negative");
 
             totalVariation += variation;
