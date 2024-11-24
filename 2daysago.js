@@ -2,18 +2,18 @@ async function fetchCryptoData(symbol) {
     try {
         // Récupérer les données des 3 derniers jours
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=3`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=2`
         );
         const data = await response.json();
 
         // Vérifier s'il y a suffisamment de données
-        if (data.length < 3) {
+        if (data.length < 2) {
             console.error("Pas assez de données pour calculer les variations.");
             return;
         }
 
         // Extraire les données d'il y a 2 jours
-        const twoDaysAgoData = data[data.length - 3];
+        const twoDaysAgoData = data[data.length - 2];
         const openPrice = parseFloat(twoDaysAgoData[1]);
         const highPrice = parseFloat(twoDaysAgoData[2]); // Prix le plus haut
         const lowPrice = parseFloat(twoDaysAgoData[3]); // Prix le plus bas
