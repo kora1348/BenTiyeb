@@ -83,12 +83,13 @@ async function fetchCryptoData(symbol) {
 
         const cryptoNamesElement = document.getElementById("cryptoNames");
         document.querySelector(`#${symbol}_status`)?.remove();
-
-        if (totalVariation >= -1.99 && totalVariation <= -1.00) {
+        // if (totalVariation >= -1.99 && totalVariation <= -1.00) {
+        if (totalVariation <= -1.00) {
             totalCell.classList.add("positive");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalVariation.toFixed(2)}%</p>`;
             showPopup(`${symbol}: LONG signal détecté (${totalVariation.toFixed(2)}%)`);
-        } else if (totalVariation >= 1.00 && totalVariation <= 1.99) {
+            // } else if (totalVariation >= 1.00 && totalVariation <= 1.99) {
+        } else if (totalVariation >= 1.00 ) {
             totalCell.classList.add("negative");
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalVariation.toFixed(2)}%</p>`;
             showPopup(`${symbol}: SHORT signal détecté (${totalVariation.toFixed(2)}%)`);
