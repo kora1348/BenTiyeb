@@ -2,7 +2,7 @@ async function fetchCryptoData(symbol) {
     try {
         // Récupérer les données des 3 derniers jours
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=2`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=2`
         );
         const data = await response.json();
 
