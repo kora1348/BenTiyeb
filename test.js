@@ -20,7 +20,7 @@ function showPopup(message) {
     }
 }
 
-// Fonction pour effacer les notifications précédentes
+// Fonction pour effacer les notifications précédentes avant d'en ajouter de nouvelles
 function clearNotifications() {
     const cryptoNamesElement = document.getElementById("cryptoNames");
     cryptoNamesElement.innerHTML = '';
@@ -30,7 +30,7 @@ function clearNotifications() {
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=5`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=5`
         );
         const data = await response.json();
 
@@ -74,24 +74,30 @@ async function fetchCryptoData(symbol) {
                 "fr-FR",
                 optionsDate
             )}, ${closeDate.toLocaleTimeString("fr-FR", optionsTime)})`;
+
+            // Ajouter le style CSS en fonction de la variation
+            if (variation > 0) {
+                variationCell.classList.add("positive");
+            } else {
+                variationCell.classList.add("negative");
+            }
         }
 
         // Comparaison des variations
         const maxVariation = Math.max(...variations);
         const minVariation = Math.min(...variations);
 
-        clearNotifications();
-
         const cryptoNamesElement = document.getElementById("cryptoNames");
-        document.querySelector(`#${symbol}_status`)?.remove();
 
         // Ajouter la notification dans la div et en popup
         if (variations[0] === minVariation) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG signal détecté (Variation: ${minVariation.toFixed(2)}%)</p>`;
-            showPopup(`${symbol}: LONG signal détecté (Variation: ${minVariation.toFixed(2)}%)`);
+            const message = `${symbol}: LONG signal détecté (Variation: ${minVariation.toFixed(2)}%)`;
+            cryptoNamesElement.innerHTML += `<p class="positive">${message}</p>`;
+            showPopup(message);
         } else if (variations[0] === maxVariation) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT signal détecté (Variation: ${maxVariation.toFixed(2)}%)</p>`;
-            showPopup(`${symbol}: SHORT signal détecté (Variation: ${maxVariation.toFixed(2)}%)`);
+            const message = `${symbol}: SHORT signal détecté (Variation: ${maxVariation.toFixed(2)}%)`;
+            cryptoNamesElement.innerHTML += `<p class="negative">${message}</p>`;
+            showPopup(message);
         }
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
@@ -147,5 +153,6 @@ function mettreAJourHeure() {
 // Lancer l'actualisation immédiate, puis la répéter
 startAutoRefresh();
 setInterval(() => {
+    clearNotifications(); // Nettoyer les notifications avant chaque rafraîchissement
     startAutoRefresh();
 }, calculerProchainRafraichissement());
