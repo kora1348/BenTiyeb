@@ -40,67 +40,48 @@ async function fetchCryptoData(symbol) {
             cryptoRow.deleteCell(1);
         }
 
-        const variations = [];
+        const prices = [];
 
         for (let i = 0; i < data.length; i++) {
-            const openPrice = parseFloat(data[i][1]); // Prix d'ouverture
-            const highPrice = parseFloat(data[i][2]); // Prix le plus haut
             const lowPrice = parseFloat(data[i][3]);  // Prix le plus bas
             const openDate = new Date(data[i][0]);    // Timestamp d'ouverture
 
-            // Calcul des variations extrêmes
-            const highVariation = ((highPrice - openPrice) / openPrice) * 100;
-            const lowVariation = ((lowPrice - openPrice) / openPrice) * 100;
-
-            // Choisir le taux de variation à afficher
-            const selectedVariation =
-                Math.abs(highVariation) > Math.abs(lowVariation) ? highVariation : lowVariation;
-
-            variations.push(selectedVariation);
+            prices.push(lowPrice);
 
             // Formatage de la date et de l'heure
             const optionsDate = { day: "2-digit", month: "2-digit", year: "2-digit" };
             const optionsTime = { hour: "2-digit", minute: "2-digit" };
 
-            // Ajouter les données dans une cellule
-            const variationCell = cryptoRow.insertCell(i + 1);
-            variationCell.textContent = `Variation: ${
-                selectedVariation > 0 ? "+" : ""
-            }${selectedVariation.toFixed(2)}% (${openDate.toLocaleDateString(
+            // Ajouter les données dans une cellule avec 7 décimales
+            const priceCell = cryptoRow.insertCell(i + 1);
+            priceCell.textContent = `${lowPrice.toFixed(7)} (${openDate.toLocaleDateString(
                 "fr-FR",
                 optionsDate
             )}, ${openDate.toLocaleTimeString("fr-FR", optionsTime)})`;
 
-            // Ajouter un style CSS en fonction du signe de la variation
-            if (selectedVariation > 0) {
-                variationCell.classList.add("positive");
+            // Ajouter un style CSS en fonction du prix
+            if (i === 0) {
+                priceCell.classList.add("positive");  // Premier intervalle
             } else {
-                variationCell.classList.add("negative");
+                priceCell.classList.add("negative");  // Autres intervalles
             }
         }
 
-        // Comparaison des variations pour déterminer la notification
-        const maxVariation = Math.max(...variations);
-        const minVariation = Math.min(...variations);
+        // Comparaison des prix pour déterminer si le premier est le plus bas
+        const minPrice = Math.min(...prices);
 
         const cryptoNamesElement = document.getElementById("cryptoNames");
 
-        // Ajouter la notification dans la div et en popup
-        if (variations[0] === minVariation) {
-            const message = `${symbol}: Signal LONG détecté (Variation: ${minVariation.toFixed(2)}%)`;
+        // Si le premier prix est le plus bas
+        if (prices[0] === minPrice) {
+            const message = `${symbol}: Signal LONG détecté (Prix: ${minPrice.toFixed(7)})`;
             cryptoNamesElement.innerHTML += `<p class="positive">${message}</p>`;
             showPopup(message);
-        } else if (variations[0] === maxVariation) {
-            const message = `${symbol}: Signal SHORT détecté (Variation: ${maxVariation.toFixed(2)}%)`;
-            cryptoNamesElement.innerHTML += `<p class="negative">${message}</p>`;
-            showPopup(message);
-        }
+        } 
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
-
-
 
 // Fonction pour calculer et ajuster l'intervalle de rafraîchissement
 function calculerProchainRafraichissement() {
@@ -151,6 +132,5 @@ function mettreAJourHeure() {
 // Lancer l'actualisation immédiate, puis la répéter
 startAutoRefresh();
 setInterval(() => {
-    clearNotifications(); // Nettoyer les notifications avant chaque rafraîchissement
     startAutoRefresh();
 }, calculerProchainRafraichissement());
