@@ -20,17 +20,16 @@ function showPopup(message) {
     }
 }
 
-// Fonction pour effacer les notifications précédentes
+// Fonction pour effacer les notifications précédentes (ne touche pas cryptoNames)
 function clearNotifications() {
-    const cryptoNamesElement = document.getElementById("cryptoNames");
-    cryptoNamesElement.innerHTML = '';
+    // Ne fait rien pour cryptoNamesElement, car nous ne voulons pas effacer son contenu ici
 }
 
 // Fonction pour récupérer et afficher les données crypto
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=70`
         );
         const data = await response.json();
 
@@ -79,20 +78,28 @@ async function fetchCryptoData(symbol) {
         totalCell.textContent = `${totalVariation.toFixed(2)}%`;
         totalCell.style.textAlign = "center";
 
-        clearNotifications();
-
+        // Ne pas effacer cryptoNames ici car on veut garder les éléments affichés
         const cryptoNamesElement = document.getElementById("cryptoNames");
         document.querySelector(`#${symbol}_status`)?.remove();
-        // if (totalVariation >= -1.99 && totalVariation <= -1.00) {
-        if (totalVariation <= -1.00) {
-            totalCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalVariation.toFixed(2)}%</p>`;
-            showPopup(`${symbol}: LONG signal détecté (${totalVariation.toFixed(2)}%)`);
-            // } else if (totalVariation >= 1.00 && totalVariation <= 1.99) {
-        } else if (totalVariation >= 1.00 ) {
+
+        if (totalVariation <= -5.00 && totalVariation >= 5.99) {
             totalCell.classList.add("negative");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalVariation.toFixed(2)}%</p>`;
+            const pElement = document.createElement("p");
+            pElement.id = `${symbol}_status`;
+            pElement.classList.add("negative");
+            pElement.textContent = `${symbol}: LONG, ${totalVariation.toFixed(2)}%`;
+            cryptoNamesElement.appendChild(pElement);
+
             showPopup(`${symbol}: SHORT signal détecté (${totalVariation.toFixed(2)}%)`);
+        } else if (totalVariation >= 5.00 && totalVariation <= 5.99) {
+            totalCell.classList.add("positive");
+            const pElement = document.createElement("p");
+            pElement.id = `${symbol}_status`;
+            pElement.classList.add("positive");
+            pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
+            cryptoNamesElement.appendChild(pElement);
+
+            showPopup(`${symbol}: LONG signal détecté (${totalVariation.toFixed(2)}%)`);
         }
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
