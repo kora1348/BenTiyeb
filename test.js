@@ -30,7 +30,7 @@ function clearNotifications() {
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=3m&limit=5`
         );
         const data = await response.json();
 
@@ -39,7 +39,6 @@ async function fetchCryptoData(symbol) {
             return;
         }
 
-        let totalVariation = 0;
         const cryptoRow = document.getElementById(symbol);
 
         // Réinitialiser les cellules
@@ -47,52 +46,52 @@ async function fetchCryptoData(symbol) {
             cryptoRow.deleteCell(1);
         }
 
+        const highValues = [];
+        const lowValues = [];
+        const variations = [];
+
         for (let i = 0; i < data.length; i++) {
-            const openPrice = parseFloat(data[i][1]);
-            const closePrice = parseFloat(data[i][4]);
-            const variation = ((closePrice - openPrice) / openPrice) * 100;
+            const highPrice = parseFloat(data[i][2]); // Prix le plus haut
+            const lowPrice = parseFloat(data[i][3]);  // Prix le plus bas
+
+            highValues.push(highPrice);
+            lowValues.push(lowPrice);
+
+            // Calculer le taux de variation entre le plus haut et le plus bas
+            const variation = ((highPrice - lowPrice) / lowPrice) * 100;
+            variations.push(variation);
 
             // Options pour le formatage de la date et l'heure
             const optionsDate = { day: "2-digit", month: "2-digit", year: "2-digit" };
             const optionsTime = { hour: "2-digit", minute: "2-digit" };
 
-            // Récupérer les dates de début et de fin
-            const weekStartDate = new Date(data[i][0]); // Timestamp de début
-            const weekEndDate = new Date(data[i][6]);   // Timestamp de fin
+            // Récupérer la date de clôture
+            const closeDate = new Date(data[i][6]); // Timestamp de clôture
 
-            // Ajouter la variation avec l'intervalle
+            // Ajouter les données dans une cellule
             const variationCell = cryptoRow.insertCell(i + 1);
-            variationCell.textContent = `${weekStartDate.toLocaleDateString(
+            variationCell.textContent = `Variation: ${variation.toFixed(2)}% (${closeDate.toLocaleDateString(
                 "fr-FR",
                 optionsDate
-            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsTime)}) - ${weekEndDate.toLocaleDateString(
-                "fr-FR",
-                optionsDate
-            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsTime)}): ${variation.toFixed(2)}%`;
-
-            variationCell.classList.add(variation > 0 ? "positive" : "negative");
-
-            totalVariation += variation;
+            )}, ${closeDate.toLocaleTimeString("fr-FR", optionsTime)})`;
         }
 
-        const totalCell = cryptoRow.insertCell(-1);
-        totalCell.textContent = `${totalVariation.toFixed(2)}%`;
-        totalCell.style.textAlign = "center";
+        // Comparaison des variations
+        const maxVariation = Math.max(...variations);
+        const minVariation = Math.min(...variations);
 
         clearNotifications();
 
         const cryptoNamesElement = document.getElementById("cryptoNames");
         document.querySelector(`#${symbol}_status`)?.remove();
-        // if (totalVariation >= -1.99 && totalVariation <= -1.00) {
-        if (totalVariation <= -1.00) {
-            totalCell.classList.add("positive");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalVariation.toFixed(2)}%</p>`;
-            showPopup(`${symbol}: LONG signal détecté (${totalVariation.toFixed(2)}%)`);
-            // } else if (totalVariation >= 1.00 && totalVariation <= 1.99) {
-        } else if (totalVariation >= 1.00 ) {
-            totalCell.classList.add("negative");
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalVariation.toFixed(2)}%</p>`;
-            showPopup(`${symbol}: SHORT signal détecté (${totalVariation.toFixed(2)}%)`);
+
+        // Ajouter la notification dans la div et en popup
+        if (variations[0] === minVariation) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG signal détecté (Variation: ${minVariation.toFixed(2)}%)</p>`;
+            showPopup(`${symbol}: LONG signal détecté (Variation: ${minVariation.toFixed(2)}%)`);
+        } else if (variations[0] === maxVariation) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT signal détecté (Variation: ${maxVariation.toFixed(2)}%)</p>`;
+            showPopup(`${symbol}: SHORT signal détecté (Variation: ${maxVariation.toFixed(2)}%)`);
         }
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
@@ -105,9 +104,7 @@ function calculerProchainRafraichissement() {
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
 
-    // Calculer l'écart en secondes jusqu'au prochain 0 minutes 40
     const nextRefreshInSeconds = (1 * 60 + 30) - (minutes * 60 + seconds) % (1 * 60 + 30);
-
     return nextRefreshInSeconds * 1000; // Convertir en millisecondes
 }
 
@@ -140,14 +137,14 @@ function startAutoRefresh() {
 
 // Fonction pour mettre à jour l'heure
 function mettreAJourHeure() {
-    var elementHeure = document.getElementById('heure');
-    var maintenant = new Date();
+    const elementHeure = document.getElementById('heure');
+    const maintenant = new Date();
 
-    var heureFormatee = maintenant.toLocaleString();
+    const heureFormatee = maintenant.toLocaleString();
     elementHeure.textContent = heureFormatee;
 }
 
-// Lancer l'actualisation immédiate, puis la répéter toutes les 2 minutes 30
+// Lancer l'actualisation immédiate, puis la répéter
 startAutoRefresh();
 setInterval(() => {
     startAutoRefresh();
