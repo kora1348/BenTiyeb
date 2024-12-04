@@ -30,7 +30,7 @@ function clearNotifications() {
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=5`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=178`
         );
         const data = await response.json();
 
@@ -53,6 +53,7 @@ async function fetchCryptoData(symbol) {
         for (let i = 0; i < data.length; i++) {
             const highPrice = parseFloat(data[i][2]); // Prix le plus haut
             const lowPrice = parseFloat(data[i][3]);  // Prix le plus bas
+            const openDate = new Date(data[i][0]); // Timestamp d'ouverture
 
             highValues.push(highPrice);
             lowValues.push(lowPrice);
@@ -65,15 +66,12 @@ async function fetchCryptoData(symbol) {
             const optionsDate = { day: "2-digit", month: "2-digit", year: "2-digit" };
             const optionsTime = { hour: "2-digit", minute: "2-digit" };
 
-            // Récupérer la date de clôture
-            const closeDate = new Date(data[i][6]); // Timestamp de clôture
-
             // Ajouter les données dans une cellule
             const variationCell = cryptoRow.insertCell(i + 1);
-            variationCell.textContent = `Variation: ${variation.toFixed(2)}% (${closeDate.toLocaleDateString(
+            variationCell.textContent = `Variation: ${variation.toFixed(2)}% (${openDate.toLocaleDateString(
                 "fr-FR",
                 optionsDate
-            )}, ${closeDate.toLocaleTimeString("fr-FR", optionsTime)})`;
+            )}, ${openDate.toLocaleTimeString("fr-FR", optionsTime)})`;
 
             // Ajouter le style CSS en fonction de la variation
             if (variation > 0) {
@@ -103,6 +101,7 @@ async function fetchCryptoData(symbol) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
+
 
 // Fonction pour calculer et ajuster l'intervalle de rafraîchissement
 function calculerProchainRafraichissement() {
