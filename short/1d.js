@@ -43,10 +43,10 @@ async function fetchCryptoData(symbol) {
         const prices = [];
 
         for (let i = 0; i < data.length; i++) {
-            const lowPrice = parseFloat(data[i][3]);  // Prix le plus bas
+            const highPrice = parseFloat(data[i][2]); // Prix le plus haut
             const openDate = new Date(data[i][0]);    // Timestamp d'ouverture
 
-            prices.push(lowPrice);
+            prices.push(highPrice);
 
             // Formatage de la date et de l'heure
             const optionsDate = { day: "2-digit", month: "2-digit", year: "2-digit" };
@@ -54,7 +54,7 @@ async function fetchCryptoData(symbol) {
 
             // Ajouter les données dans une cellule avec 7 décimales
             const priceCell = cryptoRow.insertCell(i + 1);
-            priceCell.textContent = `${lowPrice.toFixed(7)} (${openDate.toLocaleDateString(
+            priceCell.textContent = `${highPrice.toFixed(7)} (${openDate.toLocaleDateString(
                 "fr-FR",
                 optionsDate
             )}, ${openDate.toLocaleTimeString("fr-FR", optionsTime)})`;
@@ -67,17 +67,17 @@ async function fetchCryptoData(symbol) {
             }
         }
 
-        // Comparaison des prix pour déterminer si le premier est le plus bas
-        const minPrice = Math.min(...prices);
+        // Comparaison des prix pour déterminer si le premier est le plus haut
+        const maxPrice = Math.max(...prices);
 
         const cryptoNamesElement = document.getElementById("cryptoNames");
 
-        // Si le premier prix est le plus bas
-        if (prices[0] === minPrice) {
-            const message = `${symbol}: Signal LONG détecté (Prix: ${minPrice.toFixed(7)})`;
-            cryptoNamesElement.innerHTML += `<p class="positive">${message}</p>`;
+        // Si le premier prix est le plus haut
+        if (prices[0] === maxPrice) {
+            const message = `${symbol}: Signal SHORT détecté (Prix: ${maxPrice.toFixed(7)})`;
+            cryptoNamesElement.innerHTML += `<p class="negative">${message}</p>`;
             showPopup(message);
-        } 
+        }
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
