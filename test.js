@@ -279,10 +279,10 @@ const intervalle1h = () => {
     const intervalInMinutes = 60;
 
     // Nombre d'intervalles à reculer (modifiable selon vos besoins)
-    const numberOfIntervals = 178;
+    const numberOfIntervals = 10;
 
     // Décalage supplémentaire en minutes
-    const extraMinutes = 60;
+    const extraMinutes = -60;
 
     // Aligner l'heure actuelle sur un multiple de 15 minutes
     const alignedDate = alignToInterval(currentDate, intervalInMinutes);
