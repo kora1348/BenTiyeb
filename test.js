@@ -37,7 +37,7 @@ const intervalle3 = () => {
     const intervalInMinutes = 3;
 
     // Nombre d'intervalles à reculer (modifiable selon vos besoins)
-    const numberOfIntervals = 178;
+    const numberOfIntervals = 185;
 
     // Décalage supplémentaire en minutes
     const extraMinutes = 3;
@@ -97,7 +97,7 @@ const intervalle5 = () => {
     const intervalInMinutes = 5;
 
     // Nombre d'intervalles à reculer (modifiable selon vos besoins)
-    const numberOfIntervals = 178;
+    const numberOfIntervals = 185;
 
     // Décalage supplémentaire en minutes
     const extraMinutes = 5;
@@ -159,7 +159,7 @@ const intervalle15 = () => {
     const intervalInMinutes = 15;
 
     // Nombre d'intervalles à reculer (modifiable selon vos besoins)
-    const numberOfIntervals = 178;
+    const numberOfIntervals = 185;
 
     // Décalage supplémentaire en minutes
     const extraMinutes = 15;
@@ -219,7 +219,7 @@ const intervalle1 = () => {
     const intervalInMinutes = 1440;
 
     // Nombre d'intervalles à reculer (modifiable selon vos besoins)
-    const numberOfIntervals = 178;
+    const numberOfIntervals = 185;
 
     // Décalage supplémentaire en minutes
     const extraMinutes = 1440;
@@ -279,7 +279,7 @@ const intervalle1h = () => {
     const intervalInMinutes = 60;
 
     // Nombre d'intervalles à reculer (modifiable selon vos besoins)
-    const numberOfIntervals = 178;
+    const numberOfIntervals = 185;
 
     // Décalage supplémentaire en minutes
     const extraMinutes = 60;
