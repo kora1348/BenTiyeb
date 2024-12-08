@@ -89,7 +89,7 @@ async function fetchCryptoData(symbol) {
             pElement.classList.add("positive");
             pElement.textContent = `${symbol}: LONG, ${totalVariation.toFixed(2)}%`;
             cryptoNamesElement.appendChild(pElement);
-            showPopup(`${symbol}: LONG signal détecté - 5 MINUTES (${totalVariation.toFixed(2)}%)`);
+            showPopup(`${symbol}: LONG signal détecté - 15 MINUTES(${totalVariation.toFixed(2)}%)`);
         }  else if (totalVariation >= -5.99 && totalVariation <= -5.00) {
             totalCell.classList.add("negative");
             const pElement = document.createElement("p");
@@ -97,7 +97,7 @@ async function fetchCryptoData(symbol) {
             pElement.classList.add("negative");
             pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
             cryptoNamesElement.appendChild(pElement);
-            showPopup(`${symbol}: SHORT signal détecté - 5 MINUTES (${totalVariation.toFixed(2)}%)`);
+            showPopup(`${symbol}: SHORT signal détecté - 15 MINUTES(${totalVariation.toFixed(2)}%)`);
         }
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
