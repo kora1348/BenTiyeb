@@ -94,7 +94,7 @@ async function fetchCryptoData(symbol) {
             pElement.textContent = `${symbol}: LONG, ${lastIntervalVariation.toFixed(2)}%`;
             cryptoNamesElement.appendChild(pElement);
             showPopup(`${symbol}: LONG signal détecté - 5 MINUTES (${lastIntervalVariation.toFixed(2)}%)`);
-        } else if (lastIntervalVariation >= -5.99 && lastIntervalVariation <= -5.30) {
+        } else if (lastIntervalVariation >= -5.99 && lastIntervalVariation <= -5.00) {
             totalCell.classList.add("negative");
             const pElement = document.createElement("p");
             pElement.id = `${symbol}_status`;
