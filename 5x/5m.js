@@ -118,26 +118,7 @@ function calculerProchainRafraichissement() {
 
 // Démarrage de l'actualisation
 function startAutoRefresh() {
-  const cryptoSymbols = ["1INCH", "AAVE", "ACE", "ACH", "ADA", "AEVO", "AGLD", "AI", "ALGO", "ALICE", "ALPACA", "ALPHA",
-  "ALT", "AMB", "ANKR", "APE", "API3", "APT", "ARB", "ARKM", "ARK", "ARPA", "AR", "ASTR", "ATA",
-  "ATOM", "AUCTION", "AVAX", "AXL", "AXS", "BADGER", "BAKE", "BAL", "BANANA", "BAND", "BAT", "BB",
-  "BCH", "BEAMX", "BEL", "BICO", "BLUR", "BLZ", "BNB", "BNT", "BNX", "BOME", "BONK", "BOND", "BTC",
-  "C98", "CAKE", "CELO", "CELR", "CFX", "CHR", "CHZ", "CKB", "COMBO", "COMP", "COTI", "CRV",
-  "CTSI", "CYBER", "DAR", "DASH", "DENT", "DOGE", "DOGS", "DOT", "DUSK", "DYDX", "DYM", "EDU",
-  "EGLD", "ENA", "ENJ", "ENS", "EOS", "ETC", "ETHFI", "ETH", "FET", "FIL", "FLM", "FLOKI", "FLOW",
-  "FTM", "FXS", "GALA", "GAS", "GLM", "GMT", "GMX", "GRT", "GTC", "G", "HBAR", "HFT", "HIFI",
-  "HIGH", "HOOK", "HOT", "ICP", "ICX", "ID", "ILV", "IMX", "INJ", "IOST", "IOTA", "IOTX", "IO",
-  "JASMY", "JOE", "JTO", "JUP", "KAVA", "KEY", "KLAY", "KNC", "KSM", "LDO", "LEVER", "LINA", "LINK", 
-  "LISTA", "LIT", "LOOM", "LPT", "LQTY", "LRC", "LSK", "LTC", "LUNC", "MAGIC", "MANA", "MANTA", 
-  "MASK", "MAV", "MEME", "METIS", "MINA", "MKR", "MOVR", "MTL", "NEAR", "NEO", "NFP", "NKN", 
-  "NMR", "NOT", "NTRN", "OGN", "OMG", "OMNI", "OM", "ONE", "ONG", "ONT", "OP", "ORDI", "OXT", 
-  "PENDLE", "PEOPLE", "PEPE", "PERP", "PHB", "PIXEL", "POLYX", "PORTAL", "POWR", "PYTH", "QNT", 
-  "QTUM", "RARE", "RDNT", "REEF", "RENDER", "REN", "REZ", "RIF", "RLC", "RONIN", "ROSE", "RSR", 
-  "RUNE", "RVN", "SAGA", "SAND", "SEI", "SFP", "SHIB", "SKL", "SNX", "SOL", "SPELL", "SSV", 
-  "STEEM", "STG", "STMX", "STORJ", "STRK", "STX", "SUI", "SUN", "SUPER", "SUSHI", "SXP", "SYN", 
-  "SYS", "TAO", "THETA", "TIA", "TLM", "TNSR", "TON", "TRB", "TRU", "TRX", "TWT", "UMA", "UNFI", 
-  "UNI", "USTC", "VANRY", "VET", "VIDT", "VOXEL", "WAXP", "WIF", "WLD", "WOO", "W", "XAI", "XEC", 
-  "XEM", "XLM", "XRP", "XTZ", "XVG", "XVS", "YFI", "YGG", "ZEC", "ZIL", "ZK", "ZRO", "ZRX"]; // Ajoutez d'autres symboles crypto si nécessaire
+  const cryptoSymbols = ["1INCH","MOG","BONK","CAT","CHEEMS","FLOKI","LUNC","PEPE","ACT","ACX","ADA","AERGO","AERO","AEVO","AGLD","AI","AKT","ALGO","ALICE","ALPACA","ALPHA","ALT","AMB","ANKR","APE","AXS","BADGER","BAKE","BAL","BANANA","BAND","BAN","BAT","BB","BCH","BEAMX","BEL","BICO","BIGTIME","BTC","C98","CAKE","CATI","CELO","CELR","CETUS","CFX","CHESS","CHILLGUY","CHR","CHZ","CKB","COMBO","DOGE","DOGS","DOT","DRIFT","DUSK","DYDX","DYM","EDU","EGLD","EIGEN","ENA","ENJ","ENS","FLOW","FLUX","FTM","FXS","GALA","GHST","GLM","GMT","GMX","GOAT","GRASS","GRT","GTC","IOST","IOTA","IOTX","IO","JASMY","JOE","JUP","KAIA","KAS","KAVA","KDA","KNC","KOMA","KSM","MAGIC","MANA","MANTA","MASK","MAVIA","MAV","MBOX","MEME","METIS","MEW","MINA","MKR","MOODENG","MORPHO","MOVE","NTRN","NULS","OGN","OMG","OMNI","OM","ONDO","ONE","ONG","ONT","OP","ORCA","ORDI","OXT","PENDLE","PEOPLE","RAYSOL","RDNT","REEF","REI","RENDER","REZ","RIF","RLC","RONIN","ROSE","RPL","RSR","RUNE","RVN","SAFE","STEEM","STG","STMX","STORJ","STRK","STX","SUI","SUN","SUPER","SUSHI","SWELL","SXP","SYN","SYS","TURBO","T","TWT","UMA","UNI","","USTC","UXLINK","VET","VIDT","VIRTUAL","VOXEL","WAXP","WIF","WLD","ZEC","ZEN","ZETA","ZIL","ZK","ZRO","ZRX",]; // Ajoutez d'autres symboles crypto si nécessaire
   cryptoSymbols.forEach((symbol) => fetchCryptoData(symbol));
 
   mettreAJourHeure();
