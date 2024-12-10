@@ -29,7 +29,7 @@ function clearNotifications() {
 async function fetchCryptoData(symbol) {
   try {
       const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=2h&limit=1`
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
       );
       const data = await response.json();
 
