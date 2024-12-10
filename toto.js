@@ -76,8 +76,8 @@ async function fetchCryptoData(symbol, startDateFilter, endDateFilter) {
 }
 
 // Exemple d'utilisation avec un filtre de date et heure
-const startDate = new Date("2024-12-10T20:00:00"); // Date de début
-const endDate = new Date("2024-12-10T20:30:00"); // Date de fin
+const startDate = new Date("2024-12-01T20:00:00"); // Date de début
+const endDate = new Date("2024-12-01T20:30:00"); // Date de fin
 fetchCryptoData("1INCH", startDate, endDate);
 fetchCryptoData("MOG", startDate, endDate);
 fetchCryptoData("BONK", startDate, endDate);
