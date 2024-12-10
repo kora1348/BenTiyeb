@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=3`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=10`
         );
         const data = await response.json();
 
@@ -38,9 +38,9 @@ async function fetchCryptoData(symbol) {
             }
 
             // Vérifier si une variation >= 1% ou <= -1%
-            if (weeklyVariation >= 1) {
+            if (weeklyVariation >= 7) {
                 shouldDisplay = true;
-            } else if (weeklyVariation <= -1) {
+            } else if (weeklyVariation <= -7) {
                 isShort = true;
             }
         }
@@ -49,9 +49,9 @@ async function fetchCryptoData(symbol) {
 
         // Afficher les informations pour LONG ou SHORT
         if (shouldDisplay) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
-        } else if (isShort) {
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
+        } else if (isShort) {
+            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         }
 
     } catch (error) {
