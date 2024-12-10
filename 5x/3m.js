@@ -86,7 +86,7 @@ async function fetchCryptoData(symbol) {
         const cryptoNamesElement = document.getElementById("cryptoNames");
         document.querySelector(`#${symbol}_status`)?.remove();
 
-        if (lastIntervalVariation >= 5.00 && lastIntervalVariation <= 5.99) {
+        if ( (lastIntervalVariation >= 3.00 && lastIntervalVariation <= 3.99) || (lastIntervalVariation >= 5.00 && lastIntervalVariation <= 5.99) ) {
             totalCell.classList.add("positive");
             const pElement = document.createElement("p");
             pElement.id = `${symbol}_status`;
@@ -94,7 +94,7 @@ async function fetchCryptoData(symbol) {
             pElement.textContent = `${symbol}: LONG, ${lastIntervalVariation.toFixed(2)}%`;
             cryptoNamesElement.appendChild(pElement);
             showPopup(`${symbol}: LONG signal détecté - 3 MINUTES (${lastIntervalVariation.toFixed(2)}%)`);
-        } else if (lastIntervalVariation >= -5.99 && lastIntervalVariation <= -5.00) {
+        } else if ( (lastIntervalVariation >= -3.99 && lastIntervalVariation <= -3.00) || (lastIntervalVariation >= -5.99 && lastIntervalVariation <= -5.00) ) {
             totalCell.classList.add("negative");
             const pElement = document.createElement("p");
             pElement.id = `${symbol}_status`;
