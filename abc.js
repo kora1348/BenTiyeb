@@ -1,34 +1,29 @@
+let totalVariations = 0; // Variable globale pour stocker la somme des variations
+
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=10`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=1`
         );
         const data = await response.json();
 
         // Mise à jour du tableau avec les données et la couleur
         const cryptoRow = document.getElementById(symbol);
-        let shouldDisplay = false; // Variable pour vérifier si une variation >= 1% existe
-        let isShort = false; // Variable pour vérifier si une variation <= -1% existe
+        let shouldDisplay = false; // Variable pour vérifier si une variation >= 7% existe
+        let isShort = false; // Variable pour vérifier si une variation <= -7% existe
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-            const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+            totalVariations += weeklyVariation; // Ajout de la variation à la somme globale
+            updateTotalVariations(); // Mise à jour de l'élément HTML totalVariations
 
+            const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
             const variationCell = cryptoRow.insertCell(cellIndex);
             const variationValue = weeklyVariation.toFixed(2);
-            const weekStartDate = new Date(data[i][0]);
-            const weekEndDate = new Date(data[i][6]);
-            const optionsStart = { year: "2-digit", month: "2-digit", day: "2-digit", hour: "numeric", minute: "numeric" };
-            const optionsEnd = { hour: "numeric", minute: "numeric" };
-            variationCell.textContent = `${weekStartDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${weekStartDate.toLocaleTimeString("fr-FR", optionsEnd)}) - ${weekEndDate.toLocaleDateString(
-                "fr-FR",
-                optionsStart
-            )} (${weekEndDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
+
+            variationCell.textContent = `${variationValue}%`;
 
             // Ajouter la classe "positive" ou "negative" en fonction de la variation
             if (weeklyVariation > 0) {
@@ -37,7 +32,7 @@ async function fetchCryptoData(symbol) {
                 variationCell.classList.add("negative");
             }
 
-            // Vérifier si une variation >= 1% ou <= -1%
+            // Vérifier si une variation >= 7% ou <= -7%
             if (weeklyVariation >= 7) {
                 shouldDisplay = true;
             } else if (weeklyVariation <= -7) {
@@ -60,6 +55,12 @@ async function fetchCryptoData(symbol) {
             error
         );
     }
+}
+
+// Fonction pour mettre à jour l'affichage du total des variations
+function updateTotalVariations() {
+    const totalVariationsElement = document.getElementById('totalVariations');
+    totalVariationsElement.textContent = `Total des variations : ${totalVariations.toFixed(2)}%`;
 }
 
 
