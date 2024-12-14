@@ -8,6 +8,8 @@ if (!("Notification" in window)) {
     Notification.requestPermission();
 }
 
+// Fonction pour récupérer les données d'une crypto
+// Fonction pour récupérer les données d'une crypto
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -16,6 +18,16 @@ async function fetchCryptoData(symbol) {
         const data = await response.json();
 
         const cryptoRow = document.getElementById(symbol);
+        if (!cryptoRow) {
+            console.error(`Ligne non trouvée pour ${symbol}`);
+            return;
+        }
+
+        // Supprimer toutes les cellules sauf la première (nom de la crypto)
+        while (cryptoRow.cells.length > 1) {
+            cryptoRow.deleteCell(1);
+        }
+
         let shouldDisplay = false; // Vérifie si une variation >= 7% existe
         let isShort = false; // Vérifie si une variation <= -7% existe
 
@@ -28,8 +40,7 @@ async function fetchCryptoData(symbol) {
             cryptoCount++; // Incrément du compteur
             updateTotalAndAverageVariations(); // Mise à jour des éléments HTML pour le total et la moyenne
 
-            const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
-            const variationCell = cryptoRow.insertCell(cellIndex);
+            const variationCell = cryptoRow.insertCell(i + 1);
             const variationValue = weeklyVariation.toFixed(2);
 
             variationCell.textContent = `${variationValue}%`;
@@ -41,24 +52,29 @@ async function fetchCryptoData(symbol) {
                 variationCell.classList.add("negative");
             }
 
-      
+    
         }
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
+        const statusElementId = `${symbol}_status`;
 
-        // Afficher les informations pour LONG ou SHORT
-        if (shouldDisplay) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
-        } else if (isShort) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
+        // Mettre à jour ou afficher le statut LONG/SHORT
+        const existingStatusElement = document.getElementById(statusElementId);
+        if (existingStatusElement) {
+            existingStatusElement.textContent = `${symbol}: ${shouldDisplay ? "SHORT" : "LONG"}`;
+            existingStatusElement.className = shouldDisplay ? "negative" : "positive";
+        } else {
+            const statusElement = document.createElement("p");
+            statusElement.id = statusElementId;
+            statusElement.className = shouldDisplay ? "negative" : "positive";
+            statusElement.textContent = `${symbol}: ${shouldDisplay ? "SHORT" : "LONG"}`;
+            cryptoNamesElement.appendChild(statusElement);
         }
     } catch (error) {
-        console.error(
-            `Erreur lors de la récupération des données pour ${symbol}:`,
-            error
-        );
+        console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
     }
 }
+
 
 // Fonction pour mettre à jour l'affichage du total et de la moyenne des variations
 function updateTotalAndAverageVariations() {
@@ -73,10 +89,10 @@ function updateTotalAndAverageVariations() {
 
     // Vérifier les conditions pour afficher une notification
     if (cryptoCount >= 149) { // Attendre d'avoir traité toutes les cryptos
-        if (averageVariations > 10) {
-            showNotification("5 MINUTES - LONG signal détecté ! ");
-        } else if (averageVariations < 10) {
-            showNotification("5 MINUTES - SHORT signal détecté ! ");
+        if (averageVariations >= 10) {
+            showNotification("5 MINUTES - LONG signal détecté !");
+        } else if (averageVariations <= -10) {
+            showNotification("5 MINUTES - SHORT signal détecté !");
         }
     }
 }
@@ -91,184 +107,23 @@ function showNotification(message) {
     }
 }
 
+// Fonction pour rafraîchir les données
+async function refreshCryptoData() {
+    totalVariations = 0; // Réinitialiser la somme des variations
+    cryptoCount = 0; // Réinitialiser le compteur de cryptos
 
-    
-    // Appel de la fonction pour obtenir les taux de variation des cryptos
-    fetchCryptoData("1INCH");
-    fetchCryptoData("MOG");
-    fetchCryptoData("BONK");
-    fetchCryptoData("CAT");
-    fetchCryptoData("CHEEMS");
-    fetchCryptoData("FLOKI");
-    fetchCryptoData("LUNC");
-    fetchCryptoData("PEPE");
-    fetchCryptoData("ACT");
-    fetchCryptoData("ACX");
-    fetchCryptoData("ADA");
-    fetchCryptoData("AERGO");
-    fetchCryptoData("AERO");
-    fetchCryptoData("AEVO");
-    fetchCryptoData("AGLD");
-    fetchCryptoData("AI");
-    fetchCryptoData("AKT");
-    fetchCryptoData("ALGO");
-    fetchCryptoData("ALICE");
-    fetchCryptoData("ALPACA");
-    fetchCryptoData("ALPHA");
-    fetchCryptoData("ALT");
-    fetchCryptoData("AMB");
-    fetchCryptoData("ANKR");
-    fetchCryptoData("APE");
-    fetchCryptoData("AXS");
-    fetchCryptoData("BADGER");
-    fetchCryptoData("BAKE");
-    fetchCryptoData("BAL");
-    fetchCryptoData("BANANA");
-    fetchCryptoData("BAND");
-    fetchCryptoData("BAN");
-    fetchCryptoData("BAT");
-    fetchCryptoData("BB");
-    fetchCryptoData("BCH");
-    fetchCryptoData("BEAMX");
-    fetchCryptoData("BEL");
-    fetchCryptoData("BICO");
-    fetchCryptoData("BIGTIME");
-    fetchCryptoData("BTC");
-    fetchCryptoData("C98");
-    fetchCryptoData("CAKE");
-    fetchCryptoData("CATI");
-    fetchCryptoData("CELO");
-    fetchCryptoData("CELR");
-    fetchCryptoData("CETUS");
-    fetchCryptoData("CFX");
-    fetchCryptoData("CHESS");
-    fetchCryptoData("CHILLGUY");
-    fetchCryptoData("CHR");
-    fetchCryptoData("CHZ");
-    fetchCryptoData("CKB");
-    fetchCryptoData("COMBO");
-    fetchCryptoData("DOGE");
-    fetchCryptoData("DOGS");
-    fetchCryptoData("DOT");
-    fetchCryptoData("DRIFT");
-    fetchCryptoData("DUSK");
-    fetchCryptoData("DYDX");
-    fetchCryptoData("DYM");
-    fetchCryptoData("EDU");
-    fetchCryptoData("EGLD");
-    fetchCryptoData("EIGEN");
-    fetchCryptoData("ENA");
-    fetchCryptoData("ENJ");
-    fetchCryptoData("ENS");
-    fetchCryptoData("FLOW");
-    fetchCryptoData("FLUX");
-    fetchCryptoData("FTM");
-    fetchCryptoData("FXS");
-    fetchCryptoData("GALA");
-    fetchCryptoData("GHST");
-    fetchCryptoData("GLM");
-    fetchCryptoData("GMT");
-    fetchCryptoData("GMX");
-    fetchCryptoData("GOAT");
-    fetchCryptoData("GRASS");
-    fetchCryptoData("GRT");
-    fetchCryptoData("GTC");
-    fetchCryptoData("IOST");
-    fetchCryptoData("IOTA");
-    fetchCryptoData("IOTX");
-    fetchCryptoData("IO");
-    fetchCryptoData("JASMY");
-    fetchCryptoData("JOE");
-    fetchCryptoData("JUP");
-    fetchCryptoData("KAIA");
-    fetchCryptoData("KAS");
-    fetchCryptoData("KAVA");
-    fetchCryptoData("KDA");
-    fetchCryptoData("KNC");
-    fetchCryptoData("KOMA");
-    fetchCryptoData("KSM");
-    fetchCryptoData("MAGIC");
-    fetchCryptoData("MANA");
-    fetchCryptoData("MANTA");
-    fetchCryptoData("MASK");
-    fetchCryptoData("MAVIA");
-    fetchCryptoData("MAV");
-    fetchCryptoData("MBOX");
-    fetchCryptoData("MEME");
-    fetchCryptoData("METIS");
-    fetchCryptoData("MEW");
-    fetchCryptoData("MINA");
-    fetchCryptoData("MKR");
-    fetchCryptoData("MOODENG");
-    fetchCryptoData("MORPHO");
-    fetchCryptoData("MOVE");
-    fetchCryptoData("NTRN");
-    fetchCryptoData("NULS");
-    fetchCryptoData("OGN");
-    fetchCryptoData("OMG");
-    fetchCryptoData("OMNI");
-    fetchCryptoData("OM");
-    fetchCryptoData("ONDO");
-    fetchCryptoData("ONE");
-    fetchCryptoData("ONG");
-    fetchCryptoData("ONT");
-    fetchCryptoData("OP");
-    fetchCryptoData("ORCA");
-    fetchCryptoData("ORDI");
-    fetchCryptoData("OXT");
-    fetchCryptoData("PENDLE");
-    fetchCryptoData("PEOPLE");
-    fetchCryptoData("RAYSOL");
-    fetchCryptoData("RDNT");
-    fetchCryptoData("REEF");
-    fetchCryptoData("REI");
-    fetchCryptoData("RENDER");
-    fetchCryptoData("REZ");
-    fetchCryptoData("RIF");
-    fetchCryptoData("RLC");
-    fetchCryptoData("RONIN");
-    fetchCryptoData("ROSE");
-    fetchCryptoData("RPL");
-    fetchCryptoData("RSR");
-    fetchCryptoData("RUNE");
-    fetchCryptoData("RVN");
-    fetchCryptoData("SAFE");
-    fetchCryptoData("STEEM");
-    fetchCryptoData("STG");
-    fetchCryptoData("STMX");
-    fetchCryptoData("STORJ");
-    fetchCryptoData("STRK");
-    fetchCryptoData("STX");
-    fetchCryptoData("SUI");
-    fetchCryptoData("SUN");
-    fetchCryptoData("SUPER");
-    fetchCryptoData("SUSHI");
-    fetchCryptoData("SWELL");
-    fetchCryptoData("SXP");
-    fetchCryptoData("SYN");
-    fetchCryptoData("SYS");
-    fetchCryptoData("TURBO");
-    fetchCryptoData("T");
-    fetchCryptoData("TWT");
-    fetchCryptoData("UMA");
-    fetchCryptoData("UNI");
-    fetchCryptoData("");
-    fetchCryptoData("USTC");
-    fetchCryptoData("UXLINK");
-    fetchCryptoData("VET");
-    fetchCryptoData("VIDT");
-    fetchCryptoData("VIRTUAL");
-    fetchCryptoData("VOXEL");
-    fetchCryptoData("WAXP");
-    fetchCryptoData("WIF");
-    fetchCryptoData("WLD");
-    fetchCryptoData("ZEC");
-    fetchCryptoData("ZEN");
-    fetchCryptoData("ZETA");
-    fetchCryptoData("ZIL");
-    fetchCryptoData("ZK");
-    fetchCryptoData("ZRO");
-    fetchCryptoData("ZRX");
+    const symbols = ["1INCH","MOG","BONK","CAT","CHEEMS","FLOKI","LUNC","PEPE","ACT","ACX","ADA","AERGO","AERO","AEVO","AGLD","AI","AKT","ALGO","ALICE","ALPACA","ALPHA","ALT","AMB","ANKR","APE","AXS","BADGER","BAKE","BAL","BANANA","BAND","BAN","BAT","BB","BCH","BEAMX","BEL","BICO","BIGTIME","BTC","C98","CAKE","CATI","CELO","CELR","CETUS","CFX","CHESS","CHILLGUY","CHR","CHZ","CKB","COMBO","DOGE","DOGS","DOT","DRIFT","DUSK","DYDX","DYM","EDU","EGLD","EIGEN","ENA","ENJ","ENS","FLOW","FLUX","FTM","FXS","GALA","GHST","GLM","GMT","GMX","GOAT","GRASS","GRT","GTC","IOST","IOTA","IOTX","IO","JASMY","JOE","JUP","KAIA","KAS","KAVA","KDA","KNC","KOMA","KSM","MAGIC","MANA","MANTA","MASK","MAVIA","MAV","MBOX","MEME","METIS","MEW","MINA","MKR","MOODENG","MORPHO","MOVE","NTRN","NULS","OGN","OMG","OMNI","OM","ONDO","ONE","ONG","ONT","OP","ORCA","ORDI","OXT","PENDLE","PEOPLE","RAYSOL","RDNT","REEF","REI","RENDER","REZ","RIF","RLC","RONIN","ROSE","RPL","RSR","RUNE","RVN","SAFE","STEEM","STG","STMX","STORJ","STRK","STX","SUI","SUN","SUPER","SUSHI","SWELL","SXP","SYN","SYS","TURBO","T","TWT","UMA","UNI","","USTC","UXLINK","VET","VIDT","VIRTUAL","VOXEL","WAXP","WIF","WLD","ZEC","ZEN","ZETA","ZIL","ZK","ZRO","ZRX",]; // Liste des cryptos à traiter
+    for (const symbol of symbols) {
+        await fetchCryptoData(symbol);
+    }
+}
+
+// Rafraîchissement automatique toutes les 50 secondes
+setInterval(refreshCryptoData, 50000);
+
+// Lancer une première fois la récupération des données
+refreshCryptoData();
+
     
     
   
