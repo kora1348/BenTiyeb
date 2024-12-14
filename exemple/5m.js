@@ -55,7 +55,6 @@ async function fetchCryptoData(symbol) {
     
         }
 
-        const cryptoNamesElement = document.getElementById('cryptoNames');
         const statusElementId = `${symbol}_status`;
 
         // Mettre à jour ou afficher le statut LONG/SHORT
@@ -68,7 +67,6 @@ async function fetchCryptoData(symbol) {
             statusElement.id = statusElementId;
             statusElement.className = shouldDisplay ? "negative" : "positive";
             statusElement.textContent = `${symbol}: ${shouldDisplay ? "SHORT" : "LONG"}`;
-            cryptoNamesElement.appendChild(statusElement);
         }
     } catch (error) {
         console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
@@ -89,9 +87,9 @@ function updateTotalAndAverageVariations() {
 
     // Vérifier les conditions pour afficher une notification
     if (cryptoCount >= 149) { // Attendre d'avoir traité toutes les cryptos
-        if (averageVariations >= 10) {
+        if (averageVariations >= 100) {
             showNotification("5 MINUTES - LONG signal détecté !");
-        } else if (averageVariations <= -10) {
+        } else if (averageVariations <= -100) {
             showNotification("5 MINUTES - SHORT signal détecté !");
         }
     }
