@@ -4,7 +4,7 @@ let cryptoCount = 0; // Variable pour compter le nombre de cryptos traitées (ju
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=1`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=1`
         );
         const data = await response.json();
 
@@ -34,21 +34,6 @@ async function fetchCryptoData(symbol) {
                 variationCell.classList.add("negative");
             }
 
-            // Vérifier si une variation >= 7% ou <= -7%
-            if (weeklyVariation >= 7) {
-                shouldDisplay = true;
-            } else if (weeklyVariation <= -7) {
-                isShort = true;
-            }
-        }
-
-        const cryptoNamesElement = document.getElementById('cryptoNames');
-
-        // Afficher les informations pour LONG ou SHORT
-        if (shouldDisplay) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT</p>`;
-        } else if (isShort) {
-            cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         }
 
     } catch (error) {

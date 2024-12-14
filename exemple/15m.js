@@ -88,9 +88,9 @@ function updateTotalAndAverageVariations() {
     // Vérifier les conditions pour afficher une notification
     if (cryptoCount >= 149) { // Attendre d'avoir traité toutes les cryptos
         if (averageVariations >= 100) {
-            showNotification("5 MINUTES - LONG signal détecté !");
+            showNotification("15 MINUTES - LONG signal détecté !");
         } else if (averageVariations <= -100) {
-            showNotification("5 MINUTES - SHORT signal détecté !");
+            showNotification("15 MINUTES - SHORT signal détecté !");
         }
     }
 }
