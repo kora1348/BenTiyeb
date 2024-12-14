@@ -1,6 +1,13 @@
 let totalVariations = 0; // Variable globale pour stocker la somme des variations
 let cryptoCount = 0; // Variable pour compter le nombre de cryptos traitées (jusqu'à 149)
 
+// Vérification de la prise en charge des notifications
+if (!("Notification" in window)) {
+    alert("Ce navigateur ne supporte pas les notifications.");
+} else if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+}
+
 async function fetchCryptoData(symbol) {
     try {
         const response = await fetch(
@@ -8,15 +15,15 @@ async function fetchCryptoData(symbol) {
         );
         const data = await response.json();
 
-        // Mise à jour du tableau avec les données et la couleur
         const cryptoRow = document.getElementById(symbol);
-        let shouldDisplay = false; // Variable pour vérifier si une variation >= 7% existe
-        let isShort = false; // Variable pour vérifier si une variation <= -7% existe
+        let shouldDisplay = false; // Vérifie si une variation >= 7% existe
+        let isShort = false; // Vérifie si une variation <= -7% existe
 
         for (let i = 0; i < data.length; i++) {
             const openPrice = parseFloat(data[i][1]);
             const closePrice = parseFloat(data[i][4]);
             const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+
             totalVariations += weeklyVariation; // Ajout de la variation à la somme globale
             cryptoCount++; // Incrément du compteur
             updateTotalAndAverageVariations(); // Mise à jour des éléments HTML pour le total et la moyenne
@@ -34,12 +41,7 @@ async function fetchCryptoData(symbol) {
                 variationCell.classList.add("negative");
             }
 
-            // Vérifier si une variation >= 7% ou <= -7%
-            if (weeklyVariation >= 7) {
-                shouldDisplay = true;
-            } else if (weeklyVariation <= -7) {
-                isShort = true;
-            }
+      
         }
 
         const cryptoNamesElement = document.getElementById('cryptoNames');
@@ -50,7 +52,6 @@ async function fetchCryptoData(symbol) {
         } else if (isShort) {
             cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG</p>`;
         }
-
     } catch (error) {
         console.error(
             `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -69,6 +70,25 @@ function updateTotalAndAverageVariations() {
     // Calcul de la moyenne sur 149 cryptos et conversion au format pourcentage
     const averageVariations = (totalVariations / Math.min(cryptoCount, 149)) * 100;
     averageVariationsElement.textContent = `Moyenne des variations : ${averageVariations.toFixed(2)}%`;
+
+    // Vérifier les conditions pour afficher une notification
+    if (cryptoCount >= 149) { // Attendre d'avoir traité toutes les cryptos
+        if (averageVariations > 10) {
+            showNotification("5 MINUTES - LONG signal détecté ! ");
+        } else if (averageVariations < 10) {
+            showNotification("5 MINUTES - SHORT signal détecté ! ");
+        }
+    }
+}
+
+// Fonction pour afficher une notification
+function showNotification(message) {
+    if (Notification.permission === "granted") {
+        new Notification("Signal Crypto", {
+            body: message,
+            icon: "https://example.com/notification-icon.png", // Remplacez par une URL d'icône valide
+        });
+    }
 }
 
 
