@@ -82,7 +82,7 @@ async function fetchCryptoData(symbol) {
       const cryptoNamesElement = document.getElementById("cryptoNames");
       document.querySelector(`#${symbol}_status`)?.remove();
 
-      if (totalVariation >= 7.00) {
+      if (totalVariation >= 5.00) {
           totalCell.classList.add("negative");
           const pElement = document.createElement("p");
           pElement.id = `${symbol}_status`;
@@ -90,7 +90,7 @@ async function fetchCryptoData(symbol) {
           pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
           cryptoNamesElement.appendChild(pElement);
           showPopup(`${symbol}: SHORT signal détecté - 5 MINUTES(${totalVariation.toFixed(2)}%)`);
-      }  else if (totalVariation  <= -7.00) {
+      }  else if (totalVariation  <= -5.00) {
           totalCell.classList.add("positive");
           const pElement = document.createElement("p");
           pElement.id = `${symbol}_status`;
