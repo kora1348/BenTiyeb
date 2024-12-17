@@ -36,7 +36,7 @@ function checkAndDisplayLong(symbol) {
 async function fetchCryptoData15Min(symbol) {
     try {
         // Récupérer les données de volume (comme avant)
-        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=1`);
+        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=1`);
         const data = await response.json();
 
         const takerBuyVolume = parseFloat(data[0][9]);
