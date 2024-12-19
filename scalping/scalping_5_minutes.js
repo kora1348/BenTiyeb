@@ -100,19 +100,19 @@ function showPopup(message) {
             2
           )}%)`
         );
-      } else if (totalVariation <= -5) {
-        totalCell.classList.add("negative");
-        const pElement = document.createElement("p");
-        pElement.id = `${symbol}_status`;
-        pElement.classList.add("negative");
-        pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
-        cryptoNamesElement.appendChild(pElement);
-        showPopup(
-          `${symbol}: SHORT signal détecté - 5 MINUTES(${totalVariation.toFixed(
-            2
-          )}%)`
-        );
-      }
+       } //else if (totalVariation <= -5) {
+      //   totalCell.classList.add("negative");
+      //   const pElement = document.createElement("p");
+      //   pElement.id = `${symbol}_status`;
+      //   pElement.classList.add("negative");
+      //   pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
+      //   cryptoNamesElement.appendChild(pElement);
+      //   showPopup(
+      //     `${symbol}: SHORT signal détecté - 5 MINUTES(${totalVariation.toFixed(
+      //       2
+      //     )}%)`
+      //   );
+      // }
     } catch (error) {
       console.error(
         `Erreur lors de la récupération des données pour ${symbol}:`,
