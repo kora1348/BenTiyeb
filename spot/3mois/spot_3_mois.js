@@ -145,6 +145,8 @@ async function fetchCryptoData(symbol) {
   fetchCryptoData("ENA");
   fetchCryptoData("ENJ");
   fetchCryptoData("ENS");
+  fetchCryptoData("ETHFI");
+  fetchCryptoData("ETH");
   fetchCryptoData("FLOW");
   fetchCryptoData("FLUX");
   fetchCryptoData("FTM");

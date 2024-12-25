@@ -51,8 +51,8 @@ function updateTotalAndAverageVariations() {
 
 	totalVariationsElement.textContent = `Total des variations : ${totalVariations.toFixed(2)}%`;
 
-	// Calcul de la moyenne sur 149 cryptos et conversion au format pourcentage
-	const averageVariations = (totalVariations / Math.min(cryptoCount, 149)) * 100;
+	// Calcul de la moyenne sur 151 cryptos et conversion au format pourcentage
+	const averageVariations = (totalVariations / Math.min(cryptoCount, 151)) * 100;
 	averageVariationsElement.textContent = `Moyenne des variations : ${averageVariations.toFixed(2)}%`;
 }
 
@@ -125,6 +125,8 @@ fetchCryptoData("EIGEN");
 fetchCryptoData("ENA");
 fetchCryptoData("ENJ");
 fetchCryptoData("ENS");
+fetchCryptoData("ETHFI");
+fetchCryptoData("ETH");
 fetchCryptoData("FLOW");
 fetchCryptoData("FLUX");
 fetchCryptoData("FTM");
