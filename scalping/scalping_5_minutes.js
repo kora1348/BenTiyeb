@@ -292,6 +292,7 @@ function showPopup(message) {
       "SYS",
       "TURBO",
       "T",
+      "TRUMP",
       "TWT",
       "UMA",
       "UNI",
