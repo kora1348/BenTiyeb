@@ -59,6 +59,7 @@ function updateTotalAndAverageVariations() {
 
 
 // Appel de la fonction pour obtenir les taux de variation des cryptos
+fetchCryptoData("ETH");
 fetchCryptoData("1INCH");
 fetchCryptoData("MOG");
 fetchCryptoData("BONK");
@@ -126,7 +127,6 @@ fetchCryptoData("ENA");
 fetchCryptoData("ENJ");
 fetchCryptoData("ENS");
 fetchCryptoData("ETHFI");
-fetchCryptoData("ETH");
 fetchCryptoData("FLOW");
 fetchCryptoData("FLUX");
 fetchCryptoData("FTM");
