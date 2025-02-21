@@ -1,6 +1,21 @@
 let totalVariations = 0; // Variable globale pour stocker la somme des variations
 let cryptoCount = 0; // Variable pour compter le nombre de cryptos traitées (jusqu'à 149)
 
+// Fonction pour vider les cellules de variation existantes
+function clearExistingVariations() {
+    const cryptos = ["ETH", "1INCH", "MOG", "BONK", "CAT", "CHEEMS", "FLOKI", "LUNC", "PEPE", "ACT", "ACX", "ADA", "AERGO", "AERO", "AEVO", "AGLD", "AI", "AKT", "ALGO", "ALICE", "ALPACA", "ALPHA", "ALT", "AMB", "ANKR", "APE", "AXS", "BADGER", "BAKE", "BAL", "BANANA", "BAND", "BAN", "BAT", "BB", "BCH", "BEAMX", "BEL", "BICO", "BIGTIME", "BTC", "C98", "CAKE", "CATI", "CELO", "CELR", "CETUS", "CFX", "CHESS", "CHILLGUY", "CHR", "CHZ", "CKB", "COMBO", "DOGE", "DOGS", "DOT", "DRIFT", "DUSK", "DYDX", "DYM", "EDU", "EGLD", "EIGEN", "ENA", "ENJ", "ENS", "ETHFI", "FLOW", "FLUX", "FTM", "FXS", "GALA", "GHST", "GLM", "GMT", "GMX", "GOAT", "GRASS", "GRT", "GTC", "IOST", "IOTA", "IOTX", "IO", "JASMY", "JOE", "JUP", "KAIA", "KAS", "KAVA", "KDA", "KNC", "KOMA", "KSM", "MAGIC", "MANA", "MANTA", "MASK", "MAVIA", "MAV", "MBOX", "MEME", "METIS", "MEW", "MINA", "MKR", "MOODENG", "MORPHO", "MOVE", "NTRN", "NULS", "OGN", "OMG", "OMNI", "OM", "ONDO", "ONE", "ONG", "ONT", "OP", "ORCA", "ORDI", "OXT", "PENDLE", "PEOPLE", "RAYSOL", "RDNT", "REEF", "REI", "RENDER", "REZ", "RIF", "RLC", "RONIN", "ROSE", "RPL", "RSR", "RUNE", "RVN", "SAFE", "STEEM", "STG", "STMX", "STORJ", "STRK", "STX", "SUI", "SUN", "SUPER", "SUSHI", "SWELL", "SXP", "SYN", "SYS", "TURBO", "T", "TWT", "UMA", "UNI", "USTC", "UXLINK", "VET", "VIDT", "VIRTUAL", "VOXEL", "WAXP", "WIF", "WLD", "ZEC", "ZEN", "ZETA", "ZIL", "ZK", "ZRO", "ZRX"];
+
+    cryptos.forEach(symbol => {
+        const cryptoRow = document.getElementById(symbol);
+        if (cryptoRow) {
+            // Supprimer toutes les cellules sauf la première (nom de la crypto)
+            while (cryptoRow.cells.length > 1) {
+                cryptoRow.deleteCell(1);
+            }
+        }
+    });
+}
+
 async function fetchCryptoData(symbol, startDate, endDate) {
     try {
         const response = await fetch(
@@ -33,7 +48,6 @@ async function fetchCryptoData(symbol, startDate, endDate) {
             } else if (weeklyVariation < 0) {
                 variationCell.classList.add("negative");
             }
-
         }
 
     } catch (error) {
@@ -69,10 +83,13 @@ function fetchDataForPeriod() {
     totalVariations = 0;
     cryptoCount = 0;
 
+    // Vider les anciennes variations avant de récupérer les nouvelles
+    clearExistingVariations();
+
     // Appel de la fonction pour obtenir les taux de variation des cryptos
     fetchCryptoData("ETH", startTimestamp, endTimestamp);
     fetchCryptoData("1INCH", startTimestamp, endTimestamp);
-	fetchCryptoData("MOG", startTimestamp, endTimestamp);
+    fetchCryptoData("MOG", startTimestamp, endTimestamp);
 fetchCryptoData("BONK", startTimestamp, endTimestamp);
 fetchCryptoData("CAT", startTimestamp, endTimestamp);
 fetchCryptoData("CHEEMS", startTimestamp, endTimestamp);
@@ -247,11 +264,11 @@ fetchCryptoData("ZIL", startTimestamp, endTimestamp);
 fetchCryptoData("ZK", startTimestamp, endTimestamp);
 fetchCryptoData("ZRO", startTimestamp, endTimestamp);
 fetchCryptoData("ZRX", startTimestamp, endTimestamp);
+    // Ajoute les autres cryptos ici...
 
     // Mettre à jour la date de mise à jour
     document.getElementById('updateDate').textContent = new Date().toLocaleDateString();
 }
-
 
 
 function mettreAJourHeure() {
