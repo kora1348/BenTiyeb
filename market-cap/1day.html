@@ -14,6 +14,13 @@
       <p style="font-weight: bold;">Mise à jour : 18/12/2024</p>
       <div id="heure"></div>
       <br>
+      <label for="startDate">Début :</label>
+      <input type="datetime-local" id="startDate">
+  
+      <label for="endDate">Fin :</label>
+      <input type="datetime-local" id="endDate">
+  
+      <button onclick="fetchDataForRange()">Rechercher</button>
       <div id="totalVariations">Total des variations : </div>
       <div id="averageVariations">Moyenne des variations : </div>
       <table>
