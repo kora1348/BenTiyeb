@@ -11,14 +11,17 @@
       <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
          " onclick="window.location.href='../../index.html'">Accueil</button>
       <h2>Intraday Eth - 1 jour</h2>
-      <p style="font-weight: bold;">Mise à jour : 18/12/2024</p>
+      <p style="font-weight: bold;">Mise à jour : <span id="updateDate">18/12/2024</span></p>
       <div id="heure"></div>
       <br>
-      <label for="startDate">Date d'entrée :</label>
-      <input type="date" id="startDate">
-      <label for="endDate">Date de sortie :</label>
-      <input type="date" id="endDate">
-      <button onclick="fetchDataForPeriod()">Analyser</button>
+      <!-- Formulaire pour les dates -->
+      <form onsubmit="fetchDataForPeriod(); return false;">
+         <label for="startDate">Date d'entrée :</label>
+         <input type="date" id="startDate" required>
+         <label for="endDate">Date de sortie :</label>
+         <input type="date" id="endDate" required>
+         <button type="submit">Analyser</button>
+      </form>
       <br><br>
       <div id="totalVariations">Total des variations : </div>
       <div id="averageVariations">Moyenne des variations : </div>
