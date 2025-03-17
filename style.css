@@ -125,3 +125,26 @@ font-weight: 800;
   color: lightcoral;
   font-weight: 800;
 }
+
+#dateList {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr); /* 3 colonnes */
+  gap: 10px; /* Espace entre les éléments */
+  list-style-type: none;
+  padding: 0;
+}
+
+#dateList li {
+  padding: 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #f9f9f9;
+}
+
+/* Si la date est celle d'aujourd'hui, on la met en vert */
+#dateList li.today {
+  color: green;
+  font-weight: bold;
+}
