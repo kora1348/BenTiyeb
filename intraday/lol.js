@@ -1,90 +1,93 @@
 async function fetchCryptoData(symbol) {
-	const cryptoRow = document.getElementById(symbol);
-	let totalVariation = 0;
-	const now = new Date();
-  
-	// Heure actuelle (ex : 17h)
-	const currentHour = now.getHours();
-  
-	for (let i = 0; i < 2; i++) {
-	  const targetDate = new Date(now);
-	  targetDate.setDate(now.getDate() - i);
-	  targetDate.setMinutes(0, 0, 0);
-	  targetDate.setHours(currentHour);
-	  const startTime = targetDate.getTime();
-	  const endTime = startTime + 60 * 60 * 1000; // +1h
-  
-	  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startTime}&endTime=${endTime}`;
-  
-	  try {
-		const response = await fetch(url);
-		const data = await response.json();
-  
-		const variationCell = cryptoRow.insertCell(1); // insérer à gauche
-  
-		if (data.length === 0) {
-		  variationCell.textContent = "Pas de données";
-		  continue;
-		}
-  
-		const openPrice = parseFloat(data[0][1]);
-		const closePrice = parseFloat(data[0][4]);
-		const variation = ((closePrice - openPrice) / openPrice) * 100;
-		const variationValue = variation.toFixed(2);
-  
-		// Formatage des dates
-		const startDate = new Date(data[0][0]);
-		const endDate = new Date(data[0][6]);
-		const optionsStart = {
-		  year: "2-digit",
-		  month: "2-digit",
-		  day: "2-digit",
-		  hour: "numeric",
-		  minute: "numeric",
-		};
-		const optionsEnd = {
-		  hour: "numeric",
-		  minute: "numeric",
-		};
-  
-		variationCell.textContent = `${startDate.toLocaleDateString(
-		  "fr-FR",
-		  optionsStart
-		)} (${startDate.toLocaleTimeString(
-		  "fr-FR",
-		  optionsEnd
-		)}) - ${endDate.toLocaleDateString(
-		  "fr-FR",
-		  optionsStart
-		)} (${endDate.toLocaleTimeString("fr-FR", optionsEnd)}): ${variationValue}%`;
-  
-		// Ajout couleur
-		if (variation > 0) {
-		  variationCell.classList.add("positive");
-		} else if (variation < 0) {
-		  variationCell.classList.add("negative");
-		}
-  
-		totalVariation += variation;
-	  } catch (error) {
-		console.error(`Erreur pour ${symbol} à la date ${new Date(startTime)}:`, error);
-	  }
-	}
-  
-	// Total en dernière cellule
-	const totalCell = cryptoRow.insertCell(11);
-	const totalValue = totalVariation.toFixed(2);
-	totalCell.textContent = `${totalValue}%`;
-	totalCell.style.textAlign = "center";
-	totalCell.classList.add(totalVariation >= 0 ? "positive" : "negative");
-  
-	const cryptoNamesElement = document.getElementById("cryptoNames");
-	if (totalVariation >= -79.99 && totalVariation <= -70.0) {
-	  cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-	}
+  const cryptoRow = document.getElementById(symbol);
+  const cryptoNamesElement = document.getElementById("cryptoNames");
+  let todayVariation = 0;
+  let yesterdayVariation = 0;
+  const now = new Date();
+  const currentHour = now.getHours();
+
+  for (let i = 0; i < 2; i++) {
+      const targetDate = new Date(now);
+      targetDate.setDate(now.getDate() - i);
+      targetDate.setMinutes(0, 0, 0);
+      targetDate.setHours(currentHour);
+      const startTime = targetDate.getTime();
+      const endTime = startTime + 60 * 60 * 1000;
+
+      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startTime}&endTime=${endTime}`;
+
+      try {
+          const response = await fetch(url);
+          const data = await response.json();
+          const variationCell = cryptoRow.insertCell(1);
+
+          if (data.length === 0) {
+              variationCell.textContent = "Pas de données";
+              continue;
+          }
+
+          const openPrice = parseFloat(data[0][1]);
+          const closePrice = parseFloat(data[0][4]);
+          const variation = ((closePrice - openPrice) / openPrice) * 100;
+
+          // Stocker les variations (i=0: aujourd'hui, i=1: hier)
+          if (i === 0) {
+              todayVariation = variation;
+          } else {
+              yesterdayVariation = variation;
+          }
+
+          const variationValue = variation.toFixed(2);
+          const startDate = new Date(data[0][0]);
+          const endDate = new Date(data[0][6]);
+
+          variationCell.textContent = `${startDate.toLocaleDateString("fr-FR", {
+              year: "2-digit",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "numeric",
+              minute: "numeric"
+          })} (${startDate.toLocaleTimeString("fr-FR", {
+              hour: "numeric",
+              minute: "numeric"
+          })}) - ${endDate.toLocaleDateString("fr-FR", {
+              year: "2-digit",
+              month: "2-digit",
+              day: "2-digit"
+          })} (${endDate.toLocaleTimeString("fr-FR", {
+              hour: "numeric",
+              minute: "numeric"
+          })}): ${variationValue}%`;
+
+          variationCell.classList.add(variation > 0 ? "positive" : "negative");
+
+      } catch (error) {
+          console.error(`Erreur pour ${symbol}:`, error);
+      }
   }
-  
-  
+
+  // Afficher le symbole uniquement si la variation actuelle > variation veille
+  // Afficher le symbole uniquement si la variation actuelle > variation veille
+// ET si les deux variations sont ≥ 1% en valeur absolue
+if (
+  todayVariation > yesterdayVariation &&
+  todayVariation >= 1 &&
+  yesterdayVariation >= 1
+) {
+  cryptoNamesElement.innerHTML += `
+      <div class="crypto-alert">
+          <span class="symbol">${symbol}</span>
+          <span class="variation yesterday">${yesterdayVariation.toFixed(2)}%</span>
+          <span class="variation-arrow">↑</span>
+          <span class="variation today">${todayVariation.toFixed(2)}%</span>
+      </div>
+  `;
+}
+
+
+}
+
+// Exemple d'utilisation
   fetchCryptoData("1INCH");
   fetchCryptoData("MOG");
   fetchCryptoData("BONK");
