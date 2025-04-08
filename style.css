@@ -148,3 +148,14 @@ font-weight: 800;
   color: green;
   font-weight: bold;
 }
+
+#cryptoList {
+  display: flex;
+  flex-direction: column; /* Organiser les éléments verticalement */
+  gap: 10px; /* Espacement vertical entre les éléments */
+}
+.pair-item {
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: #f3f3f3;
+}
