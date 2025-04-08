@@ -6,7 +6,7 @@ async function fetchCryptoData(symbol) {
 	// Heure actuelle (ex : 17h)
 	const currentHour = now.getHours();
   
-	for (let i = 0; i < 10; i++) {
+	for (let i = 0; i < 2; i++) {
 	  const targetDate = new Date(now);
 	  targetDate.setDate(now.getDate() - i);
 	  targetDate.setMinutes(0, 0, 0);
