@@ -88,7 +88,7 @@ async function fetchCryptoData(symbol) {
     const cryptoNamesElement = document.getElementById("cryptoNames");
     document.querySelector(`#${symbol}_status`)?.remove();
 
-    if (totalVariation >= 0.3) {
+    if (totalVariation >= 7) {
       totalCell.classList.add("positive");
       const pElement = document.createElement("p");
       pElement.id = `${symbol}_status`;
@@ -100,7 +100,7 @@ async function fetchCryptoData(symbol) {
           2
         )}%)`
       );
-     } else if (totalVariation <= -0.3) {
+     } else if (totalVariation <= -7) {
       totalCell.classList.add("negative");
       const pElement = document.createElement("p");
       pElement.id = `${symbol}_status`;
