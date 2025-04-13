@@ -559,4 +559,4 @@ function mettreAJourHeure() {
 startAutoRefresh();
 setInterval(() => {
   startAutoRefresh();
-}, 30000/*calculerProchainRafraichissement(*)*/);
+}, 180000/*calculerProchainRafraichissement(*)*/);
