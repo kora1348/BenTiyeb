@@ -29,7 +29,7 @@ function clearNotifications() {
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=1`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&limit=7`
     );
     const data = await response.json();
 
@@ -88,19 +88,7 @@ async function fetchCryptoData(symbol) {
     const cryptoNamesElement = document.getElementById("cryptoNames");
     document.querySelector(`#${symbol}_status`)?.remove();
 
-    if (totalVariation >= 7) {
-      totalCell.classList.add("positive");
-      const pElement = document.createElement("p");
-      pElement.id = `${symbol}_status`;
-      pElement.classList.add("positive");
-      pElement.textContent = `${symbol}: LONG, ${totalVariation.toFixed(2)}%`;
-      cryptoNamesElement.appendChild(pElement);
-      showPopup(
-        `${symbol}: LONG signal détecté - 1 MINUTE(${totalVariation.toFixed(
-          2
-        )}%)`
-      );
-     } else if (totalVariation <= -7) {
+    if (totalVariation <= -30) {
       totalCell.classList.add("negative");
       const pElement = document.createElement("p");
       pElement.id = `${symbol}_status`;
@@ -108,7 +96,7 @@ async function fetchCryptoData(symbol) {
       pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
       cryptoNamesElement.appendChild(pElement);
       showPopup(
-        `${symbol}: SHORT signal détecté - 1 MINUTE(${totalVariation.toFixed(
+        `${symbol}: SHORT signal détecté - 1 HEURE(${totalVariation.toFixed(
           2
         )}%)`
       );
