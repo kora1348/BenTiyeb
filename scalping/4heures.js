@@ -488,7 +488,6 @@ function startAutoRefresh() {
 "TON",
 "TOKEN",
 "TRB",
-"TROY",
 "TRU",
 "TRUMP",
 "TRX",
