@@ -72,11 +72,12 @@ async function fetchCryptoData(symbol, startDate = "01/01/2025", endDate = null)
     }
 
     // Utiliser averageVariation au lieu de totalVariation pour les décisions
-    if (averageVariation < -60) {
+    if (averageVariation > 30) {
       totalCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-    } else if (averageVariation < 0) {
+    } else if (averageVariation < -30) {
       totalCell.classList.add("negative");
+      cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
     }
   } catch (error) {
     console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
