@@ -1,10 +1,13 @@
 // Fonction pour convertir une date en timestamp
 function dateToTimestamp(dateStr) {
-  return new Date(dateStr).getTime();
+  // Convertir le format français JJ/MM/AAAA en format américain AAAA-MM-JJ
+  const parts = dateStr.split('/');
+  const usDateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+  return new Date(usDateStr).getTime();
 }
 
 // Fonction principale pour récupérer les données
-async function fetchCryptoData(symbol, startDate = "2025-01-01", endDate = null) {
+async function fetchCryptoData(symbol, startDate = "01/01/2025", endDate = null) {
   try {
     // Convertir les dates en timestamp
     const startTime = dateToTimestamp(startDate);
@@ -65,10 +68,10 @@ async function fetchCryptoData(symbol, startDate = "2025-01-01", endDate = null)
 
 // Fonction pour rafraîchir toutes les données avec une période spécifique
 function refreshAllDataWithDateRange() {
-  const startDateInput = prompt("Entrez la date de début (format YYYY-MM-DD):", "2025-01-01");
+  const startDateInput = prompt("Entrez la date de début (format JJ/MM/AAAA):", "01/01/2025");
   if (!startDateInput) return;
   
-  const endDateInput = prompt("Entrez la date de fin (format YYYY-MM-DD, laissez vide pour aujourd'hui):", "");
+  const endDateInput = prompt("Entrez la date de fin (format JJ/MM/AAAA, laissez vide pour aujourd'hui):", "");
   
   // Vider les résultats précédents
   document.getElementById("cryptoNames").innerHTML = "";
