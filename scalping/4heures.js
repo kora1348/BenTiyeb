@@ -518,7 +518,6 @@ function startAutoRefresh() {
 "VET",
 "VELODROME",
 "VIC",
-"VIDT",
 "VINE",
 "VIRTUAL",
 "VOXEL",
