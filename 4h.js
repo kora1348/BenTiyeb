@@ -22,8 +22,9 @@ function dateToTimestamp(dateStr) {
 
 async function fetchCryptoData(symbol, endDateStr = null) {
   try {
-    const endTime = endDateStr ? dateToTimestamp(endDateStr) : Date.now();
-    const startTime = endTime - 7 * 4 * 60 * 60 * 1000; // 7 intervalles de 4h en arrière
+    const startTime = endDateStr ? dateToTimestamp(endDateStr) : Date.now();
+    const endTime = startTime + 7 * 4 * 60 * 60 * 1000; // 7 intervalles de 4h après
+    
 
     const response = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&startTime=${startTime}&endTime=${endTime}&limit=7`
