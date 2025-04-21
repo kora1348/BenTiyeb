@@ -88,7 +88,7 @@ async function fetchCryptoData(symbol) {
     const cryptoNamesElement = document.getElementById("cryptoNames");
     document.querySelector(`#${symbol}_status`)?.remove();
 
-    if (totalVariation <= -30) {
+    if (totalVariation <= -30 && totalVariation >=-33) {
       totalCell.classList.add("negative");
     
       const pElement = document.createElement("p");
@@ -100,7 +100,7 @@ async function fetchCryptoData(symbol) {
       showPopup(
         `${symbol}: SHORT signal détecté - 1 HEURE (${totalVariation.toFixed(2)}%)`
       );
-    } else if (totalVariation >= 30) {
+    } else if (totalVariation >= 30 && totalVariation <=33) {
       totalCell.classList.add("positive");
     
       const pElement = document.createElement("p");
