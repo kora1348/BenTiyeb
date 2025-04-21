@@ -112,6 +112,24 @@ async function fetchCryptoData(symbol) {
       showPopup(
         `${symbol}: LONG signal détecté - 1 HEURE (${totalVariation.toFixed(2)}%)`
       );
+    } else if (totalVariation >= 23 && totalVariation <=29) {
+      totalCell.classList.add("positive2");
+    
+      const pElement = document.createElement("p");
+      pElement.id = `${symbol}_status`;
+      pElement.classList.add("positive2");
+      pElement.textContent = `${symbol}: LONG, ${totalVariation.toFixed(2)}%`;
+      cryptoNamesElement.appendChild(pElement);
+    
+    } else if (totalVariation <= -23 && totalVariation >=-29) {
+      totalCell.classList.add("negative2");
+    
+      const pElement = document.createElement("p");
+      pElement.id = `${symbol}_status`;
+      pElement.classList.add("negative2");
+      pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
+      cryptoNamesElement.appendChild(pElement);
+    
     }
     
   } catch (error) {
