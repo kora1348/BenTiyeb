@@ -3,37 +3,34 @@ const totalVariations = [];
 
 // Fonction pour formater une date au format JJ/MM/AA HH:MM
 function formatDate(date) {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = String(date.getFullYear()).slice(-2);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
   return `${day}/${month}/${year} (${hours}:${minutes})`;
 }
 
 // Convertit une date format JJ/MM/AAAA HH:MM en timestamp
 function dateToTimestamp(dateStr) {
-  const [datePart, timePart] = dateStr.split(" ");
-  const [day, month, year] = datePart.split("/");
-  const [hours, minutes] = timePart ? timePart.split(":") : ["00", "00"];
-
+  const [datePart, timePart] = dateStr.split(' ');
+  const [day, month, year] = datePart.split('/');
+  const [hours, minutes] = timePart ? timePart.split(':') : ['00', '00'];
+  
   return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`).getTime();
 }
 
 async function fetchCryptoData(symbol, endDateStr = null) {
   try {
-    const startTime = endDateStr ? dateToTimestamp(endDateStr) : Date.now();
-    const endTime = startTime + 7 * 4 * 60 * 60 * 1000; // 7 intervalles de 4h après
-    
+    const endTime = endDateStr ? dateToTimestamp(endDateStr) : Date.now();
+    const startTime = endTime - (7 * 4 * 60 * 60 * 1000); // 7 intervalles de 4h en arrière
 
     const response = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&startTime=${startTime}&endTime=${endTime}&limit=7`
     );
-
+    
     if (!response.ok) {
-      throw new Error(
-        `Erreur HTTP ${response.status} lors de la récupération des données pour ${symbol}`
-      );
+      throw new Error(`Erreur HTTP ${response.status} lors de la récupération des données pour ${symbol}`);
     }
     const data = await response.json();
 
@@ -48,22 +45,20 @@ async function fetchCryptoData(symbol, endDateStr = null) {
     }
 
     // Afficher les 7 derniers intervalles de 4h
-    data.forEach((item) => {
+    data.forEach(item => {
       const startTime = new Date(item[0]);
-      const endTime = new Date(item[0] + 4 * 60 * 60 * 1000 - 1); // 4h plus tard -1ms
-
+      const endTime = new Date(item[0] + (4 * 60 * 60 * 1000) - 1); // 4h plus tard -1ms
+      
       const openPrice = parseFloat(item[1]);
       const closePrice = parseFloat(item[4]);
 
       if (!isNaN(openPrice) && !isNaN(closePrice)) {
         const variation = ((closePrice - openPrice) / openPrice) * 100;
         const variationValue = variation.toFixed(2);
-
+        
         const intervalCell = cryptoRow.insertCell(-1);
-        intervalCell.textContent = `${formatDate(startTime)} - ${formatDate(
-          endTime
-        )}: ${variationValue}%`;
-
+        intervalCell.textContent = `${formatDate(startTime)} - ${formatDate(endTime)}: ${variationValue}%`;
+        
         if (variation > 0) {
           intervalCell.classList.add("positive");
         } else if (variation < 0) {
@@ -90,27 +85,24 @@ async function fetchCryptoData(symbol, endDateStr = null) {
       existingStatus.remove();
     }
 
-    if (totalVariation >= 30) {
+    if (totalVariation >= 20 && totalVariation <= 29) {
       totalCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-    } else if (totalVariation < -30) {
+    } else if (totalVariation <= -20 && totalVariation >=-29) {
       totalCell.classList.add("negative");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
     }
 
     totalVariations.push(totalVariation);
   } catch (error) {
-    console.error(
-      `Erreur lors de la récupération des données pour ${symbol}:`,
-      error
-    );
+    console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
   }
 }
 
 function updateTableStructure() {
   const table = document.querySelector("table");
   const headerRow = table.rows[0];
-
+  
   while (headerRow.cells.length > 1) {
     headerRow.deleteCell(1);
   }
@@ -125,11 +117,8 @@ function updateTableStructure() {
 }
 
 function refreshAllDataWithDateRange() {
-  const endDateInput = prompt(
-    "Entrez la date de fin (format JJ/MM/AAAA HH:MM, laissez vide pour maintenant):",
-    ""
-  );
-
+  const endDateInput = prompt("Entrez la date de fin (format JJ/MM/AAAA HH:MM, laissez vide pour maintenant):", "");
+  
   // Réinitialiser les totaux globaux
   totalVariations.length = 0;
 
@@ -486,15 +475,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const table = document.createElement("table");
   const headerRow = table.insertRow();
   headerRow.insertCell().textContent = "Crypto";
-
+  
   // Colonnes pour les 7 intervalles
   for (let i = 1; i <= 7; i++) {
     headerRow.insertCell().textContent = `Intervalle ${i}`;
   }
-
+  
   // Colonne Total
   headerRow.insertCell().textContent = "Total";
-
+  
   document.body.appendChild(table);
 
   const recommendationsDiv = document.createElement("div");
