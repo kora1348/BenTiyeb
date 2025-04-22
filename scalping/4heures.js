@@ -88,7 +88,7 @@ async function fetchCryptoData(symbol) {
     const cryptoNamesElement = document.getElementById("cryptoNames");
     document.querySelector(`#${symbol}_status`)?.remove();
 
-    if (totalVariation <= -30 && totalVariation >=-33) {
+    if (totalVariation <= -500) {
       totalCell.classList.add("negative");
     
       const pElement = document.createElement("p");
@@ -100,7 +100,7 @@ async function fetchCryptoData(symbol) {
       showPopup(
         `${symbol}: SHORT signal détecté - 1 HEURE (${totalVariation.toFixed(2)}%)`
       );
-    } else if (totalVariation >= 30 && totalVariation <=33) {
+    } else if (totalVariation >= 500) {
       totalCell.classList.add("positive");
     
       const pElement = document.createElement("p");
@@ -112,7 +112,7 @@ async function fetchCryptoData(symbol) {
       showPopup(
         `${symbol}: LONG signal détecté - 1 HEURE (${totalVariation.toFixed(2)}%)`
       );
-    } else if (totalVariation >= 23 && totalVariation <=29) {
+    } else if (totalVariation >= 500) {
       totalCell.classList.add("positive2");
     
       const pElement = document.createElement("p");
@@ -121,7 +121,7 @@ async function fetchCryptoData(symbol) {
       pElement.textContent = `${symbol}: LONG, ${totalVariation.toFixed(2)}%`;
       cryptoNamesElement.appendChild(pElement);
     
-    } else if (totalVariation <= -23 && totalVariation >=-29) {
+    } else if (totalVariation <= -500) {
       totalCell.classList.add("negative2");
     
       const pElement = document.createElement("p");
