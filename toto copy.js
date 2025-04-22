@@ -23,10 +23,10 @@ function dateToTimestamp(dateStr) {
 async function fetchCryptoData(symbol, endDateStr = null) {
   try {
     const endTime = endDateStr ? dateToTimestamp(endDateStr) : Date.now();
-    const startTime = endTime - (1 * 4 * 60 * 60 * 1000); // 7 intervalles de 4h en arrière
+    const startTime = endTime - (7 * 4 * 60 * 60 * 1000); // 7 intervalles de 4h en arrière
 
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&startTime=${startTime}&endTime=${endTime}&limit=1`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&startTime=${startTime}&endTime=${endTime}&limit=7`
     );
     
     if (!response.ok) {
@@ -85,10 +85,10 @@ async function fetchCryptoData(symbol, endDateStr = null) {
       existingStatus.remove();
     }
 
-    if (totalVariation >= 500) {
+    if (totalVariation >= 20 && totalVariation <= 29) {
       totalCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-    } else if (totalVariation <= -500) {
+    } else if (totalVariation <= -20 && totalVariation >=-29) {
       totalCell.classList.add("negative");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
     }
@@ -108,7 +108,7 @@ function updateTableStructure() {
   }
 
   // Colonnes pour les 7 intervalles
-  for (let i = 1; i <= 1; i++) {
+  for (let i = 1; i <= 7; i++) {
     headerRow.insertCell(-1).textContent = `Intervalle ${i}`;
   }
 
@@ -475,7 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
   headerRow.insertCell().textContent = "Crypto";
   
   // Colonnes pour les 7 intervalles
-  for (let i = 1; i <= 1; i++) {
+  for (let i = 1; i <= 7; i++) {
     headerRow.insertCell().textContent = `Intervalle ${i}`;
   }
   
