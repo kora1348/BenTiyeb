@@ -85,10 +85,10 @@ async function fetchCryptoData(symbol, endDateStr = null) {
       existingStatus.remove();
     }
 
-    if (totalVariation >= 500) {
+    if (totalVariation >= 20 && totalVariation <= 29) {
       totalCell.classList.add("positive");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-    } else if (totalVariation <= -500) {
+    } else if (totalVariation <= -20 && totalVariation >=-29) {
       totalCell.classList.add("negative");
       cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
     }

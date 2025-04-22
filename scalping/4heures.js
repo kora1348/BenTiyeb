@@ -1,276 +1,591 @@
-  // Variables globales pour stocker les totaux de toutes les cryptos
-  const totalVariations = [];
+// Fonction pour afficher une notification système
+function showPopup(message) {
+  const currentDate = new Date().toLocaleString();
+  const messageWithDate = `${message} - ${currentDate}`;
 
-  // Fonction pour formater une date au format JJ/MM/AA HH:MM
-  function formatDate(date) {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(-2);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${day}/${month}/${year} (${hours}:${minutes})`;
-  }
-
-  // Convertit une date format JJ/MM/AAAA HH:MM en timestamp
-  function dateToTimestamp(dateStr) {
-      const [datePart, timePart] = dateStr.split(' ');
-      const [day, month, year] = datePart.split('/');
-      const [hours, minutes] = timePart ? timePart.split(':') : ['00', '00'];
-      
-      return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`).getTime();
-  }
-
-  async function fetchCryptoData(symbol, endDateStr = null) {
-      try {
-          const endTime = endDateStr ? dateToTimestamp(endDateStr) : Date.now();
-          const startTime = endTime - (1 * 4 * 60 * 60 * 1000); // 1 intervalle de 4h en arrière
-
-          const response = await fetch(
-              `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&startTime=${startTime}&endTime=${endTime}&limit=1`
-          );
-          
-          if (!response.ok) {
-              throw new Error(`Erreur HTTP ${response.status} lors de la récupération des données pour ${symbol}`);
-          }
-          const data = await response.json();
-
-          if (!data || data.length === 0) {
-              console.error(`Aucune donnée trouvée pour ${symbol}`);
-              return;
-          }
-
-          const cryptoRow = document.getElementById(symbol);
-          while (cryptoRow.cells.length > 1) {
-              cryptoRow.deleteCell(1);
-          }
-
-          // Afficher les données
-          data.forEach(item => {
-              const startTime = new Date(item[0]);
-              const endTime = new Date(item[0] + (4 * 60 * 60 * 1000) - 1); // 4h plus tard -1ms
-              
-              const openPrice = parseFloat(item[1]);
-              const closePrice = parseFloat(item[4]);
-
-              if (!isNaN(openPrice) && !isNaN(closePrice)) {
-                  const variation = ((closePrice - openPrice) / openPrice) * 100;
-                  const variationValue = variation.toFixed(2);
-                  
-                  const intervalCell = cryptoRow.insertCell(-1);
-                  intervalCell.textContent = `${formatDate(startTime)} - ${formatDate(endTime)}: ${variationValue}%`;
-                  
-                  if (variation > 0) {
-                      intervalCell.classList.add("positive");
-                  } else if (variation < 0) {
-                      intervalCell.classList.add("negative");
-                  }
-              }
-          });
-
-          // Calcul du total (somme des variations)
-          const totalVariation = data.reduce((sum, item) => {
-              const openPrice = parseFloat(item[1]);
-              const closePrice = parseFloat(item[4]);
-              return sum + ((closePrice - openPrice) / openPrice) * 100;
-          }, 0);
-
-          const totalCell = cryptoRow.insertCell(-1);
-          const totalValue = totalVariation.toFixed(2);
-          totalCell.textContent = `${totalValue}%`;
-          totalCell.style.textAlign = "center";
-
-          const cryptoNamesElement = document.getElementById("cryptoNames");
-          const existingStatus = document.getElementById(`${symbol}_status`);
-          if (existingStatus) {
-              existingStatus.remove();
-          }
-
-          if (totalVariation >= 500) {
-              totalCell.classList.add("positive");
-              cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="positive">${symbol}: LONG, ${totalValue}%</p>`;
-          } else if (totalVariation <= -500) {
-              totalCell.classList.add("negative");
-              cryptoNamesElement.innerHTML += `<p id="${symbol}_status" class="negative">${symbol}: SHORT, ${totalValue}%</p>`;
-          }
-
-          totalVariations.push(totalVariation);
-          return totalVariation;
-      } catch (error) {
-          console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
-          return null;
+  if (Notification.permission === "granted") {
+    new Notification("Signal Crypto", {
+      body: messageWithDate,
+      icon: "https://example.com/icon.png",
+    });
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        new Notification("Signal Crypto", {
+          body: messageWithDate,
+          icon: "https://example.com/icon.png",
+        });
       }
+    });
   }
+}
 
-  function updateTableStructure() {
-      const table = document.querySelector("table");
-      const headerRow = table.rows[0];
-      
-      while (headerRow.cells.length > 1) {
-          headerRow.deleteCell(1);
-      }
+// Fonction pour effacer les notifications précédentes (ne touche pas cryptoNames)
+function clearNotifications() {
+  // Ne fait rien pour cryptoNamesElement, car nous ne voulons pas effacer son contenu ici
+}
 
-      // Colonnes pour les intervalles
-      for (let i = 1; i <= 1; i++) {
-          headerRow.insertCell(-1).textContent = `Intervalle ${i}`;
-      }
+// Fonction pour récupérer et afficher les données crypto
+async function fetchCryptoData(symbol) {
+  try {
+    const response = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&limit=7`
+    );
+    const data = await response.json();
 
-      // Colonne Total
-      headerRow.insertCell(-1).textContent = "Total";
+    if (!data || data.length === 0) {
+      console.error(`Aucune donnée reçue pour ${symbol}`);
+      return;
+    }
+
+    let totalVariation = 0;
+    const cryptoRow = document.getElementById(symbol);
+
+    // Réinitialiser les cellules
+    while (cryptoRow.cells.length > 1) {
+      cryptoRow.deleteCell(1);
+    }
+
+    for (let i = 0; i < data.length; i++) {
+      const openPrice = parseFloat(data[i][1]);
+      const closePrice = parseFloat(data[i][4]);
+      const variation = ((closePrice - openPrice) / openPrice) * 100;
+
+      // Options pour le formatage de la date et l'heure
+      const optionsDate = { day: "2-digit", month: "2-digit", year: "2-digit" };
+      const optionsTime = { hour: "2-digit", minute: "2-digit" };
+
+      // Récupérer les dates de début et de fin
+      const weekStartDate = new Date(data[i][0]); // Timestamp de début
+      const weekEndDate = new Date(data[i][6]); // Timestamp de fin
+
+      // Ajouter la variation avec l'intervalle
+      const variationCell = cryptoRow.insertCell(i + 1);
+      variationCell.textContent = `${weekStartDate.toLocaleDateString(
+        "fr-FR",
+        optionsDate
+      )} (${weekStartDate.toLocaleTimeString(
+        "fr-FR",
+        optionsTime
+      )}) - ${weekEndDate.toLocaleDateString(
+        "fr-FR",
+        optionsDate
+      )} (${weekEndDate.toLocaleTimeString(
+        "fr-FR",
+        optionsTime
+      )}): ${variation.toFixed(2)}%`;
+
+      variationCell.classList.add(variation > 0 ? "positive" : "negative");
+
+      totalVariation += variation;
+    }
+
+    const totalCell = cryptoRow.insertCell(-1);
+    totalCell.textContent = `${totalVariation.toFixed(2)}%`;
+    totalCell.style.textAlign = "center";
+
+    // Ne pas effacer cryptoNames ici car on veut garder les éléments affichés
+    const cryptoNamesElement = document.getElementById("cryptoNames");
+    document.querySelector(`#${symbol}_status`)?.remove();
+
+    if (totalVariation <= -500) {
+      totalCell.classList.add("negative");
+    
+      const pElement = document.createElement("p");
+      pElement.id = `${symbol}_status`;
+      pElement.classList.add("negative");
+      pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
+      cryptoNamesElement.appendChild(pElement);
+    
+      showPopup(
+        `${symbol}: SHORT signal détecté - 1 HEURE (${totalVariation.toFixed(2)}%)`
+      );
+    } else if (totalVariation >= 500) {
+      totalCell.classList.add("positive");
+    
+      const pElement = document.createElement("p");
+      pElement.id = `${symbol}_status`;
+      pElement.classList.add("positive");
+      pElement.textContent = `${symbol}: LONG, ${totalVariation.toFixed(2)}%`;
+      cryptoNamesElement.appendChild(pElement);
+    
+      showPopup(
+        `${symbol}: LONG signal détecté - 1 HEURE (${totalVariation.toFixed(2)}%)`
+      );
+    } else if (totalVariation >= 500) {
+      totalCell.classList.add("positive2");
+    
+      const pElement = document.createElement("p");
+      pElement.id = `${symbol}_status`;
+      pElement.classList.add("positive2");
+      pElement.textContent = `${symbol}: LONG, ${totalVariation.toFixed(2)}%`;
+      cryptoNamesElement.appendChild(pElement);
+    
+    } else if (totalVariation <= -500) {
+      totalCell.classList.add("negative2");
+    
+      const pElement = document.createElement("p");
+      pElement.id = `${symbol}_status`;
+      pElement.classList.add("negative2");
+      pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
+      cryptoNamesElement.appendChild(pElement);
+    
+    }
+    
+  } catch (error) {
+    console.error(
+      `Erreur lors de la récupération des données pour ${symbol}:`,
+      error
+    );
   }
+}
 
-  function highlightLongestSequences() {
-      // Récupérer toutes les lignes de cryptos
-      const cryptoRows = Array.from(document.querySelectorAll("table tr[id]"));
-      
-      // Extraire les totaux et créer un tableau d'objets {symbol, total, element}
-      const cryptosWithTotals = cryptoRows.map(row => {
-          const symbol = row.id;
-          const totalCell = row.cells[row.cells.length - 1]; // Dernière cellule = Total
-          const totalText = totalCell.textContent.replace('%', '');
-          const total = parseFloat(totalText);
-          return { symbol, total, element: row };
-      }).filter(crypto => !isNaN(crypto.total)); // Filtrer les NaN
+// Fonction pour calculer et ajuster l'intervalle de rafraîchissement
+function calculerProchainRafraichissement() {
+  const now = new Date();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
 
-      // Variables pour stocker les séquences
-      let currentPositiveSequence = [];
-      let currentNegativeSequence = [];
-      let longestPositiveSequence = [];
-      let longestNegativeSequence = [];
+  // Calculer l'écart en secondes jusqu'au prochain 0 minutes 40
+  const nextRefreshInSeconds =
+    1 * 60 + 30 - ((minutes * 60 + seconds) % (1 * 60 + 30));
 
-      // Parcourir toutes les cryptos
-      for (const crypto of cryptosWithTotals) {
-          // Gestion des séquences positives
-          if (crypto.total >= 0) {
-              currentPositiveSequence.push(crypto);
-              // Réinitialiser la séquence négative
-              if (currentNegativeSequence.length > longestNegativeSequence.length) {
-                  longestNegativeSequence = [...currentNegativeSequence];
-              }
-              currentNegativeSequence = [];
-          } 
-          // Gestion des séquences négatives
-          else {
-              currentNegativeSequence.push(crypto);
-              // Réinitialiser la séquence positive
-              if (currentPositiveSequence.length > longestPositiveSequence.length) {
-                  longestPositiveSequence = [...currentPositiveSequence];
-              }
-              currentPositiveSequence = [];
-          }
-      }
+  return nextRefreshInSeconds * 1000; // Convertir en millisecondes
+}
 
-      // Vérifier les dernières séquences
-      if (currentPositiveSequence.length > longestPositiveSequence.length) {
-          longestPositiveSequence = [...currentPositiveSequence];
-      }
-      if (currentNegativeSequence.length > longestNegativeSequence.length) {
-          longestNegativeSequence = [...currentNegativeSequence];
-      }
+// Démarrage de l'actualisation
+function startAutoRefresh() {
+  const cryptoSymbols = [
+    "1INCH",
+"AAVE",
+"ACE",
+"ACH",
+"ACX",
+"ACT",
+"ADA",
+"AEVO",
+"AGIX",
+"AGLD",
+"AI",
+"AI16Z",
+"AIXBT",
+"AERGO",
+"ALCHE",
+"ALGO",
+"ALICE",
+"ALPACA",
+"ALPHA",
+"ALT",
+"AMB",
+"ANKR",
+"APE",
+"API3",
+"APT",
+"AR",
+"ARB",
+"ARK",
+"ARKM",
+"ARPA",
+"ANIME",
+"ASTR",
+"ATA",
+"ATOM",
+"AUCTION",
+"AVAAI",
+"AVA",
+"AVAX",
+"AXL",
+"AXS",
+"B3",
+"BADGER",
+"BAL",
+"BAN",
+"BANANA",
+"BANANAS31",
+"BAND",
+"BAT",
+"BAKE",
+"BB",
+"BCH",
+"BEAMX",
+"BEL",
+"BERA",
+"BICO",
+"BID",
+"BIGTIME",
+"BIO",
+"BMT",
+"BNB",
+"BNT",
+"BNX",
+"BOME",
+"BOND",
+"BONK",
+"BR",
+"BRETT",
+"BROCCOLI714",
+"BROCCOLIF3B",
+"BSV",
+"BSW",
+"BTC",
+"BTCDOM",
+"BABY",
+"BABYDOGE",
+"BLUR",
+"BLZ",
+"CAKE",
+"CAT",
+"CATI",
+"C98",
+"CELO",
+"CELR",
+"CETUS",
+"CFX",
+"CGPT",
+"CHESS",
+"CHILLGUY",
+"CHR",
+"CHZ",
+"CKB",
+"COMBO",
+"COMP",
+"COOKIE",
+"COS",
+"COTI",
+"COW",
+"CRV",
+"CTK",
+"CTSI",
+"CVX",
+"CVC",
+"CYBER",
+"D",
+"DAR",
+"DASH",
+"DEGEN",
+"DEGO",
+"DENT",
+"DEXE",
+"DF",
+"DGB",
+"DIA",
+"DODOX",
+"DOGE",
+"DOGS",
+"DOT",
+"DUSK",
+"DYDX",
+"DYM",
+"EDU",
+"EGLD",
+"EIGEN",
+"EOS",
+"ENA",
+"ENJ",
+"ENS",
+"EPIC",
+"ETC",
+"ETH",
+"ETHFI",
+"ETHW",
+"FARTCOIN",
+"FET",
+"FIDA",
+"FIL",
+"FIO",
+"FLM",
+"FLOKI",
+"FLOW",
+"FLUX",
+"FORM",
+"FORTH",
+"FRONT",
+"FTM",
+"FTT",
+"FUN",
+"FXS",
+"G",
+"GALA",
+"GAS",
+"GHST",
+"GLM",
+"GLMR",
+"GMT",
+"GMX",
+"GOAT",
+"GPS",
+"GRASS",
+"GRT",
+"GRIFFAIN",
+"GTC",
+"GUN",
+"GUNTHY",
+"HBAR",
+"HFT",
+"HIFI",
+"HIGH",
+"HIPPO",
+"HIVE",
+"HMSTR",
+"HOT",
+"HOOK",
+"ICX",
+"ID",
+"IDEX",
+"ILV",
+"IMX",
+"INJ",
+"IOST",
+"IOTA",
+"IOTX",
+"IO",
+"IP",
+"JASMY",
+"JELLYJELLY",
+"JOE",
+"JTO",
+"JUP",
+"KAIA",
+"KAITO",
+"KAS",
+"KAVA",
+"KDA",
+"KEY",
+"KMNO",
+"KLAY",
+"KNC",
+"KOMA",
+"KSM",
+"LDO",
+"LEVER",
+"LINA",
+"LINK",
+"LISTA",
+"LIT",
+"LOKA",
+"LOOM",
+"LPT",
+"LQTY",
+"LRC",
+"LSK",
+"LTC",
+"LUNA2",
+"LUNC",
+"LAYER",
+"LUMIA",
+"MAGIC",
+"MANA",
+"MANTA",
+"MASK",
+"MAV",
+"MAVIA",
+"MBOX",
+"MDT",
+"ME",
+"MELANIA",
+"MEME",
+"METIS",
+"MINA",
+"MEW",
+"MKR",
+"MLN",
+"MOCA",
+"MOG",
+"MOODENG",
+"MORPHO",
+"MOVR",
+"MOVE",
+"MTL",
+"MUBARAK",
+"MYRO",
+"NEAR",
+"NEO",
+"NEIRO",
+"NEIROETH",
+"NFP",
+"NIL",
+"NKN",
+"NMR",
+"NOT",
+"NTRN",
+"NULS",
+"OCEAN",
+"OGN",
+"OM",
+"OMG",
+"OMNI",
+"ONDO",
+"ONE",
+"ONG",
+"ONT",
+"OP",
+"OXT",
+"ORDI",
+"ORBS",
+"ORCA",
+"PARTI",
+"PAXG",
+"PEOPLE",
+"PENDLE",
+"PENGU",
+"PEPE",
+"PERP",
+"PHA",
+"PHB",
+"PIPPIN",
+"PIXEL",
+"PLUME",
+"PNUT",
+"POL",
+"POLYX",
+"PONKE",
+"POPCAT",
+"PORTAL",
+"POWR",
+"PROM",
+"PYTH",
+"QNT",
+"QTUM",
+"QUICK",
+"RAD",
+"RARE",
+"RAY",
+"RAYSOL",
+"RATS",
+"RDNT",
+"REEF",
+"REI",
+"REN",
+"RENDER",
+"REZ",
+"RIF",
+"RLC",
+"RNDR",
+"RONIN",
+"ROSE",
+"RPL",
+"RSR",
+"RUNE",
+"RVN",
+"S",
+"SAFE",
+"SAGA",
+"SAND",
+"SANTOS",
+"SAT",
+"SATS",
+"SC",
+"SCR",
+"SCRT",
+"SEI",
+"SFP",
+"SHIB",
+"SHELL",
+"SIREN",
+"SKL",
+"SLP",
+"SLERF",
+"SNT",
+"SNX",
+"SOL",
+"SOLV",
+"SONIC",
+"SPELL",
+"SPX",
+"SRM",
+"SSV",
+"STEEM",
+"STMX",
+"STORJ",
+"STPT",
+"STRAX",
+"STRK",
+"STG",
+"STX",
+"SUN",
+"SUI",
+"SUPER",
+"SUSHI",
+"SXP",
+"SYN",
+"SYS",
+"T",
+"TAO",
+"THETA",
+"THE",
+"TIA",
+"TLM",
+"TNSR",
+"TON",
+"TOKEN",
+"TRB",
+"TRU",
+"TRUMP",
+"TRX",
+"TST",
+"TURBO",
+"TUT",
+"TWT",
+"UMA",
+"UNFI",
+"UNI",
+"USUAL",
+"USTC",
+"VANRY",
+"VANA",
+"VET",
+"VELODROME",
+"VIC",
+"VINE",
+"VIRTUAL",
+"VOXEL",
+"VTHO",
+"VVV",
+"W",
+"WAL",
+"WAVES",
+"WAXP",
+"WHY",
+"WIF",
+"WLD",
+"WOO",
+"X",
+"XAI",
+"XEC",
+"XEM",
+"XLM",
+"XRP",
+"XTZ",
+"XVG",
+"XVS",
+"YFI",
+"YGG",
+"ZEC",
+"ZEN",
+"ZEREBRO",
+"ZETA",
+"ZIL",
+"ZK",
+"ZRO",
+"ZRX",
 
-      // Supprimer toutes les classes de coloration existantes
-      cryptoRows.forEach(row => {
-          row.classList.remove("bleu", "rose");
-      });
+  ]; // Ajoutez d'autres symboles crypto si nécessaire
+  cryptoSymbols.forEach((symbol) => fetchCryptoData(symbol));
 
-      // Appliquer la couleur bleue à la plus longue séquence positive
-      longestPositiveSequence.forEach(crypto => {
-          crypto.element.classList.add("bleu");
-      });
+  mettreAJourHeure();
+}
 
-      // Appliquer la couleur rose à la plus longue séquence négative
-      longestNegativeSequence.forEach(crypto => {
-          crypto.element.classList.add("rose");
-      });
+// Fonction pour mettre à jour l'heure
+function mettreAJourHeure() {
+  var elementHeure = document.getElementById("heure");
+  var maintenant = new Date();
 
-      console.log(`Plus longue séquence positive (${longestPositiveSequence.length}):`, 
-          longestPositiveSequence.map(c => c.symbol));
-      console.log(`Plus longue séquence négative (${longestNegativeSequence.length}):`, 
-          longestNegativeSequence.map(c => c.symbol));
-  }
+  var heureFormatee = maintenant.toLocaleString();
+  elementHeure.textContent = heureFormatee;
+}
 
-  async function refreshAllDataWithDateRange() {
-      const endDateInput = prompt("Entrez la date de fin (format JJ/MM/AAAA HH:MM, laissez vide pour maintenant):", "");
-      
-      // Réinitialiser les totaux globaux
-      totalVariations.length = 0;
-
-      updateTableStructure();
-      document.getElementById("cryptoNames").innerHTML = "";
-
-      const allCryptos = [
-          "1INCH", "AAVE", "ACE", "ACH", "ACX", "ACT", "ADA", "AEVO", "AGLD", "AI", 
-          "AIXBT", "ALGO", "ALICE", "ALPACA", "ALPHA", "ALT", "ANKR", "APE", "API3", 
-          "APT", "AR", "ARB", "ARK", "ARKM", "ARPA", "ANIME", "ASTR", "ATA", "ATOM", 
-          "AUCTION", "AVA", "AVAX", "AXL", "AXS", "BANANA", "BANANAS31", "BAND", 
-          "BAT", "BAKE", "BB", "BCH", "BEAMX", "BEL", "BERA", "BICO", "BIGTIME", 
-          "BIO", "BMT", "BNB", "BNT", "BOME", "BONK", "BROCCOLI714", "BSW", "BTC", 
-          "BABY", "BLUR", "CAKE", "CATI", "C98", "CELO", "CELR", "CETUS", "CFX", 
-          "CGPT", "CHESS", "CHR", "CHZ", "CKB", "COMP", "COOKIE", "COS", "COTI", 
-          "COW", "CRV", "CTK", "CTSI", "CVX", "CVC", "CYBER", "D", "DASH", "DEGO", 
-          "DENT", "DEXE", "DF", "DGB", "DIA", "DOGE", "DOGS", "DOT", "DUSK", "DYDX", 
-          "DYM", "EDU", "EGLD", "EIGEN", "EOS", "ENA", "ENJ", "ENS", "EPIC", "ETC", 
-          "ETH", "ETHFI", "FET", "FIDA", "FIL", "FIO", "FLM", "FLOKI", "FLOW", 
-          "FLUX", "FORM", "FORTH", "FTT", "FUN", "FXS", "G", "GALA", "GAS", "GHST", 
-          "GLM", "GLMR", "GMT", "GMX", "GPS", "GRT", "GTC", "GUN", "HBAR", "HFT", 
-          "HIFI", "HIGH", "HIVE", "HMSTR", "HOT", "HOOK", "ICX", "ID", "IDEX", 
-          "ILV", "IMX", "INJ", "IOST", "IOTA", "IOTX", "IO", "JASMY", "JOE", "JTO", 
-          "JUP", "KAIA", "KAITO", "KAVA", "KDA", "KNC", "KSM", "LDO", "LEVER", 
-          "LINK", "LISTA", "LOKA", "LPT", "LQTY", "LRC", "LSK", "LTC", "LUNC", 
-          "LAYER", "LUMIA", "MAGIC", "MANA", "MANTA", "MASK", "MAV", "MBOX", "MDT", 
-          "ME", "MEME", "METIS", "MINA", "MKR", "MLN", "MOVR", "MOVE", "MTL", 
-          "MUBARAK", "NEAR", "NEO", "NEIRO", "NFP", "NIL", "NKN", "NMR", "NOT", 
-          "NTRN", "OGN", "OM", "OMNI", "ONDO", "ONE", "ONG", "ONT", "OP", "OXT", 
-          "ORDI", "ORCA", "PARTI", "PAXG", "PEOPLE", "PENDLE", "PENGU", "PEPE", 
-          "PERP", "PHA", "PHB", "PIXEL", "PNUT", "POL", "POLYX", "PORTAL", "POWR", 
-          "PROM", "PYTH", "QNT", "QTUM", "QUICK", "RAD", "RARE", "RAY", "RDNT", 
-          "REI", "RENDER", "REZ", "RIF", "RLC", "RONIN", "ROSE", "RPL", "RSR", 
-          "RUNE", "RVN", "S", "SAGA", "SAND", "SANTOS", "SC", "SCR", "SCRT", "SEI", 
-          "SFP", "SHIB", "SHELL", "SKL", "SLP", "SNX", "SOL", "SOLV", "SPELL", 
-          "SSV", "STEEM", "STORJ", "STPT", "STRAX", "STRK", "STG", "STX", "SUN", 
-          "SUI", "SUPER", "SUSHI", "SXP", "SYN", "SYS", "T", "TAO", "THETA", "THE", 
-          "TIA", "TLM", "TNSR", "TON", "TRB", "TRU", "TRUMP", "TRX", "TST", "TURBO", 
-          "TUT", "TWT", "UMA", "UNI", "USUAL", "USTC", "VANRY", "VANA", "VET", 
-          "VELODROME", "VIC", "VIRTUAL", "VOXEL", "VTHO", "W", "WAXP", "WIF", 
-          "WLD", "WOO", "XAI", "XEC", "XLM", "XRP", "XTZ", "XVG", "XVS", "YFI", 
-          "YGG", "ZEC", "ZEN", "ZIL", "ZK", "ZRO", "ZRX"
-      ];
-
-      const table = document.querySelector("table");
-
-      // Utiliser Promise.all pour attendre que toutes les requêtes soient terminées
-      const promises = allCryptos.map(async (crypto) => {
-          let row = document.getElementById(crypto);
-          if (!row) {
-              row = table.insertRow();
-              row.id = crypto;
-              row.insertCell().textContent = crypto;
-          }
-          await fetchCryptoData(crypto, endDateInput || null);
-      });
-
-      await Promise.all(promises);
-      
-      // Trier les lignes par total (du plus haut au plus bas)
-      const rows = Array.from(table.querySelectorAll("tr[id]"));
-      rows.sort((a, b) => {
-          const aTotal = parseFloat(a.cells[a.cells.length - 1].textContent.replace('%', ''));
-          const bTotal = parseFloat(b.cells[b.cells.length - 1].textContent.replace('%', ''));
-          return bTotal - aTotal;
-      });
-
-      // Réorganiser les lignes dans le tableau
-      rows.forEach(row => table.appendChild(row));
-
-      // Appliquer le coloration des séquences
-      highlightLongestSequences();
-  }
-
-  document.addEventListener("DOMContentLoaded", function () {
-      const refreshButton = document.createElement("button");
-      refreshButton.textContent = "Changer la période";
-      refreshButton.onclick = refreshAllDataWithDateRange;
-      document.body.insertBefore(refreshButton, document.body.firstChild);
-
-      // Charger directement les données avec la date actuelle
-      refreshAllDataWithDateRange();
-  });
+// Lancer l'actualisation immédiate, puis la répéter toutes les 2 minutes 30
+startAutoRefresh();
+setInterval(() => {
+  startAutoRefresh();
+}, 180000/*calculerProchainRafraichissement(*)*/);
