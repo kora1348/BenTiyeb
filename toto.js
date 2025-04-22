@@ -23,7 +23,7 @@ function dateToTimestamp(dateStr) {
 async function fetchCryptoData(symbol, endDateStr = null) {
   try {
     const endTime = endDateStr ? dateToTimestamp(endDateStr) : Date.now();
-    const startTime = endTime - (1 * 4 * 60 * 60 * 1000); // 7 intervalles de 4h en arrière
+    const startTime = endTime - (1 * 4 * 60 * 60 * 1000); // 1 intervalles de 4h en arrière
 
     const response = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&startTime=${startTime}&endTime=${endTime}&limit=1`
@@ -107,7 +107,7 @@ function updateTableStructure() {
     headerRow.deleteCell(1);
   }
 
-  // Colonnes pour les 7 intervalles
+  // Colonnes pour les 1 intervalles
   for (let i = 1; i <= 1; i++) {
     headerRow.insertCell(-1).textContent = `Intervalle ${i}`;
   }
@@ -474,7 +474,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const headerRow = table.insertRow();
   headerRow.insertCell().textContent = "Crypto";
   
-  // Colonnes pour les 7 intervalles
+  // Colonnes pour les 1 intervalles
   for (let i = 1; i <= 1; i++) {
     headerRow.insertCell().textContent = `Intervalle ${i}`;
   }
