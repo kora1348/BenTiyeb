@@ -254,7 +254,6 @@ function clearExistingVariations() {
 "NMR",
 "NOT",
 "NTRN",
-"NULS",
 "OCEAN",
 "OGN",
 "OM",
@@ -331,7 +330,6 @@ function clearExistingVariations() {
 "SKL",
 "SLP",
 "SLERF",
-"SNT",
 "SNX",
 "SOL",
 "SOLV",
@@ -752,7 +750,6 @@ fetchCryptoData("NKN", startTimestamp, endTimestamp);
 fetchCryptoData("NMR", startTimestamp, endTimestamp);
 fetchCryptoData("NOT", startTimestamp, endTimestamp);
 fetchCryptoData("NTRN", startTimestamp, endTimestamp);
-fetchCryptoData("NULS", startTimestamp, endTimestamp);
 fetchCryptoData("OCEAN", startTimestamp, endTimestamp);
 fetchCryptoData("OGN", startTimestamp, endTimestamp);
 fetchCryptoData("OM", startTimestamp, endTimestamp);
@@ -829,7 +826,6 @@ fetchCryptoData("SIREN", startTimestamp, endTimestamp);
 fetchCryptoData("SKL", startTimestamp, endTimestamp);
 fetchCryptoData("SLP", startTimestamp, endTimestamp);
 fetchCryptoData("SLERF", startTimestamp, endTimestamp);
-fetchCryptoData("SNT", startTimestamp, endTimestamp);
 fetchCryptoData("SNX", startTimestamp, endTimestamp);
 fetchCryptoData("SOL", startTimestamp, endTimestamp);
 fetchCryptoData("SOLV", startTimestamp, endTimestamp);
