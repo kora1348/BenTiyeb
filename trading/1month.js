@@ -449,7 +449,17 @@ async function fetchCryptoData(symbol, startDate, endDate) {
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = weeklyVariation.toFixed(2);
 
-      variationCell.textContent = `${variationValue}%`;
+      // Formatage des dates
+      const startDateObj = new Date(data[i][0]);
+      const endDateObj = new Date(data[i][6]);
+      
+      const startDateStr = `${startDateObj.getDate().toString().padStart(2, '0')}/${(startDateObj.getMonth()+1).toString().padStart(2, '0')}/${startDateObj.getFullYear().toString().slice(-2)}`;
+      const startTimeStr = `${startDateObj.getHours().toString().padStart(2, '0')}:${startDateObj.getMinutes().toString().padStart(2, '0')}`;
+      
+      const endDateStr = `${endDateObj.getDate().toString().padStart(2, '0')}/${(endDateObj.getMonth()+1).toString().padStart(2, '0')}/${endDateObj.getFullYear().toString().slice(-2)}`;
+      const endTimeStr = `${endDateObj.getHours().toString().padStart(2, '0')}:${endDateObj.getMinutes().toString().padStart(2, '0')}`;
+      
+      variationCell.textContent = `${startDateStr} ${startTimeStr} (${startTimeStr}) - ${endDateStr} ${endTimeStr} (${endTimeStr}) : (${variationValue}%)`;
 
       // Ajouter la classe "positive" ou "negative" en fonction de la variation
       if (weeklyVariation > 0) {

@@ -460,7 +460,7 @@ async function fetchCryptoData(symbol, startDate, endDate) {
       
       const variationValue = weeklyVariation.toFixed(2);
       
-      variationCell.textContent = `${startDateStr} ${startTimeStr} (${startTimeStr}) - ${endDateStr} ${endTimeStr} (${endTimeStr}) - ${variationValue}%`;
+      variationCell.textContent = `${startDateStr} ${startTimeStr} (${startTimeStr}) - ${endDateStr} ${endTimeStr} (${endTimeStr}) : (${variationValue}%)`;
 
       // Ajouter la classe "positive" ou "negative" en fonction de la variation
       if (weeklyVariation > 0) {
