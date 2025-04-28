@@ -88,7 +88,7 @@ function showPopup(message) {
       const cryptoNamesElement = document.getElementById("cryptoNames");
       document.querySelector(`#${symbol}_status`)?.remove();
   
-      if (totalVariation >= 5) {
+      if (totalVariation >= 0.22 && totalCell <= 0.28) {
         totalCell.classList.add("positive");
         const pElement = document.createElement("p");
         pElement.id = `${symbol}_status`;
