@@ -2,13 +2,13 @@
 <html lang="fr">
    <head>
       <meta charset="utf-8">
-      <title>Trading - 1 jour</title>
+      <title>Test - 15min</title>
       <link rel="stylesheet" href="../../style.css">
    </head>
    <body>
       <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
          " onclick="window.location.href='../../index.html'">Accueil</button>
-      <h2>Trading - 1 jour</h2>
+      <h2>Test - 15min</h2>
       <p style="font-weight: bold;">Mise à jour : <span id="updateDate">18/12/2024</span></p>
       <div id="heure"></div>
       <br>
@@ -21,8 +21,9 @@
          <button type="submit">Analyser</button>
       </form>
       <br><br>
-      <div id="totalVariations">Total des variations : </div>
       <div id="averageVariations">Moyenne des variations : </div>
+      <div id="stdDeviation">Écart-type des variations : </div>
+      <div id="strongCryptos">Cryptos vraiment fortes (z-score > 1) :</div>
       <table>
          <tr>
             <th>Crypto</th>
@@ -960,6 +961,6 @@
             <td>XTZ(F)</td>
          </tr>
       </table>
-      <script src="/trading/1day.js"></script>
+      <script src="/trading/test.js"></script>
    </body>
 </html>
