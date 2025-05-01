@@ -411,7 +411,6 @@ const cryptos = [
   "ZK",
   "ZRO",
   "ZRX",
-  // Ajoute ici toutes tes autres cryptos
 ];
 
 // Vider toutes les anciennes variations
@@ -438,7 +437,7 @@ async function fetchCryptoData(symbol, startDate, endDate) {
     const data = await response.json();
     const cryptoRow = document.getElementById(symbol);
 
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 0; i < Math.min(data.length, 15); i++) {
   const openPrice = parseFloat(data[i][1]);
   const closePrice = parseFloat(data[i][4]);
   const variation = ((closePrice - openPrice) / openPrice) * 100;
