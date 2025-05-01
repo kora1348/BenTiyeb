@@ -15,11 +15,12 @@
       <!-- Formulaire pour les dates -->
       <form onsubmit="fetchDataForPeriod(); return false;">
          <label for="startDate">Date d'entrée :</label>
-         <input type="date" id="startDate" required>
+         <input type="datetime-local" id="startDate" required>
          <label for="endDate">Date de sortie :</label>
-         <input type="date" id="endDate" required>
+         <input type="datetime-local" id="endDate" required>
          <button type="submit">Analyser</button>
-      </form>
+       </form>
+       
       <br><br>
       <div id="averageVariations">Moyenne des variations : </div>
       <div id="stdDeviation">Écart-type des variations : </div>
