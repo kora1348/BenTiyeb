@@ -450,7 +450,21 @@ async function fetchCryptoData(symbol, startDate, endDate) {
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = variation.toFixed(2);
 
-      variationCell.textContent = `(${variationValue}%)`;
+      const openTime = new Date(data[i][0]);
+const closeTime = new Date(data[i][6]);
+
+// Format en français : dd/mm/yy hh:mm
+const formatDate = date => {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear().toString().slice(-2);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
+
+variationCell.textContent = `${formatDate(openTime)} - ${formatDate(closeTime)} : (${variationValue}%)`;
+
       if (variation > 0) {
         variationCell.classList.add("positive");
       } else if (variation < 0) {
