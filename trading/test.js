@@ -433,11 +433,11 @@ function clearExistingVariations() {
 // Fonction pour récupérer les données d'une crypto
 async function fetchCryptoData(symbol, startDate, endDate) {
   try {
-    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&startTime=${startDate}&endTime=${endDate}`);
+    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startDate}&endTime=${endDate}`);
     const data = await response.json();
     const cryptoRow = document.getElementById(symbol);
 
-    for (let i = 0; i < Math.min(data.length, 15); i++) {
+    for (let i = 0; i < Math.min(data.length, 7); i++) {
   const openPrice = parseFloat(data[i][1]);
   const closePrice = parseFloat(data[i][4]);
   const variation = ((closePrice - openPrice) / openPrice) * 100;
