@@ -11,6 +11,11 @@
       <h2>Test - 15min</h2>
       <p style="font-weight: bold;">Mise à jour : <span id="updateDate">18/12/2024</span></p>
       <div id="heure"></div>
+      <p>Filtre sur 5 heures ex: 09h00 -> 13h59 (5 bougies)</p>
+      <p>Dernière bougie => Rouge => 13h</p>
+      <p>Bougie suivante => Rouge => 14h</p>
+      <p>A partir de l'heure de fin (13h59) , tu prends 9 bougies (incluses)</p>
+      <p>Donc tu rentres à la bougie à 21h.</p>
       <br>
       <!-- Formulaire pour les dates -->
       <form onsubmit="fetchDataForPeriod(); return false;">
