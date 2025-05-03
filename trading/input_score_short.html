@@ -2,20 +2,15 @@
 <html lang="fr">
    <head>
       <meta charset="utf-8">
-      <title>Test - 15min</title>
+      <title>Short - 1h</title>
       <link rel="stylesheet" href="../../style.css">
    </head>
    <body>
       <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
          " onclick="window.location.href='../../index.html'">Accueil</button>
-      <h2>Test - 15min</h2>
-      <p style="font-weight: bold;">Mise à jour : <span id="updateDate">18/12/2024</span></p>
+      <h2>Short - 1h</h2>
+      <p style="font-weight: bold;">Mise à jour : <span id="updateDate">03/05/2025</span></p>
       <div id="heure"></div>
-      <p>Filtre sur 5 heures ex: 09h00 -> 13h59 (5 bougies)</p>
-      <p>Dernière bougie => Rouge => 13h</p>
-      <p>Bougie suivante => Rouge => 14h</p>
-      <p>A partir de l'heure de fin (13h59) , tu prends 9 bougies (incluses)</p>
-      <p>Donc tu rentres à la bougie à 21h.</p>
       <br>
       <!-- Formulaire pour les dates -->
       <form onsubmit="fetchDataForPeriod(); return false;">
@@ -981,6 +976,6 @@
             <td>XTZ(F)</td>
          </tr>
       </table>
-      <script src="/trading/negative.js"></script>
+      <script src="/trading/input_score_short.js"></script>
    </body>
 </html>
