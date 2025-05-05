@@ -482,8 +482,16 @@ async function fetchCryptoData(symbol, startDate, endDate) {
     
     // Ajouter une cellule avec le total pour cette crypto
     const totalCell = cryptoRow.insertCell(cryptoRow.cells.length);
-    totalCell.textContent = `Total: ${cryptoTotalVariation.toFixed(2)}% )`;
-    totalCell.classList.add("total-cell");
+    totalCell.textContent = `Total: ${cryptoTotalVariation.toFixed(2)}%`;
+    
+    // Ajoute la classe en fonction du signe de la variation
+    if (cryptoTotalVariation > 0) {
+        totalCell.classList.add("positive");
+    } else if (cryptoTotalVariation < 0) {
+        totalCell.classList.add("negative");
+    } else {
+        totalCell.classList.add("neutral");
+    }
     
     updateTotalAndAverageVariations();
   } catch (error) {
