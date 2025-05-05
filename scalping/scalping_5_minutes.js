@@ -88,7 +88,7 @@ function showPopup(message) {
       const cryptoNamesElement = document.getElementById("cryptoNames");
       document.querySelector(`#${symbol}_status`)?.remove();
   
-      if (totalVariation >= 0.22 && totalCell <= 0.28) {
+      if (totalVariation >= 0.52 && totalVariation <= 0.58) {
         totalCell.classList.add("positive");
         const pElement = document.createElement("p");
         pElement.id = `${symbol}_status`;
@@ -100,19 +100,19 @@ function showPopup(message) {
             2
           )}%)`
         );
-       } //else if (totalVariation <= -5) {
-      //   totalCell.classList.add("negative");
-      //   const pElement = document.createElement("p");
-      //   pElement.id = `${symbol}_status`;
-      //   pElement.classList.add("negative");
-      //   pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
-      //   cryptoNamesElement.appendChild(pElement);
-      //   showPopup(
-      //     `${symbol}: SHORT signal détecté - 5 MINUTES(${totalVariation.toFixed(
-      //       2
-      //     )}%)`
-      //   );
-      // }
+      } else if (totalVariation <= -0.52 && totalVariation >= -0.58) {
+        totalCell.classList.add("negative");
+        const pElement = document.createElement("p");
+        pElement.id = `${symbol}_status`;
+        pElement.classList.add("negative");
+        pElement.textContent = `${symbol}: SHORT, ${totalVariation.toFixed(2)}%`;
+        cryptoNamesElement.appendChild(pElement);
+        showPopup(
+          `${symbol}: SHORT signal détecté - 5 MINUTES(${totalVariation.toFixed(
+            2
+          )}%)`
+        );
+      }
     } catch (error) {
       console.error(
         `Erreur lors de la récupération des données pour ${symbol}:`,

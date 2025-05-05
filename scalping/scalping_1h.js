@@ -88,7 +88,7 @@ function showPopup(message) {
       const cryptoNamesElement = document.getElementById("cryptoNames");
       document.querySelector(`#${symbol}_status`)?.remove();
   
-      if (totalVariation >= 10) {
+      if (totalVariation >= 4) {
         totalCell.classList.add("positive");
         const pElement = document.createElement("p");
         pElement.id = `${symbol}_status`;
@@ -100,7 +100,7 @@ function showPopup(message) {
             2
           )}%)`
         );
-      } else if (totalVariation <= -10) {
+      } else if (totalVariation <= -4) {
         totalCell.classList.add("negative");
         const pElement = document.createElement("p");
         pElement.id = `${symbol}_status`;
