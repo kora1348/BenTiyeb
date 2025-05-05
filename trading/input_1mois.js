@@ -1,5 +1,6 @@
 let totalVariations = 0; // Variable globale pour stocker la somme des variations
 let cryptoCount = 0; // Variable pour compter le nombre de cryptos traitées (jusqu'à 149)
+let cryptoVariations = {}; // Objet pour stocker les variations par crypto
 
 // Fonction pour vider les cellules de variation existantes
 function clearExistingVariations() {
@@ -434,18 +435,23 @@ async function fetchCryptoData(symbol, startDate, endDate) {
 
     // Mise à jour du tableau avec les données et la couleur
     const cryptoRow = document.getElementById(symbol);
-    let shouldDisplay = false; // Variable pour vérifier si une variation >= 7% existe
-    let isShort = false; // Variable pour vérifier si une variation <= -7% existe
+    let cryptoTotalVariation = 0; // Total des variations pour cette crypto
+    let periodCount = 0; // Nombre de périodes pour cette crypto
 
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
       const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-      totalVariations += weeklyVariation; // Ajout de la variation à la somme globale
-      cryptoCount++; // Incrément du compteur
-      updateTotalAndAverageVariations(); // Mise à jour des éléments HTML pour le total et la moyenne
-
-      const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+      
+      // Ajouter à la variation totale pour cette crypto
+      cryptoTotalVariation += weeklyVariation;
+      periodCount++;
+      
+      // Ajouter à la variation globale
+      totalVariations += weeklyVariation;
+      cryptoCount++;
+      
+      const cellIndex = i + 1;
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = weeklyVariation.toFixed(2);
 
@@ -461,13 +467,25 @@ async function fetchCryptoData(symbol, startDate, endDate) {
       
       variationCell.textContent = `${startDateStr} ${startTimeStr} (${startTimeStr}) - ${endDateStr} ${endTimeStr} (${endTimeStr}) : (${variationValue}%)`;
 
-      // Ajouter la classe "positive" ou "negative" en fonction de la variation
       if (weeklyVariation > 0) {
         variationCell.classList.add("positive");
       } else if (weeklyVariation < 0) {
         variationCell.classList.add("negative");
       }
     }
+    
+    // Stocker la variation totale pour cette crypto
+    cryptoVariations[symbol] = {
+      total: cryptoTotalVariation,
+      average: periodCount > 0 ? cryptoTotalVariation / periodCount : 0
+    };
+    
+    // Ajouter une cellule avec le total pour cette crypto
+    const totalCell = cryptoRow.insertCell(cryptoRow.cells.length);
+    totalCell.textContent = `Total: ${cryptoTotalVariation.toFixed(2)}% )`;
+    totalCell.classList.add("total-cell");
+    
+    updateTotalAndAverageVariations();
   } catch (error) {
     console.error(
       `Erreur lors de la récupération des données pour ${symbol}:`,
@@ -481,18 +499,12 @@ function updateTotalAndAverageVariations() {
   const totalVariationsElement = document.getElementById("totalVariations");
   const averageVariationsElement = document.getElementById("averageVariations");
 
-  totalVariationsElement.textContent = `Total des variations : ${totalVariations.toFixed(
-    2
-  )}%`;
+  totalVariationsElement.textContent = `Total des variations : ${totalVariations.toFixed(2)}%`;
 
-  // Calcul de la moyenne sur 151 cryptos et conversion au format pourcentage
-  const averageVariations =
-    (totalVariations / Math.min(cryptoCount, 151)) * 100;
-  averageVariationsElement.textContent = `Moyenne des variations : ${averageVariations.toFixed(
-    2
-  )}%`;
+  const averageVariations = cryptoCount > 0 ? totalVariations / cryptoCount : 0;
+  averageVariationsElement.textContent = `Moyenne des variations : ${averageVariations.toFixed(2)}%`;
+
 }
-
 // Fonction pour récupérer les données pour la période spécifiée
 function fetchDataForPeriod() {
   const startDate = document.getElementById("startDate").value;
@@ -918,6 +930,7 @@ function fetchDataForPeriod() {
   fetchCryptoData("ZK", startTimestamp, endTimestamp);
   fetchCryptoData("ZRO", startTimestamp, endTimestamp);
   fetchCryptoData("ZRX", startTimestamp, endTimestamp);
+
 
   // Mettre à jour la date de mise à jour
   document.getElementById("updateDate").textContent =
