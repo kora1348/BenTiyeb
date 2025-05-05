@@ -408,72 +408,92 @@ const cryptos = [
     "ZK",
     "ZRO",
     "ZRX",
-  ];
+];
 
-  
-  // Fonction pour récupérer les données de toutes les cryptos
-  function fetchAllCryptoData() {
+// Objet pour stocker les totaux par crypto
+const cryptoTotals = {};
+
+// Fonction pour récupérer les données de toutes les cryptos
+function fetchAllCryptoData() {
     cryptos.forEach(crypto => {
-      fetchCryptoDataAtTime(crypto, 3, 1); // Cellule pour il y a 3 ans
-      fetchCryptoDataAtTime(crypto, 2, 2); // Cellule pour il y a 2 ans
-      fetchCryptoDataAtTime(crypto, 1, 3); // Cellule pour l'année dernière
+        // Initialiser le total pour cette crypto
+        cryptoTotals[crypto] = 0;
+        
+        fetchCryptoDataAtTime(crypto, 3, 1); // Cellule pour il y a 3 ans
+        fetchCryptoDataAtTime(crypto, 2, 2); // Cellule pour il y a 2 ans
+        fetchCryptoDataAtTime(crypto, 1, 3); // Cellule pour l'année dernière
     });
-  }
-  
-  // Appel de la fonction pour lancer la récupération des données pour toutes les cryptos
-  fetchAllCryptoData();
-  
-  // Fonction asynchrone pour récupérer les données d'une crypto à une année spécifique
-  async function fetchCryptoDataAtTime(symbol, yearOffset, cellIndex) {
-      // Récupérer la date et l'heure actuelles
-      const currentDate = new Date();
-  
-      // Calculer l'année cible en fonction de l'offset
-      const targetYear = currentDate.getFullYear() - yearOffset;
-  
-      // Ajuster l'année de la date cible
-      currentDate.setFullYear(targetYear);
-      
-      // Convertir la date cible en timestamp (date actuelle mais avec une année différente)
-      const startTime = currentDate.getTime(); 
-  
-      try {
-          const response = await fetch(
-              `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&startTime=${startTime}&limit=1`
-          );
-          const data = await response.json();
-  
-          if (data.length === 0) {
-              console.log(`Aucune donnée trouvée pour ${symbol} à ${targetYear}`);
-              return;
-          }
-  
-          const openPrice = parseFloat(data[0][1]);
-          const closePrice = parseFloat(data[0][4]);
-          const variation = ((closePrice - openPrice) / openPrice) * 100;
-  
-          const dateTime = new Date(data[0][0]);
-          const options = { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" };
-  
-          const formattedDate = dateTime.toLocaleDateString("fr-FR", options);
-  
-          // Insérer la variation dans la cellule correspondante du tableau
-          const cryptoRow = document.getElementById(symbol);
-          const variationCell = cryptoRow.insertCell(cellIndex); // Insérer la cellule dans la colonne correspondante
-          variationCell.textContent = `${formattedDate} : ${variation.toFixed(2)}%`;
-  
-          // Ajouter la classe "positive" ou "negative" en fonction de la variation
-          if (variation > 0) {
-              variationCell.classList.add("positive");
-          } else if (variation < 0) {
-              variationCell.classList.add("negative");
-          }
-  
-      } catch (error) {
-          console.error(
-              `Erreur lors de la récupération des données pour ${symbol} à ${targetYear}:`,
-              error
-          );
-      }
-  }
-  
+}
+
+// Appel de la fonction pour lancer la récupération des données pour toutes les cryptos
+fetchAllCryptoData();
+
+// Fonction asynchrone pour récupérer les données d'une crypto à une année spécifique
+async function fetchCryptoDataAtTime(symbol, yearOffset, cellIndex) {
+    // Récupérer la date et l'heure actuelles
+    const currentDate = new Date();
+
+    // Calculer l'année cible en fonction de l'offset
+    const targetYear = currentDate.getFullYear() - yearOffset;
+
+    // Ajuster l'année de la date cible
+    currentDate.setFullYear(targetYear);
+    
+    // Convertir la date cible en timestamp (date actuelle mais avec une année différente)
+    const startTime = currentDate.getTime(); 
+
+    try {
+        const response = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&startTime=${startTime}&limit=1`
+        );
+        const data = await response.json();
+
+        if (data.length === 0) {
+            console.log(`Aucune donnée trouvée pour ${symbol} à ${targetYear}`);
+            return;
+        }
+
+        const openPrice = parseFloat(data[0][1]);
+        const closePrice = parseFloat(data[0][4]);
+        const variation = ((closePrice - openPrice) / openPrice) * 100;
+
+        // Ajouter la variation au total pour cette crypto
+        cryptoTotals[symbol] += variation;
+
+        const dateTime = new Date(data[0][0]);
+        const options = { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" };
+
+        const formattedDate = dateTime.toLocaleDateString("fr-FR", options);
+
+        // Insérer la variation dans la cellule correspondante du tableau
+        const cryptoRow = document.getElementById(symbol);
+        const variationCell = cryptoRow.insertCell(cellIndex); // Insérer la cellule dans la colonne correspondante
+        variationCell.textContent = `${formattedDate} : ${variation.toFixed(2)}%`;
+
+        // Ajouter la classe "positive" ou "negative" en fonction de la variation
+        if (variation > 0) {
+            variationCell.classList.add("positive");
+        } else if (variation < 0) {
+            variationCell.classList.add("negative");
+        }
+
+        // Si c'est la dernière année (cellIndex 3), afficher le total
+        if (cellIndex === 3) {
+            const totalCell = cryptoRow.insertCell(4);
+            totalCell.textContent = `Total: ${cryptoTotals[symbol].toFixed(2)}%`;
+            
+            // Colorer le total
+            if (cryptoTotals[symbol] > 0) {
+                totalCell.classList.add("positive");
+            } else if (cryptoTotals[symbol] < 0) {
+                totalCell.classList.add("negative");
+            }
+        }
+
+    } catch (error) {
+        console.error(
+            `Erreur lors de la récupération des données pour ${symbol} à ${targetYear}:`,
+            error
+        );
+    }
+}
