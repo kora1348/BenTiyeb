@@ -58,17 +58,17 @@ async function fetchCryptoData(symbol) {
 
     const [var1, var2] = variations;
 
-    // Cas positif
-    if (var1 > 0 && var2 > 0 && var2 >= 2 * var1) {
-      const displayText = `${symbol}: 1er intervalle = ${var1.toFixed(2)}%, 2e intervalle = ${var2.toFixed(2)}%`;
-      cryptoNamesElement.innerHTML += `<p class="positive">${displayText}</p>`;
-    }
+// Cas positif : afficher uniquement si var1 ≥ 0.40
+if (var1 > 0.40 && var2 > 0 && var2 >= 2 * var1) {
+  const displayText = `${symbol}: 1er intervalle = ${var1.toFixed(2)}%, 2e intervalle = ${var2.toFixed(2)}%`;
+  cryptoNamesElement.innerHTML += `<p class="positive">${displayText}</p>`;
+}
 
-    // Cas négatif
-    if (var1 < 0 && var2 < 0 && Math.abs(var2) >= 2 * Math.abs(var1)) {
-      const displayText = `${symbol}: 1er intervalle = ${var1.toFixed(2)}%, 2e intervalle = ${var2.toFixed(2)}%`;
-      cryptoNamesElement.innerHTML += `<p class="negative">${displayText}</p>`;
-    }
+// Cas négatif : afficher uniquement si var1 ≤ -0.40
+if (var1 < -0.40 && var2 < 0 && Math.abs(var2) >= 2 * Math.abs(var1)) {
+  const displayText = `${symbol}: 1er intervalle = ${var1.toFixed(2)}%, 2e intervalle = ${var2.toFixed(2)}%`;
+  cryptoNamesElement.innerHTML += `<p class="negative">${displayText}</p>`;
+}
 
     // Couleur du total
     if (totalVariation >= -79.99 && totalVariation <= -70.0) {
