@@ -129,8 +129,6 @@ fetchCryptoData("AVAX");
 fetchCryptoData("AXL");
 fetchCryptoData("AXS");
 fetchCryptoData("B3");
-fetchCryptoData("BADGER");
-fetchCryptoData("BAL");
 fetchCryptoData("BAN");
 fetchCryptoData("BANANA");
 fetchCryptoData("BANANAS31");
