@@ -1,22 +1,17 @@
 // Configuration
-const symbol = "BTC";
+const cryptos = ["BTC", "ETH", "SOL"]; // Liste des cryptos à analyser
 const interval = "1h";
-const limit = 100; // Nombre de bougies à récupérer
+const limit = 100;
 
-// Éléments DOM
-const cryptoTable = document.getElementById("cryptoTable");
-const btcRow = document.getElementById("BTC");
-
-// 1. Récupération des données historiques
-async function fetchHistoricalData() {
+// 1. Fonction pour récupérer les données
+async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`
     );
     const data = await response.json();
     
-    // Traitement des données
-    const processedData = data.map(candle => ({
+    return data.map(candle => ({
       time: candle[0],
       open: parseFloat(candle[1]),
       high: parseFloat(candle[2]),
@@ -24,137 +19,49 @@ async function fetchHistoricalData() {
       close: parseFloat(candle[4]),
       volume: parseFloat(candle[5]),
     }));
-    
-    return processedData;
   } catch (error) {
-    console.error("Erreur historique:", error);
+    console.error(`Erreur ${symbol}:`, error);
     return [];
   }
 }
 
-// 2. Calcul des indicateurs
+// 2. Calcul des indicateurs (identique à votre version originale)
 function calculateIndicators(data) {
-  // Moyenne Mobile Volume (20 périodes)
+  // Moyenne Mobile Volume
   for (let i = 19; i < data.length; i++) {
     let sum = 0;
-    for (let j = i - 19; j <= i; j++) {
-      sum += data[j].volume;
-    }
+    for (let j = i - 19; j <= i; j++) sum += data[j].volume;
     data[i].volumeMA20 = sum / 20;
   }
   
-  // RSI (14 périodes)
+  // RSI
   for (let i = 14; i < data.length; i++) {
-    let gains = 0;
-    let losses = 0;
-    
+    let gains = 0, losses = 0;
     for (let j = i - 13; j <= i; j++) {
       const change = data[j].close - data[j-1].close;
-      if (change > 0) gains += change;
-      else losses -= change;
+      change > 0 ? gains += change : losses -= change;
     }
-    
-    const avgGain = gains / 14;
-    const avgLoss = losses / 14;
-    const rs = avgGain / avgLoss;
+    const rs = (gains/14) / (losses/14);
     data[i].rsi = 100 - (100 / (1 + rs));
   }
   
   return data;
 }
 
-// 3. Stratégie de trading
-function checkSignals(data) {
-  const lastCandle = data[data.length - 1];
-  const prevCandle = data[data.length - 2];
-  
-  // Filtres
-  const volumeFilter = lastCandle.volume > lastCandle.volumeMA20;
-  const rsiFilter = lastCandle.rsi > 50; // Pour les longs
-  
-  // Signal d'achat
-  if (volumeFilter && rsiFilter && lastCandle.close > prevCandle.high) {
-    return "BUY";
+// 3. Mise à jour du tableau pour une crypto
+function updateCryptoRow(symbol, data) {
+  const row = document.getElementById(symbol);
+  if (!row) return;
+
+  // Nettoyer les anciennes cellules
+  while (row.children.length > 1) {
+    row.removeChild(row.lastChild);
   }
   
-  // Signal de vente
-  if (volumeFilter && lastCandle.rsi < 50 && lastCandle.close < prevCandle.low) {
-    return "SELL";
-  }
-  
-  return "HOLD";
-}
-
-// 4. WebSocket pour données temps réel
-function setupWebSocket() {
-  const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}usdt@kline_${interval}`);
-  
-  ws.onmessage = (event) => {
-    const message = JSON.parse(event.data);
-    const candle = message.k;
-    
-    console.log("Nouvelle bougie:", {
-      open: parseFloat(candle.o),
-      high: parseFloat(candle.h),
-      low: parseFloat(candle.l),
-      close: parseFloat(candle.c),
-      volume: parseFloat(candle.v),
-      isClosed: candle.x // Si la bougie est clôturée
-    });
-    
-    // Ici vous pourriez actualiser votre analyse en temps réel
-  };
-}
-
-// 5. Order Book (Depth)
-async function fetchOrderBook() {
-  try {
-    const response = await fetch(
-      `https://api.binance.com/api/v3/depth?symbol=${symbol}USDT&limit=10`
-    );
-    const data = await response.json();
-    
-    console.log("Order Book:", {
-      bids: data.bids.slice(0, 5), // 5 meilleures offres d'achat
-      asks: data.asks.slice(0, 5)  // 5 meilleures offres de vente
-    });
-  } catch (error) {
-    console.error("Erreur Order Book:", error);
-  }
-}
-
-// Fonction principale
-async function main() {
-  // 1. Récupérer données historiques
-  const historicalData = await fetchHistoricalData();
-  
-  // 2. Calculer indicateurs
-  const dataWithIndicators = calculateIndicators(historicalData);
-  
-  // 3. Vérifier les signaux
-  const signal = checkSignals(dataWithIndicators);
-  console.log("Signal actuel:", signal);
-  
-  // 4. Configurer WebSocket
-  setupWebSocket();
-  
-  // 5. Récupérer Order Book
-  await fetchOrderBook();
-  
-  // Affichage dans le tableau (adapté à votre structure HTML)
-  updateTable(dataWithIndicators);
-}
-
-function updateTable(data) {
-  // Effacer le contenu existant
-  while (btcRow.children.length > 1) {
-    btcRow.removeChild(btcRow.lastChild);
-  }
-  
-  // Ajouter les nouvelles données
   const lastCandle = data[data.length - 1];
   const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
   
+  // Ajouter les cellules
   const variationCell = document.createElement("td");
   variationCell.textContent = variation.toFixed(2) + "%";
   variationCell.className = variation >= 0 ? "positive" : "negative";
@@ -165,13 +72,37 @@ function updateTable(data) {
   const rsiCell = document.createElement("td");
   rsiCell.textContent = `RSI: ${lastCandle.rsi?.toFixed(2) || "N/A"}`;
   
-  btcRow.appendChild(variationCell);
-  btcRow.appendChild(volumeCell);
-  btcRow.appendChild(rsiCell);
+  row.appendChild(variationCell);
+  row.appendChild(volumeCell);
+  row.appendChild(rsiCell);
 }
+
+// 4. Fonction principale
+async function main() {
+  for (const symbol of cryptos) {
+    try {
+      const historicalData = await fetchCryptoData(symbol);
+      const dataWithIndicators = calculateIndicators(historicalData);
+      updateCryptoRow(symbol, dataWithIndicators);
+    } catch (error) {
+      console.error(`Erreur avec ${symbol}:`, error);
+    }
+  }
+}
+
+// CSS recommandé (à ajouter dans votre <head>)
+const style = document.createElement('style');
+style.textContent = `
+  .positive { color: green; }
+  .negative { color: red; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+`;
+document.head.appendChild(style);
 
 // Lancer l'application
 main();
+setInterval(main, 60000); // Actualisation toutes les minutes
 
 fetchCryptoData("AAVE");
 fetchCryptoData("ACE");
