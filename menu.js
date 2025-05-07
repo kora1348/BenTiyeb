@@ -1,425 +1,22 @@
-// Configuration
 const cryptos = [
-  "1INCH",
-  "AAVE",
-  "ACE",
-  "ACH",
-  "ACX",
-  "ACT",
-  "ADA",
-  "AEVO",
-  "AGIX",
-  "AGLD",
-  "AI",
-  "AI16Z",
-  "AIXBT",
-  "AERGO",
-  "ALCHE",
-  "ALGO",
-  "ALICE",
-  "ALPACA",
-  "ALPHA",
-  "ALT",
-  "AMB",
-  "ANKR",
-  "APE",
-  "API3",
-  "APT",
-  "AR",
-  "ARB",
-  "ARK",
-  "ARKM",
-  "ARPA",
-  "ANIME",
-  "ASTR",
-  "ATA",
-  "ATOM",
-  "AUCTION",
-  "AVAAI",
-  "AVA",
-  "AVAX",
-  "AXL",
-  "AXS",
-  "B3",
-  "BAN",
-  "BANANA",
-  "BANANAS31",
-  "BAND",
-  "BAT",
-  "BAKE",
-  "BB",
-  "BCH",
-  "BEAMX",
-  "BEL",
-  "BERA",
-  "BICO",
-  "BID",
-  "BIGTIME",
-  "BIO",
-  "BMT",
-  "BNB",
-  "BNT",
-  "BNX",
-  "BOME",
-  "BOND",
-  "BONK",
-  "BR",
-  "BRETT",
-  "BROCCOLI714",
-  "BROCCOLIF3B",
-  "BSV",
-  "BSW",
-  "BTC",
-  "BTCDOM",
-  "BABY",
-  "BABYDOGE",
-  "BLUR",
-  "BLZ",
-  "CAKE",
-  "CAT",
-  "CATI",
-  "C98",
-  "CELO",
-  "CELR",
-  "CETUS",
-  "CFX",
-  "CGPT",
-  "CHESS",
-  "CHILLGUY",
-  "CHR",
-  "CHZ",
-  "CKB",
-  "COMBO",
-  "COMP",
-  "COOKIE",
-  "COS",
-  "COTI",
-  "COW",
-  "CRV",
-  "CTK",
-  "CTSI",
-  "CVX",
-  "CVC",
-  "CYBER",
-  "D",
-  "DAR",
-  "DASH",
-  "DEGEN",
-  "DEGO",
-  "DENT",
-  "DEXE",
-  "DF",
-  "DGB",
-  "DIA",
-  "DODOX",
-  "DOGE",
-  "DOGS",
-  "DOT",
-  "DUSK",
-  "DYDX",
-  "DYM",
-  "EDU",
-  "EGLD",
-  "EIGEN",
-  "EOS",
-  "ENA",
-  "ENJ",
-  "ENS",
-  "EPIC",
-  "ETC",
-  "ETH",
-  "ETHFI",
-  "ETHW",
-  "FARTCOIN",
-  "FET",
-  "FIDA",
-  "FIL",
-  "FIO",
-  "FLM",
-  "FLOKI",
-  "FLOW",
-  "FLUX",
-  "FORM",
-  "FORTH",
-  "FRONT",
-  "FTM",
-  "FTT",
-  "FUN",
-  "FXS",
-  "G",
-  "GALA",
-  "GAS",
-  "GHST",
-  "GLM",
-  "GLMR",
-  "GMT",
-  "GMX",
-  "GOAT",
-  "GPS",
-  "GRASS",
-  "GRT",
-  "GRIFFAIN",
-  "GTC",
-  "GUN",
-  "GUNTHY",
-  "HBAR",
-  "HFT",
-  "HIFI",
-  "HIGH",
-  "HIPPO",
-  "HIVE",
-  "HMSTR",
-  "HOT",
-  "HOOK",
-  "ICX",
-  "ID",
-  "IDEX",
-  "ILV",
-  "IMX",
-  "INJ",
-  "IOST",
-  "IOTA",
-  "IOTX",
-  "IO",
-  "IP",
-  "JASMY",
-  "JELLYJELLY",
-  "JOE",
-  "JTO",
-  "JUP",
-  "KAIA",
-  "KAITO",
-  "KAS",
-  "KAVA",
-  "KDA",
-  "KEY",
-  "KMNO",
-  "KLAY",
-  "KNC",
-  "KOMA",
-  "KSM",
-  "LDO",
-  "LEVER",
-  "LINA",
-  "LINK",
-  "LISTA",
-  "LIT",
-  "LOKA",
-  "LOOM",
-  "LPT",
-  "LQTY",
-  "LRC",
-  "LSK",
-  "LTC",
-  "LUNA2",
-  "LUNC",
-  "LAYER",
-  "LUMIA",
-  "MAGIC",
-  "MANA",
-  "MANTA",
-  "MASK",
-  "MAV",
-  "MAVIA",
-  "MBOX",
-  "MDT",
-  "ME",
-  "MELANIA",
-  "MEME",
-  "METIS",
-  "MINA",
-  "MEW",
-  "MKR",
-  "MLN",
-  "MOCA",
-  "MOG",
-  "MOODENG",
-  "MORPHO",
-  "MOVR",
-  "MOVE",
-  "MTL",
-  "MUBARAK",
-  "MYRO",
-  "NEAR",
-  "NEO",
-  "NEIRO",
-  "NEIROETH",
-  "NFP",
-  "NIL",
-  "NKN",
-  "NMR",
-  "NOT",
-  "NTRN",
-  "OCEAN",
-  "OGN",
-  "OM",
-  "OMG",
-  "OMNI",
-  "ONDO",
-  "ONE",
-  "ONG",
-  "ONT",
-  "OP",
-  "OXT",
-  "ORDI",
-  "ORBS",
-  "ORCA",
-  "PARTI",
-  "PAXG",
-  "PEOPLE",
-  "PENDLE",
-  "PENGU",
-  "PEPE",
-  "PERP",
-  "PHA",
-  "PHB",
-  "PIPPIN",
-  "PIXEL",
-  "PLUME",
-  "PNUT",
-  "POL",
-  "POLYX",
-  "PONKE",
-  "POPCAT",
-  "PORTAL",
-  "POWR",
-  "PROM",
-  "PYTH",
-  "QNT",
-  "QTUM",
-  "QUICK",
-  "RAD",
-  "RARE",
-  "RAY",
-  "RAYSOL",
-  "RATS",
-  "RDNT",
-  "REEF",
-  "REI",
-  "REN",
-  "RENDER",
-  "REZ",
-  "RIF",
-  "RLC",
-  "RNDR",
-  "RONIN",
-  "ROSE",
-  "RPL",
-  "RSR",
-  "RUNE",
-  "RVN",
-  "S",
-  "SAFE",
-  "SAGA",
-  "SAND",
-  "SANTOS",
-  "SAT",
-  "SATS",
-  "SC",
-  "SCR",
-  "SCRT",
-  "SEI",
-  "SFP",
-  "SHIB",
-  "SHELL",
-  "SIREN",
-  "SKL",
-  "SLP",
-  "SLERF",
-  "SNX",
-  "SOL",
-  "SOLV",
-  "SONIC",
-  "SPELL",
-  "SPX",
-  "SRM",
-  "SSV",
-  "STEEM",
-  "STMX",
-  "STORJ",
-  "STPT",
-  "STRAX",
-  "STRK",
-  "STG",
-  "STX",
-  "SUN",
-  "SUI",
-  "SUPER",
-  "SUSHI",
-  "SXP",
-  "SYN",
-  "SYS",
-  "T",
-  "TAO",
-  "THETA",
-  "THE",
-  "TIA",
-  "TLM",
-  "TNSR",
-  "TON",
-  "TOKEN",
-  "TRB",
-  "TRU",
-  "TRUMP",
-  "TRX",
-  "TST",
-  "TURBO",
-  "TUT",
-  "TWT",
-  "UMA",
-  "UNFI",
-  "UNI",
-  "USUAL",
-  "USTC",
-  "VANRY",
-  "VANA",
-  "VET",
-  "VELODROME",
-  "VIC",
-  "VINE",
-  "VIRTUAL",
-  "VOXEL",
-  "VTHO",
-  "VVV",
-  "W",
-  "WAL",
-  "WAVES",
-  "WAXP",
-  "WHY",
-  "WIF",
-  "WLD",
-  "WOO",
-  "X",
-  "XAI",
-  "XEC",
-  "XEM",
-  "XLM",
-  "XRP",
-  "XTZ",
-  "XVG",
-  "XVS",
-  "YFI",
-  "YGG",
-  "ZEC",
-  "ZEN",
-  "ZEREBRO",
-  "ZETA",
-  "ZIL",
-  "ZK",
-  "ZRO",
-  "ZRX",
-]; 
+  "1INCH", "AAVE", "ACE", "ACH", "ACX", "ACT", "ADA", "AEVO", "AGIX", "AGLD", "AI",
+  "AI16Z", "AIXBT", "AERGO", "ALCHE", "ALGO", "ALICE", "ALPACA", "ALPHA", "ALT",
+  "AMB", "ANKR", "APE", "API3", "APT", "AR", "ARB", "ARK", "ARKM", "ARPA", "ANIME",
+  "ASTR", "ATA", "ATOM", "AUCTION", "AVAAI", "AVA"
+];
+
 const interval = "1h";
 const limit = 100;
 
-// 1. Fonction pour récupérer les données
+// 1. Fonction de récupération
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`
     );
+    if (!response.ok) throw new Error(`Symbole invalide : ${symbol}`);
     const data = await response.json();
-    
+
     return {
       symbol,
       data: data.map(candle => ({
@@ -432,61 +29,54 @@ async function fetchCryptoData(symbol) {
       }))
     };
   } catch (error) {
-    console.error(`Erreur ${symbol}:`, error);
-    return { symbol, data: [] };
+    console.warn(`Crypto ignorée : ${symbol} - ${error.message}`);
+    return null;
   }
 }
 
-// 2. Calcul des indicateurs avec signal
+// 2. Indicateurs
 function calculateIndicators(crypto) {
   const data = crypto.data;
-  
-  // Moyenne Mobile Volume
+
   for (let i = 19; i < data.length; i++) {
     let sum = 0;
     for (let j = i - 19; j <= i; j++) sum += data[j].volume;
     data[i].volumeMA20 = sum / 20;
   }
-  
-  // RSI
+
   for (let i = 14; i < data.length; i++) {
     let gains = 0, losses = 0;
     for (let j = i - 13; j <= i; j++) {
       const change = data[j].close - data[j-1].close;
       change > 0 ? gains += change : losses -= change;
     }
-    const rs = (gains/14) / (losses/14);
+    const rs = (gains / 14) / (losses / 14);
     data[i].rsi = 100 - (100 / (1 + rs));
   }
-  
-  // Détection du signal
+
   const lastCandle = data[data.length - 1];
   const prevCandle = data[data.length - 2];
-  
   crypto.signal = "HOLD";
   if (lastCandle.volume > lastCandle.volumeMA20) {
     if (lastCandle.rsi > 50 && lastCandle.close > prevCandle.high) {
       crypto.signal = "LONG";
-    } 
-    else if (lastCandle.rsi < 50 && lastCandle.close < prevCandle.low) {
+    } else if (lastCandle.rsi < 50 && lastCandle.close < prevCandle.low) {
       crypto.signal = "SHORT";
     }
   }
-  
+
   return crypto;
 }
 
-// 3. Filtrage et affichage
+// 3. Affichage
 function updateTable(filter = "ALL") {
   const tableBody = document.getElementById("cryptoTableBody");
-  tableBody.innerHTML = ""; // Réinitialiser le tableau
-  
+  tableBody.innerHTML = "";
   cryptosWithData.forEach(crypto => {
     if (filter !== "ALL" && crypto.signal !== filter) return;
-    
     const lastCandle = crypto.data[crypto.data.length - 1];
     const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
-    
+
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${crypto.symbol}(F)</td>
@@ -503,8 +93,8 @@ function updateTable(filter = "ALL") {
 let cryptosWithData = [];
 
 async function main() {
-  cryptosWithData = await Promise.all(cryptos.map(fetchCryptoData));
-  cryptosWithData = cryptosWithData.map(calculateIndicators);
+  const results = await Promise.all(cryptos.map(fetchCryptoData));
+  cryptosWithData = results.filter(r => r !== null).map(calculateIndicators);
   updateTable();
 }
 
@@ -521,7 +111,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// HTML à ajouter
+// HTML - filtres
 const filterControls = document.createElement('div');
 filterControls.innerHTML = `
   <button onclick="updateTable('ALL')">Tout voir</button>
@@ -530,9 +120,10 @@ filterControls.innerHTML = `
 `;
 document.body.prepend(filterControls);
 
-// Lancer l'application
+// Start
 main();
 setInterval(main, 60000);
+
 
 fetchCryptoData("AAVE");
 fetchCryptoData("ACE");
