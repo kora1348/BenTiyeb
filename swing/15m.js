@@ -1,10 +1,30 @@
+let totalDifference = 0;
+let cryptoCount = 0;
+
+function updateGlobalTrendDisplay() {
+  const trendElement = document.getElementById("globalTrend");
+  let message = `Total Différences (Pos-Neg) = ${totalDifference}`;
+
+  if (totalDifference > 10) {
+    message += " 👉 Tendance HAUSSIÈRE (long)";
+    trendElement.style.color = "green";
+  } else if (totalDifference < -10) {
+    message += " 👉 Tendance BAISSIÈRE (short)";
+    trendElement.style.color = "red";
+  } else {
+    message += " 👉 Tendance neutre / indécise";
+    trendElement.style.color = "gray";
+  }
+
+  trendElement.textContent = message;
+}
+
 async function fetchCountPositiveNegative(symbol) {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0); // 02:00 (heure locale)
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0); // 02:00
   const startTime = today.getTime();
   const endTime = now.getTime();
 
-  // Calcule combien de bougies de 15 minutes sont nécessaires
   const diffMinutes = Math.floor((endTime - startTime) / (1000 * 60));
   const limit = Math.floor(diffMinutes / 15);
 
@@ -27,14 +47,19 @@ async function fetchCountPositiveNegative(symbol) {
     }
 
     const result = countPositive - countNegative;
+    totalDifference += result;
+    cryptoCount++;
+
     const row = document.getElementById(symbol);
-    const resultCell = row.insertCell(-1); // Ajoute à la fin
+    const resultCell = row.insertCell(-1);
     resultCell.textContent = `Pos-Neg: ${result}`;
     resultCell.style.fontWeight = "bold";
     resultCell.style.color = result > 0 ? "green" : result < 0 ? "red" : "gray";
 
     const summary = document.getElementById("cryptoNames");
     summary.innerHTML += `<p>${symbol}: Pos=${countPositive}, Neg=${countNegative}, Diff=${result}</p>`;
+
+    updateGlobalTrendDisplay();
   } catch (err) {
     console.error(`Erreur lors de la récupération des données pour ${symbol}:`, err);
   }
