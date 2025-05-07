@@ -1,542 +1,496 @@
-async function fetchCryptoData(symbol) {
+async function fetchCountPositiveNegative(symbol) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0); // 02:00 (heure locale)
+  const startTime = today.getTime();
+  const endTime = now.getTime();
+
+  // Calcule combien de bougies de 15 minutes sont nécessaires
+  const diffMinutes = Math.floor((endTime - startTime) / (1000 * 60));
+  const limit = Math.floor(diffMinutes / 15);
+
+  if (limit <= 0) return;
+
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=2`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&startTime=${startTime}&limit=${limit}`
     );
     const data = await response.json();
 
-    let totalVariation = 0;
-    const cryptoRow = document.getElementById(symbol);
-    const variations = [];
+    let countPositive = 0;
+    let countNegative = 0;
 
     for (let i = 0; i < data.length; i++) {
-      const openPrice = parseFloat(data[i][1]);
-      const closePrice = parseFloat(data[i][4]);
-      const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-      variations.push(weeklyVariation);
-
-      const variationCell = cryptoRow.insertCell(i + 1);
-      const variationValue = weeklyVariation.toFixed(2);
-      const weekStartDate = new Date(data[i][0]);
-      const weekEndDate = new Date(data[i][6]);
-      const optionsStart = {
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "numeric",
-        minute: "numeric",
-      };
-      const optionsEnd = { hour: "numeric", minute: "numeric" };
-      variationCell.textContent = `${weekStartDate.toLocaleDateString(
-        "fr-FR",
-        optionsStart
-      )} (${weekStartDate.toLocaleTimeString(
-        "fr-FR",
-        optionsEnd
-      )}) - ${weekEndDate.toLocaleDateString(
-        "fr-FR",
-        optionsStart
-      )} (${weekEndDate.toLocaleTimeString(
-        "fr-FR",
-        optionsEnd
-      )}): ${variationValue}%`;
-
-      if (weeklyVariation > 0) {
-        variationCell.classList.add("positive");
-      } else if (weeklyVariation < 0) {
-        variationCell.classList.add("negative");
-      }
-
-      totalVariation += weeklyVariation;
+      const open = parseFloat(data[i][1]);
+      const close = parseFloat(data[i][4]);
+      if (close > open) countPositive++;
+      else if (close < open) countNegative++;
     }
 
-    const totalCell = cryptoRow.insertCell(data.length + 1);
-    const totalValue = totalVariation.toFixed(2);
-    totalCell.style.textAlign = "center";
+    const result = countPositive - countNegative;
+    const row = document.getElementById(symbol);
+    const resultCell = row.insertCell(-1); // Ajoute à la fin
+    resultCell.textContent = `Pos-Neg: ${result}`;
+    resultCell.style.fontWeight = "bold";
+    resultCell.style.color = result > 0 ? "green" : result < 0 ? "red" : "gray";
 
-    const cryptoNamesElement = document.getElementById("cryptoNames");
-
-    const [var1, var2] = variations;
-
-// Cas positif : afficher uniquement si var1 ≥ 0.40
-if (var1 > 0.40 && var2 > 0 && var2 >= 2 * var1) {
-  const displayText = `${symbol}: 1er intervalle = ${var1.toFixed(2)}%, 2e intervalle = ${var2.toFixed(2)}%`;
-  cryptoNamesElement.innerHTML += `<p class="positive">${displayText}</p>`;
-}
-
-// Cas négatif : afficher uniquement si var1 ≤ -0.40
-if (var1 < -0.40 && var2 < 0 && Math.abs(var2) >= 2 * Math.abs(var1)) {
-  const displayText = `${symbol}: 1er intervalle = ${var1.toFixed(2)}%, 2e intervalle = ${var2.toFixed(2)}%`;
-  cryptoNamesElement.innerHTML += `<p class="negative">${displayText}</p>`;
-}
-
-    // Couleur du total
-    if (totalVariation >= -79.99 && totalVariation <= -70.0) {
-      totalCell.classList.add("positive");
-    }
-
-    if (totalVariation < 0) {
-      totalCell.classList.add("negative");
-    }
-
-    totalCell.textContent = `${totalValue}%`;
-  } catch (error) {
-    console.error(
-      `Erreur lors de la récupération des données pour ${symbol}:`,
-      error
-    );
+    const summary = document.getElementById("cryptoNames");
+    summary.innerHTML += `<p>${symbol}: Pos=${countPositive}, Neg=${countNegative}, Diff=${result}</p>`;
+  } catch (err) {
+    console.error(`Erreur lors de la récupération des données pour ${symbol}:`, err);
   }
 }
 
-fetchCryptoData("1INCH");
-fetchCryptoData("AAVE");
-fetchCryptoData("ACE");
-fetchCryptoData("ACH");
-fetchCryptoData("ACX");
-fetchCryptoData("ACT");
-fetchCryptoData("ADA");
-fetchCryptoData("AEVO");
-fetchCryptoData("AGIX");
-fetchCryptoData("AGLD");
-fetchCryptoData("AI");
-fetchCryptoData("AI16Z");
-fetchCryptoData("AIXBT");
-fetchCryptoData("AERGO");
-fetchCryptoData("ALCHE");
-fetchCryptoData("ALGO");
-fetchCryptoData("ALICE");
-fetchCryptoData("ALPACA");
-fetchCryptoData("ALPHA");
-fetchCryptoData("ALT");
-fetchCryptoData("AMB");
-fetchCryptoData("ANKR");
-fetchCryptoData("APE");
-fetchCryptoData("API3");
-fetchCryptoData("APT");
-fetchCryptoData("AR");
-fetchCryptoData("ARB");
-fetchCryptoData("ARK");
-fetchCryptoData("ARKM");
-fetchCryptoData("ARPA");
-fetchCryptoData("ANIME");
-fetchCryptoData("ASTR");
-fetchCryptoData("ATA");
-fetchCryptoData("ATOM");
-fetchCryptoData("AUCTION");
-fetchCryptoData("AVAAI");
-fetchCryptoData("AVA");
-fetchCryptoData("AVAX");
-fetchCryptoData("AXL");
-fetchCryptoData("AXS");
-fetchCryptoData("B3");
-fetchCryptoData("BAN");
-fetchCryptoData("BANANA");
-fetchCryptoData("BANANAS31");
-fetchCryptoData("BAND");
-fetchCryptoData("BAT");
-fetchCryptoData("BAKE");
-fetchCryptoData("BB");
-fetchCryptoData("BCH");
-fetchCryptoData("BEAMX");
-fetchCryptoData("BEL");
-fetchCryptoData("BERA");
-fetchCryptoData("BICO");
-fetchCryptoData("BID");
-fetchCryptoData("BIGTIME");
-fetchCryptoData("BIO");
-fetchCryptoData("BMT");
-fetchCryptoData("BNB");
-fetchCryptoData("BNT");
-fetchCryptoData("BNX");
-fetchCryptoData("BOME");
-fetchCryptoData("BOND");
-fetchCryptoData("BONK");
-fetchCryptoData("BR");
-fetchCryptoData("BRETT");
-fetchCryptoData("BROCCOLI714");
-fetchCryptoData("BROCCOLIF3B");
-fetchCryptoData("BSV");
-fetchCryptoData("BSW");
-fetchCryptoData("BTC");
-fetchCryptoData("BTCDOM");
-fetchCryptoData("BABY");
-fetchCryptoData("BABYDOGE");
-fetchCryptoData("BLUR");
-fetchCryptoData("BLZ");
-fetchCryptoData("CAKE");
-fetchCryptoData("CAT");
-fetchCryptoData("CATI");
-fetchCryptoData("C98");
-fetchCryptoData("CELO");
-fetchCryptoData("CELR");
-fetchCryptoData("CETUS");
-fetchCryptoData("CFX");
-fetchCryptoData("CGPT");
-fetchCryptoData("CHESS");
-fetchCryptoData("CHILLGUY");
-fetchCryptoData("CHR");
-fetchCryptoData("CHZ");
-fetchCryptoData("CKB");
-fetchCryptoData("COMBO");
-fetchCryptoData("COMP");
-fetchCryptoData("COOKIE");
-fetchCryptoData("COS");
-fetchCryptoData("COTI");
-fetchCryptoData("COW");
-fetchCryptoData("CRV");
-fetchCryptoData("CTK");
-fetchCryptoData("CTSI");
-fetchCryptoData("CVX");
-fetchCryptoData("CVC");
-fetchCryptoData("CYBER");
-fetchCryptoData("D");
-fetchCryptoData("DAR");
-fetchCryptoData("DASH");
-fetchCryptoData("DEGEN");
-fetchCryptoData("DEGO");
-fetchCryptoData("DENT");
-fetchCryptoData("DEXE");
-fetchCryptoData("DF");
-fetchCryptoData("DGB");
-fetchCryptoData("DIA");
-fetchCryptoData("DODOX");
-fetchCryptoData("DOGE");
-fetchCryptoData("DOGS");
-fetchCryptoData("DOT");
-fetchCryptoData("DUSK");
-fetchCryptoData("DYDX");
-fetchCryptoData("DYM");
-fetchCryptoData("EDU");
-fetchCryptoData("EGLD");
-fetchCryptoData("EIGEN");
-fetchCryptoData("EOS");
-fetchCryptoData("ENA");
-fetchCryptoData("ENJ");
-fetchCryptoData("ENS");
-fetchCryptoData("EPIC");
-fetchCryptoData("ETC");
-fetchCryptoData("ETH");
-fetchCryptoData("ETHFI");
-fetchCryptoData("ETHW");
-fetchCryptoData("FARTCOIN");
-fetchCryptoData("FET");
-fetchCryptoData("FIDA");
-fetchCryptoData("FIL");
-fetchCryptoData("FIO");
-fetchCryptoData("FLM");
-fetchCryptoData("FLOKI");
-fetchCryptoData("FLOW");
-fetchCryptoData("FLUX");
-fetchCryptoData("FORM");
-fetchCryptoData("FORTH");
-fetchCryptoData("FRONT");
-fetchCryptoData("FTM");
-fetchCryptoData("FTT");
-fetchCryptoData("FUN");
-fetchCryptoData("FXS");
-fetchCryptoData("G");
-fetchCryptoData("GALA");
-fetchCryptoData("GAS");
-fetchCryptoData("GHST");
-fetchCryptoData("GLM");
-fetchCryptoData("GLMR");
-fetchCryptoData("GMT");
-fetchCryptoData("GMX");
-fetchCryptoData("GOAT");
-fetchCryptoData("GPS");
-fetchCryptoData("GRASS");
-fetchCryptoData("GRT");
-fetchCryptoData("GRIFFAIN");
-fetchCryptoData("GTC");
-fetchCryptoData("GUN");
-fetchCryptoData("GUNTHY");
-fetchCryptoData("HBAR");
-fetchCryptoData("HFT");
-fetchCryptoData("HIFI");
-fetchCryptoData("HIGH");
-fetchCryptoData("HIPPO");
-fetchCryptoData("HIVE");
-fetchCryptoData("HMSTR");
-fetchCryptoData("HOT");
-fetchCryptoData("HOOK");
-fetchCryptoData("ICX");
-fetchCryptoData("ID");
-fetchCryptoData("IDEX");
-fetchCryptoData("ILV");
-fetchCryptoData("IMX");
-fetchCryptoData("INJ");
-fetchCryptoData("IOST");
-fetchCryptoData("IOTA");
-fetchCryptoData("IOTX");
-fetchCryptoData("IO");
-fetchCryptoData("IP");
-fetchCryptoData("JASMY");
-fetchCryptoData("JELLYJELLY");
-fetchCryptoData("JOE");
-fetchCryptoData("JTO");
-fetchCryptoData("JUP");
-fetchCryptoData("KAIA");
-fetchCryptoData("KAITO");
-fetchCryptoData("KAS");
-fetchCryptoData("KAVA");
-fetchCryptoData("KDA");
-fetchCryptoData("KEY");
-fetchCryptoData("KMNO");
-fetchCryptoData("KLAY");
-fetchCryptoData("KNC");
-fetchCryptoData("KOMA");
-fetchCryptoData("KSM");
-fetchCryptoData("LDO");
-fetchCryptoData("LEVER");
-fetchCryptoData("LINA");
-fetchCryptoData("LINK");
-fetchCryptoData("LISTA");
-fetchCryptoData("LIT");
-fetchCryptoData("LOKA");
-fetchCryptoData("LOOM");
-fetchCryptoData("LPT");
-fetchCryptoData("LQTY");
-fetchCryptoData("LRC");
-fetchCryptoData("LSK");
-fetchCryptoData("LTC");
-fetchCryptoData("LUNA2");
-fetchCryptoData("LUNC");
-fetchCryptoData("LAYER");
-fetchCryptoData("LUMIA");
-fetchCryptoData("MAGIC");
-fetchCryptoData("MANA");
-fetchCryptoData("MANTA");
-fetchCryptoData("MASK");
-fetchCryptoData("MAV");
-fetchCryptoData("MAVIA");
-fetchCryptoData("MBOX");
-fetchCryptoData("MDT");
-fetchCryptoData("ME");
-fetchCryptoData("MELANIA");
-fetchCryptoData("MEME");
-fetchCryptoData("METIS");
-fetchCryptoData("MINA");
-fetchCryptoData("MEW");
-fetchCryptoData("MKR");
-fetchCryptoData("MLN");
-fetchCryptoData("MOCA");
-fetchCryptoData("MOG");
-fetchCryptoData("MOODENG");
-fetchCryptoData("MORPHO");
-fetchCryptoData("MOVR");
-fetchCryptoData("MOVE");
-fetchCryptoData("MTL");
-fetchCryptoData("MUBARAK");
-fetchCryptoData("MYRO");
-fetchCryptoData("NEAR");
-fetchCryptoData("NEO");
-fetchCryptoData("NEIRO");
-fetchCryptoData("NEIROETH");
-fetchCryptoData("NFP");
-fetchCryptoData("NIL");
-fetchCryptoData("NKN");
-fetchCryptoData("NMR");
-fetchCryptoData("NOT");
-fetchCryptoData("NTRN");
-fetchCryptoData("NULS");
-fetchCryptoData("OCEAN");
-fetchCryptoData("OGN");
-fetchCryptoData("OM");
-fetchCryptoData("OMG");
-fetchCryptoData("OMNI");
-fetchCryptoData("ONDO");
-fetchCryptoData("ONE");
-fetchCryptoData("ONG");
-fetchCryptoData("ONT");
-fetchCryptoData("OP");
-fetchCryptoData("OXT");
-fetchCryptoData("ORDI");
-fetchCryptoData("ORBS");
-fetchCryptoData("ORCA");
-fetchCryptoData("PARTI");
-fetchCryptoData("PAXG");
-fetchCryptoData("PEOPLE");
-fetchCryptoData("PENDLE");
-fetchCryptoData("PENGU");
-fetchCryptoData("PEPE");
-fetchCryptoData("PERP");
-fetchCryptoData("PHA");
-fetchCryptoData("PHB");
-fetchCryptoData("PIPPIN");
-fetchCryptoData("PIXEL");
-fetchCryptoData("PLUME");
-fetchCryptoData("PNUT");
-fetchCryptoData("POL");
-fetchCryptoData("POLYX");
-fetchCryptoData("PONKE");
-fetchCryptoData("POPCAT");
-fetchCryptoData("PORTAL");
-fetchCryptoData("POWR");
-fetchCryptoData("PROM");
-fetchCryptoData("PYTH");
-fetchCryptoData("QNT");
-fetchCryptoData("QTUM");
-fetchCryptoData("QUICK");
-fetchCryptoData("RAD");
-fetchCryptoData("RARE");
-fetchCryptoData("RAY");
-fetchCryptoData("RAYSOL");
-fetchCryptoData("RATS");
-fetchCryptoData("RDNT");
-fetchCryptoData("REEF");
-fetchCryptoData("REI");
-fetchCryptoData("REN");
-fetchCryptoData("RENDER");
-fetchCryptoData("REZ");
-fetchCryptoData("RIF");
-fetchCryptoData("RLC");
-fetchCryptoData("RNDR");
-fetchCryptoData("RONIN");
-fetchCryptoData("ROSE");
-fetchCryptoData("RPL");
-fetchCryptoData("RSR");
-fetchCryptoData("RUNE");
-fetchCryptoData("RVN");
-fetchCryptoData("S");
-fetchCryptoData("SAFE");
-fetchCryptoData("SAGA");
-fetchCryptoData("SAND");
-fetchCryptoData("SANTOS");
-fetchCryptoData("SAT");
-fetchCryptoData("SATS");
-fetchCryptoData("SC");
-fetchCryptoData("SCR");
-fetchCryptoData("SCRT");
-fetchCryptoData("SEI");
-fetchCryptoData("SFP");
-fetchCryptoData("SHIB");
-fetchCryptoData("SHELL");
-fetchCryptoData("SIREN");
-fetchCryptoData("SKL");
-fetchCryptoData("SLP");
-fetchCryptoData("SLERF");
-fetchCryptoData("SNT");
-fetchCryptoData("SNX");
-fetchCryptoData("SOL");
-fetchCryptoData("SOLV");
-fetchCryptoData("SONIC");
-fetchCryptoData("SPELL");
-fetchCryptoData("SPX");
-fetchCryptoData("SRM");
-fetchCryptoData("SSV");
-fetchCryptoData("STEEM");
-fetchCryptoData("STMX");
-fetchCryptoData("STORJ");
-fetchCryptoData("STPT");
-fetchCryptoData("STRAX");
-fetchCryptoData("STRK");
-fetchCryptoData("STG");
-fetchCryptoData("STX");
-fetchCryptoData("SUN");
-fetchCryptoData("SUI");
-fetchCryptoData("SUPER");
-fetchCryptoData("SUSHI");
-fetchCryptoData("SXP");
-fetchCryptoData("SYN");
-fetchCryptoData("SYS");
-fetchCryptoData("T");
-fetchCryptoData("TAO");
-fetchCryptoData("THETA");
-fetchCryptoData("THE");
-fetchCryptoData("TIA");
-fetchCryptoData("TLM");
-fetchCryptoData("TNSR");
-fetchCryptoData("TON");
-fetchCryptoData("TOKEN");
-fetchCryptoData("TRB");
-fetchCryptoData("TRU");
-fetchCryptoData("TRUMP");
-fetchCryptoData("TRX");
-fetchCryptoData("TST");
-fetchCryptoData("TURBO");
-fetchCryptoData("TUT");
-fetchCryptoData("TWT");
-fetchCryptoData("UMA");
-fetchCryptoData("UNFI");
-fetchCryptoData("UNI");
-fetchCryptoData("USUAL");
-fetchCryptoData("USTC");
-fetchCryptoData("VANRY");
-fetchCryptoData("VANA");
-fetchCryptoData("VET");
-fetchCryptoData("VELODROME");
-fetchCryptoData("VIC");
-fetchCryptoData("VINE");
-fetchCryptoData("VIRTUAL");
-fetchCryptoData("VOXEL");
-fetchCryptoData("VTHO");
-fetchCryptoData("VVV");
-fetchCryptoData("W");
-fetchCryptoData("WAL");
-fetchCryptoData("WAVES");
-fetchCryptoData("WAXP");
-fetchCryptoData("WHY");
-fetchCryptoData("WIF");
-fetchCryptoData("WLD");
-fetchCryptoData("WOO");
-fetchCryptoData("X");
-fetchCryptoData("XAI");
-fetchCryptoData("XEC");
-fetchCryptoData("XEM");
-fetchCryptoData("XLM");
-fetchCryptoData("XRP");
-fetchCryptoData("XTZ");
-fetchCryptoData("XVG");
-fetchCryptoData("XVS");
-fetchCryptoData("YFI");
-fetchCryptoData("YGG");
-fetchCryptoData("ZEC");
-fetchCryptoData("ZEN");
-fetchCryptoData("ZEREBRO");
-fetchCryptoData("ZETA");
-fetchCryptoData("ZIL");
-fetchCryptoData("ZK");
-fetchCryptoData("ZRO");
-fetchCryptoData("ZRX");
-  
-  function mettreAJourHeure() {
-    var elementHeure = document.getElementById("heure");
-    var maintenant = new Date();
-  
-    // Créer une copie de l'heure actuelle
-    var heureActuelle = new Date(maintenant);
-  
-    // Ajouter 3 heures et 20 minutes à l'heure actuelle
-    maintenant.setHours(maintenant.getHours() + 3);
-    maintenant.setMinutes(maintenant.getMinutes() + 20);
-  
-    var heuresMaintenant = maintenant.getHours();
-    var minutesMaintenant = maintenant.getMinutes();
-    var secondesMaintenant = maintenant.getSeconds();
-  
-    var heuresActuelle = heureActuelle.getHours();
-    var minutesActuelle = heureActuelle.getMinutes();
-    var secondesActuelle = heureActuelle.getSeconds();
-  
-    // Ajouter un zéro devant les chiffres < 10
-    heuresMaintenant =
-      heuresMaintenant < 10 ? "0" + heuresMaintenant : heuresMaintenant;
-    minutesMaintenant =
-      minutesMaintenant < 10 ? "0" + minutesMaintenant : minutesMaintenant;
-    secondesMaintenant =
-      secondesMaintenant < 10 ? "0" + secondesMaintenant : secondesMaintenant;
-  
-    heuresActuelle = heuresActuelle < 10 ? "0" + heuresActuelle : heuresActuelle;
-    minutesActuelle =
-      minutesActuelle < 10 ? "0" + minutesActuelle : minutesActuelle;
-    secondesActuelle =
-      secondesActuelle < 10 ? "0" + secondesActuelle : secondesActuelle;
-  
-    // Mettre à jour le contenu de l'élément avec les deux heures
-    elementHeure.innerHTML =
-      heuresActuelle + ":" + minutesActuelle + ":" + secondesActuelle;
-  }
-  
-  // Appeler la fonction pour mettre à jour l'heure
-  mettreAJourHeure();
-  
+fetchCountPositiveNegative("1INCH");
+fetchCountPositiveNegative("AAVE");
+fetchCountPositiveNegative("ACE");
+fetchCountPositiveNegative("ACH");
+fetchCountPositiveNegative("ACX");
+fetchCountPositiveNegative("ACT");
+fetchCountPositiveNegative("ADA");
+fetchCountPositiveNegative("AEVO");
+fetchCountPositiveNegative("AGIX");
+fetchCountPositiveNegative("AGLD");
+fetchCountPositiveNegative("AI");
+fetchCountPositiveNegative("AI16Z");
+fetchCountPositiveNegative("AIXBT");
+fetchCountPositiveNegative("AERGO");
+fetchCountPositiveNegative("ALCHE");
+fetchCountPositiveNegative("ALGO");
+fetchCountPositiveNegative("ALICE");
+fetchCountPositiveNegative("ALPACA");
+fetchCountPositiveNegative("ALPHA");
+fetchCountPositiveNegative("ALT");
+fetchCountPositiveNegative("AMB");
+fetchCountPositiveNegative("ANKR");
+fetchCountPositiveNegative("APE");
+fetchCountPositiveNegative("API3");
+fetchCountPositiveNegative("APT");
+fetchCountPositiveNegative("AR");
+fetchCountPositiveNegative("ARB");
+fetchCountPositiveNegative("ARK");
+fetchCountPositiveNegative("ARKM");
+fetchCountPositiveNegative("ARPA");
+fetchCountPositiveNegative("ANIME");
+fetchCountPositiveNegative("ASTR");
+fetchCountPositiveNegative("ATA");
+fetchCountPositiveNegative("ATOM");
+fetchCountPositiveNegative("AUCTION");
+fetchCountPositiveNegative("AVAAI");
+fetchCountPositiveNegative("AVA");
+fetchCountPositiveNegative("AVAX");
+fetchCountPositiveNegative("AXL");
+fetchCountPositiveNegative("AXS");
+fetchCountPositiveNegative("B3");
+fetchCountPositiveNegative("BADGER");
+fetchCountPositiveNegative("BAL");
+fetchCountPositiveNegative("BAN");
+fetchCountPositiveNegative("BANANA");
+fetchCountPositiveNegative("BANANAS31");
+fetchCountPositiveNegative("BAND");
+fetchCountPositiveNegative("BAT");
+fetchCountPositiveNegative("BAKE");
+fetchCountPositiveNegative("BB");
+fetchCountPositiveNegative("BCH");
+fetchCountPositiveNegative("BEAMX");
+fetchCountPositiveNegative("BEL");
+fetchCountPositiveNegative("BERA");
+fetchCountPositiveNegative("BICO");
+fetchCountPositiveNegative("BID");
+fetchCountPositiveNegative("BIGTIME");
+fetchCountPositiveNegative("BIO");
+fetchCountPositiveNegative("BMT");
+fetchCountPositiveNegative("BNB");
+fetchCountPositiveNegative("BNT");
+fetchCountPositiveNegative("BNX");
+fetchCountPositiveNegative("BOME");
+fetchCountPositiveNegative("BOND");
+fetchCountPositiveNegative("BONK");
+fetchCountPositiveNegative("BR");
+fetchCountPositiveNegative("BRETT");
+fetchCountPositiveNegative("BROCCOLI714");
+fetchCountPositiveNegative("BROCCOLIF3B");
+fetchCountPositiveNegative("BSV");
+fetchCountPositiveNegative("BSW");
+fetchCountPositiveNegative("BTC");
+fetchCountPositiveNegative("BTCDOM");
+fetchCountPositiveNegative("BABY");
+fetchCountPositiveNegative("BABYDOGE");
+fetchCountPositiveNegative("BLUR");
+fetchCountPositiveNegative("BLZ");
+fetchCountPositiveNegative("CAKE");
+fetchCountPositiveNegative("CAT");
+fetchCountPositiveNegative("CATI");
+fetchCountPositiveNegative("C98");
+fetchCountPositiveNegative("CELO");
+fetchCountPositiveNegative("CELR");
+fetchCountPositiveNegative("CETUS");
+fetchCountPositiveNegative("CFX");
+fetchCountPositiveNegative("CGPT");
+fetchCountPositiveNegative("CHESS");
+fetchCountPositiveNegative("CHILLGUY");
+fetchCountPositiveNegative("CHR");
+fetchCountPositiveNegative("CHZ");
+fetchCountPositiveNegative("CKB");
+fetchCountPositiveNegative("COMBO");
+fetchCountPositiveNegative("COMP");
+fetchCountPositiveNegative("COOKIE");
+fetchCountPositiveNegative("COS");
+fetchCountPositiveNegative("COTI");
+fetchCountPositiveNegative("COW");
+fetchCountPositiveNegative("CRV");
+fetchCountPositiveNegative("CTK");
+fetchCountPositiveNegative("CTSI");
+fetchCountPositiveNegative("CVX");
+fetchCountPositiveNegative("CVC");
+fetchCountPositiveNegative("CYBER");
+fetchCountPositiveNegative("D");
+fetchCountPositiveNegative("DAR");
+fetchCountPositiveNegative("DASH");
+fetchCountPositiveNegative("DEGEN");
+fetchCountPositiveNegative("DEGO");
+fetchCountPositiveNegative("DENT");
+fetchCountPositiveNegative("DEXE");
+fetchCountPositiveNegative("DF");
+fetchCountPositiveNegative("DGB");
+fetchCountPositiveNegative("DIA");
+fetchCountPositiveNegative("DODOX");
+fetchCountPositiveNegative("DOGE");
+fetchCountPositiveNegative("DOGS");
+fetchCountPositiveNegative("DOT");
+fetchCountPositiveNegative("DUSK");
+fetchCountPositiveNegative("DYDX");
+fetchCountPositiveNegative("DYM");
+fetchCountPositiveNegative("EDU");
+fetchCountPositiveNegative("EGLD");
+fetchCountPositiveNegative("EIGEN");
+fetchCountPositiveNegative("EOS");
+fetchCountPositiveNegative("ENA");
+fetchCountPositiveNegative("ENJ");
+fetchCountPositiveNegative("ENS");
+fetchCountPositiveNegative("EPIC");
+fetchCountPositiveNegative("ETC");
+fetchCountPositiveNegative("ETH");
+fetchCountPositiveNegative("ETHFI");
+fetchCountPositiveNegative("ETHW");
+fetchCountPositiveNegative("FARTCOIN");
+fetchCountPositiveNegative("FET");
+fetchCountPositiveNegative("FIDA");
+fetchCountPositiveNegative("FIL");
+fetchCountPositiveNegative("FIO");
+fetchCountPositiveNegative("FLM");
+fetchCountPositiveNegative("FLOKI");
+fetchCountPositiveNegative("FLOW");
+fetchCountPositiveNegative("FLUX");
+fetchCountPositiveNegative("FORM");
+fetchCountPositiveNegative("FORTH");
+fetchCountPositiveNegative("FRONT");
+fetchCountPositiveNegative("FTM");
+fetchCountPositiveNegative("FTT");
+fetchCountPositiveNegative("FUN");
+fetchCountPositiveNegative("FXS");
+fetchCountPositiveNegative("G");
+fetchCountPositiveNegative("GALA");
+fetchCountPositiveNegative("GAS");
+fetchCountPositiveNegative("GHST");
+fetchCountPositiveNegative("GLM");
+fetchCountPositiveNegative("GLMR");
+fetchCountPositiveNegative("GMT");
+fetchCountPositiveNegative("GMX");
+fetchCountPositiveNegative("GOAT");
+fetchCountPositiveNegative("GPS");
+fetchCountPositiveNegative("GRASS");
+fetchCountPositiveNegative("GRT");
+fetchCountPositiveNegative("GRIFFAIN");
+fetchCountPositiveNegative("GTC");
+fetchCountPositiveNegative("GUN");
+fetchCountPositiveNegative("GUNTHY");
+fetchCountPositiveNegative("HBAR");
+fetchCountPositiveNegative("HFT");
+fetchCountPositiveNegative("HIFI");
+fetchCountPositiveNegative("HIGH");
+fetchCountPositiveNegative("HIPPO");
+fetchCountPositiveNegative("HIVE");
+fetchCountPositiveNegative("HMSTR");
+fetchCountPositiveNegative("HOT");
+fetchCountPositiveNegative("HOOK");
+fetchCountPositiveNegative("ICX");
+fetchCountPositiveNegative("ID");
+fetchCountPositiveNegative("IDEX");
+fetchCountPositiveNegative("ILV");
+fetchCountPositiveNegative("IMX");
+fetchCountPositiveNegative("INJ");
+fetchCountPositiveNegative("IOST");
+fetchCountPositiveNegative("IOTA");
+fetchCountPositiveNegative("IOTX");
+fetchCountPositiveNegative("IO");
+fetchCountPositiveNegative("IP");
+fetchCountPositiveNegative("JASMY");
+fetchCountPositiveNegative("JELLYJELLY");
+fetchCountPositiveNegative("JOE");
+fetchCountPositiveNegative("JTO");
+fetchCountPositiveNegative("JUP");
+fetchCountPositiveNegative("KAIA");
+fetchCountPositiveNegative("KAITO");
+fetchCountPositiveNegative("KAS");
+fetchCountPositiveNegative("KAVA");
+fetchCountPositiveNegative("KDA");
+fetchCountPositiveNegative("KEY");
+fetchCountPositiveNegative("KMNO");
+fetchCountPositiveNegative("KLAY");
+fetchCountPositiveNegative("KNC");
+fetchCountPositiveNegative("KOMA");
+fetchCountPositiveNegative("KSM");
+fetchCountPositiveNegative("LDO");
+fetchCountPositiveNegative("LEVER");
+fetchCountPositiveNegative("LINA");
+fetchCountPositiveNegative("LINK");
+fetchCountPositiveNegative("LISTA");
+fetchCountPositiveNegative("LIT");
+fetchCountPositiveNegative("LOKA");
+fetchCountPositiveNegative("LOOM");
+fetchCountPositiveNegative("LPT");
+fetchCountPositiveNegative("LQTY");
+fetchCountPositiveNegative("LRC");
+fetchCountPositiveNegative("LSK");
+fetchCountPositiveNegative("LTC");
+fetchCountPositiveNegative("LUNA2");
+fetchCountPositiveNegative("LUNC");
+fetchCountPositiveNegative("LAYER");
+fetchCountPositiveNegative("LUMIA");
+fetchCountPositiveNegative("MAGIC");
+fetchCountPositiveNegative("MANA");
+fetchCountPositiveNegative("MANTA");
+fetchCountPositiveNegative("MASK");
+fetchCountPositiveNegative("MAV");
+fetchCountPositiveNegative("MAVIA");
+fetchCountPositiveNegative("MBOX");
+fetchCountPositiveNegative("MDT");
+fetchCountPositiveNegative("ME");
+fetchCountPositiveNegative("MELANIA");
+fetchCountPositiveNegative("MEME");
+fetchCountPositiveNegative("METIS");
+fetchCountPositiveNegative("MINA");
+fetchCountPositiveNegative("MEW");
+fetchCountPositiveNegative("MKR");
+fetchCountPositiveNegative("MLN");
+fetchCountPositiveNegative("MOCA");
+fetchCountPositiveNegative("MOG");
+fetchCountPositiveNegative("MOODENG");
+fetchCountPositiveNegative("MORPHO");
+fetchCountPositiveNegative("MOVR");
+fetchCountPositiveNegative("MOVE");
+fetchCountPositiveNegative("MTL");
+fetchCountPositiveNegative("MUBARAK");
+fetchCountPositiveNegative("MYRO");
+fetchCountPositiveNegative("NEAR");
+fetchCountPositiveNegative("NEO");
+fetchCountPositiveNegative("NEIRO");
+fetchCountPositiveNegative("NEIROETH");
+fetchCountPositiveNegative("NFP");
+fetchCountPositiveNegative("NIL");
+fetchCountPositiveNegative("NKN");
+fetchCountPositiveNegative("NMR");
+fetchCountPositiveNegative("NOT");
+fetchCountPositiveNegative("NTRN");
+fetchCountPositiveNegative("NULS");
+fetchCountPositiveNegative("OCEAN");
+fetchCountPositiveNegative("OGN");
+fetchCountPositiveNegative("OM");
+fetchCountPositiveNegative("OMG");
+fetchCountPositiveNegative("OMNI");
+fetchCountPositiveNegative("ONDO");
+fetchCountPositiveNegative("ONE");
+fetchCountPositiveNegative("ONG");
+fetchCountPositiveNegative("ONT");
+fetchCountPositiveNegative("OP");
+fetchCountPositiveNegative("OXT");
+fetchCountPositiveNegative("ORDI");
+fetchCountPositiveNegative("ORBS");
+fetchCountPositiveNegative("ORCA");
+fetchCountPositiveNegative("PARTI");
+fetchCountPositiveNegative("PAXG");
+fetchCountPositiveNegative("PEOPLE");
+fetchCountPositiveNegative("PENDLE");
+fetchCountPositiveNegative("PENGU");
+fetchCountPositiveNegative("PEPE");
+fetchCountPositiveNegative("PERP");
+fetchCountPositiveNegative("PHA");
+fetchCountPositiveNegative("PHB");
+fetchCountPositiveNegative("PIPPIN");
+fetchCountPositiveNegative("PIXEL");
+fetchCountPositiveNegative("PLUME");
+fetchCountPositiveNegative("PNUT");
+fetchCountPositiveNegative("POL");
+fetchCountPositiveNegative("POLYX");
+fetchCountPositiveNegative("PONKE");
+fetchCountPositiveNegative("POPCAT");
+fetchCountPositiveNegative("PORTAL");
+fetchCountPositiveNegative("POWR");
+fetchCountPositiveNegative("PROM");
+fetchCountPositiveNegative("PYTH");
+fetchCountPositiveNegative("QNT");
+fetchCountPositiveNegative("QTUM");
+fetchCountPositiveNegative("QUICK");
+fetchCountPositiveNegative("RAD");
+fetchCountPositiveNegative("RARE");
+fetchCountPositiveNegative("RAY");
+fetchCountPositiveNegative("RAYSOL");
+fetchCountPositiveNegative("RATS");
+fetchCountPositiveNegative("RDNT");
+fetchCountPositiveNegative("REEF");
+fetchCountPositiveNegative("REI");
+fetchCountPositiveNegative("REN");
+fetchCountPositiveNegative("RENDER");
+fetchCountPositiveNegative("REZ");
+fetchCountPositiveNegative("RIF");
+fetchCountPositiveNegative("RLC");
+fetchCountPositiveNegative("RNDR");
+fetchCountPositiveNegative("RONIN");
+fetchCountPositiveNegative("ROSE");
+fetchCountPositiveNegative("RPL");
+fetchCountPositiveNegative("RSR");
+fetchCountPositiveNegative("RUNE");
+fetchCountPositiveNegative("RVN");
+fetchCountPositiveNegative("S");
+fetchCountPositiveNegative("SAFE");
+fetchCountPositiveNegative("SAGA");
+fetchCountPositiveNegative("SAND");
+fetchCountPositiveNegative("SANTOS");
+fetchCountPositiveNegative("SAT");
+fetchCountPositiveNegative("SATS");
+fetchCountPositiveNegative("SC");
+fetchCountPositiveNegative("SCR");
+fetchCountPositiveNegative("SCRT");
+fetchCountPositiveNegative("SEI");
+fetchCountPositiveNegative("SFP");
+fetchCountPositiveNegative("SHIB");
+fetchCountPositiveNegative("SHELL");
+fetchCountPositiveNegative("SIREN");
+fetchCountPositiveNegative("SKL");
+fetchCountPositiveNegative("SLP");
+fetchCountPositiveNegative("SLERF");
+fetchCountPositiveNegative("SNT");
+fetchCountPositiveNegative("SNX");
+fetchCountPositiveNegative("SOL");
+fetchCountPositiveNegative("SOLV");
+fetchCountPositiveNegative("SONIC");
+fetchCountPositiveNegative("SPELL");
+fetchCountPositiveNegative("SPX");
+fetchCountPositiveNegative("SRM");
+fetchCountPositiveNegative("SSV");
+fetchCountPositiveNegative("STEEM");
+fetchCountPositiveNegative("STMX");
+fetchCountPositiveNegative("STORJ");
+fetchCountPositiveNegative("STPT");
+fetchCountPositiveNegative("STRAX");
+fetchCountPositiveNegative("STRK");
+fetchCountPositiveNegative("STG");
+fetchCountPositiveNegative("STX");
+fetchCountPositiveNegative("SUN");
+fetchCountPositiveNegative("SUI");
+fetchCountPositiveNegative("SUPER");
+fetchCountPositiveNegative("SUSHI");
+fetchCountPositiveNegative("SXP");
+fetchCountPositiveNegative("SYN");
+fetchCountPositiveNegative("SYS");
+fetchCountPositiveNegative("T");
+fetchCountPositiveNegative("TAO");
+fetchCountPositiveNegative("THETA");
+fetchCountPositiveNegative("THE");
+fetchCountPositiveNegative("TIA");
+fetchCountPositiveNegative("TLM");
+fetchCountPositiveNegative("TNSR");
+fetchCountPositiveNegative("TON");
+fetchCountPositiveNegative("TOKEN");
+fetchCountPositiveNegative("TRB");
+fetchCountPositiveNegative("TRU");
+fetchCountPositiveNegative("TRUMP");
+fetchCountPositiveNegative("TRX");
+fetchCountPositiveNegative("TST");
+fetchCountPositiveNegative("TURBO");
+fetchCountPositiveNegative("TUT");
+fetchCountPositiveNegative("TWT");
+fetchCountPositiveNegative("UMA");
+fetchCountPositiveNegative("UNFI");
+fetchCountPositiveNegative("UNI");
+fetchCountPositiveNegative("USUAL");
+fetchCountPositiveNegative("USTC");
+fetchCountPositiveNegative("VANRY");
+fetchCountPositiveNegative("VANA");
+fetchCountPositiveNegative("VET");
+fetchCountPositiveNegative("VELODROME");
+fetchCountPositiveNegative("VIC");
+fetchCountPositiveNegative("VINE");
+fetchCountPositiveNegative("VIRTUAL");
+fetchCountPositiveNegative("VOXEL");
+fetchCountPositiveNegative("VTHO");
+fetchCountPositiveNegative("VVV");
+fetchCountPositiveNegative("W");
+fetchCountPositiveNegative("WAL");
+fetchCountPositiveNegative("WAVES");
+fetchCountPositiveNegative("WAXP");
+fetchCountPositiveNegative("WHY");
+fetchCountPositiveNegative("WIF");
+fetchCountPositiveNegative("WLD");
+fetchCountPositiveNegative("WOO");
+fetchCountPositiveNegative("X");
+fetchCountPositiveNegative("XAI");
+fetchCountPositiveNegative("XEC");
+fetchCountPositiveNegative("XEM");
+fetchCountPositiveNegative("XLM");
+fetchCountPositiveNegative("XRP");
+fetchCountPositiveNegative("XTZ");
+fetchCountPositiveNegative("XVG");
+fetchCountPositiveNegative("XVS");
+fetchCountPositiveNegative("YFI");
+fetchCountPositiveNegative("YGG");
+fetchCountPositiveNegative("ZEC");
+fetchCountPositiveNegative("ZEN");
+fetchCountPositiveNegative("ZEREBRO");
+fetchCountPositiveNegative("ZETA");
+fetchCountPositiveNegative("ZIL");
+fetchCountPositiveNegative("ZK");
+fetchCountPositiveNegative("ZRO");
+fetchCountPositiveNegative("ZRX");
+
+
+function mettreAJourHeure() {
+  var elementHeure = document.getElementById("heure");
+  var maintenant = new Date();
+
+  // Créer une copie de l'heure actuelle
+  var heureActuelle = new Date(maintenant);
+
+  // Ajouter 3 heures et 20 minutes à l'heure actuelle
+  maintenant.setHours(maintenant.getHours() + 3);
+  maintenant.setMinutes(maintenant.getMinutes() + 20);
+
+  var heuresMaintenant = maintenant.getHours();
+  var minutesMaintenant = maintenant.getMinutes();
+  var secondesMaintenant = maintenant.getSeconds();
+
+  var heuresActuelle = heureActuelle.getHours();
+  var minutesActuelle = heureActuelle.getMinutes();
+  var secondesActuelle = heureActuelle.getSeconds();
+
+  // Ajouter un zéro devant les chiffres < 10
+  heuresMaintenant =
+    heuresMaintenant < 10 ? "0" + heuresMaintenant : heuresMaintenant;
+  minutesMaintenant =
+    minutesMaintenant < 10 ? "0" + minutesMaintenant : minutesMaintenant;
+  secondesMaintenant =
+    secondesMaintenant < 10 ? "0" + secondesMaintenant : secondesMaintenant;
+
+  heuresActuelle = heuresActuelle < 10 ? "0" + heuresActuelle : heuresActuelle;
+  minutesActuelle =
+    minutesActuelle < 10 ? "0" + minutesActuelle : minutesActuelle;
+  secondesActuelle =
+    secondesActuelle < 10 ? "0" + secondesActuelle : secondesActuelle;
+
+  // Mettre à jour le contenu de l'élément avec les deux heures
+  elementHeure.innerHTML =
+    heuresActuelle + ":" + minutesActuelle + ":" + secondesActuelle;
+}
+
+// Appeler la fonction pour mettre à jour l'heure
+mettreAJourHeure();
