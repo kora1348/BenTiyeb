@@ -1,8 +1,412 @@
 const cryptos = [
-  "1INCH", "AAVE", "ACE", "ACH", "ACX", "ACT", "ADA", "AEVO", "AGIX", "AGLD", "AI",
-  "AI16Z", "AIXBT", "AERGO", "ALCHE", "ALGO", "ALICE", "ALPACA", "ALPHA", "ALT",
-  "AMB", "ANKR", "APE", "API3", "APT", "AR", "ARB", "ARK", "ARKM", "ARPA", "ANIME",
-  "ASTR", "ATA", "ATOM", "AUCTION", "AVAAI", "AVA"
+  "1INCH",
+  "AAVE",
+  "ACE",
+  "ACH",
+  "ACX",
+  "ACT",
+  "ADA",
+  "AEVO",
+  "AGIX",
+  "AGLD",
+  "AI",
+  "AI16Z",
+  "AIXBT",
+  "AERGO",
+  "ALCHE",
+  "ALGO",
+  "ALICE",
+  "ALPACA",
+  "ALPHA",
+  "ALT",
+  "AMB",
+  "ANKR",
+  "APE",
+  "API3",
+  "APT",
+  "AR",
+  "ARB",
+  "ARK",
+  "ARKM",
+  "ARPA",
+  "ANIME",
+  "ASTR",
+  "ATA",
+  "ATOM",
+  "AUCTION",
+  "AVAAI",
+  "AVA",
+  "AVAX",
+  "AXL",
+  "AXS",
+  "B3",
+  "BAN",
+  "BANANA",
+  "BANANAS31",
+  "BAND",
+  "BAT",
+  "BAKE",
+  "BB",
+  "BCH",
+  "BEAMX",
+  "BEL",
+  "BERA",
+  "BICO",
+  "BID",
+  "BIGTIME",
+  "BIO",
+  "BMT",
+  "BNB",
+  "BNT",
+  "BNX",
+  "BOME",
+  "BOND",
+  "BONK",
+  "BR",
+  "BRETT",
+  "BROCCOLI714",
+  "BROCCOLIF3B",
+  "BSV",
+  "BSW",
+  "BTC",
+  "BTCDOM",
+  "BABY",
+  "BABYDOGE",
+  "BLUR",
+  "BLZ",
+  "CAKE",
+  "CAT",
+  "CATI",
+  "C98",
+  "CELO",
+  "CELR",
+  "CETUS",
+  "CFX",
+  "CGPT",
+  "CHESS",
+  "CHILLGUY",
+  "CHR",
+  "CHZ",
+  "CKB",
+  "COMBO",
+  "COMP",
+  "COOKIE",
+  "COS",
+  "COTI",
+  "COW",
+  "CRV",
+  "CTK",
+  "CTSI",
+  "CVX",
+  "CVC",
+  "CYBER",
+  "D",
+  "DAR",
+  "DASH",
+  "DEGEN",
+  "DEGO",
+  "DENT",
+  "DEXE",
+  "DF",
+  "DGB",
+  "DIA",
+  "DODOX",
+  "DOGE",
+  "DOGS",
+  "DOT",
+  "DUSK",
+  "DYDX",
+  "DYM",
+  "EDU",
+  "EGLD",
+  "EIGEN",
+  "EOS",
+  "ENA",
+  "ENJ",
+  "ENS",
+  "EPIC",
+  "ETC",
+  "ETH",
+  "ETHFI",
+  "ETHW",
+  "FARTCOIN",
+  "FET",
+  "FIDA",
+  "FIL",
+  "FIO",
+  "FLM",
+  "FLOKI",
+  "FLOW",
+  "FLUX",
+  "FORM",
+  "FORTH",
+  "FRONT",
+  "FTM",
+  "FTT",
+  "FUN",
+  "FXS",
+  "G",
+  "GALA",
+  "GAS",
+  "GHST",
+  "GLM",
+  "GLMR",
+  "GMT",
+  "GMX",
+  "GOAT",
+  "GPS",
+  "GRASS",
+  "GRT",
+  "GRIFFAIN",
+  "GTC",
+  "GUN",
+  "GUNTHY",
+  "HBAR",
+  "HFT",
+  "HIFI",
+  "HIGH",
+  "HIPPO",
+  "HIVE",
+  "HMSTR",
+  "HOT",
+  "HOOK",
+  "ICX",
+  "ID",
+  "IDEX",
+  "ILV",
+  "IMX",
+  "INJ",
+  "IOST",
+  "IOTA",
+  "IOTX",
+  "IO",
+  "IP",
+  "JASMY",
+  "JELLYJELLY",
+  "JOE",
+  "JTO",
+  "JUP",
+  "KAIA",
+  "KAITO",
+  "KAS",
+  "KAVA",
+  "KDA",
+  "KEY",
+  "KMNO",
+  "KLAY",
+  "KNC",
+  "KOMA",
+  "KSM",
+  "LDO",
+  "LEVER",
+  "LINA",
+  "LINK",
+  "LISTA",
+  "LIT",
+  "LOKA",
+  "LOOM",
+  "LPT",
+  "LQTY",
+  "LRC",
+  "LSK",
+  "LTC",
+  "LUNA2",
+  "LUNC",
+  "LAYER",
+  "LUMIA",
+  "MAGIC",
+  "MANA",
+  "MANTA",
+  "MASK",
+  "MAV",
+  "MAVIA",
+  "MBOX",
+  "MDT",
+  "ME",
+  "MELANIA",
+  "MEME",
+  "METIS",
+  "MINA",
+  "MEW",
+  "MKR",
+  "MLN",
+  "MOCA",
+  "MOG",
+  "MOODENG",
+  "MORPHO",
+  "MOVR",
+  "MOVE",
+  "MTL",
+  "MUBARAK",
+  "MYRO",
+  "NEAR",
+  "NEO",
+  "NEIRO",
+  "NEIROETH",
+  "NFP",
+  "NIL",
+  "NKN",
+  "NMR",
+  "NOT",
+  "NTRN",
+  "OCEAN",
+  "OGN",
+  "OM",
+  "OMG",
+  "OMNI",
+  "ONDO",
+  "ONE",
+  "ONG",
+  "ONT",
+  "OP",
+  "OXT",
+  "ORDI",
+  "ORBS",
+  "ORCA",
+  "PARTI",
+  "PAXG",
+  "PEOPLE",
+  "PENDLE",
+  "PENGU",
+  "PEPE",
+  "PERP",
+  "PHA",
+  "PHB",
+  "PIPPIN",
+  "PIXEL",
+  "PLUME",
+  "PNUT",
+  "POL",
+  "POLYX",
+  "PONKE",
+  "POPCAT",
+  "PORTAL",
+  "POWR",
+  "PROM",
+  "PYTH",
+  "QNT",
+  "QTUM",
+  "QUICK",
+  "RAD",
+  "RARE",
+  "RAY",
+  "RAYSOL",
+  "RATS",
+  "RDNT",
+  "REEF",
+  "REI",
+  "REN",
+  "RENDER",
+  "REZ",
+  "RIF",
+  "RLC",
+  "RNDR",
+  "RONIN",
+  "ROSE",
+  "RPL",
+  "RSR",
+  "RUNE",
+  "RVN",
+  "S",
+  "SAFE",
+  "SAGA",
+  "SAND",
+  "SANTOS",
+  "SAT",
+  "SATS",
+  "SC",
+  "SCR",
+  "SCRT",
+  "SEI",
+  "SFP",
+  "SHIB",
+  "SHELL",
+  "SIREN",
+  "SKL",
+  "SLP",
+  "SLERF",
+  "SNX",
+  "SOL",
+  "SOLV",
+  "SONIC",
+  "SPELL",
+  "SPX",
+  "SRM",
+  "SSV",
+  "STEEM",
+  "STMX",
+  "STORJ",
+  "STPT",
+  "STRAX",
+  "STRK",
+  "STG",
+  "STX",
+  "SUN",
+  "SUI",
+  "SUPER",
+  "SUSHI",
+  "SXP",
+  "SYN",
+  "SYS",
+  "T",
+  "TAO",
+  "THETA",
+  "THE",
+  "TIA",
+  "TLM",
+  "TNSR",
+  "TON",
+  "TOKEN",
+  "TRB",
+  "TRU",
+  "TRUMP",
+  "TRX",
+  "TST",
+  "TURBO",
+  "TUT",
+  "TWT",
+  "UMA",
+  "UNFI",
+  "UNI",
+  "USUAL",
+  "USTC",
+  "VANRY",
+  "VANA",
+  "VET",
+  "VELODROME",
+  "VIC",
+  "VINE",
+  "VIRTUAL",
+  "VOXEL",
+  "VTHO",
+  "VVV",
+  "W",
+  "WAL",
+  "WAVES",
+  "WAXP",
+  "WHY",
+  "WIF",
+  "WLD",
+  "WOO",
+  "X",
+  "XAI",
+  "XEC",
+  "XEM",
+  "XLM",
+  "XRP",
+  "XTZ",
+  "XVG",
+  "XVS",
+  "YFI",
+  "YGG",
+  "ZEC",
+  "ZEN",
+  "ZEREBRO",
+  "ZETA",
+  "ZIL",
+  "ZK",
+  "ZRO",
+  "ZRX",
 ];
 
 const interval = "1h";
@@ -125,417 +529,7 @@ main();
 setInterval(main, 60000);
 
 
-fetchCryptoData("AAVE");
-fetchCryptoData("ACE");
-fetchCryptoData("ACH");
-fetchCryptoData("ACX");
-fetchCryptoData("ACT");
-fetchCryptoData("ADA");
-fetchCryptoData("AEVO");
-fetchCryptoData("AGIX");
-fetchCryptoData("AGLD");
-fetchCryptoData("AI");
-fetchCryptoData("AI16Z");
-fetchCryptoData("AIXBT");
-fetchCryptoData("AERGO");
-fetchCryptoData("ALCHE");
-fetchCryptoData("ALGO");
-fetchCryptoData("ALICE");
-fetchCryptoData("ALPACA");
-fetchCryptoData("ALPHA");
-fetchCryptoData("ALT");
-fetchCryptoData("AMB");
-fetchCryptoData("ANKR");
-fetchCryptoData("APE");
-fetchCryptoData("API3");
-fetchCryptoData("APT");
-fetchCryptoData("AR");
-fetchCryptoData("ARB");
-fetchCryptoData("ARK");
-fetchCryptoData("ARKM");
-fetchCryptoData("ARPA");
-fetchCryptoData("ANIME");
-fetchCryptoData("ASTR");
-fetchCryptoData("ATA");
-fetchCryptoData("ATOM");
-fetchCryptoData("AUCTION");
-fetchCryptoData("AVAAI");
-fetchCryptoData("AVA");
-fetchCryptoData("AVAX");
-fetchCryptoData("AXL");
-fetchCryptoData("AXS");
-fetchCryptoData("B3");
-fetchCryptoData("BADGER");
-fetchCryptoData("BAL");
-fetchCryptoData("BAN");
-fetchCryptoData("BANANA");
-fetchCryptoData("BANANAS31");
-fetchCryptoData("BAND");
-fetchCryptoData("BAT");
-fetchCryptoData("BAKE");
-fetchCryptoData("BB");
-fetchCryptoData("BCH");
-fetchCryptoData("BEAMX");
-fetchCryptoData("BEL");
-fetchCryptoData("BERA");
-fetchCryptoData("BICO");
-fetchCryptoData("BID");
-fetchCryptoData("BIGTIME");
-fetchCryptoData("BIO");
-fetchCryptoData("BMT");
-fetchCryptoData("BNB");
-fetchCryptoData("BNT");
-fetchCryptoData("BNX");
-fetchCryptoData("BOME");
-fetchCryptoData("BOND");
-fetchCryptoData("BONK");
-fetchCryptoData("BR");
-fetchCryptoData("BRETT");
-fetchCryptoData("BROCCOLI714");
-fetchCryptoData("BROCCOLIF3B");
-fetchCryptoData("BSV");
-fetchCryptoData("BSW");
-fetchCryptoData("BTC");
-fetchCryptoData("BTCDOM");
-fetchCryptoData("BABY");
-fetchCryptoData("BABYDOGE");
-fetchCryptoData("BLUR");
-fetchCryptoData("BLZ");
-fetchCryptoData("CAKE");
-fetchCryptoData("CAT");
-fetchCryptoData("CATI");
-fetchCryptoData("C98");
-fetchCryptoData("CELO");
-fetchCryptoData("CELR");
-fetchCryptoData("CETUS");
-fetchCryptoData("CFX");
-fetchCryptoData("CGPT");
-fetchCryptoData("CHESS");
-fetchCryptoData("CHILLGUY");
-fetchCryptoData("CHR");
-fetchCryptoData("CHZ");
-fetchCryptoData("CKB");
-fetchCryptoData("COMBO");
-fetchCryptoData("COMP");
-fetchCryptoData("COOKIE");
-fetchCryptoData("COS");
-fetchCryptoData("COTI");
-fetchCryptoData("COW");
-fetchCryptoData("CRV");
-fetchCryptoData("CTK");
-fetchCryptoData("CTSI");
-fetchCryptoData("CVX");
-fetchCryptoData("CVC");
-fetchCryptoData("CYBER");
-fetchCryptoData("D");
-fetchCryptoData("DAR");
-fetchCryptoData("DASH");
-fetchCryptoData("DEGEN");
-fetchCryptoData("DEGO");
-fetchCryptoData("DENT");
-fetchCryptoData("DEXE");
-fetchCryptoData("DF");
-fetchCryptoData("DGB");
-fetchCryptoData("DIA");
-fetchCryptoData("DODOX");
-fetchCryptoData("DOGE");
-fetchCryptoData("DOGS");
-fetchCryptoData("DOT");
-fetchCryptoData("DUSK");
-fetchCryptoData("DYDX");
-fetchCryptoData("DYM");
-fetchCryptoData("EDU");
-fetchCryptoData("EGLD");
-fetchCryptoData("EIGEN");
-fetchCryptoData("EOS");
-fetchCryptoData("ENA");
-fetchCryptoData("ENJ");
-fetchCryptoData("ENS");
-fetchCryptoData("EPIC");
-fetchCryptoData("ETC");
-fetchCryptoData("ETH");
-fetchCryptoData("ETHFI");
-fetchCryptoData("ETHW");
-fetchCryptoData("FARTCOIN");
-fetchCryptoData("FET");
-fetchCryptoData("FIDA");
-fetchCryptoData("FIL");
-fetchCryptoData("FIO");
-fetchCryptoData("FLM");
-fetchCryptoData("FLOKI");
-fetchCryptoData("FLOW");
-fetchCryptoData("FLUX");
-fetchCryptoData("FORM");
-fetchCryptoData("FORTH");
-fetchCryptoData("FRONT");
-fetchCryptoData("FTM");
-fetchCryptoData("FTT");
-fetchCryptoData("FUN");
-fetchCryptoData("FXS");
-fetchCryptoData("G");
-fetchCryptoData("GALA");
-fetchCryptoData("GAS");
-fetchCryptoData("GHST");
-fetchCryptoData("GLM");
-fetchCryptoData("GLMR");
-fetchCryptoData("GMT");
-fetchCryptoData("GMX");
-fetchCryptoData("GOAT");
-fetchCryptoData("GPS");
-fetchCryptoData("GRASS");
-fetchCryptoData("GRT");
-fetchCryptoData("GRIFFAIN");
-fetchCryptoData("GTC");
-fetchCryptoData("GUN");
-fetchCryptoData("GUNTHY");
-fetchCryptoData("HBAR");
-fetchCryptoData("HFT");
-fetchCryptoData("HIFI");
-fetchCryptoData("HIGH");
-fetchCryptoData("HIPPO");
-fetchCryptoData("HIVE");
-fetchCryptoData("HMSTR");
-fetchCryptoData("HOT");
-fetchCryptoData("HOOK");
-fetchCryptoData("ICX");
-fetchCryptoData("ID");
-fetchCryptoData("IDEX");
-fetchCryptoData("ILV");
-fetchCryptoData("IMX");
-fetchCryptoData("INJ");
-fetchCryptoData("IOST");
-fetchCryptoData("IOTA");
-fetchCryptoData("IOTX");
-fetchCryptoData("IO");
-fetchCryptoData("IP");
-fetchCryptoData("JASMY");
-fetchCryptoData("JELLYJELLY");
-fetchCryptoData("JOE");
-fetchCryptoData("JTO");
-fetchCryptoData("JUP");
-fetchCryptoData("KAIA");
-fetchCryptoData("KAITO");
-fetchCryptoData("KAS");
-fetchCryptoData("KAVA");
-fetchCryptoData("KDA");
-fetchCryptoData("KEY");
-fetchCryptoData("KMNO");
-fetchCryptoData("KLAY");
-fetchCryptoData("KNC");
-fetchCryptoData("KOMA");
-fetchCryptoData("KSM");
-fetchCryptoData("LDO");
-fetchCryptoData("LEVER");
-fetchCryptoData("LINA");
-fetchCryptoData("LINK");
-fetchCryptoData("LISTA");
-fetchCryptoData("LIT");
-fetchCryptoData("LOKA");
-fetchCryptoData("LOOM");
-fetchCryptoData("LPT");
-fetchCryptoData("LQTY");
-fetchCryptoData("LRC");
-fetchCryptoData("LSK");
-fetchCryptoData("LTC");
-fetchCryptoData("LUNA2");
-fetchCryptoData("LUNC");
-fetchCryptoData("LAYER");
-fetchCryptoData("LUMIA");
-fetchCryptoData("MAGIC");
-fetchCryptoData("MANA");
-fetchCryptoData("MANTA");
-fetchCryptoData("MASK");
-fetchCryptoData("MAV");
-fetchCryptoData("MAVIA");
-fetchCryptoData("MBOX");
-fetchCryptoData("MDT");
-fetchCryptoData("ME");
-fetchCryptoData("MELANIA");
-fetchCryptoData("MEME");
-fetchCryptoData("METIS");
-fetchCryptoData("MINA");
-fetchCryptoData("MEW");
-fetchCryptoData("MKR");
-fetchCryptoData("MLN");
-fetchCryptoData("MOCA");
-fetchCryptoData("MOG");
-fetchCryptoData("MOODENG");
-fetchCryptoData("MORPHO");
-fetchCryptoData("MOVR");
-fetchCryptoData("MOVE");
-fetchCryptoData("MTL");
-fetchCryptoData("MUBARAK");
-fetchCryptoData("MYRO");
-fetchCryptoData("NEAR");
-fetchCryptoData("NEO");
-fetchCryptoData("NEIRO");
-fetchCryptoData("NEIROETH");
-fetchCryptoData("NFP");
-fetchCryptoData("NIL");
-fetchCryptoData("NKN");
-fetchCryptoData("NMR");
-fetchCryptoData("NOT");
-fetchCryptoData("NTRN");
-fetchCryptoData("NULS");
-fetchCryptoData("OCEAN");
-fetchCryptoData("OGN");
-fetchCryptoData("OM");
-fetchCryptoData("OMG");
-fetchCryptoData("OMNI");
-fetchCryptoData("ONDO");
-fetchCryptoData("ONE");
-fetchCryptoData("ONG");
-fetchCryptoData("ONT");
-fetchCryptoData("OP");
-fetchCryptoData("OXT");
-fetchCryptoData("ORDI");
-fetchCryptoData("ORBS");
-fetchCryptoData("ORCA");
-fetchCryptoData("PARTI");
-fetchCryptoData("PAXG");
-fetchCryptoData("PEOPLE");
-fetchCryptoData("PENDLE");
-fetchCryptoData("PENGU");
-fetchCryptoData("PEPE");
-fetchCryptoData("PERP");
-fetchCryptoData("PHA");
-fetchCryptoData("PHB");
-fetchCryptoData("PIPPIN");
-fetchCryptoData("PIXEL");
-fetchCryptoData("PLUME");
-fetchCryptoData("PNUT");
-fetchCryptoData("POL");
-fetchCryptoData("POLYX");
-fetchCryptoData("PONKE");
-fetchCryptoData("POPCAT");
-fetchCryptoData("PORTAL");
-fetchCryptoData("POWR");
-fetchCryptoData("PROM");
-fetchCryptoData("PYTH");
-fetchCryptoData("QNT");
-fetchCryptoData("QTUM");
-fetchCryptoData("QUICK");
-fetchCryptoData("RAD");
-fetchCryptoData("RARE");
-fetchCryptoData("RAY");
-fetchCryptoData("RAYSOL");
-fetchCryptoData("RATS");
-fetchCryptoData("RDNT");
-fetchCryptoData("REEF");
-fetchCryptoData("REI");
-fetchCryptoData("REN");
-fetchCryptoData("RENDER");
-fetchCryptoData("REZ");
-fetchCryptoData("RIF");
-fetchCryptoData("RLC");
-fetchCryptoData("RNDR");
-fetchCryptoData("RONIN");
-fetchCryptoData("ROSE");
-fetchCryptoData("RPL");
-fetchCryptoData("RSR");
-fetchCryptoData("RUNE");
-fetchCryptoData("RVN");
-fetchCryptoData("S");
-fetchCryptoData("SAFE");
-fetchCryptoData("SAGA");
-fetchCryptoData("SAND");
-fetchCryptoData("SANTOS");
-fetchCryptoData("SAT");
-fetchCryptoData("SATS");
-fetchCryptoData("SC");
-fetchCryptoData("SCR");
-fetchCryptoData("SCRT");
-fetchCryptoData("SEI");
-fetchCryptoData("SFP");
-fetchCryptoData("SHIB");
-fetchCryptoData("SHELL");
-fetchCryptoData("SIREN");
-fetchCryptoData("SKL");
-fetchCryptoData("SLP");
-fetchCryptoData("SLERF");
-fetchCryptoData("SNT");
-fetchCryptoData("SNX");
-fetchCryptoData("SOL");
-fetchCryptoData("SOLV");
-fetchCryptoData("SONIC");
-fetchCryptoData("SPELL");
-fetchCryptoData("SPX");
-fetchCryptoData("SRM");
-fetchCryptoData("SSV");
-fetchCryptoData("STEEM");
-fetchCryptoData("STMX");
-fetchCryptoData("STORJ");
-fetchCryptoData("STPT");
-fetchCryptoData("STRAX");
-fetchCryptoData("STRK");
-fetchCryptoData("STG");
-fetchCryptoData("STX");
-fetchCryptoData("SUN");
-fetchCryptoData("SUI");
-fetchCryptoData("SUPER");
-fetchCryptoData("SUSHI");
-fetchCryptoData("SXP");
-fetchCryptoData("SYN");
-fetchCryptoData("SYS");
-fetchCryptoData("T");
-fetchCryptoData("TAO");
-fetchCryptoData("THETA");
-fetchCryptoData("THE");
-fetchCryptoData("TIA");
-fetchCryptoData("TLM");
-fetchCryptoData("TNSR");
-fetchCryptoData("TON");
-fetchCryptoData("TOKEN");
-fetchCryptoData("TRB");
-fetchCryptoData("TRU");
-fetchCryptoData("TRUMP");
-fetchCryptoData("TRX");
-fetchCryptoData("TST");
-fetchCryptoData("TURBO");
-fetchCryptoData("TUT");
-fetchCryptoData("TWT");
-fetchCryptoData("UMA");
-fetchCryptoData("UNFI");
-fetchCryptoData("UNI");
-fetchCryptoData("USUAL");
-fetchCryptoData("USTC");
-fetchCryptoData("VANRY");
-fetchCryptoData("VANA");
-fetchCryptoData("VET");
-fetchCryptoData("VELODROME");
-fetchCryptoData("VIC");
-fetchCryptoData("VINE");
-fetchCryptoData("VIRTUAL");
-fetchCryptoData("VOXEL");
-fetchCryptoData("VTHO");
-fetchCryptoData("VVV");
-fetchCryptoData("W");
-fetchCryptoData("WAL");
-fetchCryptoData("WAVES");
-fetchCryptoData("WAXP");
-fetchCryptoData("WHY");
-fetchCryptoData("WIF");
-fetchCryptoData("WLD");
-fetchCryptoData("WOO");
-fetchCryptoData("X");
-fetchCryptoData("XAI");
-fetchCryptoData("XEC");
-fetchCryptoData("XEM");
-fetchCryptoData("XLM");
-fetchCryptoData("XRP");
-fetchCryptoData("XTZ");
-fetchCryptoData("XVG");
-fetchCryptoData("XVS");
-fetchCryptoData("YFI");
-fetchCryptoData("YGG");
-fetchCryptoData("ZEC");
-fetchCryptoData("ZEN");
-fetchCryptoData("ZEREBRO");
-fetchCryptoData("ZETA");
-fetchCryptoData("ZIL");
-fetchCryptoData("ZK");
-fetchCryptoData("ZRO");
-fetchCryptoData("ZRX");
+
 
 function mettreAJourHeure() {
   var elementHeure = document.getElementById("heure");
