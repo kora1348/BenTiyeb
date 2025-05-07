@@ -409,10 +409,9 @@ const cryptos = [
   "ZRX",
 ];
 
-const interval = "1h";
+const interval = "1d";
 const limit = 100;
 
-// 1. Fonction de récupération
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
@@ -438,33 +437,39 @@ async function fetchCryptoData(symbol) {
   }
 }
 
-// 2. Indicateurs
 function calculateIndicators(crypto) {
   const data = crypto.data;
 
+  // MA20 Volume
   for (let i = 19; i < data.length; i++) {
     let sum = 0;
     for (let j = i - 19; j <= i; j++) sum += data[j].volume;
     data[i].volumeMA20 = sum / 20;
   }
 
+  // RSI 14
   for (let i = 14; i < data.length; i++) {
     let gains = 0, losses = 0;
     for (let j = i - 13; j <= i; j++) {
-      const change = data[j].close - data[j-1].close;
+      const change = data[j].close - data[j - 1].close;
       change > 0 ? gains += change : losses -= change;
     }
-    const rs = (gains / 14) / (losses / 14);
+    const rs = (gains / 14) / (losses / 14 || 1);
     data[i].rsi = 100 - (100 / (1 + rs));
   }
 
+  // Signal
   const lastCandle = data[data.length - 1];
   const prevCandle = data[data.length - 2];
   crypto.signal = "HOLD";
+
   if (lastCandle.volume > lastCandle.volumeMA20) {
-    if (lastCandle.rsi > 50 && lastCandle.close > prevCandle.high) {
+    // Conditions RSI sécurisées
+    const rsi = lastCandle.rsi;
+
+    if (rsi > 50 && rsi < 70 && lastCandle.close > prevCandle.high) {
       crypto.signal = "LONG";
-    } else if (lastCandle.rsi < 50 && lastCandle.close < prevCandle.low) {
+    } else if (rsi < 50 && rsi > 30 && lastCandle.close < prevCandle.low) {
       crypto.signal = "SHORT";
     }
   }
@@ -472,12 +477,12 @@ function calculateIndicators(crypto) {
   return crypto;
 }
 
-// 3. Affichage
 function updateTable(filter = "ALL") {
   const tableBody = document.getElementById("cryptoTableBody");
   tableBody.innerHTML = "";
   cryptosWithData.forEach(crypto => {
     if (filter !== "ALL" && crypto.signal !== filter) return;
+
     const lastCandle = crypto.data[crypto.data.length - 1];
     const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
 
@@ -493,7 +498,6 @@ function updateTable(filter = "ALL") {
   });
 }
 
-// 4. Initialisation
 let cryptosWithData = [];
 
 async function main() {
@@ -502,7 +506,7 @@ async function main() {
   updateTable();
 }
 
-// CSS
+// CSS dynamiquement
 const style = document.createElement('style');
 style.textContent = `
   .positive { color: green; }
@@ -515,7 +519,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// HTML - filtres
+// Filtres HTML
 const filterControls = document.createElement('div');
 filterControls.innerHTML = `
   <button onclick="updateTable('ALL')">Tout voir</button>
