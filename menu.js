@@ -1,5 +1,414 @@
 // Configuration
-const cryptos = ["BTC", "ETH", "SOL"]; // Liste des cryptos à analyser
+const cryptos = [
+  "1INCH",
+  "AAVE",
+  "ACE",
+  "ACH",
+  "ACX",
+  "ACT",
+  "ADA",
+  "AEVO",
+  "AGIX",
+  "AGLD",
+  "AI",
+  "AI16Z",
+  "AIXBT",
+  "AERGO",
+  "ALCHE",
+  "ALGO",
+  "ALICE",
+  "ALPACA",
+  "ALPHA",
+  "ALT",
+  "AMB",
+  "ANKR",
+  "APE",
+  "API3",
+  "APT",
+  "AR",
+  "ARB",
+  "ARK",
+  "ARKM",
+  "ARPA",
+  "ANIME",
+  "ASTR",
+  "ATA",
+  "ATOM",
+  "AUCTION",
+  "AVAAI",
+  "AVA",
+  "AVAX",
+  "AXL",
+  "AXS",
+  "B3",
+  "BAN",
+  "BANANA",
+  "BANANAS31",
+  "BAND",
+  "BAT",
+  "BAKE",
+  "BB",
+  "BCH",
+  "BEAMX",
+  "BEL",
+  "BERA",
+  "BICO",
+  "BID",
+  "BIGTIME",
+  "BIO",
+  "BMT",
+  "BNB",
+  "BNT",
+  "BNX",
+  "BOME",
+  "BOND",
+  "BONK",
+  "BR",
+  "BRETT",
+  "BROCCOLI714",
+  "BROCCOLIF3B",
+  "BSV",
+  "BSW",
+  "BTC",
+  "BTCDOM",
+  "BABY",
+  "BABYDOGE",
+  "BLUR",
+  "BLZ",
+  "CAKE",
+  "CAT",
+  "CATI",
+  "C98",
+  "CELO",
+  "CELR",
+  "CETUS",
+  "CFX",
+  "CGPT",
+  "CHESS",
+  "CHILLGUY",
+  "CHR",
+  "CHZ",
+  "CKB",
+  "COMBO",
+  "COMP",
+  "COOKIE",
+  "COS",
+  "COTI",
+  "COW",
+  "CRV",
+  "CTK",
+  "CTSI",
+  "CVX",
+  "CVC",
+  "CYBER",
+  "D",
+  "DAR",
+  "DASH",
+  "DEGEN",
+  "DEGO",
+  "DENT",
+  "DEXE",
+  "DF",
+  "DGB",
+  "DIA",
+  "DODOX",
+  "DOGE",
+  "DOGS",
+  "DOT",
+  "DUSK",
+  "DYDX",
+  "DYM",
+  "EDU",
+  "EGLD",
+  "EIGEN",
+  "EOS",
+  "ENA",
+  "ENJ",
+  "ENS",
+  "EPIC",
+  "ETC",
+  "ETH",
+  "ETHFI",
+  "ETHW",
+  "FARTCOIN",
+  "FET",
+  "FIDA",
+  "FIL",
+  "FIO",
+  "FLM",
+  "FLOKI",
+  "FLOW",
+  "FLUX",
+  "FORM",
+  "FORTH",
+  "FRONT",
+  "FTM",
+  "FTT",
+  "FUN",
+  "FXS",
+  "G",
+  "GALA",
+  "GAS",
+  "GHST",
+  "GLM",
+  "GLMR",
+  "GMT",
+  "GMX",
+  "GOAT",
+  "GPS",
+  "GRASS",
+  "GRT",
+  "GRIFFAIN",
+  "GTC",
+  "GUN",
+  "GUNTHY",
+  "HBAR",
+  "HFT",
+  "HIFI",
+  "HIGH",
+  "HIPPO",
+  "HIVE",
+  "HMSTR",
+  "HOT",
+  "HOOK",
+  "ICX",
+  "ID",
+  "IDEX",
+  "ILV",
+  "IMX",
+  "INJ",
+  "IOST",
+  "IOTA",
+  "IOTX",
+  "IO",
+  "IP",
+  "JASMY",
+  "JELLYJELLY",
+  "JOE",
+  "JTO",
+  "JUP",
+  "KAIA",
+  "KAITO",
+  "KAS",
+  "KAVA",
+  "KDA",
+  "KEY",
+  "KMNO",
+  "KLAY",
+  "KNC",
+  "KOMA",
+  "KSM",
+  "LDO",
+  "LEVER",
+  "LINA",
+  "LINK",
+  "LISTA",
+  "LIT",
+  "LOKA",
+  "LOOM",
+  "LPT",
+  "LQTY",
+  "LRC",
+  "LSK",
+  "LTC",
+  "LUNA2",
+  "LUNC",
+  "LAYER",
+  "LUMIA",
+  "MAGIC",
+  "MANA",
+  "MANTA",
+  "MASK",
+  "MAV",
+  "MAVIA",
+  "MBOX",
+  "MDT",
+  "ME",
+  "MELANIA",
+  "MEME",
+  "METIS",
+  "MINA",
+  "MEW",
+  "MKR",
+  "MLN",
+  "MOCA",
+  "MOG",
+  "MOODENG",
+  "MORPHO",
+  "MOVR",
+  "MOVE",
+  "MTL",
+  "MUBARAK",
+  "MYRO",
+  "NEAR",
+  "NEO",
+  "NEIRO",
+  "NEIROETH",
+  "NFP",
+  "NIL",
+  "NKN",
+  "NMR",
+  "NOT",
+  "NTRN",
+  "OCEAN",
+  "OGN",
+  "OM",
+  "OMG",
+  "OMNI",
+  "ONDO",
+  "ONE",
+  "ONG",
+  "ONT",
+  "OP",
+  "OXT",
+  "ORDI",
+  "ORBS",
+  "ORCA",
+  "PARTI",
+  "PAXG",
+  "PEOPLE",
+  "PENDLE",
+  "PENGU",
+  "PEPE",
+  "PERP",
+  "PHA",
+  "PHB",
+  "PIPPIN",
+  "PIXEL",
+  "PLUME",
+  "PNUT",
+  "POL",
+  "POLYX",
+  "PONKE",
+  "POPCAT",
+  "PORTAL",
+  "POWR",
+  "PROM",
+  "PYTH",
+  "QNT",
+  "QTUM",
+  "QUICK",
+  "RAD",
+  "RARE",
+  "RAY",
+  "RAYSOL",
+  "RATS",
+  "RDNT",
+  "REEF",
+  "REI",
+  "REN",
+  "RENDER",
+  "REZ",
+  "RIF",
+  "RLC",
+  "RNDR",
+  "RONIN",
+  "ROSE",
+  "RPL",
+  "RSR",
+  "RUNE",
+  "RVN",
+  "S",
+  "SAFE",
+  "SAGA",
+  "SAND",
+  "SANTOS",
+  "SAT",
+  "SATS",
+  "SC",
+  "SCR",
+  "SCRT",
+  "SEI",
+  "SFP",
+  "SHIB",
+  "SHELL",
+  "SIREN",
+  "SKL",
+  "SLP",
+  "SLERF",
+  "SNX",
+  "SOL",
+  "SOLV",
+  "SONIC",
+  "SPELL",
+  "SPX",
+  "SRM",
+  "SSV",
+  "STEEM",
+  "STMX",
+  "STORJ",
+  "STPT",
+  "STRAX",
+  "STRK",
+  "STG",
+  "STX",
+  "SUN",
+  "SUI",
+  "SUPER",
+  "SUSHI",
+  "SXP",
+  "SYN",
+  "SYS",
+  "T",
+  "TAO",
+  "THETA",
+  "THE",
+  "TIA",
+  "TLM",
+  "TNSR",
+  "TON",
+  "TOKEN",
+  "TRB",
+  "TRU",
+  "TRUMP",
+  "TRX",
+  "TST",
+  "TURBO",
+  "TUT",
+  "TWT",
+  "UMA",
+  "UNFI",
+  "UNI",
+  "USUAL",
+  "USTC",
+  "VANRY",
+  "VANA",
+  "VET",
+  "VELODROME",
+  "VIC",
+  "VINE",
+  "VIRTUAL",
+  "VOXEL",
+  "VTHO",
+  "VVV",
+  "W",
+  "WAL",
+  "WAVES",
+  "WAXP",
+  "WHY",
+  "WIF",
+  "WLD",
+  "WOO",
+  "X",
+  "XAI",
+  "XEC",
+  "XEM",
+  "XLM",
+  "XRP",
+  "XTZ",
+  "XVG",
+  "XVS",
+  "YFI",
+  "YGG",
+  "ZEC",
+  "ZEN",
+  "ZEREBRO",
+  "ZETA",
+  "ZIL",
+  "ZK",
+  "ZRO",
+  "ZRX",
+]; 
 const interval = "1h";
 const limit = 100;
 
@@ -11,22 +420,27 @@ async function fetchCryptoData(symbol) {
     );
     const data = await response.json();
     
-    return data.map(candle => ({
-      time: candle[0],
-      open: parseFloat(candle[1]),
-      high: parseFloat(candle[2]),
-      low: parseFloat(candle[3]),
-      close: parseFloat(candle[4]),
-      volume: parseFloat(candle[5]),
-    }));
+    return {
+      symbol,
+      data: data.map(candle => ({
+        time: candle[0],
+        open: parseFloat(candle[1]),
+        high: parseFloat(candle[2]),
+        low: parseFloat(candle[3]),
+        close: parseFloat(candle[4]),
+        volume: parseFloat(candle[5]),
+      }))
+    };
   } catch (error) {
     console.error(`Erreur ${symbol}:`, error);
-    return [];
+    return { symbol, data: [] };
   }
 }
 
-// 2. Calcul des indicateurs (identique à votre version originale)
-function calculateIndicators(data) {
+// 2. Calcul des indicateurs avec signal
+function calculateIndicators(crypto) {
+  const data = crypto.data;
+  
   // Moyenne Mobile Volume
   for (let i = 19; i < data.length; i++) {
     let sum = 0;
@@ -45,64 +459,80 @@ function calculateIndicators(data) {
     data[i].rsi = 100 - (100 / (1 + rs));
   }
   
-  return data;
-}
-
-// 3. Mise à jour du tableau pour une crypto
-function updateCryptoRow(symbol, data) {
-  const row = document.getElementById(symbol);
-  if (!row) return;
-
-  // Nettoyer les anciennes cellules
-  while (row.children.length > 1) {
-    row.removeChild(row.lastChild);
-  }
-  
+  // Détection du signal
   const lastCandle = data[data.length - 1];
-  const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
+  const prevCandle = data[data.length - 2];
   
-  // Ajouter les cellules
-  const variationCell = document.createElement("td");
-  variationCell.textContent = variation.toFixed(2) + "%";
-  variationCell.className = variation >= 0 ? "positive" : "negative";
-  
-  const volumeCell = document.createElement("td");
-  volumeCell.textContent = `Volume: ${lastCandle.volume.toFixed(2)} (MA20: ${lastCandle.volumeMA20?.toFixed(2) || "N/A"})`;
-  
-  const rsiCell = document.createElement("td");
-  rsiCell.textContent = `RSI: ${lastCandle.rsi?.toFixed(2) || "N/A"}`;
-  
-  row.appendChild(variationCell);
-  row.appendChild(volumeCell);
-  row.appendChild(rsiCell);
-}
-
-// 4. Fonction principale
-async function main() {
-  for (const symbol of cryptos) {
-    try {
-      const historicalData = await fetchCryptoData(symbol);
-      const dataWithIndicators = calculateIndicators(historicalData);
-      updateCryptoRow(symbol, dataWithIndicators);
-    } catch (error) {
-      console.error(`Erreur avec ${symbol}:`, error);
+  crypto.signal = "HOLD";
+  if (lastCandle.volume > lastCandle.volumeMA20) {
+    if (lastCandle.rsi > 50 && lastCandle.close > prevCandle.high) {
+      crypto.signal = "LONG";
+    } 
+    else if (lastCandle.rsi < 50 && lastCandle.close < prevCandle.low) {
+      crypto.signal = "SHORT";
     }
   }
+  
+  return crypto;
 }
 
-// CSS recommandé (à ajouter dans votre <head>)
+// 3. Filtrage et affichage
+function updateTable(filter = "ALL") {
+  const tableBody = document.getElementById("cryptoTableBody");
+  tableBody.innerHTML = ""; // Réinitialiser le tableau
+  
+  cryptosWithData.forEach(crypto => {
+    if (filter !== "ALL" && crypto.signal !== filter) return;
+    
+    const lastCandle = crypto.data[crypto.data.length - 1];
+    const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
+    
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${crypto.symbol}(F)</td>
+      <td class="${variation >= 0 ? 'positive' : 'negative'}">${variation.toFixed(2)}%</td>
+      <td>${lastCandle.volume.toFixed(2)} (${lastCandle.volumeMA20?.toFixed(2) || 'N/A'})</td>
+      <td>${lastCandle.rsi?.toFixed(2) || 'N/A'}</td>
+      <td class="signal ${crypto.signal.toLowerCase()}">${crypto.signal}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+// 4. Initialisation
+let cryptosWithData = [];
+
+async function main() {
+  cryptosWithData = await Promise.all(cryptos.map(fetchCryptoData));
+  cryptosWithData = cryptosWithData.map(calculateIndicators);
+  updateTable();
+}
+
+// CSS
 const style = document.createElement('style');
 style.textContent = `
   .positive { color: green; }
   .negative { color: red; }
-  table { border-collapse: collapse; width: 100%; }
-  td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+  .signal.long { background-color: rgba(0,255,0,0.2); font-weight: bold; }
+  .signal.short { background-color: rgba(255,0,0,0.2); font-weight: bold; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+  th, td { padding: 8px 12px; border: 1px solid #ddd; }
+  button { margin-right: 5px; padding: 5px 10px; }
 `;
 document.head.appendChild(style);
 
+// HTML à ajouter
+const filterControls = document.createElement('div');
+filterControls.innerHTML = `
+  <button onclick="updateTable('ALL')">Tout voir</button>
+  <button onclick="updateTable('LONG')">Seulement LONG</button>
+  <button onclick="updateTable('SHORT')">Seulement SHORT</button>
+`;
+document.body.prepend(filterControls);
+
 // Lancer l'application
 main();
-setInterval(main, 60000); // Actualisation toutes les minutes
+setInterval(main, 60000);
 
 fetchCryptoData("AAVE");
 fetchCryptoData("ACE");
