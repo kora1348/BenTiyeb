@@ -57,7 +57,14 @@ async function fetchCountPositiveNegative(symbol) {
     resultCell.style.color = result > 0 ? "green" : result < 0 ? "red" : "gray";
 
     const summary = document.getElementById("cryptoNames");
-    summary.innerHTML += `<p>${symbol}: Pos=${countPositive}, Neg=${countNegative}, Diff=${result}</p>`;
+
+    if (result >= 10) {
+      summary.innerHTML += `<p class="positive">${symbol}: Pos=${countPositive}, Neg=${countNegative}, Diff=${result}</p>`;
+    } else if (result <= -10) {
+      summary.innerHTML += `<p class="negative">${symbol}: Pos=${countPositive}, Neg=${countNegative}, Diff=${result}</p>`;
+    }
+    // sinon on n'affiche rien
+    
 
     updateGlobalTrendDisplay();
   } catch (err) {
