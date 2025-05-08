@@ -5,8 +5,12 @@ document.getElementById('loadButton').addEventListener('click', () => {
     .then(response => response.json())
     .then(data => {
       const perpetualPairs = data.symbols
-        .filter(symbol => symbol.contractType === 'PERPETUAL')
-        .map(symbol => symbol.symbol);
+        .filter(symbol =>
+          symbol.contractType === 'PERPETUAL' &&
+          symbol.symbol.endsWith('USDC')
+        )
+        .map(symbol => symbol.symbol)
+        .sort(); // Tri alphabétique
 
       const listElement = document.getElementById('cryptoList');
       listElement.innerHTML = ''; // Réinitialiser la liste
