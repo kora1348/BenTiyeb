@@ -113,9 +113,9 @@ function calculateIndicators(crypto) {
   if (last.volume > last.volumeMA20) {
     const rsi = last.rsi;
     if (rsi > 50 && rsi < 70 && last.close > prev1.high) {
-      crypto.signal = "SHORT";
-    } else if (rsi < 50 && rsi > 30 && last.close < prev1.low) {
       crypto.signal = "LONG";
+    } else if (rsi < 50 && rsi > 30 && last.close < prev1.low) {
+      crypto.signal = "SHORT";
     }
   }
 
@@ -129,20 +129,20 @@ function calculateIndicators(crypto) {
 
   // ⚠️ Alerte entrée
   crypto.entryAlert = "-";
-  if (crypto.signal === "SHORT" && (last.rsi < 50 || crypto.supportResistance === "🟢 Support")) {
-    crypto.entryAlert = "⚠️ Entrée SHORT conseillée";
-  }
-  if (crypto.signal === "LONG" && (last.rsi > 50 || crypto.supportResistance === "🔴 Résistance")) {
+  if (crypto.signal === "LONG" && (last.rsi < 50 || crypto.supportResistance === "🟢 Support")) {
     crypto.entryAlert = "⚠️ Entrée LONG conseillée";
+  }
+  if (crypto.signal === "SHORT" && (last.rsi > 50 || crypto.supportResistance === "🔴 Résistance")) {
+    crypto.entryAlert = "⚠️ Entrée SHORT conseillée";
   }
 
   // ⚠️ Détection de sortie
   crypto.exitAlert = "-";
-  if (crypto.signal === "SHORT" && (last.rsi > 70 || crypto.supportResistance === "🔴 Résistance")) {
-    crypto.exitAlert = "⚠️ SORTIE SHORT CONSEILLÉE";
-  }
-  if (crypto.signal === "LONG" && (last.rsi < 30 || crypto.supportResistance === "🟢 Support")) {
+  if (crypto.signal === "LONG" && (last.rsi > 70 || crypto.supportResistance === "🔴 Résistance")) {
     crypto.exitAlert = "⚠️ SORTIE LONG CONSEILLÉE";
+  }
+  if (crypto.signal === "SHORT" && (last.rsi < 30 || crypto.supportResistance === "🟢 Support")) {
+    crypto.exitAlert = "⚠️ SORTIE SHORT CONSEILLÉE";
   }
 
   return crypto;
@@ -157,8 +157,8 @@ function updateTable(filter = "ALL") {
     const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
 
     const row = document.createElement("tr");
-    if (crypto.signal === "SHORT") row.classList.add("row-short");
     if (crypto.signal === "LONG") row.classList.add("row-long");
+    if (crypto.signal === "SHORT") row.classList.add("row-short*");
 
     row.innerHTML = `
       <td>${crypto.symbol}(F)</td>
