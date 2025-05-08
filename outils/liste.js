@@ -7,7 +7,7 @@ document.getElementById('loadButton').addEventListener('click', () => {
       const perpetualPairs = data.symbols
         .filter(symbol =>
           symbol.contractType === 'PERPETUAL' &&
-          symbol.symbol.endsWith('USDC')
+          symbol.symbol.endsWith('USDT')
         )
         .map(symbol => symbol.symbol)
         .sort(); // Tri alphabétique
