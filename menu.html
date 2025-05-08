@@ -14,42 +14,43 @@
       <p style="font-weight: bold;">Mise à jour : 23/04/2025</p>
       <div id="heure"></div>
       <br>
-      <div id="cryptoNames"></div>
-     <!-- Légende des signaux -->
-<div style="margin-bottom: 10px; font-size: 14px;">
-  <strong>Légende :</strong><br>
-  <span style="color: green;">🟢 Support</span> = Zone où le prix pourrait rebondir<br>
-  <span style="color: red;">🔴 Résistance</span> = Zone où le prix pourrait être rejeté<br>
-  📈 Divergence HAUSSIÈRE = RSI monte alors que le prix baisse → possible rebond<br>
-  📉 Divergence BAISSIÈRE = RSI baisse alors que le prix monte → risque de baisse<br>
-  <span style="color: green;">LONG</span> = Signal d'achat<br>
-  <span style="color: red;">SHORT</span> = Signal de vente<br>
-  <span style="color: orange;">HOLD</span> = Attente / Observation
-</div>
-
-<!-- Tableau complet -->
-
-<div id="controls">
-  <button onclick="updateTable('ALL')">Tout voir</button>
-  <button onclick="updateTable('LONG')">Seulement LONG</button>
-  <button onclick="updateTable('SHORT')">Seulement SHORT</button>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Crypto</th>
-      <th>Variation</th>
-      <th>Volume (MA20)</th>
-      <th>RSI</th>
-      <th>Signal</th>
-      <th>Tendance</th>
-      <th>Zone</th>
-      <th>Divergence</th>
-    </tr>
-  </thead>
-  <tbody id="cryptoTableBody"></tbody>
-</table>
+      <div style="margin-bottom: 10px; font-size: 14px;">
+        <strong>Légende :</strong><br>
+        <span style="color: green;">🟢 Support</span> = Zone où le prix pourrait rebondir<br>
+        <span style="color: red;">🔴 Résistance</span> = Zone où le prix pourrait être rejeté<br>
+        📈 Divergence HAUSSIÈRE = RSI monte alors que le prix baisse → possible rebond<br>
+        📉 Divergence BAISSIÈRE = RSI baisse alors que le prix monte → risque de baisse<br>
+        <span style="color: green;">LONG</span> = Signal d'achat<br>
+        <span style="color: red;">SHORT</span> = Signal de vente<br>
+        <span style="color: orange;">HOLD</span> = Attente / Observation<br>
+        ⚠️ SORTIE LONG/SHORT CONSEILLÉE = Conditions de sortie détectées
+      </div>
+      
+      <!-- Contrôles -->
+      <div id="controls">
+        <button onclick="updateTable('ALL')">Tout voir</button>
+        <button onclick="updateTable('LONG')">Seulement LONG</button>
+        <button onclick="updateTable('SHORT')">Seulement SHORT</button>
+      </div>
+      
+      <!-- Tableau -->
+      <table>
+        <thead>
+          <tr>
+            <th>Crypto</th>
+            <th>Variation</th>
+            <th>Volume (MA20)</th>
+            <th>RSI</th>
+            <th>Signal</th>
+            <th>Tendance</th>
+            <th>Zone</th>
+            <th>Divergence</th>
+            <th>⚠️ Alerte entrée</th>
+            <th>⚠️ Alerte Sortie</th>
+          </tr>
+        </thead>
+        <tbody id="cryptoTableBody"></tbody>
+      </table>
 
     
       <script src="/menu.js"></script>

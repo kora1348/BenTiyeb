@@ -408,7 +408,8 @@ const cryptos = [
   "ZRO",
   "ZRX",
 ];
-const interval = "1m";
+
+const interval = "1d";
 const limit = 100;
 let cryptosWithData = [];
 
@@ -436,12 +437,15 @@ async function fetchCryptoData(symbol) {
 
 function calculateIndicators(crypto) {
   const data = crypto.data;
+
+  // MA20 du volume
   for (let i = 19; i < data.length; i++) {
     let sum = 0;
     for (let j = i - 19; j <= i; j++) sum += data[j].volume;
     data[i].volumeMA20 = sum / 20;
   }
 
+  // RSI
   for (let i = 14; i < data.length; i++) {
     let gains = 0, losses = 0;
     for (let j = i - 13; j <= i; j++) {
@@ -456,6 +460,7 @@ function calculateIndicators(crypto) {
   const prev1 = data[data.length - 2];
   const prev2 = data[data.length - 3];
 
+  // Zones de support/résistance
   crypto.supportResistance = "-";
   if (last.low > prev1.low && prev1.low < prev2.low) {
     crypto.supportResistance = "🟢 Support";
@@ -463,11 +468,11 @@ function calculateIndicators(crypto) {
     crypto.supportResistance = "🔴 Résistance";
   }
 
+  // Divergence
   crypto.divergence = "-";
   const rsi1 = prev2.rsi;
   const rsi2 = prev1.rsi;
   const rsi3 = last.rsi;
-
   if (rsi1 && rsi2 && rsi3) {
     if (prev2.close > prev1.close && prev1.close > last.close &&
         rsi1 < rsi2 && rsi2 < rsi3) {
@@ -479,6 +484,7 @@ function calculateIndicators(crypto) {
     }
   }
 
+  // Signal d'entrée
   crypto.signal = "HOLD";
   if (last.volume > last.volumeMA20) {
     const rsi = last.rsi;
@@ -489,12 +495,30 @@ function calculateIndicators(crypto) {
     }
   }
 
+  // Tendance
+  crypto.trend = "-";
   if (last.close > prev1.close && prev1.close > prev2.close) {
     crypto.trend = "HAUSSIÈRE";
   } else if (last.close < prev1.close && prev1.close < prev2.close) {
     crypto.trend = "BAISSIÈRE";
-  } else {
-    crypto.trend = "-";
+  }
+
+  // ⚠️ Alerte entrée
+  crypto.entryAlert = "-";
+  if (crypto.signal === "LONG" && (last.rsi < 50 || crypto.supportResistance === "🟢 Support")) {
+    crypto.entryAlert = "⚠️ Entrée LONG conseillée";
+  }
+  if (crypto.signal === "SHORT" && (last.rsi > 50 || crypto.supportResistance === "🔴 Résistance")) {
+    crypto.entryAlert = "⚠️ Entrée SHORT conseillée";
+  }
+
+  // ⚠️ Détection de sortie
+  crypto.exitAlert = "-";
+  if (crypto.signal === "LONG" && (last.rsi > 70 || crypto.supportResistance === "🔴 Résistance")) {
+    crypto.exitAlert = "⚠️ SORTIE LONG CONSEILLÉE";
+  }
+  if (crypto.signal === "SHORT" && (last.rsi < 30 || crypto.supportResistance === "🟢 Support")) {
+    crypto.exitAlert = "⚠️ SORTIE SHORT CONSEILLÉE";
   }
 
   return crypto;
@@ -521,6 +545,8 @@ function updateTable(filter = "ALL") {
       <td>${crypto.trend || '-'}</td>
       <td>${crypto.supportResistance}</td>
       <td>${crypto.divergence}</td>
+      <td style="color: orange;">${crypto.entryAlert}</td>
+      <td style="color: orange;">${crypto.exitAlert}</td>
     `;
     tableBody.appendChild(row);
   });
@@ -534,7 +560,6 @@ async function main() {
 
 main();
 setInterval(main, 60000);
-
 
 
 
