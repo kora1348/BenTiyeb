@@ -28,6 +28,13 @@
 </div>
 
 <!-- Tableau complet -->
+
+<div id="controls">
+  <button onclick="updateTable('ALL')">Tout voir</button>
+  <button onclick="updateTable('LONG')">Seulement LONG</button>
+  <button onclick="updateTable('SHORT')">Seulement SHORT</button>
+</div>
+
 <table>
   <thead>
     <tr>
@@ -37,13 +44,11 @@
       <th>RSI</th>
       <th>Signal</th>
       <th>Tendance</th>
-      <th>Support / Résistance</th>
-      <th>Divergence RSI</th>
+      <th>Zone</th>
+      <th>Divergence</th>
     </tr>
   </thead>
-  <tbody id="cryptoTableBody">
-    <!-- Les données seront ajoutées ici par JavaScript -->
-  </tbody>
+  <tbody id="cryptoTableBody"></tbody>
 </table>
 
     

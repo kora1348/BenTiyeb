@@ -159,3 +159,21 @@ font-weight: 800;
   border: 1px solid #ddd;
   background: #f3f3f3;
 }
+
+.signal.long {
+  background-color: rgba(0, 255, 0, 0.2); /* Vert clair */
+  font-weight: bold;
+  color: green;
+}
+
+.signal.short {
+  background-color: rgba(255, 0, 0, 0.2); /* Rouge clair */
+  font-weight: bold;
+  color: red;
+}
+
+.signal.hold {
+  background-color: rgba(255, 165, 0, 0.2); /* Orange clair */
+  font-weight: bold;
+  color: orange;
+}

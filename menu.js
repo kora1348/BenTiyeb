@@ -408,18 +408,15 @@ const cryptos = [
   "ZRO",
   "ZRX",
 ];
-
-const interval = "1d";
+const interval = "1m";
 const limit = 100;
+let cryptosWithData = [];
 
 async function fetchCryptoData(symbol) {
   try {
-    const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`
-    );
+    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`);
     if (!response.ok) throw new Error(`Symbole invalide : ${symbol}`);
     const data = await response.json();
-
     return {
       symbol,
       data: data.map(candle => ({
@@ -439,15 +436,12 @@ async function fetchCryptoData(symbol) {
 
 function calculateIndicators(crypto) {
   const data = crypto.data;
-
-  // MA20 Volume
   for (let i = 19; i < data.length; i++) {
     let sum = 0;
     for (let j = i - 19; j <= i; j++) sum += data[j].volume;
     data[i].volumeMA20 = sum / 20;
   }
 
-  // RSI 14
   for (let i = 14; i < data.length; i++) {
     let gains = 0, losses = 0;
     for (let j = i - 13; j <= i; j++) {
@@ -458,41 +452,33 @@ function calculateIndicators(crypto) {
     data[i].rsi = 100 - (100 / (1 + rs));
   }
 
-  // Support / Résistance simple (3 derniers chandeliers)
   const last = data[data.length - 1];
   const prev1 = data[data.length - 2];
   const prev2 = data[data.length - 3];
-  const lastLow = last.low;
-  const lastHigh = last.high;
 
   crypto.supportResistance = "-";
-  if (lastLow > prev1.low && prev1.low < prev2.low) {
+  if (last.low > prev1.low && prev1.low < prev2.low) {
     crypto.supportResistance = "🟢 Support";
-  } else if (lastHigh < prev1.high && prev1.high > prev2.high) {
+  } else if (last.high < prev1.high && prev1.high > prev2.high) {
     crypto.supportResistance = "🔴 Résistance";
   }
 
-  // Divergence RSI (3 dernières bougies)
   crypto.divergence = "-";
   const rsi1 = prev2.rsi;
   const rsi2 = prev1.rsi;
   const rsi3 = last.rsi;
 
   if (rsi1 && rsi2 && rsi3) {
-    // Divergence haussière : prix descend mais RSI monte
     if (prev2.close > prev1.close && prev1.close > last.close &&
         rsi1 < rsi2 && rsi2 < rsi3) {
       crypto.divergence = "📈 Divergence HAUSSIÈRE";
     }
-
-    // Divergence baissière : prix monte mais RSI baisse
     if (prev2.close < prev1.close && prev1.close < last.close &&
         rsi1 > rsi2 && rsi2 > rsi3) {
       crypto.divergence = "📉 Divergence BAISSIÈRE";
     }
   }
 
-  // Signal principal
   crypto.signal = "HOLD";
   if (last.volume > last.volumeMA20) {
     const rsi = last.rsi;
@@ -503,7 +489,6 @@ function calculateIndicators(crypto) {
     }
   }
 
-  // Détection tendance
   if (last.close > prev1.close && prev1.close > prev2.close) {
     crypto.trend = "HAUSSIÈRE";
   } else if (last.close < prev1.close && prev1.close < prev2.close) {
@@ -515,33 +500,31 @@ function calculateIndicators(crypto) {
   return crypto;
 }
 
-
 function updateTable(filter = "ALL") {
   const tableBody = document.getElementById("cryptoTableBody");
   tableBody.innerHTML = "";
   cryptosWithData.forEach(crypto => {
     if (filter !== "ALL" && crypto.signal !== filter) return;
-
     const lastCandle = crypto.data[crypto.data.length - 1];
     const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
 
     const row = document.createElement("tr");
-    row.innerHTML = `
-  <td>${crypto.symbol}(F)</td>
-  <td class="${variation >= 0 ? 'positive' : 'negative'}">${variation.toFixed(2)}%</td>
-  <td>${lastCandle.volume.toFixed(2)} (${lastCandle.volumeMA20?.toFixed(2) || 'N/A'})</td>
-  <td>${lastCandle.rsi?.toFixed(2) || 'N/A'}</td>
-  <td class="signal ${crypto.signal.toLowerCase()}">${crypto.signal}</td>
-  <td>${crypto.trend || '-'}</td>
-  <td>${crypto.supportResistance}</td>
-  <td>${crypto.divergence}</td>
-`;
+    if (crypto.signal === "LONG") row.classList.add("row-long");
+    if (crypto.signal === "SHORT") row.classList.add("row-short");
 
+    row.innerHTML = `
+      <td>${crypto.symbol}(F)</td>
+      <td class="${variation >= 0 ? 'positive' : 'negative'}">${variation.toFixed(2)}%</td>
+      <td>${lastCandle.volume.toFixed(2)} (${lastCandle.volumeMA20?.toFixed(2) || 'N/A'})</td>
+      <td>${lastCandle.rsi?.toFixed(2) || 'N/A'}</td>
+      <td class="signal ${crypto.signal.toLowerCase()}">${crypto.signal}</td>
+      <td>${crypto.trend || '-'}</td>
+      <td>${crypto.supportResistance}</td>
+      <td>${crypto.divergence}</td>
+    `;
     tableBody.appendChild(row);
   });
 }
-
-let cryptosWithData = [];
 
 async function main() {
   const results = await Promise.all(cryptos.map(fetchCryptoData));
@@ -549,47 +532,6 @@ async function main() {
   updateTable();
 }
 
-// CSS
-const style = document.createElement('style');
-style.textContent = `
-  .positive { color: green; }
-  .negative { color: red; }
-  .signal.long { background-color: rgba(0,255,0,0.2); font-weight: bold; }
-  .signal.short { background-color: rgba(255,0,0,0.2); font-weight: bold; }
-  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-  th, td { padding: 8px 12px; border: 1px solid #ddd; }
-  button { margin-right: 5px; padding: 5px 10px; }
-`;
-document.head.appendChild(style);
-
-// Filtres
-const filterControls = document.createElement('div');
-filterControls.innerHTML = `
-  <button onclick="updateTable('ALL')">Tout voir</button>
-  <button onclick="updateTable('LONG')">Seulement LONG</button>
-  <button onclick="updateTable('SHORT')">Seulement SHORT</button>
-`;
-document.body.prepend(filterControls);
-
-// Table
-const table = document.createElement('table');
-table.innerHTML = `
-  <thead>
-    <tr>
-      <th>Crypto</th>
-      <th>Variation</th>
-      <th>Volume (MA20)</th>
-      <th>RSI</th>
-      <th>Signal</th>
-      <th>Divergence</th>
-      <th>Zone</th>
-    </tr>
-  </thead>
-  <tbody id="cryptoTableBody"></tbody>
-`;
-document.body.appendChild(table);
-
-// Start
 main();
 setInterval(main, 60000);
 
