@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Spot - 4 heures</title>
+  <link rel="stylesheet" href="../../style.css">
+  
+</head>
+ <body>
+      <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
+      <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
+         " onclick="window.location.href='../../index.html'">Accueil</button>
+      <h2>Spot - 4 heures</h2>
+      <p style="font-weight: bold;">Mise à jour : 23/04/2025</p>
+      <div id="heure"></div>
+      <br>
+      <div style="margin-bottom: 10px; font-size: 14px;">
+        <strong>Légende :</strong><br>
+        <span style="color: green;">🟢 Support</span> = Zone où le prix pourrait rebondir<br>
+        <span style="color: red;">🔴 Résistance</span> = Zone où le prix pourrait être rejeté<br>
+        📈 Divergence HAUSSIÈRE = RSI monte alors que le prix baisse → possible rebond<br>
+        📉 Divergence BAISSIÈRE = RSI baisse alors que le prix monte → risque de baisse<br>
+        <span style="color: green;">LONG</span> = Signal d'achat<br>
+        <span style="color: red;">SHORT</span> = Signal de vente<br>
+        <span style="color: orange;">HOLD</span> = Attente / Observation<br>
+        ⚠️ SORTIE LONG/SHORT CONSEILLÉE = Conditions de sortie détectées
+      </div>
+      
+      <!-- Contrôles -->
+      <div id="controls">
+        <button onclick="updateTable('ALL')">Tout voir</button>
+        <button onclick="updateTable('LONG')">Seulement LONG</button>
+        <button onclick="updateTable('SHORT')">Seulement SHORT</button>
+      </div>
+      
+      <!-- Tableau -->
+      <table>
+        <thead>
+          <tr>
+            <th>Crypto</th>
+            <th>Variation</th>
+            <th>Volume (MA20)</th>
+            <th>RSI</th>
+            <th>Signal</th>
+            <th>Tendance</th>
+            <th>Zone</th>
+            <th>Divergence</th>
+            <th>⚠️ Alerte entrée</th>
+            <th>⚠️ Alerte Sortie</th>
+          </tr>
+        </thead>
+        <tbody id="cryptoTableBody"></tbody>
+      </table>
+
+    
+      <script src="/tadawal/4h.js"></script>
+   </body>
+</html>
