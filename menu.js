@@ -458,24 +458,63 @@ function calculateIndicators(crypto) {
     data[i].rsi = 100 - (100 / (1 + rs));
   }
 
-  // Signal
-  const lastCandle = data[data.length - 1];
-  const prevCandle = data[data.length - 2];
+  // Support / Résistance simple (3 derniers chandeliers)
+  const last = data[data.length - 1];
+  const prev1 = data[data.length - 2];
+  const prev2 = data[data.length - 3];
+  const lastLow = last.low;
+  const lastHigh = last.high;
+
+  crypto.supportResistance = "-";
+  if (lastLow > prev1.low && prev1.low < prev2.low) {
+    crypto.supportResistance = "🟢 Support";
+  } else if (lastHigh < prev1.high && prev1.high > prev2.high) {
+    crypto.supportResistance = "🔴 Résistance";
+  }
+
+  // Divergence RSI (3 dernières bougies)
+  crypto.divergence = "-";
+  const rsi1 = prev2.rsi;
+  const rsi2 = prev1.rsi;
+  const rsi3 = last.rsi;
+
+  if (rsi1 && rsi2 && rsi3) {
+    // Divergence haussière : prix descend mais RSI monte
+    if (prev2.close > prev1.close && prev1.close > last.close &&
+        rsi1 < rsi2 && rsi2 < rsi3) {
+      crypto.divergence = "📈 Divergence HAUSSIÈRE";
+    }
+
+    // Divergence baissière : prix monte mais RSI baisse
+    if (prev2.close < prev1.close && prev1.close < last.close &&
+        rsi1 > rsi2 && rsi2 > rsi3) {
+      crypto.divergence = "📉 Divergence BAISSIÈRE";
+    }
+  }
+
+  // Signal principal
   crypto.signal = "HOLD";
-
-  if (lastCandle.volume > lastCandle.volumeMA20) {
-    // Conditions RSI sécurisées
-    const rsi = lastCandle.rsi;
-
-    if (rsi > 50 && rsi < 70 && lastCandle.close > prevCandle.high) {
+  if (last.volume > last.volumeMA20) {
+    const rsi = last.rsi;
+    if (rsi > 50 && rsi < 70 && last.close > prev1.high) {
       crypto.signal = "LONG";
-    } else if (rsi < 50 && rsi > 30 && lastCandle.close < prevCandle.low) {
+    } else if (rsi < 50 && rsi > 30 && last.close < prev1.low) {
       crypto.signal = "SHORT";
     }
   }
 
+  // Détection tendance
+  if (last.close > prev1.close && prev1.close > prev2.close) {
+    crypto.trend = "HAUSSIÈRE";
+  } else if (last.close < prev1.close && prev1.close < prev2.close) {
+    crypto.trend = "BAISSIÈRE";
+  } else {
+    crypto.trend = "-";
+  }
+
   return crypto;
 }
+
 
 function updateTable(filter = "ALL") {
   const tableBody = document.getElementById("cryptoTableBody");
@@ -488,12 +527,16 @@ function updateTable(filter = "ALL") {
 
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${crypto.symbol}(F)</td>
-      <td class="${variation >= 0 ? 'positive' : 'negative'}">${variation.toFixed(2)}%</td>
-      <td>${lastCandle.volume.toFixed(2)} (${lastCandle.volumeMA20?.toFixed(2) || 'N/A'})</td>
-      <td>${lastCandle.rsi?.toFixed(2) || 'N/A'}</td>
-      <td class="signal ${crypto.signal.toLowerCase()}">${crypto.signal}</td>
-    `;
+  <td>${crypto.symbol}(F)</td>
+  <td class="${variation >= 0 ? 'positive' : 'negative'}">${variation.toFixed(2)}%</td>
+  <td>${lastCandle.volume.toFixed(2)} (${lastCandle.volumeMA20?.toFixed(2) || 'N/A'})</td>
+  <td>${lastCandle.rsi?.toFixed(2) || 'N/A'}</td>
+  <td class="signal ${crypto.signal.toLowerCase()}">${crypto.signal}</td>
+  <td>${crypto.trend || '-'}</td>
+  <td>${crypto.supportResistance}</td>
+  <td>${crypto.divergence}</td>
+`;
+
     tableBody.appendChild(row);
   });
 }
@@ -506,7 +549,7 @@ async function main() {
   updateTable();
 }
 
-// CSS dynamiquement
+// CSS
 const style = document.createElement('style');
 style.textContent = `
   .positive { color: green; }
@@ -519,7 +562,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Filtres HTML
+// Filtres
 const filterControls = document.createElement('div');
 filterControls.innerHTML = `
   <button onclick="updateTable('ALL')">Tout voir</button>
@@ -527,6 +570,24 @@ filterControls.innerHTML = `
   <button onclick="updateTable('SHORT')">Seulement SHORT</button>
 `;
 document.body.prepend(filterControls);
+
+// Table
+const table = document.createElement('table');
+table.innerHTML = `
+  <thead>
+    <tr>
+      <th>Crypto</th>
+      <th>Variation</th>
+      <th>Volume (MA20)</th>
+      <th>RSI</th>
+      <th>Signal</th>
+      <th>Divergence</th>
+      <th>Zone</th>
+    </tr>
+  </thead>
+  <tbody id="cryptoTableBody"></tbody>
+`;
+document.body.appendChild(table);
 
 // Start
 main();

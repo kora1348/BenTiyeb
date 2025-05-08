@@ -15,20 +15,37 @@
       <div id="heure"></div>
       <br>
       <div id="cryptoNames"></div>
-      <table>
-        <thead>
-          <tr>
-            <th>Crypto</th>
-            <th>Variation</th>
-            <th>Volume (MA20)</th>
-            <th>RSI</th>
-            <th>Signal</th>
-          </tr>
-        </thead>
-        <tbody id="cryptoTableBody">
-          <!-- Les données seront ajoutées ici par JavaScript -->
-        </tbody>
-      </table>
+     <!-- Légende des signaux -->
+<div style="margin-bottom: 10px; font-size: 14px;">
+  <strong>Légende :</strong><br>
+  <span style="color: green;">🟢 Support</span> = Zone où le prix pourrait rebondir<br>
+  <span style="color: red;">🔴 Résistance</span> = Zone où le prix pourrait être rejeté<br>
+  📈 Divergence HAUSSIÈRE = RSI monte alors que le prix baisse → possible rebond<br>
+  📉 Divergence BAISSIÈRE = RSI baisse alors que le prix monte → risque de baisse<br>
+  <span style="color: green;">LONG</span> = Signal d'achat<br>
+  <span style="color: red;">SHORT</span> = Signal de vente<br>
+  <span style="color: orange;">HOLD</span> = Attente / Observation
+</div>
+
+<!-- Tableau complet -->
+<table>
+  <thead>
+    <tr>
+      <th>Crypto</th>
+      <th>Variation</th>
+      <th>Volume (MA20)</th>
+      <th>RSI</th>
+      <th>Signal</th>
+      <th>Tendance</th>
+      <th>Support / Résistance</th>
+      <th>Divergence RSI</th>
+    </tr>
+  </thead>
+  <tbody id="cryptoTableBody">
+    <!-- Les données seront ajoutées ici par JavaScript -->
+  </tbody>
+</table>
+
     
       <script src="/menu.js"></script>
    </body>
