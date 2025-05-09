@@ -88,7 +88,7 @@ function showPopup(message) {
       const cryptoNamesElement = document.getElementById("cryptoNames");
       document.querySelector(`#${symbol}_status`)?.remove();
   
-      if (totalVariation >= 0.52 && totalVariation <= 0.58) {
+      if (totalVariation >= 5.10 && totalVariation <= 5.90) {
         totalCell.classList.add("positive");
         const pElement = document.createElement("p");
         pElement.id = `${symbol}_status`;
@@ -100,7 +100,7 @@ function showPopup(message) {
             2
           )}%)`
         );
-      } else if (totalVariation <= -0.52 && totalVariation >= -0.58) {
+      } else if (totalVariation <= -5.10 && totalVariation >= -5.90) {
         totalCell.classList.add("negative");
         const pElement = document.createElement("p");
         pElement.id = `${symbol}_status`;
