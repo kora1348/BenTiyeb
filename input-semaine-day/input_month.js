@@ -428,7 +428,7 @@ function clearExistingVariations() {
 async function fetchCryptoData(symbol, startDate, endDate) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${startDate}&endTime=${endDate}`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1M&startTime=${startDate}&endTime=${endDate}`
     );
     const data = await response.json();
 
@@ -449,34 +449,7 @@ async function fetchCryptoData(symbol, startDate, endDate) {
       const variationCell = cryptoRow.insertCell(cellIndex);
       const variationValue = weeklyVariation.toFixed(2);
 
-      // Conversion des timestamps pour affichage formaté
-      const openTime = new Date(data[i][0]);
-      const closeTime = new Date(data[i][6]);
-
-      function formatDate(date) {
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = String(date.getFullYear()).slice(2); // deux derniers chiffres
-        const hours = String(date.getHours()).padStart(2, "0");
-        const minutes = String(date.getMinutes()).padStart(2, "0");
-        return `${month}/${day}/${year} ${hours}:${minutes}`;
-      }
-
-      function formatHour(date) {
-        const hours = String(date.getHours()).padStart(2, "0");
-        const minutes = String(date.getMinutes()).padStart(2, "0");
-        return `(${hours}:${minutes})`;
-      }
-
-      const formattedOpenTime = `${formatDate(openTime)} ${formatHour(
-        openTime
-      )}`;
-      const formattedCloseTime = `${formatDate(closeTime)} ${formatHour(
-        closeTime
-      )}`;
-
-      // Mise à jour du contenu de la cellule
-      variationCell.textContent = `${formattedOpenTime} - ${formattedCloseTime} : (${variationValue}%)`;
+      variationCell.textContent = `${variationValue}%`;
 
       // Ajouter la classe "positive" ou "negative" en fonction de la variation
       if (weeklyVariation > 0) {
