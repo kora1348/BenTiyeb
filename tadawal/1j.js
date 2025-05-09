@@ -1,36 +1,36 @@
 const cryptos = [
   "ADA",
-"ARB",
-"AVAX",
-"BCH",
-"BNB",
-"BOME",
-"BONK",
-"BTC",
-"CRV",
-"DOGE",
-"ENA",
-"ETH",
-"ETHFI",
-"FIL",
-"HBAR",
-"IP",
-"KAITO",
-"LINK",
-"LTC",
-"NEAR",
-"NEO",
-"ORDI",
-"PEPE",
-"PNUT",
-"SHIB",
-"SOL",
-"SUI",
-"TIA",
-"TRUMP",
-"WIF",
-"WLD",
-"XRP",
+  "ARB",
+  "AVAX",
+  "BCH",
+  "BNB",
+  "BOME",
+  "BONK",
+  "BTC",
+  "CRV",
+  "DOGE",
+  "ENA",
+  "ETH",
+  "ETHFI",
+  "FIL",
+  "HBAR",
+  "IP",
+  "KAITO",
+  "LINK",
+  "LTC",
+  "NEAR",
+  "NEO",
+  "ORDI",
+  "PEPE",
+  "PNUT",
+  "SHIB",
+  "SOL",
+  "SUI",
+  "TIA",
+  "TRUMP",
+  "WIF",
+  "WLD",
+  "XRP",
 ];
 
 const interval = "1d";
@@ -39,19 +39,21 @@ let cryptosWithData = [];
 
 async function fetchCryptoData(symbol) {
   try {
-    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDC&interval=${interval}&limit=${limit}`);
+    const response = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDC&interval=${interval}&limit=${limit}`
+    );
     if (!response.ok) throw new Error(`Symbole invalide : ${symbol}`);
     const data = await response.json();
     return {
       symbol,
-      data: data.map(candle => ({
+      data: data.map((candle) => ({
         time: candle[0],
         open: parseFloat(candle[1]),
         high: parseFloat(candle[2]),
         low: parseFloat(candle[3]),
         close: parseFloat(candle[4]),
         volume: parseFloat(candle[5]),
-      }))
+      })),
     };
   } catch (error) {
     console.warn(`Crypto ignorée : ${symbol} - ${error.message}`);
@@ -71,13 +73,14 @@ function calculateIndicators(crypto) {
 
   // RSI
   for (let i = 14; i < data.length; i++) {
-    let gains = 0, losses = 0;
+    let gains = 0,
+      losses = 0;
     for (let j = i - 13; j <= i; j++) {
       const change = data[j].close - data[j - 1].close;
-      change > 0 ? gains += change : losses -= change;
+      change > 0 ? (gains += change) : (losses -= change);
     }
-    const rs = (gains / 14) / (losses / 14 || 1);
-    data[i].rsi = 100 - (100 / (1 + rs));
+    const rs = gains / 14 / (losses / 14 || 1);
+    data[i].rsi = 100 - 100 / (1 + rs);
   }
 
   const last = data[data.length - 1];
@@ -98,12 +101,20 @@ function calculateIndicators(crypto) {
   const rsi2 = prev1.rsi;
   const rsi3 = last.rsi;
   if (rsi1 && rsi2 && rsi3) {
-    if (prev2.close > prev1.close && prev1.close > last.close &&
-        rsi1 < rsi2 && rsi2 < rsi3) {
+    if (
+      prev2.close > prev1.close &&
+      prev1.close > last.close &&
+      rsi1 < rsi2 &&
+      rsi2 < rsi3
+    ) {
       crypto.divergence = "📈 Divergence HAUSSIÈRE";
     }
-    if (prev2.close < prev1.close && prev1.close < last.close &&
-        rsi1 > rsi2 && rsi2 > rsi3) {
+    if (
+      prev2.close < prev1.close &&
+      prev1.close < last.close &&
+      rsi1 > rsi2 &&
+      rsi2 > rsi3
+    ) {
       crypto.divergence = "📉 Divergence BAISSIÈRE";
     }
   }
@@ -129,19 +140,31 @@ function calculateIndicators(crypto) {
 
   // ⚠️ Alerte entrée
   crypto.entryAlert = "-";
-  if (crypto.signal === "LONG" && (last.rsi < 50 || crypto.supportResistance === "🟢 Support")) {
+  if (
+    crypto.signal === "LONG" &&
+    (last.rsi < 50 || crypto.supportResistance === "🟢 Support")
+  ) {
     crypto.entryAlert = "⚠️ Entrée LONG conseillée";
   }
-  if (crypto.signal === "SHORT" && (last.rsi > 50 || crypto.supportResistance === "🔴 Résistance")) {
+  if (
+    crypto.signal === "SHORT" &&
+    (last.rsi > 50 || crypto.supportResistance === "🔴 Résistance")
+  ) {
     crypto.entryAlert = "⚠️ Entrée SHORT conseillée";
   }
 
   // ⚠️ Détection de sortie
   crypto.exitAlert = "-";
-  if (crypto.signal === "LONG" && (last.rsi > 70 || crypto.supportResistance === "🔴 Résistance")) {
+  if (
+    crypto.signal === "LONG" &&
+    (last.rsi > 70 || crypto.supportResistance === "🔴 Résistance")
+  ) {
     crypto.exitAlert = "⚠️ SORTIE LONG CONSEILLÉE";
   }
-  if (crypto.signal === "SHORT" && (last.rsi < 30 || crypto.supportResistance === "🟢 Support")) {
+  if (
+    crypto.signal === "SHORT" &&
+    (last.rsi < 30 || crypto.supportResistance === "🟢 Support")
+  ) {
     crypto.exitAlert = "⚠️ SORTIE SHORT CONSEILLÉE";
   }
 
@@ -151,10 +174,11 @@ function calculateIndicators(crypto) {
 function updateTable(filter = "ALL") {
   const tableBody = document.getElementById("cryptoTableBody");
   tableBody.innerHTML = "";
-  cryptosWithData.forEach(crypto => {
+  cryptosWithData.forEach((crypto) => {
     if (filter !== "ALL" && crypto.signal !== filter) return;
     const lastCandle = crypto.data[crypto.data.length - 1];
-    const variation = ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
+    const variation =
+      ((lastCandle.close - lastCandle.open) / lastCandle.open) * 100;
 
     const row = document.createElement("tr");
     if (crypto.signal === "LONG") row.classList.add("row-long");
@@ -162,11 +186,15 @@ function updateTable(filter = "ALL") {
 
     row.innerHTML = `
       <td>${crypto.symbol}(F)</td>
-      <td class="${variation >= 0 ? 'positive' : 'negative'}">${variation.toFixed(2)}%</td>
-      <td>${lastCandle.volume.toFixed(2)} (${lastCandle.volumeMA20?.toFixed(2) || 'N/A'})</td>
-      <td>${lastCandle.rsi?.toFixed(2) || 'N/A'}</td>
+      <td class="${
+        variation >= 0 ? "positive" : "negative"
+      }">${variation.toFixed(2)}%</td>
+      <td>${lastCandle.volume.toFixed(2)} (${
+      lastCandle.volumeMA20?.toFixed(2) || "N/A"
+    })</td>
+      <td>${lastCandle.rsi?.toFixed(2) || "N/A"}</td>
       <td class="signal ${crypto.signal.toLowerCase()}">${crypto.signal}</td>
-      <td>${crypto.trend || '-'}</td>
+      <td>${crypto.trend || "-"}</td>
       <td>${crypto.supportResistance}</td>
       <td>${crypto.divergence}</td>
       <td style="color: orange;">${crypto.entryAlert}</td>
@@ -178,14 +206,12 @@ function updateTable(filter = "ALL") {
 
 async function main() {
   const results = await Promise.all(cryptos.map(fetchCryptoData));
-  cryptosWithData = results.filter(r => r !== null).map(calculateIndicators);
+  cryptosWithData = results.filter((r) => r !== null).map(calculateIndicators);
   updateTable();
 }
 
 main();
 setInterval(main, 60000);
-
-
 
 function mettreAJourHeure() {
   var elementHeure = document.getElementById("heure");
