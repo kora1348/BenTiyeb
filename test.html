@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+   <head>
+      <meta charset="utf-8">
+      <title>Trading - 2 heures</title>
+      <link rel="stylesheet" href="../../style.css">
+   </head>
+   <body>
+      <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
+      <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
+         " onclick="window.location.href='../../index.html'">Accueil</button>
+      <h2>Trading - 2 heures</h2>
+      <p style="font-weight: bold;">Mise à jour : 23/04/2025</p>
+      <div id="heure"></div>
+      <br>
+       table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    .positive { color: green; }
+    .negative { color: red; }
+  </style>
+</head>
+<body>
+
+<h2>Analyse Crypto (EMA 200 - Intervalle 1min)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Crypto</th>
+      <th>Variation</th>
+      <th>Volume (EMA 200)</th>
+      <th>Tendance</th>
+      <th>⚠️ Alerte entrée</th>
+      <th>⚠️ Alerte Sortie</th>
+    </tr>
+  </thead>
+  <tbody id="cryptoTableBody">
+    <tr><td colspan="6">Chargement...</td></tr>
+  </tbody>
+</table>
+      <script src="/test.js"></script>
+   </body>
+</html>
