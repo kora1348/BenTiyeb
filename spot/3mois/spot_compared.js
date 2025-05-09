@@ -1,7 +1,7 @@
 async function fetchCryptoData(symbol) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=4h&limit=2`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1M&limit=3`
     );
     const data = await response.json();
 
@@ -338,7 +338,6 @@ fetchCryptoData("NKN");
 fetchCryptoData("NMR");
 fetchCryptoData("NOT");
 fetchCryptoData("NTRN");
-fetchCryptoData("NULS");
 fetchCryptoData("OCEAN");
 fetchCryptoData("OGN");
 fetchCryptoData("OM");
@@ -415,7 +414,6 @@ fetchCryptoData("SIREN");
 fetchCryptoData("SKL");
 fetchCryptoData("SLP");
 fetchCryptoData("SLERF");
-fetchCryptoData("SNT");
 fetchCryptoData("SNX");
 fetchCryptoData("SOL");
 fetchCryptoData("SOLV");
