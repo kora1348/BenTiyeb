@@ -3,7 +3,7 @@ const cryptos = [
   "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK", "BTC", "CRV", "DOGE",
   "ENA", "ETH", "ETHFI", "FIL", "HBAR", "IP", "KAITO", "LINK", "LTC", "NEAR",
   "NEO", "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI", "TIA", "TRUMP", "WIF",
-  "WLD", "XRP"
+  "WLD", "XRP", "TST",
 ];
 
 const interval = "1d"; // Intervalle des données (1 jour)
