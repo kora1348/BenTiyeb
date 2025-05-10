@@ -26,10 +26,13 @@
       </div>
       <!-- Contrôles -->
       <div id="controls">
-         <button onclick="updateTable('ALL')">Tout voir</button>
-         <button onclick="updateTable('LONG')">Seulement LONG</button>
-         <button onclick="updateTable('SHORT')">Seulement SHORT</button>
-      </div>
+   <label for="historicalDate">Date historique :</label>
+   <input type="date" id="historicalDate" onchange="loadHistoricalData()">
+   <button onclick="resetToCurrent()">Retour à aujourd'hui</button>
+   <button onclick="updateTable('ALL')">Tout voir</button>
+   <button onclick="updateTable('LONG')">Seulement LONG</button>
+   <button onclick="updateTable('SHORT')">Seulement SHORT</button>
+</div>
       <!-- Tableau -->
       <table>
          <thead>
