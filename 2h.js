@@ -1,9 +1,8 @@
-// Liste des cryptos à analyser
 const cryptos = [
   "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK", "BTC", "CRV", "DOGE",
   "ENA", "ETH", "ETHFI", "FIL", "HBAR", "IP", "KAITO", "LINK", "LTC", "NEAR",
   "NEO", "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI", "TIA", "TRUMP", "WIF",
-  "WLD", "XRP", "TST",
+  "WLD", "XRP", "TST"
 ];
 
 const interval = "1d"; // Intervalle des données (1 jour)
@@ -31,27 +30,36 @@ async function main() {
 async function fetchCryptoData(symbol) {
   try {
     // Construit l'URL avec les paramètres
-    let url = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDC&interval=${interval}&limit=${limit}`;
+    let url = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`;
     
     // Si une date historique est sélectionnée, on l'ajoute aux paramètres
     if (currentDate) {
-      url += `&endTime=${currentDate.getTime() + 86400000}`; // +1 jour pour inclure la date
+      // On veut les données jusqu'à minuit de la date sélectionnée
+      const endTime = new Date(currentDate);
+      endTime.setHours(23, 59, 59, 999);
+      url += `&endTime=${endTime.getTime()}`;
     }
     
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Symbole invalide : ${symbol}`);
     
     const data = await response.json();
+    
+    // Filtre les données pour ne garder que celles avant la date sélectionnée
+    const filteredData = data
+      .map(candle => ({
+        time: candle[0],
+        open: parseFloat(candle[1]),
+        high: parseFloat(candle[2]),
+        low: parseFloat(candle[3]),
+        close: parseFloat(candle[4]),
+        volume: parseFloat(candle[5])
+      }))
+      .filter(candle => !currentDate || candle.time <= new Date(currentDate).setHours(23, 59, 59, 999));
+    
     return {
       symbol,
-      data: data.map((candle) => ({
-        time: candle[0],         // Timestamp
-        open: parseFloat(candle[1]),  // Prix d'ouverture
-        high: parseFloat(candle[2]),  // Prix le plus haut
-        low: parseFloat(candle[3]),   // Prix le plus bas
-        close: parseFloat(candle[4]), // Prix de clôture
-        volume: parseFloat(candle[5])  // Volume
-      }))
+      data: filteredData
     };
   } catch (error) {
     console.warn(`Crypto ignorée : ${symbol} - ${error.message}`);
@@ -62,7 +70,7 @@ async function fetchCryptoData(symbol) {
 // Calcule tous les indicateurs techniques pour une crypto
 function calculateIndicators(crypto) {
   const data = crypto.data;
-
+  if (data.length < 20) return null; 
   // 1. Calcul de la moyenne mobile du volume (20 périodes)
   for (let i = 19; i < data.length; i++) {
     let sum = 0;
@@ -169,6 +177,8 @@ function updateTable(filter = "ALL") {
   
   // Parcours toutes les cryptos et crée les lignes du tableau
   cryptosWithData.forEach((crypto) => {
+    if (!crypto || crypto.data.length === 0) return;
+    
     // Filtre selon le type de signal si besoin
     if (filter !== "ALL" && crypto.signal !== filter) return;
     
@@ -182,7 +192,7 @@ function updateTable(filter = "ALL") {
     
     // Remplit la ligne avec les données
     row.innerHTML = `
-      <td>${crypto.symbol}(F)</td>
+      <td>${crypto.symbol}</td>
       <td class="${variation >= 0 ? "positive" : "negative"}">${variation.toFixed(2)}%</td>
       <td>${lastCandle.volume.toFixed(2)} (${lastCandle.volumeMA20?.toFixed(2) || "N/A"})</td>
       <td>${lastCandle.rsi?.toFixed(2) || "N/A"}</td>
@@ -217,4 +227,3 @@ function resetToCurrent() {
 main();
 // Actualise toutes les minutes
 setInterval(main, 60000);
-
