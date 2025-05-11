@@ -102,3 +102,17 @@
             color: red;
             font-weight: bold;
         }
+      ul {
+      display: flex;
+      list-style-type: none;
+      justify-content: center; /* centre les éléments horizontalement */
+    }
+    li {
+      margin-right: 20px;
+      font-size: 22px;
+    }
+    a {
+      font-size: 22px;
+      text-decoration: none;
+      color: #1b1b1b;
+    }
