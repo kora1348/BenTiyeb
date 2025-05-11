@@ -1,11 +1,11 @@
-  // Liste des cryptomonnaies (paires USDT disponibles sur Binance)
+ // Liste des cryptomonnaies (paires USDT disponibles sur Binance)
         const cryptos = [
             "BTC", "ETH", "BNB", "SOL", "XRP", 
             "ADA", "DOGE", "SHIB", "AVAX", "LTC"
         ];
 
         // Configuration de base
-        const interval = "1h"; // Bougie de 1 heure
+        let interval = "1h"; // Par défaut bougie de 1 heure
         const limit = 100;     // Nombre de bougies à récupérer
         let cryptosWithData = []; // Stockage des données
         let selectedDateTime = null; // Date et heure sélectionnées
@@ -13,6 +13,7 @@
         // Remplir la liste des heures (00 à 23)
         function fillHours() {
             const hourSelect = document.getElementById("selectedHour");
+            hourSelect.innerHTML = "";
             for (let i = 0; i < 24; i++) {
                 const hour = i.toString().padStart(2, '0');
                 hourSelect.innerHTML += `<option value="${hour}">${hour}:00</option>`;
@@ -173,9 +174,10 @@
             // Met à jour le titre selon la période
             const title = document.getElementById("mainTitle");
             if (title) {
+                let periodText = interval === "1h" ? "Bougie 1h" : "Bougie 2h";
                 title.textContent = selectedDateTime
-                    ? `Analyse Crypto - ${selectedDateTime.toLocaleString('fr-FR')}`
-                    : `Analyse Crypto - Maintenant`;
+                    ? `Analyse Crypto - ${periodText} - ${selectedDateTime.toLocaleString('fr-FR')}`
+                    : `Analyse Crypto - ${periodText} - Maintenant`;
             }
             
             // Remplit le tableau
@@ -204,8 +206,12 @@
 
         // 7. Charge les données pour la date/heure sélectionnée
         function loadData() {
+            const timeframeSelect = document.getElementById("timeframe");
             const dateInput = document.getElementById("selectedDate");
             const hourSelect = document.getElementById("selectedHour");
+            
+            // Met à jour l'intervalle sélectionné
+            interval = timeframeSelect.value;
             
             if (dateInput.value) {
                 // Crée un objet Date avec la date et l'heure sélectionnées
@@ -240,9 +246,10 @@
             const dateTimeElement = document.getElementById("currentDateTime");
             
             if (dateTimeElement) {
+                let periodText = interval === "1h" ? "Bougie 1h" : "Bougie 2h";
                 dateTimeElement.textContent = selectedDateTime
-                    ? `Données pour : ${selectedDateTime.toLocaleString('fr-FR')}`
-                    : `Données actuelles : ${now.toLocaleString('fr-FR')}`;
+                    ? `${periodText} - Données pour : ${selectedDateTime.toLocaleString('fr-FR')}`
+                    : `${periodText} - Données actuelles : ${now.toLocaleString('fr-FR')}`;
             }
         }
 
