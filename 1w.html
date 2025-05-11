@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+   <head>
+      <meta charset="utf-8">
+      <title>Trading - 1 semaine</title>
+      <link rel="stylesheet" href="../../style.css">
+   </head>
+   <body>
+      <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
+      <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
+         " onclick="window.location.href='../../index.html'">Accueil</button>
+      <h2>Trading - Weekly</h2>
+<p style="font-weight: bold;">Mise à jour : <span id="currentDate"></span></p>
+<div id="heure"></div>
+<br>
+<div style="margin-bottom: 10px; font-size: 14px;">
+   <strong>Légende :</strong><br>
+   <!-- Votre légende ici -->
+</div>
+<div id="controls">
+   <label for="timeframe">Timeframe :</label>
+   <select id="timeframe" onchange="changeTimeframe()">
+      <option value="1d">Journalier</option>
+      <option value="1w" selected>Hebdomadaire</option>
+   </select>
+   <label for="historicalDate">Date historique :</label>
+   <input type="date" id="historicalDate" onchange="loadHistoricalData()">
+   <button onclick="resetToCurrent()">Retour à aujourd'hui</button>
+   <button onclick="updateTable('ALL')">Tout voir</button>
+   <button onclick="updateTable('LONG')">Seulement LONG</button>
+   <button onclick="updateTable('SHORT')">Seulement SHORT</button>
+</div>
+<table>
+   <thead>
+      <!-- En-têtes de colonnes -->
+   </thead>
+   <tbody id="cryptoTableBody"></tbody>
+
+</table>
+      <script src="/1w.js"></script>
+   </body>
+</html>
