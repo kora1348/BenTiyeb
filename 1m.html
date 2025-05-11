@@ -21,22 +21,49 @@
     <span style="color: orange;">HOLD</span> = Ne rien faire<br>
   </div>
   
-  <div id="controls">
-    <label for="timeframe">Période :</label>
-    <select id="timeframe" onchange="changeTimeframe()">
-      <option value="1d">Journalier</option>
-      <option value="1w" selected>Hebdomadaire</option>
-      <option value="1M">Mensuel</option>
-    </select>
-    
-    <label for="historicalDate">Date historique :</label>
-    <input type="date" id="historicalDate" onchange="loadHistoricalData()">
-    
-    <button onclick="resetToCurrent()">Retour à aujourd'hui</button>
-    <button onclick="updateTable('ALL')">Tout voir</button>
-    <button onclick="updateTable('LONG')">Seulement LONG</button>
-    <button onclick="updateTable('SHORT')">Seulement SHORT</button>
-  </div>
+   <div id="container">
+        <h1 id="mainTitle">Analyse Crypto - Bougie 1h</h1>
+        
+        <div id="controls">
+            <label for="selectedDate">Date :</label>
+            <input type="date" id="selectedDate">
+            
+            <label for="selectedHour">Heure :</label>
+            <select id="selectedHour">
+                <!-- Les heures seront ajoutées par JavaScript -->
+            </select>
+            
+            <button onclick="loadData()">Charger</button>
+            <button onclick="resetToCurrent()">Maintenant</button>
+            
+            <button onclick="updateTable('ALL')">Tout voir</button>
+            <button onclick="updateTable('LONG')">Seulement LONG</button>
+            <button onclick="updateTable('SHORT')">Seulement SHORT</button>
+        </div>
+        
+        <div id="currentInfo">
+            <span id="currentDateTime"></span>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Crypto</th>
+                    <th>Variation</th>
+                    <th>Volume (MA20)</th>
+                    <th>RSI</th>
+                    <th>Signal</th>
+                    <th>Support/Résistance</th>
+                    <th>Divergence</th>
+                </tr>
+            </thead>
+            <tbody id="cryptoTableBody">
+                <tr>
+                    <td colspan="7" class="loading">Chargement des données...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
   
   <table>
     <thead>
