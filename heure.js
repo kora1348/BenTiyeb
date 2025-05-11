@@ -562,7 +562,7 @@
             if (last.volume > last.volumeMA20) {
                 if (last.rsi > 50 && last.close > prev1.high) {
                     crypto.signal = "LONG";
-                } else if (last.rsi < 50 && last.close < prev1.low) {
+                } else if (last.rsi < 30 && last.close < prev1.low) {
                     crypto.signal = "SHORT";
                 }
             }
