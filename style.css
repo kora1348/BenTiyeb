@@ -1,107 +1,8 @@
- body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        #container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        #controls {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-        label {
-            font-weight: bold;
-            margin-right: 5px;
-        }
-        select, input, button {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #currentInfo {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 1.1em;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .positive {
-            color: green;
-        }
-        .negative {
-            color: red;
-        }
-        .row-long {
-            background-color: rgba(0, 255, 0, 0.1);
-        }
-        .row-short {
-            background-color: rgba(255, 0, 0, 0.1);
-        }
-        .signal {
-            font-weight: bold;
-        }
-        .long {
-            color: green;
-        }
-        .short {
-            color: red;
-        }
-        .hold {
-            color: orange;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-style: italic;
-            color: #666;
-        }
-        .error {
-            text-align: center;
-            padding: 20px;
-            color: red;
-            font-weight: bold;
-        }
+body {
+  margin-top:30px;
+  font-size: 15px;
+}
+
       ul {
       display: flex;
       list-style-type: none;
@@ -116,3 +17,145 @@
       text-decoration: none;
       color: #1b1b1b;
     }
+
+.container {
+  max-width: 960px;
+}
+
+
+/* */
+
+table {
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 8px;
+}
+
+.positive {
+  color: green;
+  font-weight: 800;
+}
+
+.negative {
+  color: red;
+  font-weight: 800;
+}
+
+.negative2 {
+  color: lightcoral;
+  font-weight: 800;
+}
+
+.positive2 {
+  color: lightgreen;
+  font-weight: 800;
+}
+
+.blue {
+color: blue;
+font-weight: 800;
+}
+
+
+.orange {
+color: orange;
+font-weight: 800;
+}
+
+.blue {
+color: blue;
+font-weight: 800;
+}
+
+.total {
+color: blue;
+font-weight: 800;
+}
+
+.long {
+color: green;
+}
+
+.short {
+color: red;
+}
+
+.text-center {
+text-align: center;
+margin: 0 auto;
+}
+
+.time {
+color: black;
+}
+
+.black {
+color: black;
+font-weight: 800;
+}
+
+.button {
+background-color: #008CBA; /* Couleur de fond */
+color: white; /* Couleur du texte */
+border: none; /* Pas de bordure */
+padding: 10px 20px; /* Espacement du contenu à l'intérieur du bouton */
+text-align: center; /* Centre le texte horizontalement */
+text-decoration: none; /* Pas de soulignement pour le texte */
+display: inline-block; /* Permet au bouton de s'ajuster au contenu */
+font-size: 16px; /* Taille de police */
+margin: 4px 2px; /* Marge autour du bouton */
+cursor: pointer; /* Curseur de la souris en forme de main quand on survole le bouton */
+border-radius: 4px; /* Coins arrondis */
+}
+
+.green-text {
+color: green;
+font-weight: 800;
+}
+
+
+.above {
+  color: lightgreen;
+  font-weight: 100;
+}
+.below {
+  color: lightcoral;
+  font-weight: 800;
+}
+
+#dateList {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr); /* 3 colonnes */
+  gap: 10px; /* Espace entre les éléments */
+  list-style-type: none;
+  padding: 0;
+}
+
+#dateList li {
+  padding: 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #f9f9f9;
+}
+
+/* Si la date est celle d'aujourd'hui, on la met en vert */
+#dateList li.today {
+  color: green;
+  font-weight: bold;
+}
+
+#cryptoList {
+  display: flex;
+  flex-direction: column; /* Organiser les éléments verticalement */
+  gap: 10px; /* Espacement vertical entre les éléments */
+}
+.pair-item {
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: #f3f3f3;
+}
