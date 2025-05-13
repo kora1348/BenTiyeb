@@ -1,6 +1,6 @@
 const cryptos = [
   "1INCH", "1MBABYDOGE", "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK",
-  "BTC", "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR", "IP", "KAITO",
+  "BTC", "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR",  "KAITO",
   "LINK", "LTC", "NEAR", "NEO", "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI",
   "TIA", "TRUMP", "WIF", "WLD", "XRP"
 ];
