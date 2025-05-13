@@ -1,8 +1,3 @@
-let totalVariations = 0; // Variable globale pour stocker la somme des variations
-let cryptoCount = 0; // Variable pour compter le nombre de cryptos traitées (jusqu'à 149)
-
-// Fonction pour vider les cellules de variation existantes
-function clearExistingVariations() {
 const cryptos = [
   "1INCH", "1MBABYDOGE", "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK",
   "BTC", "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR", "IP", "KAITO",
@@ -10,10 +5,13 @@ const cryptos = [
   "TIA", "TRUMP", "WIF", "WLD", "XRP"
 ];
 
+let totalVariations = 0;
+let cryptoCount = 0;
+
+function clearExistingVariations() {
   cryptos.forEach((symbol) => {
     const cryptoRow = document.getElementById(symbol);
     if (cryptoRow) {
-      // Supprimer toutes les cellules sauf la première (nom de la crypto)
       while (cryptoRow.cells.length > 1) {
         cryptoRow.deleteCell(1);
       }
@@ -21,112 +19,102 @@ const cryptos = [
   });
 }
 
+function formatDate(date) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(2);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${month}/${day}/${year} ${hours}:${minutes}`;
+}
+
+function formatHour(date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `(${hours}:${minutes})`;
+}
+
 async function fetchCryptoData(symbol, startDate, endDate) {
   try {
     const response = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDC&interval=1d&startTime=${startDate}&endTime=${endDate}`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${startDate}&endTime=${endDate}`
     );
     const data = await response.json();
-
-    // Mise à jour du tableau avec les données et la couleur
     const cryptoRow = document.getElementById(symbol);
-    let shouldDisplay = false; // Variable pour vérifier si une variation >= 7% existe
-    let isShort = false; // Variable pour vérifier si une variation <= -7% existe
 
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
-      const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-      totalVariations += weeklyVariation; // Ajout de la variation à la somme globale
-      cryptoCount++; // Incrément du compteur
-      updateTotalAndAverageVariations(); // Mise à jour des éléments HTML pour le total et la moyenne
+      const variation = ((closePrice - openPrice) / openPrice) * 100;
+      totalVariations += variation;
+      cryptoCount++;
+      updateTotalAndAverageVariations();
 
-      const cellIndex = i + 1; // Décalage d'une cellule pour éviter la première cellule (Crypto)
+      const cellIndex = i + 1;
       const variationCell = cryptoRow.insertCell(cellIndex);
-      const variationValue = weeklyVariation.toFixed(2);
-
-      // Conversion des timestamps pour affichage formaté
       const openTime = new Date(data[i][0]);
       const closeTime = new Date(data[i][6]);
 
-      function formatDate(date) {
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = String(date.getFullYear()).slice(2); // deux derniers chiffres
-        const hours = String(date.getHours()).padStart(2, "0");
-        const minutes = String(date.getMinutes()).padStart(2, "0");
-        return `${month}/${day}/${year} ${hours}:${minutes}`;
-      }
+      variationCell.textContent = `${formatDate(openTime)} ${formatHour(openTime)} - ${formatDate(closeTime)} ${formatHour(closeTime)} : (${variation.toFixed(2)}%)`;
 
-      function formatHour(date) {
-        const hours = String(date.getHours()).padStart(2, "0");
-        const minutes = String(date.getMinutes()).padStart(2, "0");
-        return `(${hours}:${minutes})`;
-      }
-
-      const formattedOpenTime = `${formatDate(openTime)} ${formatHour(
-        openTime
-      )}`;
-      const formattedCloseTime = `${formatDate(closeTime)} ${formatHour(
-        closeTime
-      )}`;
-
-      // Mise à jour du contenu de la cellule
-      variationCell.textContent = `${formattedOpenTime} - ${formattedCloseTime} : (${variationValue}%)`;
-
-      // Ajouter la classe "positive" ou "negative" en fonction de la variation
-      if (weeklyVariation > 0) {
+      if (variation > 0) {
         variationCell.classList.add("positive");
-      } else if (weeklyVariation < 0) {
+      } else if (variation < 0) {
         variationCell.classList.add("negative");
       }
     }
   } catch (error) {
-    console.error(
-      `Erreur lors de la récupération des données pour ${symbol}:`,
-      error
-    );
+    console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
   }
 }
 
-// Fonction pour mettre à jour l'affichage du total et de la moyenne des variations
 function updateTotalAndAverageVariations() {
-  const totalVariationsElement = document.getElementById("totalVariations");
-  const averageVariationsElement = document.getElementById("averageVariations");
+  const totalEl = document.getElementById("totalVariations");
+  const averageEl = document.getElementById("averageVariations");
 
-  totalVariationsElement.textContent = `Total des variations : ${totalVariations.toFixed(
-    2
-  )}%`;
-
-  // Calcul de la moyenne sur 151 cryptos et conversion au format pourcentage
-  const averageVariations =
-    (totalVariations / Math.min(cryptoCount, 151)) * 100;
-  averageVariationsElement.textContent = `Moyenne des variations : ${averageVariations.toFixed(
-    2
-  )}%`;
+  totalEl.textContent = `Total des variations : ${totalVariations.toFixed(2)}%`;
+  const avg = (totalVariations / Math.min(cryptoCount, 151)) * 100;
+  averageEl.textContent = `Moyenne des variations : ${avg.toFixed(2)}%`;
 }
 
-// Fonction pour récupérer les données pour la période spécifiée
-function fetchDataForPeriod() {
-  const startDate = document.getElementById("startDate").value;
-  const endDate = document.getElementById("endDate").value;
+function getTodayRangeTimestamps() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const end = start + 24 * 60 * 60 * 1000 - 1; // Fin de journée
+  return { start, end };
+}
 
-  // Convertir les dates en timestamp
-  const startTimestamp = new Date(startDate).getTime();
-  const endTimestamp = new Date(endDate).getTime();
-
-  // Réinitialiser les variables globales
+function loadData(startTimestamp, endTimestamp) {
+  clearExistingVariations();
   totalVariations = 0;
   cryptoCount = 0;
 
-  // Vider les anciennes variations avant de récupérer les nouvelles
-  clearExistingVariations();
-
-  
-  // Mettre à jour la date de mise à jour
-  document.getElementById("updateDate").textContent =
-    new Date().toLocaleDateString();
+  cryptos.forEach(symbol => {
+    fetchCryptoData(symbol, startTimestamp, endTimestamp);
+  });
 }
+
+function fetchDataForPeriod() {
+  const startDateVal = document.getElementById("startDate").value;
+  const endDateVal = document.getElementById("endDate").value;
+
+  if (!startDateVal || !endDateVal) {
+    alert("Veuillez sélectionner une plage de dates.");
+    return;
+  }
+
+  const startTimestamp = new Date(startDateVal).getTime();
+  const endTimestamp = new Date(endDateVal).getTime();
+
+  loadData(startTimestamp, endTimestamp);
+}
+
+// Charger automatiquement les données de la date du jour quand la page s’ouvre
+window.addEventListener("DOMContentLoaded", () => {
+  const { start, end } = getTodayRangeTimestamps();
+  loadData(start, end);
+});
+
 
 function mettreAJourHeure() {
   var elementHeure = document.getElementById("heure");
