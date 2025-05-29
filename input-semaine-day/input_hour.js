@@ -113,8 +113,24 @@ const endTimestamp = Date.parse(endDateVal);
 
 // Charger automatiquement les données de la date du jour quand la page s’ouvre
 window.addEventListener("DOMContentLoaded", () => {
-  const { start, end } = getTodayRangeTimestamps();
-  loadData(start, end);
+  const now = new Date();
+
+  // Crée une copie de "now" et met les minutes et secondes à 0 pour le début de l'heure
+  const startOfHour = new Date(now);
+  startOfHour.setMinutes(0, 0, 0);
+
+  // Format ISO pour les champs datetime-local
+  function toInputDateTimeString(date) {
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  // Remplit automatiquement les champs
+  document.getElementById("startDate").value = toInputDateTimeString(startOfHour);
+  document.getElementById("endDate").value = toInputDateTimeString(now);
+
+  // Lance immédiatement la récupération des données
+  fetchDataForPeriod();
 });
 
 
