@@ -1,8 +1,8 @@
 const cryptos = [
-  "1INCH", "1MBABYDOGE", "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK",
-  "BTC", "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR",  "KAITO",
-  "LINK", "LTC", "NEAR", "NEO", "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI",
-  "TIA", "TRUMP", "WIF", "WLD", "XRP"
+  "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK", "BTC", "CRV", "DOGE",
+  "ENA", "ETH", "ETHFI", "FIL", "HBAR", "KAITO", "LINK", "LTC", "NEAR",
+  "NEO", "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI", "TIA", "TRUMP",
+  "WIF", "WLD", "XRP"
 ];
 
 let totalVariations = 0;
@@ -19,19 +19,13 @@ function clearExistingVariations() {
   });
 }
 
-function formatDate(date) {
+function formatDateTime(date) {
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = String(date.getFullYear()).slice(2);
+  const year = String(date.getFullYear());
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${month}/${day}/${year} ${hours}:${minutes}`;
-}
-
-function formatHour(date) {
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `(${hours}:${minutes})`;
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
 async function fetchCryptoData(symbol, startDate, endDate) {
@@ -46,16 +40,19 @@ async function fetchCryptoData(symbol, startDate, endDate) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
       const variation = ((closePrice - openPrice) / openPrice) * 100;
+
       totalVariations += variation;
       cryptoCount++;
-      updateTotalAndAverageVariations();
+      updateTotalVariations();
 
       const cellIndex = i + 1;
       const variationCell = cryptoRow.insertCell(cellIndex);
+
       const openTime = new Date(data[i][0]);
       const closeTime = new Date(data[i][6]);
 
-      variationCell.textContent = `${formatDate(openTime)} ${formatHour(openTime)} - ${formatDate(closeTime)} ${formatHour(closeTime)} : (${variation.toFixed(2)}%)`;
+      variationCell.textContent =
+        `${formatDateTime(openTime)} - ${formatDateTime(closeTime)} : (${variation.toFixed(2)}%)`;
 
       if (variation > 0) {
         variationCell.classList.add("positive");
@@ -68,20 +65,9 @@ async function fetchCryptoData(symbol, startDate, endDate) {
   }
 }
 
-function updateTotalAndAverageVariations() {
+function updateTotalVariations() {
   const totalEl = document.getElementById("totalVariations");
-  const averageEl = document.getElementById("averageVariations");
-
   totalEl.textContent = `Total des variations : ${totalVariations.toFixed(2)}%`;
-  const avg = (totalVariations / Math.min(cryptoCount, 151)) * 100;
-  averageEl.textContent = `Moyenne des variations : ${avg.toFixed(2)}%`;
-}
-
-function getTodayRangeTimestamps() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const end = start + 24 * 60 * 60 * 1000 - 1; // Fin de journée
-  return { start, end };
 }
 
 function loadData(startTimestamp, endTimestamp) {
@@ -89,7 +75,7 @@ function loadData(startTimestamp, endTimestamp) {
   totalVariations = 0;
   cryptoCount = 0;
 
-  cryptos.forEach(symbol => {
+  cryptos.forEach((symbol) => {
     fetchCryptoData(symbol, startTimestamp, endTimestamp);
   });
 }
@@ -103,16 +89,32 @@ function fetchDataForPeriod() {
     return;
   }
 
-  const startTimestamp = new Date(startDateVal).getTime();
-  const endTimestamp = new Date(endDateVal).getTime();
+  const startTimestamp = Date.parse(startDateVal);
+  const endTimestamp = Date.parse(endDateVal);
 
   loadData(startTimestamp, endTimestamp);
 }
 
-// Charger automatiquement les données de la date du jour quand la page s’ouvre
+function toInputDateTimeString(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 window.addEventListener("DOMContentLoaded", () => {
-  const { start, end } = getTodayRangeTimestamps();
-  loadData(start, end);
+  const now = new Date();
+
+  // Commencer à 02h00 du jour actuel
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0);
+  const end = now;
+
+  // Remplir automatiquement les champs du formulaire
+  document.getElementById("startDate").value = toInputDateTimeString(start);
+  document.getElementById("endDate").value = toInputDateTimeString(end);
+
+  // Affichage de la date actuelle dans le champ "Mise à jour"
+  document.getElementById("updateDate").textContent = formatDateTime(end);
+
+  loadData(start.getTime(), end.getTime());
 });
 
 

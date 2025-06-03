@@ -2,27 +2,27 @@
 <html lang="fr">
    <head>
       <meta charset="utf-8">
-      <title>Input day</title>
+      <title>1 jour</title>
       <link rel="stylesheet" href="../../style.css">
    </head>
    <body>
       <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
          " onclick="window.location.href='../../index.html'">Accueil</button>
-      <h2>Input day</h2>
+      <h2>1 jour</h2>
       <p style="font-weight: bold;">Mise à jour : <span id="updateDate">03/05/2025</span></p>
       <div id="heure"></div>
       <br>
       <!-- Formulaire pour les dates -->
       <form onsubmit="fetchDataForPeriod(); return false;">
-         <label for="startDate">Date d'entrée :</label>
-         <input type="date" id="startDate" required>
-         <label for="endDate">Date de sortie :</label>
-         <input type="date" id="endDate" required>
-         <button type="submit">Analyser</button>
-      </form>
-      <br><br>
-      <div id="totalVariations">Total des variations : </div>
+  <label for="startDate">Date d'entrée :</label>
+  <input type="datetime-local" id="startDate" required>
 
+  <label for="endDate">Date de sortie :</label>
+  <input type="datetime-local" id="endDate" required>
+
+  <button type="submit">Analyser</button>
+</form>
+      <div id="totalVariations">Total des variations : </div>
       <table>
     <tr>
         <th>Crypto</th>
@@ -122,7 +122,6 @@
         <td>XRP</td>
     </tr>
 </table>
-      <div id="averageVariations">Moyenne des variations : </div>
       <script src="/input-semaine-day/input_day.js"></script>
    </body>
 </html>
