@@ -1,6 +1,6 @@
 const cryptos = [
   "1INCH", "1MBABYDOGE", "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK",
-  "BTC", "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR",  "KAITO",
+  "BTC", "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR", "KAITO",
   "LINK", "LTC", "NEAR", "NEO", "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI",
   "TIA", "TRUMP", "WIF", "WLD", "XRP"
 ];
@@ -38,7 +38,6 @@ async function fetchCryptoData(symbol, startDate, endDate) {
   try {
     const response = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&startTime=${startDate}&endTime=${endDate}`
-
     );
     const data = await response.json();
     const cryptoRow = document.getElementById(symbol);
@@ -49,7 +48,7 @@ async function fetchCryptoData(symbol, startDate, endDate) {
       const variation = ((closePrice - openPrice) / openPrice) * 100;
       totalVariations += variation;
       cryptoCount++;
-      updateTotalAndAverageVariations();
+      updateTotalVariations();
 
       const cellIndex = i + 1;
       const variationCell = cryptoRow.insertCell(cellIndex);
@@ -69,19 +68,15 @@ async function fetchCryptoData(symbol, startDate, endDate) {
   }
 }
 
-function updateTotalAndAverageVariations() {
+function updateTotalVariations() {
   const totalEl = document.getElementById("totalVariations");
-  const averageEl = document.getElementById("averageVariations");
-
   totalEl.textContent = `Total des variations : ${totalVariations.toFixed(2)}%`;
-  const avg = (totalVariations / Math.min(cryptoCount, 151)) * 100;
-  averageEl.textContent = `Moyenne des variations : ${avg.toFixed(2)}%`;
 }
 
 function getTodayRangeTimestamps() {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const end = start + 24 * 60 * 60 * 1000 - 1; // Fin de journée
+  const end = start + 24 * 60 * 60 * 1000 - 1;
   return { start, end };
 }
 
@@ -104,34 +99,28 @@ function fetchDataForPeriod() {
     return;
   }
 
-const startTimestamp = Date.parse(startDateVal);
-const endTimestamp = Date.parse(endDateVal);
-
+  const startTimestamp = Date.parse(startDateVal);
+  const endTimestamp = Date.parse(endDateVal);
 
   loadData(startTimestamp, endTimestamp);
 }
 
-// Charger automatiquement les données de la date du jour quand la page s’ouvre
 window.addEventListener("DOMContentLoaded", () => {
   const now = new Date();
-
-  // Crée une copie de "now" et met les minutes et secondes à 0 pour le début de l'heure
   const startOfHour = new Date(now);
   startOfHour.setMinutes(0, 0, 0);
 
-  // Format ISO pour les champs datetime-local
   function toInputDateTimeString(date) {
     const pad = (n) => String(n).padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
-  // Remplit automatiquement les champs
   document.getElementById("startDate").value = toInputDateTimeString(startOfHour);
   document.getElementById("endDate").value = toInputDateTimeString(now);
 
-  // Lance immédiatement la récupération des données
   fetchDataForPeriod();
 });
+
 
 
 function mettreAJourHeure() {
