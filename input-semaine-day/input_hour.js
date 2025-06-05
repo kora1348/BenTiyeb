@@ -173,7 +173,29 @@ mettreAJourHeure();
 function exportToExcel() {
   const table = document.querySelector("table");
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.table_to_sheet(table);
+  const ws = XLSX.utils.table_to_sheet(table, { skipHeader: false });
+
+  // Insérer "Total des variations : xx.xx%" dans la cellule B1
+  ws["B1"] = { t: "s", v: `Total des variations : ${totalVariations.toFixed(2)}%` };
+
+  // Générer le nom du fichier avec le bon format
+  const startDateVal = document.getElementById("startDate").value;
+  const endDateVal = document.getElementById("endDate").value;
+
+  const formatDateForFilename = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}/${month}/${year}_${hours}h${minutes}`;
+  };
+
+  const startFormatted = formatDateForFilename(startDateVal);
+  const endFormatted = formatDateForFilename(endDateVal);
+  const filename = `crypto_${startFormatted}a_${endFormatted}.xlsx`;
+
   XLSX.utils.book_append_sheet(wb, ws, "Données Crypto");
-  XLSX.writeFile(wb, "donnees_crypto.xlsx");
+  XLSX.writeFile(wb, filename);
 }
