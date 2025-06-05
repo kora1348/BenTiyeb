@@ -42,31 +42,37 @@ async function fetchCryptoData(symbol, startDate, endDate) {
     const data = await response.json();
     const cryptoRow = document.getElementById(symbol);
 
+    if (!data.length) return;
+
+    let totalVariation = 0;
+
     for (let i = 0; i < data.length; i++) {
       const openPrice = parseFloat(data[i][1]);
       const closePrice = parseFloat(data[i][4]);
       const variation = ((closePrice - openPrice) / openPrice) * 100;
-      totalVariations += variation;
-      cryptoCount++;
-      updateTotalVariations();
-
-      const cellIndex = i + 1;
-      const variationCell = cryptoRow.insertCell(cellIndex);
-      const openTime = new Date(data[i][0]);
-      const closeTime = new Date(data[i][6]);
-
-      variationCell.textContent = `${formatDate(openTime)} ${formatHour(openTime)} - ${formatDate(closeTime)} ${formatHour(closeTime)} : (${variation.toFixed(2)}%)`;
-
-      if (variation > 0) {
-        variationCell.classList.add("positive");
-      } else if (variation < 0) {
-        variationCell.classList.add("negative");
-      }
+      totalVariation += variation;
     }
+
+    const variationCell = cryptoRow.insertCell(1);
+    const startDateFormatted = formatDate(new Date(startDate));
+    const endDateFormatted = formatDate(new Date(endDate));
+    variationCell.textContent = `${startDateFormatted} - ${endDateFormatted} : (${totalVariation.toFixed(2)}%)`;
+
+    if (totalVariation > 0) {
+      variationCell.classList.add("positive");
+    } else if (totalVariation < 0) {
+      variationCell.classList.add("negative");
+    }
+
+    totalVariations += totalVariation;
+    cryptoCount++;
+    updateTotalVariations();
+
   } catch (error) {
     console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
   }
 }
+
 
 function updateTotalVariations() {
   const totalEl = document.getElementById("totalVariations");
