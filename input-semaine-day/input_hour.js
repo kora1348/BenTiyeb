@@ -189,13 +189,17 @@ function exportToExcel() {
     const year = date.getFullYear();
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${day}/${month}/${year}_${hours}h${minutes}`;
+    return `${day}-${month}-${year}_${hours}h${minutes}`; // Remplace / par - pour un nom de fichier valide
   };
 
   const startFormatted = formatDateForFilename(startDateVal);
   const endFormatted = formatDateForFilename(endDateVal);
-  const filename = `crypto_${startFormatted}a_${endFormatted}.xlsx`;
+  const filenameBase = `crypto_${startFormatted}a_${endFormatted}`;
+  const filename = `${filenameBase}.xlsx`;
 
-  XLSX.utils.book_append_sheet(wb, ws, "Données Crypto");
+  // Utiliser le même nom pour la feuille, en le tronquant à 31 caractères si nécessaire (limite Excel)
+  const sheetName = filenameBase.substring(0, 31);
+
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
   XLSX.writeFile(wb, filename);
 }
