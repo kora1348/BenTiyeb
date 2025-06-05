@@ -81,8 +81,8 @@ function updateTotalVariations() {
 
 function getTodayRangeTimestamps() {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const end = start + 24 * 60 * 60 * 1000 - 1;
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2).getTime(); // 02:00:00
+  const end = now.getTime();
   return { start, end };
 }
 
@@ -113,15 +113,17 @@ function fetchDataForPeriod() {
 
 window.addEventListener("DOMContentLoaded", () => {
   const now = new Date();
-  const startOfHour = new Date(now);
-  startOfHour.setMinutes(0, 0, 0);
+  
+  // Créer une date pour 02:00 du matin du jour courant
+  const startOfDay = new Date(now);
+  startOfDay.setHours(2, 0, 0, 0); // 02:00:00.000
 
   function toInputDateTimeString(date) {
     const pad = (n) => String(n).padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
-  document.getElementById("startDate").value = toInputDateTimeString(startOfHour);
+  document.getElementById("startDate").value = toInputDateTimeString(startOfDay);
   document.getElementById("endDate").value = toInputDateTimeString(now);
 
   fetchDataForPeriod();
