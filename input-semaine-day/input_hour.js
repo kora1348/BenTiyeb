@@ -178,10 +178,23 @@ function exportToExcel() {
   // Insérer "Total des variations : xx.xx%" dans la cellule B1
   ws["B1"] = { t: "s", v: `Total des variations : ${totalVariations.toFixed(2)}%` };
 
-  // Générer le nom du fichier avec le bon format
+  // Générer les noms
   const startDateVal = document.getElementById("startDate").value;
   const endDateVal = document.getElementById("endDate").value;
 
+  // Fonction pour formater la date au format JJ-MM-AAAA
+  const formatDateForSheet = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const startFormatted = formatDateForSheet(startDateVal);
+  const endFormatted = formatDateForSheet(endDateVal);
+  
+  // Nom du fichier (gardé comme avant)
   const formatDateForFilename = (dateStr) => {
     const date = new Date(dateStr);
     const day = String(date.getDate()).padStart(2, "0");
@@ -189,16 +202,15 @@ function exportToExcel() {
     const year = date.getFullYear();
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${day}-${month}-${year}_${hours}h${minutes}`; // Remplace / par - pour un nom de fichier valide
+    return `${day}-${month}-${year}_${hours}h${minutes}`;
   };
 
-  const startFormatted = formatDateForFilename(startDateVal);
-  const endFormatted = formatDateForFilename(endDateVal);
-  const filenameBase = `crypto_${startFormatted}a_${endFormatted}`;
-  const filename = `${filenameBase}.xlsx`;
+  const filenameStart = formatDateForFilename(startDateVal);
+  const filenameEnd = formatDateForFilename(endDateVal);
+  const filename = `crypto_${filenameStart}a_${filenameEnd}.xlsx`;
 
-  // Utiliser le même nom pour la feuille, en le tronquant à 31 caractères si nécessaire (limite Excel)
-  const sheetName = filenameBase.substring(0, 31);
+  // Nom de la feuille - format simplifié comme demandé
+  const sheetName = `${startFormatted}_${endFormatted}`.substring(0, 31);
 
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
   XLSX.writeFile(wb, filename);
