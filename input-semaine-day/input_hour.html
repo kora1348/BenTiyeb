@@ -11,6 +11,8 @@
       <h2>1 Heure</h2>
       <p style="font-weight: bold;">Mise à jour : <span id="updateDate">03/05/2025</span></p>
       <div id="heure"></div>
+      <button onclick="exportToExcel()" style="margin-top: 20px;">Exporter vers Excel</button>
+
       <br>
       <!-- Formulaire pour les dates -->
       <form onsubmit="fetchDataForPeriod(); return false;">
@@ -123,5 +125,7 @@
     </tr>
 </table>
       <script src="/input-semaine-day/input_hour.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
    </body>
 </html>

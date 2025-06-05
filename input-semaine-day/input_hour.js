@@ -169,3 +169,11 @@ function mettreAJourHeure() {
 
 // Appeler la fonction pour mettre à jour l'heure
 mettreAJourHeure();
+
+function exportToExcel() {
+  const table = document.querySelector("table");
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(table);
+  XLSX.utils.book_append_sheet(wb, ws, "Données Crypto");
+  XLSX.writeFile(wb, "donnees_crypto.xlsx");
+}
