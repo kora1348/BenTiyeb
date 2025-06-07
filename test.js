@@ -12,14 +12,12 @@ const exchanges = [
   'Gemini'
 ];
 
-// Liste de cryptos à analyser
 const cryptos = [
   "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK", "BTC", "CRV", "DOGE",
   "ENA", "ETH", "ETHFI", "FIL", "HBAR", "KAITO", "LINK", "LTC", "NEAR", "NEO",
   "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI", "TIA", "TRUMP", "WIF", "WLD", "XRP"
 ];
 
-// Mapping CoinGecko IDs (indispensable, car les IDs ne sont pas toujours les mêmes que les symboles)
 const coinGeckoIds = {
   BTC: "bitcoin",
   ETH: "ethereum",
@@ -52,7 +50,7 @@ const coinGeckoIds = {
   ORDI: "ordinals",
   TRUMP: "maga",
   WIF: "dogwifhat",
-  MATIC: "matic-network" // Exemples de tokens supplémentaires
+  MATIC: "matic-network"
 };
 
 async function fetchCryptoPrices(symbol) {
@@ -62,65 +60,75 @@ async function fetchCryptoPrices(symbol) {
   const response = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/tickers`);
   const data = await response.json();
 
-  const tickers = data.tickers.filter(t =>
-    exchanges.includes(t.market.name) && t.target === 'USDT'
-  );
+  // Regrouper les tickers par devise (USD, USDT, EUR, etc.)
+  const groupedByCurrency = {};
 
-  if (tickers.length === 0) return;
-
-  const prices = [];
-  const table = document.createElement('table');
-  table.classList.add('crypto-table');
-  table.innerHTML = `
-    <thead>
-      <tr><th colspan="2">${symbol}</th></tr>
-      <tr><th>Plateforme</th><th>Prix ${symbol} (USD)</th></tr>
-    </thead>
-    <tbody></tbody>
-  `;
-
-  const tbody = table.querySelector('tbody');
-
-  tickers.forEach(ticker => {
-    const price = parseFloat(ticker.last);
-    prices.push({ exchange: ticker.market.name, price });
-
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${ticker.market.name}</td>
-      <td>$${price.toFixed(2)}</td>
-    `;
-    tbody.appendChild(row);
+  data.tickers.forEach(t => {
+    if (exchanges.includes(t.market.name)) {
+      if (!groupedByCurrency[t.target]) {
+        groupedByCurrency[t.target] = [];
+      }
+      groupedByCurrency[t.target].push({
+        exchange: t.market.name,
+        price: parseFloat(t.last),
+        currency: t.target
+      });
+    }
   });
 
-  if (prices.length < 2) return;
-
-  const sorted = prices.sort((a, b) => a.price - b.price);
-  const min = sorted[0];
-  const max = sorted[sorted.length - 1];
-  const spread = max.price - min.price;
-  const spreadPercent = (spread / min.price) * 100;
-
-  const avgPrice = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
-
-  const spreadInfo = document.createElement('p');
-  spreadInfo.textContent = `💹 Spread: $${spread.toFixed(2)} (Entre ${min.exchange} et ${max.exchange}) (${spreadPercent.toFixed(2)}%)`;
-
-  const avgInfo = document.createElement('p');
-  avgInfo.textContent = `📊 Prix moyen ${symbol} (1D approx): $${avgPrice.toFixed(2)}`;
-
-  const alert = document.createElement('p');
-  if (spread > 50) {
-    alert.textContent = `🚨 Arbitrage possible sur ${symbol} !`;
-    alert.style.color = 'red';
-  }
-
   const container = document.getElementById('results');
-  container.appendChild(table);
-  container.appendChild(avgInfo);
-  container.appendChild(spreadInfo);
-  container.appendChild(alert);
+
+  Object.entries(groupedByCurrency).forEach(([currency, prices]) => {
+    if (prices.length < 2) return;
+
+    const table = document.createElement('table');
+    table.classList.add('crypto-table');
+    table.innerHTML = `
+      <thead>
+        <tr><th colspan="2">${symbol} - ${currency}</th></tr>
+        <tr><th>Plateforme</th><th>Prix (${currency})</th></tr>
+      </thead>
+      <tbody></tbody>
+    `;
+
+    const tbody = table.querySelector('tbody');
+
+    prices.forEach(({ exchange, price }) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${exchange}</td>
+        <td>${price}</td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Calcul du prix moyen et spread
+    const sorted = [...prices].sort((a, b) => a.price - b.price);
+    const min = sorted[0];
+    const max = sorted[sorted.length - 1];
+    const spread = max.price - min.price;
+    const spreadPercent = (spread / min.price) * 100;
+    const avgPrice = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
+
+    const avgInfo = document.createElement('p');
+    avgInfo.textContent = `📊 Prix moyen ${symbol} (${currency}): ${avgPrice.toFixed(6)}`;
+
+    const spreadInfo = document.createElement('p');
+    spreadInfo.textContent = `💹 Spread: ${spread.toFixed(6)} (Entre ${min.exchange} et ${max.exchange}) (${spreadPercent.toFixed(2)}%)`;
+
+    const alert = document.createElement('p');
+    if (spreadPercent > 0.5) {
+      alert.textContent = `🚨 Arbitrage possible sur ${symbol} (${currency}) !`;
+      alert.style.color = 'red';
+    }
+
+    container.appendChild(table);
+    container.appendChild(avgInfo);
+    container.appendChild(spreadInfo);
+    if (spreadPercent > 0.5) container.appendChild(alert);
+  });
 }
+
 
 async function runAll() {
   document.getElementById('results').innerHTML = '';
