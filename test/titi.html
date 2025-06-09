@@ -6,30 +6,44 @@
       <link rel="stylesheet" href="../../style.css">
    </head>
    <body>
-      <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
-      <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
-         " onclick="window.location.href='../../index.html'">Accueil</button>
-      <h2>Spot - 3 mois</h2>
-      <p style="font-weight: bold;">Mise à jour : 23/04/2025</p>
-      <div id="heure"></div>
-      <br>
-      <div id="cryptoNames"></div>
-      <table>
-         <tr>
-            <th>Crypto</th>
-            <th>Mois 1</th>
-            <th>Mois 2</th>
-            <th>Mois 3</th>
-            <th>Mois 4</th>
-            <th>Mois 5</th>
-            <th>Mois 6</th>
-            <th>Total</th>
-         </tr>
-         <tr id="1INCH">
-            <td>1INCH</td>
-         </tr>
-  
-      </table>
+ 
+    <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;" onclick="window.location.href='../../index.html'">Accueil</button>
+    
+    <h2>Spot - 3 mois</h2>
+    <p style="font-weight: bold;">Mise à jour : 23/04/2025</p>
+    
+    <div id="dateInputs">
+      <label for="startDate">Date d'entrée :</label>
+      <input type="date" id="startDate">
+
+      <label for="endDate">Date de sortie :</label>
+      <input type="date" id="endDate">
+
+       <button id="validateBtn" style="margin-left: 10px; padding: 5px 10px;">Valider</button>
+    </div>
+
+    <div id="heure"></div>
+    <br>
+    <div id="cryptoNames"></div>
+
+    <table>
+      <tr>
+        <th>Crypto</th>
+        <th>Mois 1</th>
+        <th>Mois 2</th>
+        <th>Mois 3</th>
+        <th>Mois 4</th>
+        <th>Mois 5</th>
+        <th>Mois 6</th>
+        <th>Total</th>
+      </tr>
+      <tr id="1INCH">
+        <td>1INCH</td>
+      </tr>
+         <tr id="BTC">
+        <td>BTC</td>
+      </tr>
+    </table>
       <script src="/test/titi.js"></script>
    </body>
 </html>
