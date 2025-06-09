@@ -1,9 +1,11 @@
 const cryptos = [
-  "1INCH", "1MBABYDOGE", "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK",
-  "BTC", "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR", "KAITO",
+  "BTC", "1INCH", "1MBABYDOGE", "ADA", "ARB", "AVAX", "BCH", "BNB", "BOME", "BONK",
+   "CRV", "DOGE", "ENA", "ETH", "ETHFI", "FIL", "HBAR", "KAITO",
   "LINK", "LTC", "NEAR", "NEO", "ORDI", "PEPE", "PNUT", "SHIB", "SOL", "SUI",
   "TIA", "TRUMP", "WIF", "WLD", "XRP"
 ];
+
+let btcTotal = 0; // Variable pour stocker le total BTC
 
 function clearExistingVariations() {
   cryptos.forEach((symbol) => {
@@ -25,14 +27,11 @@ function formatMonth(date) {
 
 async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
   try {
-    // Créer un tableau de 6 mois entre startDate et endDate
     const months = [];
     let currentDate = new Date(startDate);
     
     while (currentDate <= endDate && months.length < 6) {
-      // Début du mois
       const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      // Fin du mois
       const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
       
       months.push({
@@ -40,7 +39,6 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
         end: monthEnd.getTime()
       });
       
-      // Passer au mois suivant
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
@@ -56,7 +54,6 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
 
       if (!data.length) continue;
 
-      // Prendre le premier jour (ouverture) et dernier jour (fermeture) du mois
       const openPrice = parseFloat(data[0][1]);
       const closePrice = parseFloat(data[data.length - 1][4]);
       const variation = ((closePrice - openPrice) / openPrice) * 100;
@@ -73,15 +70,38 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
       totalVariation += variation;
     }
 
-    // Ajouter la cellule Total à la fin
+    // Ajouter la cellule Total
     const totalCell = cryptoRow.insertCell(-1);
     totalCell.textContent = `${totalVariation.toFixed(2)}%`;
     
-    // Appliquer le style en fonction du total
     if (totalVariation > 0) {
       totalCell.classList.add("positive");
     } else if (totalVariation < 0) {
       totalCell.classList.add("negative");
+    }
+
+    // Si c'est le BTC, on stocke son total
+    if (symbol === "BTC") {
+      btcTotal = totalVariation;
+    }
+
+    // Ajouter la cellule Différence avec BTC (sauf pour le BTC lui-même)
+    // Ajouter la cellule Différence avec BTC (sauf pour le BTC lui-même)
+if (symbol !== "BTC") {
+  const diffWithBTCCell = cryptoRow.insertCell(-1);
+  const diffWithBTC = btcTotal - totalVariation; // ✅ Corrigé ici
+  diffWithBTCCell.textContent = `${diffWithBTC.toFixed(2)}%`;
+
+  if (diffWithBTC >= 90) {
+    diffWithBTCCell.classList.add("negative");
+  } else if (diffWithBTC <= -90) {
+    diffWithBTCCell.classList.add("positive");
+  }
+}
+ else {
+      // Pour le BTC, on met simplement "-" dans la colonne
+      const emptyCell = cryptoRow.insertCell(-1);
+      emptyCell.textContent = "-";
     }
 
   } catch (error) {
@@ -91,6 +111,7 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
 
 function loadMonthlyData(startTimestamp, endTimestamp) {
   clearExistingVariations();
+  btcTotal = 0; // Réinitialiser le total BTC
   cryptos.forEach(symbol => {
     fetchMonthlyCryptoData(symbol, startTimestamp, endTimestamp);
   });
@@ -108,11 +129,9 @@ function fetchDataForPeriod() {
   const startDate = new Date(startDateVal);
   const endDate = new Date(endDateVal);
 
-  // Calculer la date de début 6 mois avant la date de fin
   const sixMonthsAgo = new Date(endDate);
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); // 5 car nous incluons le mois actuel
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
 
-  // Utiliser la date la plus récente entre startDate et sixMonthsAgo
   const effectiveStartDate = startDate > sixMonthsAgo ? startDate : sixMonthsAgo;
 
   loadMonthlyData(effectiveStartDate.getTime(), endDate.getTime());
@@ -121,7 +140,7 @@ function fetchDataForPeriod() {
 window.addEventListener("DOMContentLoaded", () => {
   const now = new Date();
   const sixMonthsAgo = new Date(now);
-  sixMonthsAgo.setMonth(now.getMonth() - 5); // 5 car nous incluons le mois actuel
+  sixMonthsAgo.setMonth(now.getMonth() - 5);
 
   function toInputDateTimeString(date) {
     const pad = (n) => String(n).padStart(2, "0");
