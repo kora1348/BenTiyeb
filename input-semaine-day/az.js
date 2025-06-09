@@ -5,9 +5,6 @@ const cryptos = [
   "TIA", "TRUMP", "WIF", "WLD", "XRP"
 ];
 
-let totalVariations = 0;
-let cryptoCount = 0;
-
 function clearExistingVariations() {
   cryptos.forEach((symbol) => {
     const cryptoRow = document.getElementById(symbol);
@@ -48,6 +45,7 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
     }
 
     const cryptoRow = document.getElementById(symbol);
+    let totalVariation = 0;
     
     for (let i = 0; i < months.length; i++) {
       const {start, end} = months[i];
@@ -72,27 +70,27 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
         variationCell.classList.add("negative");
       }
 
-      totalVariations += variation;
-      cryptoCount++;
+      totalVariation += variation;
     }
 
-    updateTotalVariations();
+    // Ajouter la cellule Total à la fin
+    const totalCell = cryptoRow.insertCell(-1);
+    totalCell.textContent = `${totalVariation.toFixed(2)}%`;
+    
+    // Appliquer le style en fonction du total
+    if (totalVariation > 0) {
+      totalCell.classList.add("positive");
+    } else if (totalVariation < 0) {
+      totalCell.classList.add("negative");
+    }
 
   } catch (error) {
     console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
   }
 }
 
-function updateTotalVariations() {
-  const totalEl = document.getElementById("totalVariations");
-  totalEl.textContent = `Total des variations : ${totalVariations.toFixed(2)}%`;
-}
-
 function loadMonthlyData(startTimestamp, endTimestamp) {
   clearExistingVariations();
-  totalVariations = 0;
-  cryptoCount = 0;
-
   cryptos.forEach(symbol => {
     fetchMonthlyCryptoData(symbol, startTimestamp, endTimestamp);
   });
@@ -135,7 +133,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
   fetchDataForPeriod();
 });
-
 
 function mettreAJourHeure() {
   var elementHeure = document.getElementById("heure");
