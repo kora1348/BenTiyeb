@@ -23,7 +23,17 @@ function initDates() {
 
 async function fetchCryptoData(symbol, startDateStr, endDateStr) {
   try {
-    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1M&limit=6`);
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    
+    // Calculer le nombre de mois entre les dates
+    const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 
+                     + (endDate.getMonth() - startDate.getMonth()) + 1;
+    
+    // Récupérer suffisamment de données pour couvrir la période
+    const limit = Math.min(Math.max(monthsDiff, 6), 100); // entre 6 et 100
+    
+    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1M&limit=${limit}`);
     const data = await response.json();
 
     const cryptoRow = document.getElementById(symbol);
@@ -31,20 +41,9 @@ async function fetchCryptoData(symbol, startDateStr, endDateStr) {
       cryptoRow.deleteCell(1);
     }
 
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
-
     // Fonction de comparaison mois/année
     function isMonthInRange(candleDate, start, end) {
-      const cY = candleDate.getFullYear();
-      const cM = candleDate.getMonth();
-      const sY = start.getFullYear();
-      const sM = start.getMonth();
-      const eY = end.getFullYear();
-      const eM = end.getMonth();
-
-      return (cY > sY || (cY === sY && cM >= sM)) &&
-             (cY < eY || (cY === eY && cM <= eM));
+      return candleDate >= start && candleDate <= end;
     }
 
     let totalVariation = 0;
@@ -73,7 +72,8 @@ async function fetchCryptoData(symbol, startDateStr, endDateStr) {
     }
 
     // Ajouter des cellules vides pour les mois non présents
-    for (let j = filteredCount + 1; j <= 6; j++) {
+    const expectedMonths = 6; // Vous voulez toujours afficher 6 colonnes
+    for (let j = filteredCount + 1; j <= expectedMonths; j++) {
       cryptoRow.insertCell(j).textContent = "-";
     }
 
@@ -116,10 +116,12 @@ window.onload = () => {
     }
 
     fetchCryptoData("1INCH", startDate, endDate);
+       fetchCryptoData("ADA", startDate, endDate);
     fetchCryptoData("BTC", startDate, endDate);
   });
 
   // Chargement initial sans filtre (dates par défaut)
+    fetchCryptoData("ADA", document.getElementById('startDate').value, document.getElementById('endDate').value);
   fetchCryptoData("1INCH", document.getElementById('startDate').value, document.getElementById('endDate').value);
   fetchCryptoData("BTC", document.getElementById('startDate').value, document.getElementById('endDate').value);
 };
