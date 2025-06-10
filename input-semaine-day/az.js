@@ -410,7 +410,7 @@ const cryptos = [
 ];
 
 
-let btcTotal = 0; // Variable pour stocker le total BTC
+let btcTotal = 0;
 
 function clearExistingVariations() {
   cryptos.forEach((symbol) => {
@@ -434,27 +434,25 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
   try {
     const months = [];
     let currentDate = new Date(startDate);
-    
+
     while (currentDate <= endDate && months.length < 6) {
       const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
-      
+
       months.push({
         start: monthStart.getTime(),
         end: monthEnd.getTime()
       });
-      
+
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
     const cryptoRow = document.getElementById(symbol);
     let totalVariation = 0;
-    
+
     for (let i = 0; i < months.length; i++) {
-      const {start, end} = months[i];
-      const response = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${start}&endTime=${end}`
-      );
+      const { start, end } = months[i];
+      const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&startTime=${start}&endTime=${end}`);
       const data = await response.json();
 
       if (!data.length) continue;
@@ -475,51 +473,43 @@ async function fetchMonthlyCryptoData(symbol, startDate, endDate) {
       totalVariation += variation;
     }
 
-    // Ajouter la cellule Total
+    // Total column
     const totalCell = cryptoRow.insertCell(-1);
     totalCell.textContent = `${totalVariation.toFixed(2)}%`;
-    
-    if (totalVariation > 0) {
-      totalCell.classList.add("positive");
-    } else if (totalVariation < 0) {
-      totalCell.classList.add("negative");
-    }
+    if (totalVariation > 0) totalCell.classList.add("positive");
+    else if (totalVariation < 0) totalCell.classList.add("negative");
 
-    // Si c'est le BTC, on stocke son total
+    // BTC reference
     if (symbol === "BTC") {
       btcTotal = totalVariation;
-    }
-
-    // Ajouter la cellule Différence avec BTC (sauf pour le BTC lui-même)
-    // Ajouter la cellule Différence avec BTC (sauf pour le BTC lui-même)
-if (symbol !== "BTC") {
-  const diffWithBTCCell = cryptoRow.insertCell(-1);
-  const diffWithBTC = btcTotal - totalVariation; // ✅ Corrigé ici
-  diffWithBTCCell.textContent = `${diffWithBTC.toFixed(2)}%`;
-
-  if (diffWithBTC >= 90) {
-    diffWithBTCCell.classList.add("negative");
-  } else if (diffWithBTC <= -90) {
-    diffWithBTCCell.classList.add("positive");
-  }
-}
- else {
-      // Pour le BTC, on met simplement "-" dans la colonne
-      const emptyCell = cryptoRow.insertCell(-1);
-      emptyCell.textContent = "-";
+      const btcDiffCell = cryptoRow.insertCell(-1);
+      btcDiffCell.textContent = "-";
+    } else {
+      const diffWithBTCCell = cryptoRow.insertCell(-1);
+      const diffWithBTC = btcTotal - totalVariation;
+      diffWithBTCCell.textContent = `${diffWithBTC.toFixed(2)}%`;
+      if (diffWithBTC >= 90) diffWithBTCCell.classList.add("negative");
+      else if (diffWithBTC <= -90) diffWithBTCCell.classList.add("positive");
     }
 
   } catch (error) {
-    console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
+    console.error(`Erreur pour ${symbol} :`, error);
   }
 }
 
-function loadMonthlyData(startTimestamp, endTimestamp) {
+async function loadMonthlyData(startTimestamp, endTimestamp) {
   clearExistingVariations();
-  btcTotal = 0; // Réinitialiser le total BTC
-  cryptos.forEach(symbol => {
-    fetchMonthlyCryptoData(symbol, startTimestamp, endTimestamp);
-  });
+  btcTotal = 0;
+
+  // 1. Charger BTC d'abord
+  await fetchMonthlyCryptoData("BTC", startTimestamp, endTimestamp);
+
+  // 2. Ensuite les autres cryptos
+  for (const symbol of cryptos) {
+    if (symbol !== "BTC") {
+      await fetchMonthlyCryptoData(symbol, startTimestamp, endTimestamp);
+    }
+  }
 }
 
 function fetchDataForPeriod() {
@@ -533,10 +523,8 @@ function fetchDataForPeriod() {
 
   const startDate = new Date(startDateVal);
   const endDate = new Date(endDateVal);
-
   const sixMonthsAgo = new Date(endDate);
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-
   const effectiveStartDate = startDate > sixMonthsAgo ? startDate : sixMonthsAgo;
 
   loadMonthlyData(effectiveStartDate.getTime(), endDate.getTime());
