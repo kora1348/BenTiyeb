@@ -2,7 +2,7 @@ const symbols = [
   "BTC",
   "1INCH",
   "AAVE",
-  "ACE",
+    "ACE",
   "ACH",
   "ACX",
   "ACT",
@@ -392,8 +392,8 @@ const symbols = [
     "ZRO",
     "ZRX",
 ];
+
 const priceData = {};
-const alerts = [];
 
 async function fetchCryptoData(symbol) {
   const res = await fetch(
@@ -411,10 +411,12 @@ function pearsonCorrelation(x, y) {
   const numerator = x
     .map((xi, i) => (xi - avgX) * (y[i] - avgY))
     .reduce((a, b) => a + b, 0);
+
   const denominator = Math.sqrt(
     x.map((xi) => Math.pow(xi - avgX, 2)).reduce((a, b) => a + b, 0) *
-      y.map((yi) => Math.pow(yi - avgY, 2)).reduce((a, b) => a + b, 0)
+    y.map((yi) => Math.pow(yi - avgY, 2)).reduce((a, b) => a + b, 0)
   );
+
   return denominator === 0 ? 0 : numerator / denominator;
 }
 
@@ -425,8 +427,7 @@ function percentageChange(arr) {
 }
 
 async function generateMatrix() {
-  alerts.length = 0;
-  const changes = {}; // variation en %
+  const changes = {};
 
   for (const symbol of symbols) {
     const data = await fetchCryptoData(symbol);
@@ -434,12 +435,9 @@ async function generateMatrix() {
     changes[symbol] = percentageChange(data);
   }
 
-  // Génération de la matrice
   let html = "<table><tr><th></th>";
   for (const s of symbols) html += `<th>${s}</th>`;
   html += "</tr>";
-
-  const recos = [];
 
   for (const sym1 of symbols) {
     html += `<tr><th>${sym1}</th>`;
@@ -450,18 +448,6 @@ async function generateMatrix() {
 
       if (Math.abs(corr) > 0.9 && sym1 !== sym2) {
         cls = "very-high";
-        const msg = `⚠️ Corrélation très forte (${rounded}) entre ${sym1} et ${sym2}`;
-        alerts.push(msg);
-
-        // Recommandation
-        const diff = changes[sym1] - changes[sym2];
-        if (Math.abs(diff) > 0.5) {
-          if (diff > 0) {
-            recos.push(`📉 SHORT ${sym1} ou 📈 LONG ${sym2}`);
-          } else {
-            recos.push(`📉 SHORT ${sym2} ou 📈 LONG ${sym1}`);
-          }
-        }
       } else if (Math.abs(corr) > 0.8) {
         cls = "high";
       } else if (Math.abs(corr) > 0.5) {
@@ -474,25 +460,7 @@ async function generateMatrix() {
   }
   html += "</table>";
   document.getElementById("correlationMatrix").innerHTML = html;
-
-  // Alertes
-  document.getElementById("alertBox").innerText =
-    alerts.length > 0
-      ? alerts.join("\n")
-      : "Aucune corrélation très forte détectée.";
-
-  // Recos
-  const recoList = document.getElementById("recommendations");
-  recoList.innerHTML = "";
-  recos.forEach((r) => {
-    const li = document.createElement("li");
-    li.textContent = r;
-    recoList.appendChild(li);
-  });
 }
 
-// Appel initial
 generateMatrix();
-
-// Répéter toutes les 5 minutes
 setInterval(generateMatrix, 5 * 60 * 1000);
