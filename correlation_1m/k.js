@@ -41,13 +41,12 @@ function pearsonCorrelation(x, y) {
 async function generateMatrix() {
   const correlationMatrix = [];
 
-  // Récupération des données
   for (const symbol of symbols) {
     const data = await fetchCryptoData(symbol);
     priceData[symbol] = data;
   }
 
-  // Création HTML de la matrice
+  // Création de la matrice HTML
   let html = "<table><tr><th></th>";
   for (const s of symbols) html += `<th>${s}</th>`;
   html += "</tr>";
@@ -73,7 +72,17 @@ async function generateMatrix() {
   }
   html += "</table>";
   document.getElementById("correlationMatrix").innerHTML = html;
+
+  // ✅ Affichage de la tendance BTC : ici c’est le bon endroit
+  const btcPrices = priceData["BTC"];
+  if (btcPrices && btcPrices.length >= 2) {
+    const btcTrend = btcPrices[btcPrices.length - 1] > btcPrices[0] ? "LONG" : "SHORT";
+    const trendBox = document.getElementById("btcTrend");
+    trendBox.innerHTML = `<strong>BTC est actuellement : ${btcTrend}</strong><br>
+      Prix initial : ${btcPrices[0]} — Prix final : ${btcPrices[btcPrices.length - 1]}`;
+  }
 }
+
 
 // Génère au chargement et chaque 5 minutes
 generateMatrix();
