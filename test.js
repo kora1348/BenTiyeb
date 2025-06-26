@@ -4,7 +4,7 @@
     "ICP","IDEX","INIT","INJ","IOTA", "JTO","JUP","JUV", "KAIA","KAITO","KERNEL","KMNO", "NEAR","NEIRO","NEO","NEWT","NIL","NOT","NXPC",
     "OMNI","OM","ONDO","ONT","OP","ORCA","ORDI","OSMO", "PARTI","PAXG","PENDLE","PENGU","PEOPLE", "RSR","RUNE",
     "SAGA","SAND","SEI","SHELL","SHIB","SIGN","SLF","SOL","SOPH","SPK","STEEM","STO","STRK", "TURBO","T","TUT","UNI","USUAL","UTK",
-    "VANA","VANRY","VELODROME","VET","VIRTUAL", "WCT", "XTZ", "YGG", "ZEN","ZK","ZRO",
+    "VANA","VANRY","VELODROME","VET","VIRTUAL", "WCT", "XRP", "XTZ", "YGG", "ZEN","ZK","ZRO",
   ];
 
     async function fetchCryptoData(symbol) {
