@@ -13,7 +13,7 @@ const priceData = {};
 async function fetchCryptoData(symbol) {
   try {
     const res = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=15`
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=15`
     );
     const data = await res.json();
     return data.map((d) => parseFloat(d[4])); // prix de clôture
