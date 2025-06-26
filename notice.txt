@@ -1,0 +1,11 @@
+LONG :
+% depuis le plus bas entre 5% et 30%
+
+% depuis le plus haut inférieur à -70%
+
+🔴 SHORT :
+% depuis le plus bas supérieur à +300%
+
+% depuis le plus haut entre -30% et -5%
+
+⚪ NEUTRE : tous les autres cas
