@@ -8,49 +8,62 @@
   ];
 
     async function fetchCryptoData(symbol) {
-      try {
-        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDC&interval=1M`);
-        const data = await response.json();
+    try {
+      const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDC&interval=1M`);
+      const data = await response.json();
 
-        if (!data || data.length === 0) throw new Error("Pas de données");
+      if (!data || data.length === 0) throw new Error("Pas de données");
 
-        const allLows = data.map(k => parseFloat(k[3]));  // low
-        const allHighs = data.map(k => parseFloat(k[2])); // high
+      const allLows = data.map(k => parseFloat(k[3]));  // Low (mèche la plus basse)
+      const allHighs = data.map(k => parseFloat(k[2])); // High (mèche la plus haute)
 
-        const lowestPrice = Math.min(...allLows);
-        const highestPrice = Math.max(...allHighs);
+      const lowestPrice = Math.min(...allLows);
+      const highestPrice = Math.max(...allHighs);
+      const latestCandle = data[data.length - 1];
+      const currentPrice = parseFloat(latestCandle[4]); // Close
 
-        const latestCandle = data[data.length - 1];
-        const currentPrice = parseFloat(latestCandle[4]); // close
+      const percentFromLow = ((currentPrice - lowestPrice) / lowestPrice) * 100;
+      const percentFromHigh = ((currentPrice - highestPrice) / highestPrice) * 100;
 
-        const percentFromLow = ((currentPrice - lowestPrice) / lowestPrice) * 100;
-        const percentFromHigh = ((currentPrice - highestPrice) / highestPrice) * 100;
+      const row = document.getElementById(symbol);
+      row.insertCell(1).textContent = currentPrice.toFixed(6);
+      row.insertCell(2).textContent = lowestPrice.toFixed(6);
 
-        const row = document.getElementById(symbol);
-        row.insertCell(1).textContent = currentPrice.toFixed(6);
-        row.insertCell(2).textContent = lowestPrice.toFixed(6);
+      const diffLowCell = row.insertCell(3);
+      diffLowCell.textContent = percentFromLow.toFixed(2) + "%";
+      diffLowCell.classList.add(percentFromLow >= 0 ? "positive" : "negative");
 
-        const diffLowCell = row.insertCell(3);
-        diffLowCell.textContent = percentFromLow.toFixed(2) + "%";
-        diffLowCell.classList.add(percentFromLow >= 0 ? "positive" : "negative");
+      row.insertCell(4).textContent = highestPrice.toFixed(6);
 
-        row.insertCell(4).textContent = highestPrice.toFixed(6);
+      const diffHighCell = row.insertCell(5);
+      diffHighCell.textContent = percentFromHigh.toFixed(2) + "%";
+      diffHighCell.classList.add(percentFromHigh >= 0 ? "positive" : "negative");
 
-        const diffHighCell = row.insertCell(5);
-        diffHighCell.textContent = percentFromHigh.toFixed(2) + "%";
-        diffHighCell.classList.add(percentFromHigh >= 0 ? "positive" : "negative");
-
-      } catch (error) {
-        console.error(`Erreur pour ${symbol}:`, error);
-        const row = document.getElementById(symbol);
-        const errorCell = row.insertCell(1);
-        errorCell.colSpan = 5;
-        errorCell.textContent = "Données indisponibles";
-        errorCell.style.color = "gray";
+      // ➕ Ajout du signal automatique
+      const signalCell = row.insertCell(6);
+      if (percentFromLow <= 30 && percentFromHigh <= -70) {
+        signalCell.textContent = "🟢 LONG";
+        signalCell.style.color = "green";
+      } else if (percentFromLow >= 300 && percentFromHigh >= -30) {
+        signalCell.textContent = "🔴 SHORT";
+        signalCell.style.color = "red";
+      } else {
+        signalCell.textContent = "⚪ NEUTRE";
+        signalCell.style.color = "gray";
       }
-    }
 
-    symbols.forEach(fetchCryptoData);
+    } catch (error) {
+      console.error(`Erreur pour ${symbol}:`, error);
+      const row = document.getElementById(symbol);
+      const errorCell = row.insertCell(1);
+      errorCell.colSpan = 6;
+      errorCell.textContent = "Données indisponibles";
+      errorCell.style.color = "gray";
+    }
+  }
+
+  // Lancer pour chaque symbole
+  symbols.forEach(fetchCryptoData);
 
 
 
