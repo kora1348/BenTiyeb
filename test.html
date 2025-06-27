@@ -1,425 +1,441 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
-   <head>
-      <meta charset="utf-8">
-      <title>Spot - 3 mois</title>
-      <link rel="stylesheet" href="../../style.css">
-   </head>
-   <body>
-      <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
-      <button style="background-color: #FB3831; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 4px;
-         " onclick="window.location.href='../../index.html'">Accueil</button>
-      <h2>Spot - 3 mois</h2>
-      <p style="font-weight: bold;">Mise à jour : 23/04/2025</p>
-      <div id="heure"></div>
-      <br>
-      <table>
-         <tr>
+  <head>
+    <meta charset="utf-8" />
+    <title>Spot - 3 mois</title>
+    <link rel="stylesheet" href="../../style.css" />
+  </head>
+  <body>
+    <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
+    <button
+      style="
+        background-color: #fb3831;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      "
+      onclick="window.location.href='../../index.html'"
+    >
+      Accueil
+    </button>
+    <h2>Spot - 3 mois</h2>
+    <p style="font-weight: bold">Mise à jour : 23/04/2025</p>
+    <div id="heure"></div>
+    <br />
+    <table>
+      <tr>
         <th>Crypto</th>
         <th>Prix actuel</th>
         <th>Prix le plus bas</th>
         <th>Différence en % (du plus bas)</th>
         <th>Prix le plus haut</th>
         <th>Différence en % (du plus haut)</th>
-            <th>Signal</th>
-         </tr>
-         <tr id="AAVE">
-    <td>AAVE</td>
-</tr>
-<tr id="ACH">
-    <td>ACH</td>
-</tr>
-<tr id="ACT">
-    <td>ACT</td>
-</tr>
-<tr id="ACX">
-    <td>ACX</td>
-</tr>
-<tr id="ARB">
-    <td>ARB</td>
-</tr>
-<tr id="ARKM">
-    <td>ARKM</td>
-</tr>
-<tr id="AR">
-    <td>AR</td>
-</tr>
-<tr id="ATOM">
-    <td>ATOM</td>
-</tr>
-<tr id="AUCTION">
-    <td>AUCTION</td>
-</tr>
-<tr id="A">
-    <td>A</td>
-</tr>
-<tr id="AVAX">
-    <td>AVAX</td>
-</tr>
-<tr id="BABY">
-    <td>BABY</td>
-</tr>
-<tr id="BANANAS31">
-    <td>BANANAS31</td>
-</tr>
-<tr id="BANANA">
-    <td>BANANA</td>
-</tr>
-<tr id="BCH">
-    <td>BCH</td>
-</tr>
-<tr id="BEAMX">
-    <td>BEAMX</td>
-</tr>
-<tr id="BERA">
-    <td>BERA</td>
-</tr>
-<tr id="BIGTIME">
-    <td>BIGTIME</td>
-</tr>
-<tr id="BIO">
-    <td>BIO</td>
-</tr>
-<tr id="BLUR">
-    <td>BLUR</td>
-</tr>
-<tr id="BMT">
-    <td>BMT</td>
-</tr>
-<tr id="BNB">
-    <td>BNB</td>
-</tr>
-<tr id="BOME">
-    <td>BOME</td>
-</tr>
-<tr id="BONK">
-    <td>BONK</td>
-</tr>
-<tr id="BROCCOLI714">
-    <td>BROCCOLI714</td>
-</tr>
-<tr id="BTC">
-    <td>BTC</td>
-</tr>
-<tr id="CHESS">
-    <td>CHESS</td>
-</tr>
-<tr id="CHZ">
-    <td>CHZ</td>
-</tr>
-<tr id="CKB">
-    <td>CKB</td>
-</tr>
-<tr id="COOKIE">
-    <td>COOKIE</td>
-</tr>
-<tr id="COW">
-    <td>COW</td>
-</tr>
-<tr id="CRV">
-    <td>CRV</td>
-</tr>
-<tr id="CVC">
-    <td>CVC</td>
-</tr>
-<tr id="DF">
-    <td>DF</td>
-</tr>
-<tr id="DOGE">
-    <td>DOGE</td>
-</tr>
-<tr id="DOGS">
-    <td>DOGS</td>
-</tr>
-<tr id="DOT">
-    <td>DOT</td>
-</tr>
-<tr id="DYDX">
-    <td>DYDX</td>
-</tr>
-<tr id="EGLD">
-    <td>EGLD</td>
-</tr>
-<tr id="EIGEN">
-    <td>EIGEN</td>
-</tr>
-<tr id="ENA">
-    <td>ENA</td>
-</tr>
-<tr id="ENJ">
-    <td>ENJ</td>
-</tr>
-<tr id="ENS">
-    <td>ENS</td>
-</tr>
-<tr id="EPIC">
-    <td>EPIC</td>
-</tr>
-<tr id="ETHFI">
-    <td>ETHFI</td>
-</tr>
-<tr id="ETH">
-    <td>ETH</td>
-</tr>
-<tr id="EURI">
-    <td>EURI</td>
-</tr>
-<tr id="EUR">
-    <td>EUR</td>
-</tr>
-<tr id="FDUSD">
-    <td>FDUSD</td>
-</tr>
-<tr id="FET">
-    <td>FET</td>
-</tr>
-<tr id="FIL">
-    <td>FIL</td>
-</tr>
-<tr id="FLOKI">
-    <td>FLOKI</td>
-</tr>
-<tr id="FLUX">
-    <td>FLUX</td>
-</tr>
-<tr id="FORM">
-    <td>FORM</td>
-</tr>
-<tr id="GALA">
-    <td>GALA</td>
-</tr>
-<tr id="GMT">
-    <td>GMT</td>
-</tr>
-<tr id="GMX">
-    <td>GMX</td>
-</tr>
-<tr id="GPS">
-    <td>GPS</td>
-</tr>
-<tr id="GUN">
-    <td>GUN</td>
-</tr>
-<tr id="HAEDAL">
-    <td>HAEDAL</td>
-</tr>
-<tr id="HBAR">
-    <td>HBAR</td>
-</tr>
-<tr id="HEI">
-    <td>HEI</td>
-</tr>
-<tr id="HIVE">
-    <td>HIVE</td>
-</tr>
-<tr id="HMSTR">
-    <td>HMSTR</td>
-</tr>
-<tr id="HOME">
-    <td>HOME</td>
-</tr>
-<tr id="HUMA">
-    <td>HUMA</td>
-</tr>
-<tr id="HYPER">
-    <td>HYPER</td>
-</tr>
-<tr id="ICP">
-    <td>ICP</td>
-</tr>
-<tr id="IDEX">
-    <td>IDEX</td>
-</tr>
-<tr id="INIT">
-    <td>INIT</td>
-</tr>
-<tr id="INJ">
-    <td>INJ</td>
-</tr>
-<tr id="IOTA">
-    <td>IOTA</td>
-</tr>
-<tr id="JTO">
-    <td>JTO</td>
-</tr>
-<tr id="JUP">
-    <td>JUP</td>
-</tr>
-<tr id="JUV">
-    <td>JUV</td>
-</tr>
-<tr id="KAIA">
-    <td>KAIA</td>
-</tr>
-<tr id="KAITO">
-    <td>KAITO</td>
-</tr>
-<tr id="KERNEL">
-    <td>KERNEL</td>
-</tr>
-<tr id="KMNO">
-    <td>KMNO</td>
-</tr>
-<tr id="NEAR">
-    <td>NEAR</td>
-</tr>
-<tr id="NEIRO">
-    <td>NEIRO</td>
-</tr>
-<tr id="NEO">
-    <td>NEO</td>
-</tr>
-<tr id="NEWT">
-    <td>NEWT</td>
-</tr>
-<tr id="NIL">
-    <td>NIL</td>
-</tr>
-<tr id="NOT">
-    <td>NOT</td>
-</tr>
-<tr id="NXPC">
-    <td>NXPC</td>
-</tr>
-<tr id="OMNI">
-    <td>OMNI</td>
-</tr>
-<tr id="OM">
-    <td>OM</td>
-</tr>
-<tr id="ONDO">
-    <td>ONDO</td>
-</tr>
-<tr id="ONT">
-    <td>ONT</td>
-</tr>
-<tr id="OP">
-    <td>OP</td>
-</tr>
-<tr id="ORCA">
-    <td>ORCA</td>
-</tr>
-<tr id="ORDI">
-    <td>ORDI</td>
-</tr>
-<tr id="OSMO">
-    <td>OSMO</td>
-</tr>
-<tr id="PARTI">
-    <td>PARTI</td>
-</tr>
-<tr id="PAXG">
-    <td>PAXG</td>
-</tr>
-<tr id="PENDLE">
-    <td>PENDLE</td>
-</tr>
-<tr id="PENGU">
-    <td>PENGU</td>
-</tr>
-<tr id="PEOPLE">
-    <td>PEOPLE</td>
-</tr>
-<tr id="RSR">
-    <td>RSR</td>
-</tr>
-<tr id="RUNE">
-    <td>RUNE</td>
-</tr>
-<tr id="SAGA">
-    <td>SAGA</td>
-</tr>
-<tr id="SAND">
-    <td>SAND</td>
-</tr>
-<tr id="SEI">
-    <td>SEI</td>
-</tr>
-<tr id="SHELL">
-    <td>SHELL</td>
-</tr>
-<tr id="SHIB">
-    <td>SHIB</td>
-</tr>
-<tr id="SIGN">
-    <td>SIGN</td>
-</tr>
-<tr id="SLF">
-    <td>SLF</td>
-</tr>
-<tr id="SOL">
-    <td>SOL</td>
-</tr>
-<tr id="SOPH">
-    <td>SOPH</td>
-</tr>
-<tr id="SPK">
-    <td>SPK</td>
-</tr>
-<tr id="STEEM">
-    <td>STEEM</td>
-</tr>
-<tr id="STO">
-    <td>STO</td>
-</tr>
-<tr id="STRK">
-    <td>STRK</td>
-</tr>
-<tr id="TURBO">
-    <td>TURBO</td>
-</tr>
-<tr id="T">
-    <td>T</td>
-</tr>
-<tr id="TUT">
-    <td>TUT</td>
-</tr>
-<tr id="UNI">
-    <td>UNI</td>
-</tr>
-<tr id="USUAL">
-    <td>USUAL</td>
-</tr>
-<tr id="UTK">
-    <td>UTK</td>
-</tr>
-<tr id="VANA">
-    <td>VANA</td>
-</tr>
-<tr id="VANRY">
-    <td>VANRY</td>
-</tr>
-<tr id="VELODROME">
-    <td>VELODROME</td>
-</tr>
-<tr id="VET">
-    <td>VET</td>
-</tr>
-<tr id="VIRTUAL">
-    <td>VIRTUAL</td>
-</tr>
-<tr id="WCT">
-    <td>WCT</td>
-</tr>
-<tr id="XRP">
-    <td>XRP</td>
-</tr>
-<tr id="XTZ">
-    <td>XTZ</td>
-</tr>
-<tr id="YGG">
-    <td>YGG</td>
-</tr>
-<tr id="ZEN">
-    <td>ZEN</td>
-</tr>
-<tr id="ZK">
-    <td>ZK</td>
-</tr>
-<tr id="ZRO">
-    <td>ZRO</td>
-</tr>
-      </table>
-      <script src="/test.js"></script>
-   </body>
+        <th>Signal</th>
+      </tr>
+      <tr id="AAVE">
+        <td>AAVE</td>
+      </tr>
+      <tr id="ACH">
+        <td>ACH</td>
+      </tr>
+      <tr id="ACT">
+        <td>ACT</td>
+      </tr>
+      <tr id="ACX">
+        <td>ACX</td>
+      </tr>
+      <tr id="ARB">
+        <td>ARB</td>
+      </tr>
+      <tr id="ARKM">
+        <td>ARKM</td>
+      </tr>
+      <tr id="AR">
+        <td>AR</td>
+      </tr>
+      <tr id="ATOM">
+        <td>ATOM</td>
+      </tr>
+      <tr id="AUCTION">
+        <td>AUCTION</td>
+      </tr>
+      <tr id="A">
+        <td>A</td>
+      </tr>
+      <tr id="AVAX">
+        <td>AVAX</td>
+      </tr>
+      <tr id="BABY">
+        <td>BABY</td>
+      </tr>
+      <tr id="BANANAS31">
+        <td>BANANAS31</td>
+      </tr>
+      <tr id="BANANA">
+        <td>BANANA</td>
+      </tr>
+      <tr id="BCH">
+        <td>BCH</td>
+      </tr>
+      <tr id="BEAMX">
+        <td>BEAMX</td>
+      </tr>
+      <tr id="BERA">
+        <td>BERA</td>
+      </tr>
+      <tr id="BIGTIME">
+        <td>BIGTIME</td>
+      </tr>
+      <tr id="BIO">
+        <td>BIO</td>
+      </tr>
+      <tr id="BLUR">
+        <td>BLUR</td>
+      </tr>
+      <tr id="BMT">
+        <td>BMT</td>
+      </tr>
+      <tr id="BNB">
+        <td>BNB</td>
+      </tr>
+      <tr id="BOME">
+        <td>BOME</td>
+      </tr>
+      <tr id="BONK">
+        <td>BONK</td>
+      </tr>
+      <tr id="BROCCOLI714">
+        <td>BROCCOLI714</td>
+      </tr>
+      <tr id="BTC">
+        <td>BTC</td>
+      </tr>
+      <tr id="CHESS">
+        <td>CHESS</td>
+      </tr>
+      <tr id="CHZ">
+        <td>CHZ</td>
+      </tr>
+      <tr id="CKB">
+        <td>CKB</td>
+      </tr>
+      <tr id="COOKIE">
+        <td>COOKIE</td>
+      </tr>
+      <tr id="COW">
+        <td>COW</td>
+      </tr>
+      <tr id="CRV">
+        <td>CRV</td>
+      </tr>
+      <tr id="CVC">
+        <td>CVC</td>
+      </tr>
+      <tr id="DF">
+        <td>DF</td>
+      </tr>
+      <tr id="DOGE">
+        <td>DOGE</td>
+      </tr>
+      <tr id="DOGS">
+        <td>DOGS</td>
+      </tr>
+      <tr id="DOT">
+        <td>DOT</td>
+      </tr>
+      <tr id="DYDX">
+        <td>DYDX</td>
+      </tr>
+      <tr id="EGLD">
+        <td>EGLD</td>
+      </tr>
+      <tr id="EIGEN">
+        <td>EIGEN</td>
+      </tr>
+      <tr id="ENA">
+        <td>ENA</td>
+      </tr>
+      <tr id="ENJ">
+        <td>ENJ</td>
+      </tr>
+      <tr id="ENS">
+        <td>ENS</td>
+      </tr>
+      <tr id="EPIC">
+        <td>EPIC</td>
+      </tr>
+      <tr id="ETHFI">
+        <td>ETHFI</td>
+      </tr>
+      <tr id="ETH">
+        <td>ETH</td>
+      </tr>
+      <tr id="EURI">
+        <td>EURI</td>
+      </tr>
+      <tr id="EUR">
+        <td>EUR</td>
+      </tr>
+      <tr id="FDUSD">
+        <td>FDUSD</td>
+      </tr>
+      <tr id="FET">
+        <td>FET</td>
+      </tr>
+      <tr id="FIL">
+        <td>FIL</td>
+      </tr>
+      <tr id="FLOKI">
+        <td>FLOKI</td>
+      </tr>
+      <tr id="FLUX">
+        <td>FLUX</td>
+      </tr>
+      <tr id="FORM">
+        <td>FORM</td>
+      </tr>
+      <tr id="GALA">
+        <td>GALA</td>
+      </tr>
+      <tr id="GMT">
+        <td>GMT</td>
+      </tr>
+      <tr id="GMX">
+        <td>GMX</td>
+      </tr>
+      <tr id="GPS">
+        <td>GPS</td>
+      </tr>
+      <tr id="GUN">
+        <td>GUN</td>
+      </tr>
+      <tr id="HAEDAL">
+        <td>HAEDAL</td>
+      </tr>
+      <tr id="HBAR">
+        <td>HBAR</td>
+      </tr>
+      <tr id="HEI">
+        <td>HEI</td>
+      </tr>
+      <tr id="HIVE">
+        <td>HIVE</td>
+      </tr>
+      <tr id="HMSTR">
+        <td>HMSTR</td>
+      </tr>
+      <tr id="HOME">
+        <td>HOME</td>
+      </tr>
+      <tr id="HUMA">
+        <td>HUMA</td>
+      </tr>
+      <tr id="HYPER">
+        <td>HYPER</td>
+      </tr>
+      <tr id="ICP">
+        <td>ICP</td>
+      </tr>
+      <tr id="IDEX">
+        <td>IDEX</td>
+      </tr>
+      <tr id="INIT">
+        <td>INIT</td>
+      </tr>
+      <tr id="INJ">
+        <td>INJ</td>
+      </tr>
+      <tr id="IOTA">
+        <td>IOTA</td>
+      </tr>
+      <tr id="JTO">
+        <td>JTO</td>
+      </tr>
+      <tr id="JUP">
+        <td>JUP</td>
+      </tr>
+      <tr id="JUV">
+        <td>JUV</td>
+      </tr>
+      <tr id="KAIA">
+        <td>KAIA</td>
+      </tr>
+      <tr id="KAITO">
+        <td>KAITO</td>
+      </tr>
+      <tr id="KERNEL">
+        <td>KERNEL</td>
+      </tr>
+      <tr id="KMNO">
+        <td>KMNO</td>
+      </tr>
+      <tr id="NEAR">
+        <td>NEAR</td>
+      </tr>
+      <tr id="NEIRO">
+        <td>NEIRO</td>
+      </tr>
+      <tr id="NEO">
+        <td>NEO</td>
+      </tr>
+      <tr id="NEWT">
+        <td>NEWT</td>
+      </tr>
+      <tr id="NIL">
+        <td>NIL</td>
+      </tr>
+      <tr id="NOT">
+        <td>NOT</td>
+      </tr>
+      <tr id="NXPC">
+        <td>NXPC</td>
+      </tr>
+      <tr id="OMNI">
+        <td>OMNI</td>
+      </tr>
+      <tr id="OM">
+        <td>OM</td>
+      </tr>
+      <tr id="ONDO">
+        <td>ONDO</td>
+      </tr>
+      <tr id="ONT">
+        <td>ONT</td>
+      </tr>
+      <tr id="OP">
+        <td>OP</td>
+      </tr>
+      <tr id="ORCA">
+        <td>ORCA</td>
+      </tr>
+      <tr id="ORDI">
+        <td>ORDI</td>
+      </tr>
+      <tr id="OSMO">
+        <td>OSMO</td>
+      </tr>
+      <tr id="PARTI">
+        <td>PARTI</td>
+      </tr>
+      <tr id="PAXG">
+        <td>PAXG</td>
+      </tr>
+      <tr id="PENDLE">
+        <td>PENDLE</td>
+      </tr>
+      <tr id="PENGU">
+        <td>PENGU</td>
+      </tr>
+      <tr id="PEOPLE">
+        <td>PEOPLE</td>
+      </tr>
+      <tr id="RSR">
+        <td>RSR</td>
+      </tr>
+      <tr id="RUNE">
+        <td>RUNE</td>
+      </tr>
+      <tr id="SAGA">
+        <td>SAGA</td>
+      </tr>
+      <tr id="SAND">
+        <td>SAND</td>
+      </tr>
+      <tr id="SEI">
+        <td>SEI</td>
+      </tr>
+      <tr id="SHELL">
+        <td>SHELL</td>
+      </tr>
+      <tr id="SHIB">
+        <td>SHIB</td>
+      </tr>
+      <tr id="SIGN">
+        <td>SIGN</td>
+      </tr>
+      <tr id="SLF">
+        <td>SLF</td>
+      </tr>
+      <tr id="SOL">
+        <td>SOL</td>
+      </tr>
+      <tr id="SOPH">
+        <td>SOPH</td>
+      </tr>
+      <tr id="SPK">
+        <td>SPK</td>
+      </tr>
+      <tr id="STEEM">
+        <td>STEEM</td>
+      </tr>
+      <tr id="STO">
+        <td>STO</td>
+      </tr>
+      <tr id="STRK">
+        <td>STRK</td>
+      </tr>
+      <tr id="TURBO">
+        <td>TURBO</td>
+      </tr>
+      <tr id="T">
+        <td>T</td>
+      </tr>
+      <tr id="TUT">
+        <td>TUT</td>
+      </tr>
+      <tr id="UNI">
+        <td>UNI</td>
+      </tr>
+      <tr id="USUAL">
+        <td>USUAL</td>
+      </tr>
+      <tr id="UTK">
+        <td>UTK</td>
+      </tr>
+      <tr id="VANA">
+        <td>VANA</td>
+      </tr>
+      <tr id="VANRY">
+        <td>VANRY</td>
+      </tr>
+      <tr id="VELODROME">
+        <td>VELODROME</td>
+      </tr>
+      <tr id="VET">
+        <td>VET</td>
+      </tr>
+      <tr id="VIRTUAL">
+        <td>VIRTUAL</td>
+      </tr>
+      <tr id="WCT">
+        <td>WCT</td>
+      </tr>
+      <tr id="XRP">
+        <td>XRP</td>
+      </tr>
+      <tr id="XTZ">
+        <td>XTZ</td>
+      </tr>
+      <tr id="YGG">
+        <td>YGG</td>
+      </tr>
+      <tr id="ZEN">
+        <td>ZEN</td>
+      </tr>
+      <tr id="ZK">
+        <td>ZK</td>
+      </tr>
+      <tr id="ZRO">
+        <td>ZRO</td>
+      </tr>
+    </table>
+    <script src="/test.js"></script>
+  </body>
 </html>
