@@ -1,0 +1,70 @@
+La semaine du 26 janvier au 02 février !
+Jour du dimanche -> vert
+Jour du lundi -> rouge
+Investi jeudi -> rouge 
+
+Moyenne des variations : -22.40%
+Écart-type des variations : 57.53%
+Cryptos vraiment fortes (z-score > 1) :
+ACH : Variation 68.80% | z-score 1.59  
+D : Variation 39.10% | z-score 1.07
+SPELL : Variation 56.11% | z-score 1.36 
+USUAL : Variation 51.83% | z-score 1.29 
+
+RIEN 
+
+
+
+------------------------------------------------------------------
+
+La semaine du 02 février au 09 février !
+Jour du dimanche -> vert
+Jour du lundi -> rouge
+Investi jeudi -> rouge 
+
+Moyenne des variations : -16.32%
+Écart-type des variations : 61.94%
+Cryptos vraiment fortes (z-score > 1) :
+BERA : Variation 771.70% | z-score 12.72  
+ME : Variation 46.05% | z-score 1.01 
+TST : Variation 61.51% | z-score 1.26
+
+RIEN 
+
+------------------------------------------------------------------
+
+La semaine du 09 février au 16 février !
+Jour du dimanche -> vert
+Jour du lundi -> rouge
+Investi mercredi > samedi-> vert 
+
+Moyenne des variations : 6.21%
+Écart-type des variations : 32.97%
+Cryptos vraiment fortes (z-score > 1) :
+ALPACA : Variation 47.68% | z-score 1.26
+BAKE : Variation 100.40% | z-score 2.86
+BNX : Variation 44.45% | z-score 1.16
+BSW : Variation 63.64% | z-score 1.74
+COOKIE : Variation 42.62% | z-score 1.10  --> 21% 
+GLM : Variation 52.09% | z-score 1.39  --> 2% 
+LISTA : Variation 51.92% | z-score 1.39
+LAYER : Variation 427.20% | z-score 12.77
+THE : Variation 42.17% | z-score 1.09  ---> -11%
+TST : Variation 61.51% | z-score 1.68
+
+
+
+------------------------------------------------------------------
+
+La semaine du 16 février au 23 février !
+Jour du dimanche -> vert
+Jour du lundi -> rouge
+Investi mercredi > samedi-> vert 
+
+Moyenne des variations : 5.23%
+Écart-type des variations : 89.66%
+Cryptos vraiment fortes (z-score > 1) :
+KAITO : Variation 1544.60% | z-score 17.17
+
+RIEN
+
