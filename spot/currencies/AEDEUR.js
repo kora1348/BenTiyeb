@@ -5,7 +5,7 @@ async function fetchAllSpotSymbols() {
     const data = await response.json();
     const activeSymbols = data.symbols.filter(s => s.status === 'TRADING');
     const filtered = activeSymbols.filter(s =>
-      ['USDT', 'USDC', 'BUSD', 'TUSD', 'BTC', 'ETH', 'FDUSD', 'DAI', 'EUR', 'TRY', 'BNB'].includes(s.quoteAsset)
+      ['ETH'].includes(s.quoteAsset)
     );
     return filtered.map(s => ({
       base: s.baseAsset,
@@ -20,7 +20,7 @@ async function fetchAllSpotSymbols() {
 
 async function fetchCryptoData(symbol, base, quote) {
   try {
-    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=7`);
+    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=7`);
     const data = await response.json();
 
     if (data.length !== 7) return;
