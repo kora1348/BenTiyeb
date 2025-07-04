@@ -65,68 +65,69 @@
     }
 
     // Fonction pour afficher une ligne de données
-    async function afficherLigneDevise(pair, data, tbody) {
-      if (!data || data.length < 2) {
-        const row = tbody.insertRow();
-        const cell = row.insertCell();
-        cell.colSpan = 11;
-        cell.textContent = `Données insuffisantes pour ${pair}`;
-        return;
-      }
+    // Fonction pour afficher une ligne de données
+async function afficherLigneDevise(pair, data, tbody) {
+  if (!data || data.length < 2) {
+    const row = tbody.insertRow();
+    const cell = row.insertCell();
+    cell.colSpan = 11;
+    cell.textContent = `Données insuffisantes pour ${pair}`;
+    return;
+  }
 
-      const row = tbody.insertRow();
-      const pairCell = row.insertCell();
-      pairCell.textContent = pair;
+  const row = tbody.insertRow();
+  const pairCell = row.insertCell();
+  pairCell.textContent = pair;
 
-      let symbolSequence = "";
+  let symbolSequence = "";
 
-      // Afficher les données du plus ancien au plus récent (de gauche à droite)
-      for (let i = 0; i < data.length; i++) {
-        const current = data[i];
-        const next = data[i + 1];
-        const cell = row.insertCell();
+  // Afficher les données du plus ancien au plus récent (de gauche à droite)
+  for (let i = 0; i < data.length; i++) {
+    const current = data[i];
+    const next = data[i + 1];
+    const cell = row.insertCell();
 
-        let variationText = "(N/A)";
-        let variationClass = "";
-        let variationSymbol = "";
+    let variationText = "(N/A)";
+    let variationClass = "";
+    let variationSymbol = "";
 
-        if (next) {
-          const variation = ((next.close - current.close) / current.close) * 100;
-          variationText = `(${variation.toFixed(2)}%)`;
-          variationClass = variation > 0 ? "positive" : "negative";
-          variationSymbol = variation > 0 ? "+" : "-";
+    if (next) {
+      const variation = ((next.close - current.close) / current.close) * 100;
+      variationText = `(${variation.toFixed(2)}%)`;
+      variationClass = variation > 0 ? "positive" : "negative";
+      variationSymbol = variation > 0 ? "+" : "-";
 
-          // Ajouter le symbole à la séquence (sauf pour le dernier élément)
-          if (i < data.length - 1) {
-            symbolSequence += variationSymbol;
-          }
-        }
-
-        const adjustedTime = new Date(current.time.getTime() + 15 * 60 * 1000);
-        const displayText = `${formatTime(adjustedTime)} ${variationText}`;
-        cell.textContent = displayText;
-        if (variationClass) {
-          cell.classList.add(variationClass);
-        }
-      }
-
-      // Ajouter la séquence de tendance (de Item 2 à Item 8)
-      const trendSequence = symbolSequence.substring(0, 7); // Prend les 7 premiers caractères (Item 2 à 8)
-      const symbolCell = row.insertCell();
-      symbolCell.textContent = trendSequence;
-      symbolCell.style.fontWeight = "bold";
-      symbolCell.style.fontSize = "1.2em";
-      
-      // Colorer la cellule de tendance en fonction de la majorité
-      const positiveCount = (trendSequence.match(/\+/g) || []).length;
-      const negativeCount = (trendSequence.match(/-/g) || []).length;
-      
-      if (positiveCount > negativeCount) {
-        symbolCell.style.color = "green";
-      } else if (negativeCount > positiveCount) {
-        symbolCell.style.color = "red";
+      // Ajouter le symbole à la séquence (sauf pour le dernier élément)
+      if (i > 0 && i < 8) { // Modification ici: on ne prend que les items 2 à 8 (indices 1 à 7)
+        symbolSequence += variationSymbol;
       }
     }
+
+    const adjustedTime = new Date(current.time.getTime() + 15 * 60 * 1000);
+    const displayText = `${formatTime(adjustedTime)} ${variationText}`;
+    cell.textContent = displayText;
+    if (variationClass) {
+      cell.classList.add(variationClass);
+    }
+  }
+
+  // Ajouter la séquence de tendance (de Item 2 à Item 8)
+  const trendSequence = symbolSequence; // On utilise directement symbolSequence qui contient déjà les bons éléments
+  const symbolCell = row.insertCell();
+  symbolCell.textContent = trendSequence;
+  symbolCell.style.fontWeight = "bold";
+  symbolCell.style.fontSize = "1.2em";
+  
+  // Colorer la cellule de tendance en fonction de la majorité
+  const positiveCount = (trendSequence.match(/\+/g) || []).length;
+  const negativeCount = (trendSequence.match(/-/g) || []).length;
+  
+  if (positiveCount > negativeCount) {
+    symbolCell.style.color = "green";
+  } else if (negativeCount > positiveCount) {
+    symbolCell.style.color = "red";
+  }
+}
 
     // Fonction principale pour charger toutes les devises
     async function chargerToutesDevises() {
