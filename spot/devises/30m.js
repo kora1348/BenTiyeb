@@ -341,15 +341,19 @@ function getAllForexTrends() {
     trendCell.querySelectorAll('span').forEach(span => {
       trend += span.textContent;
     });
+
     if (trend.length === 7) {
+      const item9Text = row.cells[9]?.textContent || ""; // ✅ on prend Item 9 (colonne 9)
       trends.push({
         pair: row.cells[0].textContent,
-        trend: trend
+        trend: trend,
+        item9: item9Text
       });
     }
   });
   return trends;
 }
+
 
 // 2. Filtrer les cryptos avec les tendances Forex
 function filterCryptoWithForexTrends() {
@@ -362,8 +366,9 @@ function filterCryptoWithForexTrends() {
       const cryptoPattern = row.getAttribute('data-motif');
       if (cryptoPattern === forex.trend) {
         matches.push({
-          forexPair: forex.pair,
+    forexPair: forex.pair,
           forexTrend: forex.trend,
+          item9: forex.item9, // ✅ on ajoute cette info
           cryptoPair: row.cells[0].textContent,
           cryptoPattern: cryptoPattern
         });
@@ -407,11 +412,14 @@ function displayMatches() {
     const cryptoCell = row.insertCell();
     cryptoCell.textContent = match.cryptoPair;
 
-    const motifCell = row.insertCell();
+     const motifCell = row.insertCell();
     motifCell.innerHTML = match.cryptoPattern
       .split('')
       .map(s => `<span style="color:${s === '+' ? 'green' : 'red'}">${s}</span>`)
       .join('');
+
+          const item9Cell = row.insertCell(); // ✅ nouvelle cellule
+    item9Cell.textContent = match.item9 || "-";
   });
 }
 
