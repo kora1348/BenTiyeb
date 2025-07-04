@@ -5,7 +5,7 @@ async function fetchAllSpotSymbols() {
     const data = await response.json();
     const activeSymbols = data.symbols.filter(s => s.status === 'TRADING');
     const filtered = activeSymbols.filter(s =>
-      ['USDT', 'USDC', 'BUSD', 'TUSD', 'BTC', 'ETH', 'FDUSD', 'DAI', 'EUR', 'TRY', 'BNB'].includes(s.quoteAsset)
+      ['ETH'].includes(s.quoteAsset)
     );
     return filtered.map(s => ({
       base: s.baseAsset,

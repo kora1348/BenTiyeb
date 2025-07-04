@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>AEDRUB - 1 JOUR</title>
+    <link rel="stylesheet" href="../../../style.css" />
+  </head>
+  <body>
+    <!-- <button class="button" onclick="window.location.href='/usdt/usdt.html'">Retour</button> -->
+    <button
+      style="
+        background-color: #fb3831;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      "
+      onclick="window.location.href='../../../../index.html'"
+    >
+      Accueil
+    </button>
+    <h1>Analyse hebdomadaire des cryptos</h1>
+    <p style="font-weight: bold">Mise à jour : 23/04/2025</p>
+    <div id="heure"></div>
+    <br />
+     <button id="loadButton">Charger toutes les paires disponibles</button>
+    <br /><br />
+
+    <label>Motif de 7 caractères (+/-):</label>
+    <input type="text" id="patternInput" maxlength="7" />
+    <button id="filterButton">Filtrer</button>
+    <button id="resetButton">Afficher tout</button>
+    <p id="resultCount"></p>
+    
+    <table id="cryptoTable" border="1">
+      <thead>
+        <tr>
+          <th>Crypto</th>
+          <th>Item 1</th>
+          <th>Item 2</th>
+          <th>Item 3</th>
+          <th>Item 4</th>
+          <th>Item 5</th>
+          <th>Item 6</th>
+          <th>Item 7</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="cryptoNames"></div>
+
+    <script src="/spot/currencies/1d/AEDRUB.js"></script>
+  </body>
+</html>
