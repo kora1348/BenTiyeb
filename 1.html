@@ -1,43 +1,54 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Variation AED/MAD - 15 min</title>
+  <meta charset="UTF-8" />
+  <title>Spot AED/MAD - 15min</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .positive {
+      color: green;
+      font-weight: bold;
+    }
+    .negative {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h1>Variation AED/MAD (15 dernières minutes)</h1>
-  <p id="variation">Chargement...</p>
 
-  <script>
-    const API_KEY = "c9abb437327a4242ac6af22e70f95f7d"; // Remplace avec ta clé gratuite
-    const SYMBOL = "AED/MAD";
+  <button
+    style="background-color: #fb3831; color: white; border: none; padding: 10px 20px;
+           font-size: 16px; border-radius: 4px; cursor: pointer;"
+    onclick="window.location.href='../../../../index.html'"
+  >
+    Accueil
+  </button>
 
-    async function getVariation15Minutes() {
-      const output = document.getElementById("variation");
+  <h1>Analyse en direct AED/MAD</h1>
+  <p style="font-weight: bold">Mise à jour automatique</p>
 
-      try {
-        const url = `https://api.twelvedata.com/time_series?symbol=${SYMBOL}&interval=1min&outputsize=15&apikey=${API_KEY}`;
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (!data.values || data.values.length < 2) {
-          output.textContent = "Pas assez de données pour calculer la variation.";
-          return;
-        }
-
-        const latest = parseFloat(data.values[0].close); // plus récent
-        const oldest = parseFloat(data.values[data.values.length - 1].close); // plus ancien (il y a 15 min)
-
-        const variation = ((latest - oldest) / oldest) * 100;
-
-        output.textContent = `Variation sur 15 minutes : ${variation.toFixed(4)} % (AED/MAD)`;
-      } catch (err) {
-        console.error(err);
-        output.textContent = "Erreur lors du chargement des données.";
-      }
-    }
-
-    getVariation15Minutes();
-  </script>
+  <table id="cryptoTable">
+    <thead>
+      <tr>
+        <th>Heure</th>
+        <th>Prix</th>
+        <th>Variation vs précédente (%)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script src="/1.js"></script>
 </body>
 </html>
