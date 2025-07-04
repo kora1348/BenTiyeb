@@ -80,7 +80,6 @@ async function chargerPairesDisponibles() {
 }
 
 // 5. Récupération des données historiques Forex
-// 5. Récupération des données historiques Forex (version corrigée)
 async function getDonneesHistoriquesForex(paire, intervalle = '1h', limite = 9) {
   try {
     const [base, quote] = paire.split('/');
@@ -88,7 +87,6 @@ async function getDonneesHistoriquesForex(paire, intervalle = '1h', limite = 9) 
     
     const reponse = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbole}&interval=${intervalle}&limit=${limite + 1}`
-      // On demande +1 items pour avoir suffisamment de données pour calculer les variations
     );
     const donnees = await reponse.json();
     
@@ -106,9 +104,9 @@ async function getDonneesHistoriquesForex(paire, intervalle = '1h', limite = 9) 
   }
 }
 
-// 6. Affichage d'une ligne du tableau Forex (version corrigée)
+// 6. Affichage d'une ligne du tableau Forex
 async function afficherLigneForex(paire, donnees, tableau) {
-  if (!donnees || donnees.length < 9) return false; // Maintenant on veut exactement 9 items
+  if (!donnees || donnees.length < 9) return false;
 
   // Vérification si les données sont à jour
   const dernierItem = donnees[donnees.length - 1].temps;
@@ -130,7 +128,7 @@ async function afficherLigneForex(paire, donnees, tableau) {
     let symboleVariation = "";
 
     // Calcul de la variation
-    if (i > 0) { // Pour les items 1 à 8, on compare avec l'item précédent
+    if (i > 0) {
       const precedent = donnees[i - 1];
       const variation = ((item.close - precedent.close) / precedent.close) * 100;
       
@@ -142,18 +140,16 @@ async function afficherLigneForex(paire, donnees, tableau) {
       }
 
       // Construction de la séquence de tendance (items 2 à 8)
-      if (i >= 1 && i <= 7) { // Items 1 à 7 pour la tendance (7 caractères)
+      if (i >= 1 && i <= 7) {
         sequenceTendance += Math.abs(variation) >= 0.04 ? (variation > 0 ? '+' : '-') : '0';
       }
     } else {
-      // Pour l'item 0, pas de variation à afficher
       texteVariation = "";
     }
 
     const tempsAjuste = new Date(item.temps.getTime() + 60 * 60 * 1000);
     cellule.textContent = `${formaterDateHeure(tempsAjuste)} ${texteVariation}`;
     if (classeVariation) cellule.classList.add(classeVariation);
- 
   }
 
   // Affichage de la tendance
@@ -217,8 +213,7 @@ async function fetchAllCryptoSymbols() {
     const data = await response.json();
     const activeSymbols = data.symbols.filter(s => s.status === 'TRADING');
     const filtered = activeSymbols.filter(s =>
-      ['USDT'].includes(s.quoteAsset)
-      // ['USDT', 'USDC', 'BUSD', 'TUSD', 'BTC', 'ETH', 'FDUSD', 'DAI', 'EUR', 'TRY', 'BNB'].includes(s.quoteAsset)
+      ['USDT', 'USDC', 'BUSD', 'TUSD', 'BTC', 'ETH', 'FDUSD', 'DAI', 'EUR', 'TRY', 'BNB'].includes(s.quoteAsset)
     );
     return filtered.map(s => ({
       base: s.baseAsset,
@@ -308,36 +303,6 @@ async function loadAllCryptos() {
 
   const loadedCount = document.querySelectorAll("#cryptoTable tbody tr").length;
   document.getElementById("resultCount").textContent = `${loadedCount} paires crypto chargées`;
-}
-
-// 4. Filtrage par motif
-function filterPattern() {
-  const pattern = document.getElementById("patternInput").value.trim();
-  if (pattern.length !== 7 || !/^[+-]+$/.test(pattern)) {
-    alert("Veuillez entrer exactement 7 caractères (+ ou -).");
-    return;
-  }
-
-  let count = 0;
-  document.querySelectorAll("#cryptoTable tbody tr").forEach(row => {
-    const motif = row.getAttribute('data-motif');
-    if (motif === pattern) {
-      row.style.display = '';
-      count++;
-    } else {
-      row.style.display = 'none';
-    }
-  });
-
-  document.getElementById("resultCount").textContent = `${count} résultat(s) trouvé(s)`;
-}
-
-// 5. Réinitialisation du tableau crypto
-function resetCryptoTable() {
-  document.querySelectorAll("#cryptoTable tbody tr").forEach(row => {
-    row.style.display = '';
-  });
-  document.getElementById("resultCount").textContent = '';
 }
 
 // =============================================

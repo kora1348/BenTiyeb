@@ -62,11 +62,6 @@
       border-bottom: 2px solid #eee;
       padding-bottom: 20px;
     }
-    
-    /* Filtres crypto */
-    #filterControls {
-      margin: 20px 0;
-    }
   </style>
 </head>
 <body>
@@ -105,11 +100,7 @@
   <!-- Section Crypto -->
   <div class="section">
     <h1>Analyse Crypto en direct - Intervalle 1 heure</h1>
-    <div id="filterControls">
-      <label>Motif de 7 caractères (+/-):</label>
-      <input type="text" id="patternInput" maxlength="7" />
-      <p id="resultCount"></p>
-    </div>
+    <p id="resultCount"></p>
     
     <table id="cryptoTable">
       <thead>
@@ -130,21 +121,21 @@
   </div>
 
   <!-- Section des correspondances -->
-<div class="section">
-  <h1>Correspondances Forex ↔ Crypto (Motif exact)</h1>
-  <table id="matchTable">
-  <thead>
-    <tr>
-      <th>Forex</th>
-      <th>Tendance</th>
-      <th>Crypto</th>
-      <th>Motif</th>
-      <th>Item 9 Forex</th> <!-- ✅ Ajouté ici -->
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-</div>
+  <div class="section">
+    <h1>Correspondances Forex ↔ Crypto (Motif exact)</h1>
+    <table id="matchTable">
+      <thead>
+        <tr>
+          <th>Forex</th>
+          <th>Tendance</th>
+          <th>Crypto</th>
+          <th>Motif</th>
+          <th>Item 9 Forex</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
   <script src="/spot/devises/1h.js"></script>
 </body>
 </html>
