@@ -1,4 +1,207 @@
-async function fetchAllSpotSymbols() {
+// =============================================
+// PARTIE COMMUNE
+// =============================================
+
+// 1. Fonction pour mettre à jour l'heure
+function mettreAJourHeure() {
+  const elementHeure = document.getElementById("heure");
+  const maintenant = new Date();
+  
+  const heures = maintenant.getHours().toString().padStart(2, '0');
+  const minutes = maintenant.getMinutes().toString().padStart(2, '0');
+  const secondes = maintenant.getSeconds().toString().padStart(2, '0');
+  
+  elementHeure.innerHTML = `Heure actuelle: ${heures}:${minutes}:${secondes}`;
+}
+
+// Mise à jour de l'heure toutes les secondes
+setInterval(mettreAJourHeure, 1000);
+mettreAJourHeure();
+
+// Mise à jour de la date de dernière actualisation
+function updateLastUpdate() {
+  document.getElementById("lastUpdate").textContent = 
+    `Dernière mise à jour: ${new Date().toLocaleString()}`;
+}
+
+// =============================================
+// PARTIE FOREX
+// =============================================
+
+// 1. Liste des devises FIAT reconnues
+const FIAT_CODES = ["AED", "AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "CZK", "DKK", 
+                    "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KES", 
+                    "KRW", "MXN", "NGN", "NOK", "NZD", "PHP", "PLN", "RUB", "SEK", 
+                    "SGD", "THB", "TRY", "TWD", "UAH", "USD", "USDC", "USDT", "VND", 
+                    "ZAR"];
+
+let ACTIVE_FOREX_SYMBOLS = [];
+
+// 2. Fonction pour vérifier si une date est aujourd'hui
+function estAujourdhui(date) {
+  const aujourdhui = new Date();
+  return date.getDate() === aujourdhui.getDate() && 
+         date.getMonth() === aujourdhui.getMonth() && 
+         date.getFullYear() === aujourdhui.getFullYear();
+}
+
+// 3. Formatage de la date (JJ/MM/AA HH:MM)
+function formaterDateHeure(date) {
+  const jour = String(date.getDate()).padStart(2, '0');
+  const mois = String(date.getMonth() + 1).padStart(2, '0');
+  const annee = String(date.getFullYear()).slice(-2);
+  const heures = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${jour}/${mois}/${annee} ${heures}:${minutes}`;
+}
+
+// 4. Chargement des paires disponibles sur Binance
+async function chargerPairesDisponibles() {
+  try {
+    const reponse = await fetch("https://api.binance.com/api/v3/exchangeInfo");
+    const donnees = await reponse.json();
+    
+    ACTIVE_FOREX_SYMBOLS = donnees.symbols
+      .filter(symbole => {
+        const deviseBase = symbole.baseAsset;
+        const deviseQuote = symbole.quoteAsset;
+        
+        // On garde seulement les paires FIAT/FIAT ou FIAT/USDC
+        return (FIAT_CODES.includes(deviseBase) && 
+               (FIAT_CODES.includes(deviseQuote) || deviseQuote === "USDC"));
+      })
+      .map(symbole => `${symbole.baseAsset}/${symbole.quoteAsset}`);
+    
+    console.log("Paires Forex chargées:", ACTIVE_FOREX_SYMBOLS);
+  } catch (erreur) {
+    console.error("Erreur de chargement Forex:", erreur);
+  }
+}
+
+// 5. Récupération des données historiques Forex
+async function getDonneesHistoriquesForex(paire, intervalle = '15m', limite = 9) {
+  try {
+    const [base, quote] = paire.split('/');
+    const symbole = `${base}${quote}`;
+    
+    const reponse = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbole}&interval=${intervalle}&limit=${limite}`
+    );
+    const donnees = await reponse.json();
+    
+    return donnees.map(item => ({
+      temps: new Date(item[0]),
+      open: parseFloat(item[1]),
+      close: parseFloat(item[4])
+    }));
+  } catch (erreur) {
+    console.error(`Erreur pour ${paire}:`, erreur);
+    return null;
+  }
+}
+
+// 6. Affichage d'une ligne du tableau Forex
+async function afficherLigneForex(paire, donnees, tableau) {
+  if (!donnees || donnees.length < 2) return false;
+
+  // Vérification si les données sont à jour
+  const dernierItem = donnees[donnees.length - 1].temps;
+  if (!estAujourdhui(dernierItem)) return false;
+
+  const ligne = tableau.insertRow();
+  const cellulePaire = ligne.insertCell();
+  cellulePaire.textContent = paire;
+
+  let sequenceTendance = "";
+
+  // Parcours des 9 items
+  for (let i = 0; i < donnees.length; i++) {
+    const item = donnees[i];
+    const cellule = ligne.insertCell();
+
+    let texteVariation = "";
+    let classeVariation = "";
+    let symboleVariation = "";
+
+    // Calcul de la variation
+    if (i === donnees.length - 1 && i > 0) {
+      // Pour le dernier item (Item 9), on compare avec l'Item 8
+      const precedent = donnees[i - 1];
+      const variation = ((item.close - precedent.close) / precedent.close) * 100;
+      texteVariation = `(${variation.toFixed(2)}%)`;
+      classeVariation = variation > 0 ? "positive" : "negative";
+      symboleVariation = variation > 0 ? "+" : "-";
+    } else if (i < donnees.length - 1) {
+      // Pour les autres items, on compare avec l'item suivant
+      const suivant = donnees[i + 1];
+      const variation = ((suivant.close - item.close) / item.close) * 100;
+      texteVariation = `(${variation.toFixed(2)}%)`;
+      classeVariation = variation > 0 ? "positive" : "negative";
+      symboleVariation = variation > 0 ? "+" : "-";
+
+      // Construction de la séquence de tendance (items 2 à 8)
+      if (i > 0 && i < 8) {
+        sequenceTendance += symboleVariation;
+      }
+    }
+
+    const tempsAjuste = new Date(item.temps.getTime() + 15 * 60 * 1000);
+    cellule.textContent = `${formaterDateHeure(tempsAjuste)} ${texteVariation}`;
+    if (classeVariation) cellule.classList.add(classeVariation);
+  }
+
+  // Affichage de la tendance
+  const celluleTendance = ligne.insertCell();
+  celluleTendance.style.fontWeight = "bold";
+
+  sequenceTendance.split('').forEach(symbole => {
+    const span = document.createElement('span');
+    span.textContent = symbole;
+    span.style.color = symbole === '+' ? 'green' : 'red';
+    celluleTendance.appendChild(span);
+  });
+
+  return true;
+}
+
+// 7. Fonction principale Forex
+async function chargerToutesDevises() {
+  const tableau = document.querySelector("#forexTable tbody");
+  tableau.innerHTML = "";
+  
+  updateLastUpdate();
+
+  let pairesAffichees = 0;
+
+  for (const paire of ACTIVE_FOREX_SYMBOLS) {
+    try {
+      const donnees = await getDonneesHistoriquesForex(paire);
+      if (donnees) {
+        const affichee = await afficherLigneForex(paire, donnees, tableau);
+        if (affichee) pairesAffichees++;
+      }
+    } catch (erreur) {
+      console.error(`Erreur avec ${paire}:`, erreur);
+    }
+  }
+
+  if (pairesAffichees === 0) {
+    const ligne = tableau.insertRow();
+    const cellule = ligne.insertCell();
+    cellule.colSpan = 11;
+    cellule.textContent = "Aucune paire Forex récente trouvée";
+  }
+}
+
+// =============================================
+// PARTIE CRYPTO
+// =============================================
+
+let ALL_CRYPTO_SYMBOLS = [];
+
+// 1. Chargement des paires crypto disponibles
+async function fetchAllCryptoSymbols() {
   const url = 'https://api.binance.com/api/v3/exchangeInfo';
   try {
     const response = await fetch(url);
@@ -13,11 +216,12 @@ async function fetchAllSpotSymbols() {
       symbol: s.symbol
     }));
   } catch (error) {
-    console.error("Erreur lors de la récupération des symboles :", error);
+    console.error("Erreur lors de la récupération des symboles crypto:", error);
     return [];
   }
 }
 
+// 2. Récupération des données crypto
 async function fetchCryptoData(symbol, base, quote) {
   try {
     const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=7`);
@@ -76,23 +280,23 @@ async function fetchCryptoData(symbol, base, quote) {
   }
 }
 
-let allSymbols = [];
-
-async function loadAll() {
+// 3. Chargement de toutes les cryptos
+async function loadAllCryptos() {
   document.querySelector("#cryptoTable tbody").innerHTML = '';
-  document.getElementById("cryptoNames").innerHTML = '';
   document.getElementById("resultCount").textContent = 'Chargement...';
+  updateLastUpdate();
 
-  allSymbols = await fetchAllSpotSymbols();
+  ALL_CRYPTO_SYMBOLS = await fetchAllCryptoSymbols();
 
-  for (let { symbol, base, quote } of allSymbols) {
+  for (let { symbol, base, quote } of ALL_CRYPTO_SYMBOLS) {
     await fetchCryptoData(symbol, base, quote);
   }
 
   const loadedCount = document.querySelectorAll("#cryptoTable tbody tr").length;
-  document.getElementById("resultCount").textContent = `${loadedCount} paires chargées`;
+  document.getElementById("resultCount").textContent = `${loadedCount} paires crypto chargées`;
 }
 
+// 4. Filtrage par motif
 function filterPattern() {
   const pattern = document.getElementById("patternInput").value.trim();
   if (pattern.length !== 7 || !/^[+-]+$/.test(pattern)) {
@@ -114,57 +318,31 @@ function filterPattern() {
   document.getElementById("resultCount").textContent = `${count} résultat(s) trouvé(s)`;
 }
 
-function resetTable() {
+// 5. Réinitialisation du tableau crypto
+function resetCryptoTable() {
   document.querySelectorAll("#cryptoTable tbody tr").forEach(row => {
     row.style.display = '';
   });
   document.getElementById("resultCount").textContent = '';
 }
 
-document.getElementById("loadButton").addEventListener("click", loadAll);
+// =============================================
+// INITIALISATION
+// =============================================
+
+// Écouteurs d'événements
 document.getElementById("filterButton").addEventListener("click", filterPattern);
-document.getElementById("resetButton").addEventListener("click", resetTable);
+document.getElementById("resetButton").addEventListener("click", resetCryptoTable);
 
-
-
-
-function mettreAJourHeure() {
-  var elementHeure = document.getElementById("heure");
-  var maintenant = new Date();
-
-  // Créer une copie de l'heure actuelle
-  var heureActuelle = new Date(maintenant);
-
-  // Ajouter 3 heures et 20 minutes à l'heure actuelle
-  maintenant.setHours(maintenant.getHours() + 3);
-  maintenant.setMinutes(maintenant.getMinutes() + 20);
-
-  var heuresMaintenant = maintenant.getHours();
-  var minutesMaintenant = maintenant.getMinutes();
-  var secondesMaintenant = maintenant.getSeconds();
-
-  var heuresActuelle = heureActuelle.getHours();
-  var minutesActuelle = heureActuelle.getMinutes();
-  var secondesActuelle = heureActuelle.getSeconds();
-
-  // Ajouter un zéro devant les chiffres < 10
-  heuresMaintenant =
-    heuresMaintenant < 10 ? "0" + heuresMaintenant : heuresMaintenant;
-  minutesMaintenant =
-    minutesMaintenant < 10 ? "0" + minutesMaintenant : minutesMaintenant;
-  secondesMaintenant =
-    secondesMaintenant < 10 ? "0" + secondesMaintenant : secondesMaintenant;
-
-  heuresActuelle = heuresActuelle < 10 ? "0" + heuresActuelle : heuresActuelle;
-  minutesActuelle =
-    minutesActuelle < 10 ? "0" + minutesActuelle : minutesActuelle;
-  secondesActuelle =
-    secondesActuelle < 10 ? "0" + secondesActuelle : secondesActuelle;
-
-  // Mettre à jour le contenu de l'élément avec les deux heures
-  elementHeure.innerHTML =
-    heuresActuelle + ":" + minutesActuelle + ":" + secondesActuelle;
-}
-
-// Appeler la fonction pour mettre à jour l'heure
-mettreAJourHeure();
+// Lancement de l'application
+(async function demarrer() {
+  await chargerPairesDisponibles();
+  await chargerToutesDevises();
+  await loadAllCryptos();
+  
+  // Actualisation automatique toutes les 15 minutes
+  setInterval(() => {
+    chargerToutesDevises();
+    loadAllCryptos();
+  }, 15 * 60 * 1000);
+})();
