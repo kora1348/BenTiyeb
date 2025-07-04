@@ -80,7 +80,7 @@ async function chargerPairesDisponibles() {
 }
 
 // 5. Récupération des données historiques Forex
-async function getDonneesHistoriquesForex(paire, intervalle = '15m', limite = 9) {
+async function getDonneesHistoriquesForex(paire, intervalle = '1h', limite = 9) {
   try {
     const [base, quote] = paire.split('/');
     const symbole = `${base}${quote}`;
@@ -146,7 +146,7 @@ async function afficherLigneForex(paire, donnees, tableau) {
       }
     }
 
-    const tempsAjuste = new Date(item.temps.getTime() + 15 * 60 * 1000);
+    const tempsAjuste = new Date(item.temps.getTime() + 60 * 60 * 1000);
     cellule.textContent = `${formaterDateHeure(tempsAjuste)} ${texteVariation}`;
     if (classeVariation) cellule.classList.add(classeVariation);
   }
@@ -224,7 +224,7 @@ async function fetchAllCryptoSymbols() {
 // 2. Récupération des données crypto
 async function fetchCryptoData(symbol, base, quote) {
   try {
-    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=7`);
+    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=7`);
     const data = await response.json();
 
     if (data.length !== 7) return;
