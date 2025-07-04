@@ -98,7 +98,7 @@ async function afficherLigneDevise(pair, data, tbody) {
       variationSymbol = variation > 0 ? "+" : "-";
 
       // Ajouter le symbole à la séquence (sauf pour le dernier élément)
-      if (i > 0 && i < 8) { // Modification ici: on ne prend que les items 2 à 8 (indices 1 à 7)
+      if (i > 0 && i < 8) { // On ne prend que les items 2 à 8 (indices 1 à 7)
         symbolSequence += variationSymbol;
       }
     }
@@ -112,23 +112,29 @@ async function afficherLigneDevise(pair, data, tbody) {
   }
 
   // Ajouter la séquence de tendance (de Item 2 à Item 8)
-  const trendSequence = symbolSequence; // On utilise directement symbolSequence qui contient déjà les bons éléments
   const symbolCell = row.insertCell();
-  symbolCell.textContent = trendSequence;
   symbolCell.style.fontWeight = "bold";
   symbolCell.style.fontSize = "1.2em";
   
-  // Colorer la cellule de tendance en fonction de la majorité
-  const positiveCount = (trendSequence.match(/\+/g) || []).length;
-  const negativeCount = (trendSequence.match(/-/g) || []).length;
+  // Créer un span pour chaque caractère avec la couleur appropriée
+  symbolSequence.split('').forEach(char => {
+    const span = document.createElement('span');
+    span.textContent = char;
+    span.style.color = char === '+' ? 'green' : 'red';
+    symbolCell.appendChild(span);
+  });
+
+  // Colorer la cellule de tendance en fonction de la majorité (optionnel)
+  const positiveCount = (symbolSequence.match(/\+/g) || []).length;
+  const negativeCount = (symbolSequence.match(/-/g) || []).length;
   
+  // Vous pouvez conserver ou supprimer cette partie si vous ne voulez plus le fond coloré
   if (positiveCount > negativeCount) {
-    symbolCell.style.color = "green";
+    symbolCell.style.backgroundColor = "rgba(0, 255, 0, 0.1)";
   } else if (negativeCount > positiveCount) {
-    symbolCell.style.color = "red";
+    symbolCell.style.backgroundColor = "rgba(255, 0, 0, 0.1)";
   }
 }
-
     // Fonction principale pour charger toutes les devises
     async function chargerToutesDevises() {
       const tbody = document.querySelector("#forexTable tbody");
