@@ -11,112 +11,113 @@ const SYMBOLS = [
     "GBP/JPY"
 ];
 
-function getDateNDaysAgo(n) {
+// Fonction pour obtenir la date/heure il y a N intervalles de 15 minutes
+function getTimeMinutesAgo(minutes) {
     const date = new Date();
-    date.setDate(date.getDate() - n);
-    return date.toISOString().split("T")[0];
+    date.setMinutes(date.getMinutes() - minutes);
+    return date;
+}
+
+// Formatage de la date pour l'affichage (HH:MM)
+function formatTime(date) {
+    return date.toTimeString().substring(0, 5);
 }
 
 async function chargerDonneesDevise(base, target) {
-    const end = getDateNDaysAgo(0);   // aujourd'hui
-    const start = getDateNDaysAgo(8); // 9 derniers jours
-    
-    // API gratuite (limité à 250 requêtes/mois)
-    const url = `https://api.exchangerate-api.com/v4/latest/${base}`;
-    
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Erreur API");
-        
-        const data = await res.json();
-        
-        // Simuler des données historiques (l'API gratuite ne fournit que les taux actuels)
+        // Simulation de données pour 9 intervalles de 15 minutes
         const simulatedData = {
             rates: {}
         };
         
-        // Générer des données simulées pour les 9 derniers jours
+        // Générer des données simulées pour les 9 derniers intervalles de 15 minutes
         for (let i = 0; i < 9; i++) {
-            const date = getDateNDaysAgo(i);
-            // Variation aléatoire autour du taux actuel pour la simulation
-            const variation = 1 + (Math.random() * 0.02 - 0.01); // +/- 1%
-            simulatedData.rates[date] = {
-                [target]: data.rates[target] * variation
+            const time = getTimeMinutesAgo((8 - i) * 15); // De 0 à 120 minutes (8*15)
+            const timeStr = formatTime(time);
+            
+            // Variation aléatoire pour la simulation
+            const baseValue = 1 + (Math.random() * 0.1 - 0.05); // Variation de ±5%
+            simulatedData.rates[timeStr] = {
+                [target]: baseValue
             };
         }
         
         return simulatedData;
     } catch (error) {
-        console.error(`Erreur lors de la récupération des données pour ${base}/${target}:`, error);
+        console.error(`Erreur pour ${base}/${target}:`, error);
         return null;
     }
 }
 
 async function afficherLigneDevise(pair, data, tbody) {
-  const [base, target] = pair.split("/");
-  if (!data || !data.rates || Object.keys(data.rates).length < 2) {
+    const [base, target] = pair.split("/");
+    if (!data || !data.rates || Object.keys(data.rates).length < 2) {
+        const row = tbody.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 11;
+        cell.textContent = `Pas assez de données pour ${pair}`;
+        return;
+    }
+
+    const sortedTimes = Object.keys(data.rates).sort((a, b) => {
+        return new Date('1970/01/01 ' + a) - new Date('1970/01/01 ' + b);
+    }); // Tri chronologique
+
     const row = tbody.insertRow();
-    const cell = row.insertCell();
-    cell.colSpan = 11;
-    cell.textContent = `Pas assez de données pour ${pair}`;
-    return;
-  }
+    const pairCell = row.insertCell();
+    pairCell.textContent = pair;
 
-  const sortedDates = Object.keys(data.rates).sort(); // Tri ascendant
-  const row = tbody.insertRow();
-  const pairCell = row.insertCell();
-  pairCell.textContent = pair;
+    let symbolSequence = "";
 
-  let symbolSequence = "";
+    for (let i = 0; i < sortedTimes.length; i++) {
+        const currentTime = sortedTimes[i];
+        const previousTime = sortedTimes[i - 1];
+        const cell = row.insertCell();
 
-  for (let i = sortedDates.length - 9; i < sortedDates.length; i++) {
-    const currentDate = sortedDates[i];
-    const previousDate = sortedDates[i - 1];
-    const cell = row.insertCell();
+        let variationText = "(N/A)";
+        let variationClass = "";
+        let variationSymbol = "";
 
-    let variationText = "(N/A)";
-    let variationClass = "";
-    let variationSymbol = "";
+        if (previousTime) {
+            const current = data.rates[currentTime][target];
+            const previous = data.rates[previousTime][target];
 
-    if (previousDate) {
-      const current = data.rates[currentDate][target];
-      const previous = data.rates[previousDate][target];
+            if (current && previous) {
+                const variation = ((current - previous) / previous) * 100;
+                variationText = `(${variation.toFixed(2)}%)`;
+                variationClass = variation > 0 ? "positive" : "negative";
+                variationSymbol = variation > 0 ? "+" : "-";
 
-      if (current && previous) {
-        const variation = ((current - previous) / previous) * 100;
-        variationText = `(${variation.toFixed(2)}%)`;
-        variationClass = variation > 0 ? "positive" : "negative";
-        variationSymbol = variation > 0 ? "+" : "-";
-
-        if (i >= sortedDates.length - 8 && i < sortedDates.length - 1) {
-          symbolSequence += variationSymbol;
+                if (i >= 1 && i < sortedTimes.length) {
+                    symbolSequence += variationSymbol;
+                }
+            }
         }
-      }
+
+        const displayText = `${currentTime} ${variationText}`;
+        cell.textContent = displayText;
+        if (variationClass) {
+            cell.classList.add(variationClass);
+        }
     }
 
-    const displayText = `${currentDate} ${variationText}`;
-    cell.textContent = displayText;
-    if (variationClass) {
-      cell.classList.add(variationClass);
-    }
-  }
-
-  const symbolCell = row.insertCell();
-  symbolCell.textContent = symbolSequence;
-  symbolCell.style.fontWeight = "bold";
-  symbolCell.style.fontSize = "1.2em";
+    const symbolCell = row.insertCell();
+    symbolCell.textContent = symbolSequence;
+    symbolCell.style.fontWeight = "bold";
+    symbolCell.style.fontSize = "1.2em";
 }
 
 async function chargerToutesDevises() {
-  const tbody = document.querySelector("#cryptoTable tbody");
-  tbody.innerHTML = "";
+    const tbody = document.querySelector("#cryptoTable tbody");
+    tbody.innerHTML = "";
 
-  for (const symbol of SYMBOLS) {
-    const [base, target] = symbol.split("/");
-    const data = await chargerDonneesDevise(base, target);
-    await afficherLigneDevise(symbol, data, tbody);
-  }
+    for (const symbol of SYMBOLS) {
+        const [base, target] = symbol.split("/");
+        const data = await chargerDonneesDevise(base, target);
+        await afficherLigneDevise(symbol, data, tbody);
+    }
 }
 
+// Actualiser toutes les 15 minutes (pour correspondre à l'intervalle)
 chargerToutesDevises();
-setInterval(chargerToutesDevises, 5 * 60 * 1000); // toutes les 5 minutes
+setInterval(chargerToutesDevises, 15 * 60 * 1000);
