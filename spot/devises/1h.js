@@ -80,30 +80,35 @@ async function chargerPairesDisponibles() {
 }
 
 // 5. Récupération des données historiques Forex
+// 5. Récupération des données historiques Forex (version corrigée)
 async function getDonneesHistoriquesForex(paire, intervalle = '1h', limite = 9) {
   try {
     const [base, quote] = paire.split('/');
     const symbole = `${base}${quote}`;
     
     const reponse = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbole}&interval=${intervalle}&limit=${limite}`
+      `https://api.binance.com/api/v3/klines?symbol=${symbole}&interval=${intervalle}&limit=${limite + 1}`
+      // On demande +1 items pour avoir suffisamment de données pour calculer les variations
     );
     const donnees = await reponse.json();
     
-    return donnees.map(item => ({
+    // On prend les 9 derniers items
+    const derniersItems = donnees.slice(-9).map(item => ({
       temps: new Date(item[0]),
       open: parseFloat(item[1]),
       close: parseFloat(item[4])
     }));
+    
+    return derniersItems;
   } catch (erreur) {
     console.error(`Erreur pour ${paire}:`, erreur);
     return null;
   }
 }
 
-// 6. Affichage d'une ligne du tableau Forex
+// 6. Affichage d'une ligne du tableau Forex (version corrigée)
 async function afficherLigneForex(paire, donnees, tableau) {
-  if (!donnees || donnees.length < 2) return false;
+  if (!donnees || donnees.length < 9) return false; // Maintenant on veut exactement 9 items
 
   // Vérification si les données sont à jour
   const dernierItem = donnees[donnees.length - 1].temps;
@@ -115,8 +120,8 @@ async function afficherLigneForex(paire, donnees, tableau) {
 
   let sequenceTendance = "";
 
-  // Parcours des 9 items
-  for (let i = 0; i < donnees.length; i++) {
+  // Parcours des 9 items (de 0 à 8)
+  for (let i = 0; i < 9; i++) {
     const item = donnees[i];
     const cellule = ligne.insertCell();
 
@@ -125,8 +130,7 @@ async function afficherLigneForex(paire, donnees, tableau) {
     let symboleVariation = "";
 
     // Calcul de la variation
-    if (i === donnees.length - 1 && i > 0) {
-      // Pour le dernier item (Item 9), on compare avec l'Item 8
+    if (i > 0) { // Pour les items 1 à 8, on compare avec l'item précédent
       const precedent = donnees[i - 1];
       const variation = ((item.close - precedent.close) / precedent.close) * 100;
       
@@ -136,27 +140,20 @@ async function afficherLigneForex(paire, donnees, tableau) {
       } else {
         texteVariation = `(${Math.abs(variation).toFixed(2)}%)`;
       }
-    } else if (i < donnees.length - 1) {
-      // Pour les autres items, on compare avec l'item suivant
-      const suivant = donnees[i + 1];
-      const variation = ((suivant.close - item.close) / item.close) * 100;
-      
-      if (Math.abs(variation) >= 0.04) {
-        texteVariation = `(${variation > 0 ? '+' : '-'}${Math.abs(variation).toFixed(2)}%)`;
-        classeVariation = variation > 0 ? "positive" : "negative";
-      } else {
-        texteVariation = `(${Math.abs(variation).toFixed(2)}%)`;
-      }
 
       // Construction de la séquence de tendance (items 2 à 8)
-      if (i > 0 && i < 8) {
+      if (i >= 1 && i <= 7) { // Items 1 à 7 pour la tendance (7 caractères)
         sequenceTendance += Math.abs(variation) >= 0.04 ? (variation > 0 ? '+' : '-') : '0';
       }
+    } else {
+      // Pour l'item 0, pas de variation à afficher
+      texteVariation = "";
     }
 
     const tempsAjuste = new Date(item.temps.getTime() + 60 * 60 * 1000);
     cellule.textContent = `${formaterDateHeure(tempsAjuste)} ${texteVariation}`;
     if (classeVariation) cellule.classList.add(classeVariation);
+ 
   }
 
   // Affichage de la tendance
