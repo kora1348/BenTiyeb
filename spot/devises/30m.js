@@ -2,7 +2,7 @@ const API_KEY = "c9abb437327a4242ac6af22e70f95f7d";
 const SYMBOLS = ["AED/MAD", "AED/EUR", "AED/GBP", "AED/KRW", "AED/SEK", "AED/TRY"]; // Tableau des paires à suivre
 
 async function chargerDonneesDevise(symbol) {
-  const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=15min&outputsize=9&apikey=${API_KEY}`;
+  const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=30min&outputsize=9&apikey=${API_KEY}`;
   const res = await fetch(url);
   return await res.json();
 }

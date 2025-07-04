@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>FOREX - 15min</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .positive {
+      color: green;
+      font-weight: bold;
+    }
+    .negative {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <button
+    style="background-color: #fb3831; color: white; border: none; padding: 10px 20px;
+           font-size: 16px; border-radius: 4px; cursor: pointer;"
+    onclick="window.location.href='../../../../index.html'"
+  >
+    Accueil
+  </button>
+
+  <h1>Analyse en direct AED/MAD</h1>
+  <p style="font-weight: bold">Mise à jour automatique</p>
+
+  <table id="cryptoTable">
+    <thead>
+      <tr>
+        <th>Devise</th>
+        <th>Item 1</th>
+        <th>Item 2</th>
+        <th>Item 3</th>
+        <th>Item 4</th>
+        <th>Item 5</th>
+        <th>Item 6</th>
+        <th>Item 7</th>
+        <th>Item 8</th>
+        <th>Item 9</th>
+        <th>Symbole</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script src="/spot/devises/15m.js"></script>
+</body>
+</html>
