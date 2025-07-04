@@ -381,18 +381,40 @@ function filterCryptoWithForexTrends() {
 
 // 3. Afficher les correspondances trouvées
 function displayMatches() {
-  const resultDiv = document.getElementById("resultCount");
+  const matchTable = document.querySelector("#matchTable tbody");
+  matchTable.innerHTML = "";
+
   if (savedPatterns.length === 0) {
-    resultDiv.textContent = "Aucune correspondance trouvée";
+    const row = matchTable.insertRow();
+    const cell = row.insertCell();
+    cell.colSpan = 4;
+    cell.textContent = "Aucune correspondance trouvée.";
     return;
   }
 
-  let html = `<strong>Correspondances trouvées (${savedPatterns.length}):</strong><br>`;
   savedPatterns.forEach(match => {
-    html += `Forex: ${match.forexPair} (${match.forexTrend}) → Crypto: ${match.cryptoPair}<br>`;
+    const row = matchTable.insertRow();
+
+    const forexCell = row.insertCell();
+    forexCell.textContent = match.forexPair;
+
+    const trendCell = row.insertCell();
+    trendCell.innerHTML = match.forexTrend
+      .split('')
+      .map(s => `<span style="color:${s === '+' ? 'green' : 'red'}">${s}</span>`)
+      .join('');
+
+    const cryptoCell = row.insertCell();
+    cryptoCell.textContent = match.cryptoPair;
+
+    const motifCell = row.insertCell();
+    motifCell.innerHTML = match.cryptoPattern
+      .split('')
+      .map(s => `<span style="color:${s === '+' ? 'green' : 'red'}">${s}</span>`)
+      .join('');
   });
-  resultDiv.innerHTML = html;
 }
+
 
 // 4. Bouton pour lancer la recherche de correspondances
 function addMatchButton() {
