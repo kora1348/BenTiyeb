@@ -1,26 +1,25 @@
 const API_KEY = "c9abb437327a4242ac6af22e70f95f7d";
-const SYMBOL = "AED/MAD";
+const SYMBOLS = ["AED/MAD", "AED/EUR"]; // Tableau des paires à suivre
 
-async function chargerLigneAEDMAD() {
-  const url = `https://api.twelvedata.com/time_series?symbol=${SYMBOL}&interval=15min&outputsize=9&apikey=${API_KEY}`;
+async function chargerDonneesDevise(symbol) {
+  const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=15min&outputsize=9&apikey=${API_KEY}`;
   const res = await fetch(url);
-  const data = await res.json();
+  return await res.json();
+}
 
-  const tbody = document.querySelector("#cryptoTable tbody");
-  tbody.innerHTML = "";
-
+async function afficherLigneDevise(symbol, data, tbody) {
   if (!data.values || data.values.length < 2) {
     const row = tbody.insertRow();
     const cell = row.insertCell();
     cell.colSpan = 11;
-    cell.textContent = "Pas assez de données.";
+    cell.textContent = `Pas assez de données pour ${symbol}`;
     return;
   }
 
   const reversedValues = data.values.slice().reverse();
   const row = tbody.insertRow();
   const pairCell = row.insertCell();
-  pairCell.textContent = SYMBOL;
+  pairCell.textContent = symbol;
 
   let symbolSequence = "";
 
@@ -38,8 +37,6 @@ async function chargerLigneAEDMAD() {
       variationText = `(${variation.toFixed(2)}%)`;
       variationClass = variation > 0 ? "positive" : "negative";
       
-      // On ne commence à ajouter des symboles qu'à partir de l'item 2 (i >= 1)
-      // Et on s'arrête avant l'item 9 (i < 8)
       if (i >= 1 && i < 8) {
         variationSymbol = variation > 0 ? "+" : "-";
         symbolSequence += variationSymbol;
@@ -53,12 +50,21 @@ async function chargerLigneAEDMAD() {
     }
   }
 
-  // Ajoute la cellule pour la séquence de symboles (items 2 à 8)
   const symbolCell = row.insertCell();
   symbolCell.textContent = symbolSequence;
   symbolCell.style.fontWeight = "bold";
   symbolCell.style.fontSize = "1.2em";
 }
 
-chargerLigneAEDMAD();
-setInterval(chargerLigneAEDMAD, 60000);
+async function chargerToutesDevises() {
+  const tbody = document.querySelector("#cryptoTable tbody");
+  tbody.innerHTML = "";
+
+  for (const symbol of SYMBOLS) {
+    const data = await chargerDonneesDevise(symbol);
+    await afficherLigneDevise(symbol, data, tbody);
+  }
+}
+
+chargerToutesDevises();
+setInterval(chargerToutesDevises, 60000);
