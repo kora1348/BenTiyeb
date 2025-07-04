@@ -1,48 +1,50 @@
- const API_KEY = "c9abb437327a4242ac6af22e70f95f7d"; // ta clé
-    const SYMBOL = "AED/MAD";
+const API_KEY = "c9abb437327a4242ac6af22e70f95f7d";
+const SYMBOL = "AED/MAD";
 
-    async function chargerTableau() {
-      const url = `https://api.twelvedata.com/time_series?symbol=${SYMBOL}&interval=1min&outputsize=8&apikey=${API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
+async function chargerLigneAEDMAD() {
+  const url = `https://api.twelvedata.com/time_series?symbol=${SYMBOL}&interval=15min&outputsize=8&apikey=${API_KEY}`;
+  const res = await fetch(url);
+  const data = await res.json();
 
-      const tbody = document.querySelector("#cryptoTable tbody");
-      tbody.innerHTML = "";
+  const tbody = document.querySelector("#cryptoTable tbody");
+  tbody.innerHTML = "";
 
-      if (!data.values || data.values.length < 2) {
-        const row = tbody.insertRow();
-        const cell = row.insertCell();
-        cell.colSpan = 3;
-        cell.textContent = "Pas assez de données.";
-        return;
-      }
+  if (!data.values || data.values.length < 2) {
+    const row = tbody.insertRow();
+    const cell = row.insertCell();
+    cell.colSpan = 9;
+    cell.textContent = "Pas assez de données.";
+    return;
+  }
 
-      // Boucles sur les 8 dernières bougies
-      for (let i = data.values.length - 1; i >= 0; i--) {
-        const current = data.values[i];
-        const previous = data.values[i - 1];
-        const row = tbody.insertRow();
+  const reversedValues = data.values.slice().reverse();
 
-        // Colonne 1 : Timestamp
-        const dateCell = row.insertCell();
-        dateCell.textContent = current.datetime;
+  const row = tbody.insertRow();
+  const pairCell = row.insertCell();
+  pairCell.textContent = SYMBOL;
 
-        // Colonne 2 : Prix de clôture
-        const priceCell = row.insertCell();
-        priceCell.textContent = parseFloat(current.close).toFixed(4);
+  for (let i = 0; i < reversedValues.length; i++) {
+    const current = reversedValues[i];
+    const previous = reversedValues[i - 1];
 
-        // Colonne 3 : Variation vs précédente
-        const variationCell = row.insertCell();
-        if (previous) {
-          const variation = ((current.close - previous.close) / previous.close) * 100;
-          variationCell.textContent = variation.toFixed(2) + " %";
-          variationCell.className = variation > 0 ? "positive" : "negative";
-        } else {
-          variationCell.textContent = "-";
-        }
-      }
+    const cell = row.insertCell();
+
+    let variationText = "(N/A)";
+    let variationClass = "";
+
+    if (previous) {
+      const variation = ((current.close - previous.close) / previous.close) * 100;
+      variationText = `(${variation.toFixed(2)}%)`;
+      variationClass = variation > 0 ? "positive" : "negative";
     }
 
-    chargerTableau();
-    // Met à jour toutes les 60 secondes
-    setInterval(chargerTableau, 60000);
+    const displayText = `${current.datetime} ${variationText}`;
+    cell.textContent = displayText;
+    if (variationClass) {
+      cell.classList.add(variationClass);
+    }
+  }
+}
+
+chargerLigneAEDMAD();
+setInterval(chargerLigneAEDMAD, 60000); // Mise à jour toutes les 60s
