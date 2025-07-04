@@ -102,7 +102,8 @@
           }
         }
 
-        const displayText = `${formatTime(current.time)} ${variationText}`;
+        const adjustedTime = new Date(current.time.getTime() + 15 * 60 * 1000);
+        const displayText = `${formatTime(adjustedTime)} ${variationText}`;
         cell.textContent = displayText;
         if (variationClass) {
           cell.classList.add(variationClass);
