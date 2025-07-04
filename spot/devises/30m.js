@@ -418,8 +418,16 @@ function displayMatches() {
       .map(s => `<span style="color:${s === '+' ? 'green' : 'red'}">${s}</span>`)
       .join('');
 
-          const item9Cell = row.insertCell(); // ✅ nouvelle cellule
-    item9Cell.textContent = match.item9 || "-";
+  const item9Cell = row.insertCell();
+item9Cell.textContent = match.item9 || "-";
+
+// ✅ Appliquer couleur en fonction de la variation
+if (match.item9.includes('+') || parseFloat(match.item9) > 0) {
+  item9Cell.classList.add('positive');
+} else if (match.item9.includes('-') || parseFloat(match.item9) < 0) {
+  item9Cell.classList.add('negative');
+}
+
   });
 }
 
