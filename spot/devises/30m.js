@@ -129,20 +129,28 @@ async function afficherLigneForex(paire, donnees, tableau) {
       // Pour le dernier item (Item 9), on compare avec l'Item 8
       const precedent = donnees[i - 1];
       const variation = ((item.close - precedent.close) / precedent.close) * 100;
-      texteVariation = `(${variation.toFixed(2)}%)`;
-      classeVariation = variation > 0 ? "positive" : "negative";
-      symboleVariation = variation > 0 ? "+" : "-";
+      
+      if (Math.abs(variation) >= 0.06) {
+        texteVariation = `(${variation > 0 ? '+' : '-'}${Math.abs(variation).toFixed(2)}%)`;
+        classeVariation = variation > 0 ? "positive" : "negative";
+      } else {
+        texteVariation = `(${Math.abs(variation).toFixed(2)}%)`;
+      }
     } else if (i < donnees.length - 1) {
       // Pour les autres items, on compare avec l'item suivant
       const suivant = donnees[i + 1];
       const variation = ((suivant.close - item.close) / item.close) * 100;
-      texteVariation = `(${variation.toFixed(2)}%)`;
-      classeVariation = variation > 0 ? "positive" : "negative";
-      symboleVariation = variation > 0 ? "+" : "-";
+      
+      if (Math.abs(variation) >= 0.06) {
+        texteVariation = `(${variation > 0 ? '+' : '-'}${Math.abs(variation).toFixed(2)}%)`;
+        classeVariation = variation > 0 ? "positive" : "negative";
+      } else {
+        texteVariation = `(${Math.abs(variation).toFixed(2)}%)`;
+      }
 
       // Construction de la séquence de tendance (items 2 à 8)
       if (i > 0 && i < 8) {
-        sequenceTendance += symboleVariation;
+        sequenceTendance += Math.abs(variation) >= 0.06 ? (variation > 0 ? '+' : '-') : '0';
       }
     }
 
@@ -158,7 +166,11 @@ async function afficherLigneForex(paire, donnees, tableau) {
   sequenceTendance.split('').forEach(symbole => {
     const span = document.createElement('span');
     span.textContent = symbole;
-    span.style.color = symbole === '+' ? 'green' : 'red';
+    if (symbole === '+') {
+      span.style.color = 'green';
+    } else if (symbole === '-') {
+      span.style.color = 'red';
+    }
     celluleTendance.appendChild(span);
   });
 
@@ -245,19 +257,23 @@ async function fetchCryptoData(symbol, base, quote) {
       const close = parseFloat(data[i][4]);
       const variation = ((close - open) / open) * 100;
       const cell = document.createElement("td");
-      const val = variation.toFixed(2);
-      cell.textContent = `${val}%`;
-
-      if (variation > 0) {
-        cell.classList.add("positive");
-        motif += '+';
-      } else if (variation < 0) {
-        cell.classList.add("negative");
-        motif += '-';
+      let valText = Math.abs(variation).toFixed(2) + '%';
+      
+      if (Math.abs(variation) >= 0.06) {
+        if (variation > 0) {
+          valText = '+' + valText;
+          cell.classList.add("positive");
+          motif += '+';
+        } else {
+          valText = '-' + valText;
+          cell.classList.add("negative");
+          motif += '-';
+        }
       } else {
         motif += '0';
       }
 
+      cell.textContent = valText;
       row.appendChild(cell);
       totalVariation += variation;
     }
@@ -265,13 +281,13 @@ async function fetchCryptoData(symbol, base, quote) {
     row.setAttribute('data-motif', motif);
 
     const totalCell = document.createElement("td");
-    totalCell.textContent = `${totalVariation.toFixed(2)}%`;
-    totalCell.style.textAlign = "center";
-    if (totalVariation > 0) {
-      totalCell.classList.add("positive");
-    } else {
-      totalCell.classList.add("negative");
+    let totalText = Math.abs(totalVariation).toFixed(2) + '%';
+    if (Math.abs(totalVariation) >= 0.06) {
+      totalText = (totalVariation > 0 ? '+' : '-') + totalText;
+      totalCell.classList.add(totalVariation > 0 ? "positive" : "negative");
     }
+    totalCell.textContent = totalText;
+    totalCell.style.textAlign = "center";
     row.appendChild(totalCell);
 
     tbody.appendChild(row);
@@ -343,7 +359,7 @@ function getAllForexTrends() {
     });
 
     if (trend.length === 7) {
-      const item9Text = row.cells[9]?.textContent || ""; // ✅ on prend Item 9 (colonne 9)
+      const item9Text = row.cells[9]?.textContent || "";
       trends.push({
         pair: row.cells[0].textContent,
         trend: trend,
@@ -353,7 +369,6 @@ function getAllForexTrends() {
   });
   return trends;
 }
-
 
 // 2. Filtrer les cryptos avec les tendances Forex
 function filterCryptoWithForexTrends() {
@@ -366,9 +381,9 @@ function filterCryptoWithForexTrends() {
       const cryptoPattern = row.getAttribute('data-motif');
       if (cryptoPattern === forex.trend) {
         matches.push({
-    forexPair: forex.pair,
+          forexPair: forex.pair,
           forexTrend: forex.trend,
-          item9: forex.item9, // ✅ on ajoute cette info
+          item9: forex.item9,
           cryptoPair: row.cells[0].textContent,
           cryptoPattern: cryptoPattern
         });
@@ -392,7 +407,7 @@ function displayMatches() {
   if (savedPatterns.length === 0) {
     const row = matchTable.insertRow();
     const cell = row.insertCell();
-    cell.colSpan = 4;
+    cell.colSpan = 5;
     cell.textContent = "Aucune correspondance trouvée.";
     return;
   }
@@ -406,35 +421,35 @@ function displayMatches() {
     const trendCell = row.insertCell();
     trendCell.innerHTML = match.forexTrend
       .split('')
-      .map(s => `<span style="color:${s === '+' ? 'green' : 'red'}">${s}</span>`)
+      .map(s => `<span style="color:${s === '+' ? 'green' : s === '-' ? 'red' : 'black'}">${s}</span>`)
       .join('');
 
     const cryptoCell = row.insertCell();
     cryptoCell.textContent = match.cryptoPair;
 
-     const motifCell = row.insertCell();
+    const motifCell = row.insertCell();
     motifCell.innerHTML = match.cryptoPattern
       .split('')
-      .map(s => `<span style="color:${s === '+' ? 'green' : 'red'}">${s}</span>`)
+      .map(s => `<span style="color:${s === '+' ? 'green' : s === '-' ? 'red' : 'black'}">${s}</span>`)
       .join('');
 
-  const item9Cell = row.insertCell();
-item9Cell.textContent = match.item9 || "-";
-
-// ✅ Appliquer couleur en fonction de la variation
-if (match.item9.includes('+') || parseFloat(match.item9) > 0) {
-  item9Cell.classList.add('positive');
-} else if (match.item9.includes('-') || parseFloat(match.item9) < 0) {
-  item9Cell.classList.add('negative');
-}
-
+    const item9Cell = row.insertCell();
+    item9Cell.textContent = match.item9 || "-";
+    
+    // Extraction de la valeur numérique de l'item9
+    const matchValue = match.item9.match(/\(([+-]?\d+\.\d+)%\)/);
+    if (matchValue) {
+      const value = parseFloat(matchValue[1]);
+      if (Math.abs(value) >= 0.06) {
+        item9Cell.classList.add(value > 0 ? "positive" : "negative");
+      }
+    }
   });
 }
 
 // =============================================
 // INITIALISATION
 // =============================================
-
 
 // Lancement de l'application
 (async function demarrer() {
@@ -449,6 +464,6 @@ if (match.item9.includes('+') || parseFloat(match.item9) > 0) {
   setInterval(async () => {
     await chargerToutesDevises();
     await loadAllCryptos();
-    filterCryptoWithForexTrends(); // Appliquer à chaque refresh
+    filterCryptoWithForexTrends();
   }, 15 * 60 * 1000);
 })();
