@@ -415,38 +415,24 @@ function displayMatches() {
   });
 }
 
-
-// 4. Bouton pour lancer la recherche de correspondances
-function addMatchButton() {
-  const filterControls = document.getElementById("filterControls");
-  const matchButton = document.createElement("button");
-  matchButton.id = "matchButton";
-  matchButton.textContent = "Trouver correspondances Forex-Crypto";
-  matchButton.style.marginLeft = "10px";
-  matchButton.addEventListener("click", filterCryptoWithForexTrends);
-  filterControls.appendChild(matchButton);
-}
-
-// Ajouter le bouton au chargement
-document.addEventListener("DOMContentLoaded", addMatchButton);
-
 // =============================================
 // INITIALISATION
 // =============================================
 
-// Écouteurs d'événements
-document.getElementById("filterButton").addEventListener("click", filterPattern);
-document.getElementById("resetButton").addEventListener("click", resetCryptoTable);
 
 // Lancement de l'application
 (async function demarrer() {
   await chargerPairesDisponibles();
   await chargerToutesDevises();
   await loadAllCryptos();
-  
-  // Actualisation automatique toutes les 15 minutes
-  setInterval(() => {
-    chargerToutesDevises();
-    loadAllCryptos();
+
+  // Appliquer automatiquement les correspondances
+  filterCryptoWithForexTrends();
+
+  // Réactualisation automatique toutes les 15 minutes
+  setInterval(async () => {
+    await chargerToutesDevises();
+    await loadAllCryptos();
+    filterCryptoWithForexTrends(); // Appliquer à chaque refresh
   }, 15 * 60 * 1000);
 })();
