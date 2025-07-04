@@ -2,12 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>FOREX - 1h</title>
+  <title>Fusion Forex & Crypto - 1h</title>
   <style>
+    /* Styles communs */
     table {
       border-collapse: collapse;
       width: 100%;
       margin-top: 20px;
+      margin-bottom: 30px;
     }
     th, td {
       border: 1px solid #ddd;
@@ -53,35 +55,97 @@
       font-style: italic;
       margin-top: 10px;
     }
+    
+    /* Section séparée */
+    .section {
+      margin-bottom: 40px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 20px;
+    }
+    
+    /* Filtres crypto */
+    #filterControls {
+      margin: 20px 0;
+    }
   </style>
 </head>
 <body>
   <div class="controls">
-    <button class="refresh-btn" onclick="chargerToutesDevises()">Actualiser</button>
+    <button class="refresh-btn" onclick="chargerToutesDevises()">Actualiser Forex</button>
+    <button class="refresh-btn" onclick="loadAllCryptos()">Actualiser Cryptos</button>
     <button class="home-btn" onclick="window.location.href='../../../../index.html'">Accueil</button>
   </div>
 
-  <h1>Analyse Forex en direct - Intervalle 1 heure</h1>
+  <div id="heure"></div>
   <p class="last-update" id="lastUpdate">Dernière mise à jour: -</p>
 
-  <table id="forexTable">
+  <!-- Section Forex -->
+  <div class="section">
+    <h1>Analyse Forex en direct - Intervalle 1h</h1>
+    <table id="forexTable">
+      <thead>
+        <tr>
+          <th>Paire</th>
+          <th>Item 1</th>
+          <th>Item 2</th>
+          <th>Item 3</th>
+          <th>Item 4</th>
+          <th>Item 5</th>
+          <th>Item 6</th>
+          <th>Item 7</th>
+          <th>Item 8</th>
+          <th>Item 9</th>
+          <th>Tendance</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Section Crypto -->
+  <div class="section">
+    <h1>Analyse Crypto en direct - Intervalle 1h</h1>
+    <div id="filterControls">
+      <label>Motif de 7 caractères (+/-):</label>
+      <input type="text" id="patternInput" maxlength="7" />
+      <button id="filterButton">Filtrer</button>
+      <button id="resetButton">Afficher tout</button>
+      <p id="resultCount"></p>
+    </div>
+    
+    <table id="cryptoTable">
+      <thead>
+        <tr>
+          <th>Crypto</th>
+          <th>Item 1</th>
+          <th>Item 2</th>
+          <th>Item 3</th>
+          <th>Item 4</th>
+          <th>Item 5</th>
+          <th>Item 6</th>
+          <th>Item 7</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Section des correspondances -->
+<div class="section">
+  <h1>Correspondances Forex ↔ Crypto (Motif exact)</h1>
+  <table id="matchTable">
     <thead>
       <tr>
-        <th>Paire</th>
-        <th>Item 1</th>
-        <th>Item 2</th>
-        <th>Item 3</th>
-        <th>Item 4</th>
-        <th>Item 5</th>
-        <th>Item 6</th>
-        <th>Item 7</th>
-        <th>Item 8</th>
-        <th>Item 9</th>
+        <th>Forex</th>
         <th>Tendance</th>
+        <th>Crypto</th>
+        <th>Motif</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
+</div>
   <script src="/spot/devises/1h.js"></script>
 </body>
 </html>
