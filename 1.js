@@ -2,7 +2,7 @@ const API_KEY = "c9abb437327a4242ac6af22e70f95f7d";
 const SYMBOL = "AED/MAD";
 
 async function chargerLigneAEDMAD() {
-  const url = `https://api.twelvedata.com/time_series?symbol=${SYMBOL}&interval=15min&outputsize=8&apikey=${API_KEY}`;
+  const url = `https://api.twelvedata.com/time_series?symbol=${SYMBOL}&interval=15min&outputsize=9&apikey=${API_KEY}`;
   const res = await fetch(url);
   const data = await res.json();
 
@@ -12,7 +12,7 @@ async function chargerLigneAEDMAD() {
   if (!data.values || data.values.length < 2) {
     const row = tbody.insertRow();
     const cell = row.insertCell();
-    cell.colSpan = 9;
+    cell.colSpan = 10; // Changé de 9 à 10 pour couvrir toutes les colonnes
     cell.textContent = "Pas assez de données.";
     return;
   }
