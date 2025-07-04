@@ -7,6 +7,7 @@
     table {
       border-collapse: collapse;
       width: 100%;
+      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ddd;
@@ -15,6 +16,8 @@
     }
     th {
       background-color: #f2f2f2;
+      position: sticky;
+      top: 0;
     }
     .positive {
       color: green;
@@ -24,25 +27,47 @@
       color: red;
       font-weight: bold;
     }
+    .refresh-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .home-btn {
+      background-color: #fb3831;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    .last-update {
+      font-style: italic;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
+  <div class="controls">
+    <button class="refresh-btn" onclick="chargerToutesDevises()">Actualiser</button>
+    <button class="home-btn" onclick="window.location.href='../../../../index.html'">Accueil</button>
+  </div>
 
-  <button
-    style="background-color: #fb3831; color: white; border: none; padding: 10px 20px;
-           font-size: 16px; border-radius: 4px; cursor: pointer;"
-    onclick="window.location.href='../../../../index.html'"
-  >
-    Accueil
-  </button>
+  <h1>Analyse Forex en direct - Intervalle 1 heure</h1>
+  <p class="last-update" id="lastUpdate">Dernière mise à jour: -</p>
 
-  <h1>Analyse en direct AED/MAD</h1>
-  <p style="font-weight: bold">Mise à jour automatique</p>
-
-  <table id="cryptoTable">
+  <table id="forexTable">
     <thead>
       <tr>
-        <th>Devise</th>
+        <th>Paire</th>
         <th>Item 1</th>
         <th>Item 2</th>
         <th>Item 3</th>
@@ -52,7 +77,7 @@
         <th>Item 7</th>
         <th>Item 8</th>
         <th>Item 9</th>
-        <th>Symbole</th>
+        <th>Tendance</th>
       </tr>
     </thead>
     <tbody></tbody>

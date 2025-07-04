@@ -1,123 +1,176 @@
-const SYMBOLS = [
-    "EUR/USD",
-    "USD/JPY",
-    "GBP/USD",
-    "AUD/USD",
-    "USD/CAD",
-    "USD/CHF",
-    "NZD/USD",
-    "EUR/GBP",
-    "EUR/JPY",
-    "GBP/JPY"
-];
+// 1. Liste des devises FIAT reconnues
+const FIAT_CODES = ["AED", "AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "CZK", "DKK", 
+                    "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KES", 
+                    "KRW", "MXN", "NGN", "NOK", "NZD", "PHP", "PLN", "RUB", "SEK", 
+                    "SGD", "THB", "TRY", "TWD", "UAH", "USD", "USDC", "USDT", "VND", 
+                    "ZAR"];
 
-// Fonction pour obtenir la date/heure il y a N intervalles de 15 minutes
-function getTimeMinutesAgo(minutes) {
-    const date = new Date();
-    date.setMinutes(date.getMinutes() - minutes);
-    return date;
+let ACTIVE_SYMBOLS = [];
+
+// 2. Fonction pour vérifier si une date est aujourd'hui
+function estAujourdhui(date) {
+  const aujourdhui = new Date();
+  return date.getDate() === aujourdhui.getDate() && 
+         date.getMonth() === aujourdhui.getMonth() && 
+         date.getFullYear() === aujourdhui.getFullYear();
 }
 
-// Formatage de la date pour l'affichage (HH:MM)
-function formatTime(date) {
-    return date.toTimeString().substring(0, 5);
+// 3. Formatage de la date (JJ/MM/AA HH:MM)
+function formaterDateHeure(date) {
+  const jour = String(date.getDate()).padStart(2, '0');
+  const mois = String(date.getMonth() + 1).padStart(2, '0');
+  const annee = String(date.getFullYear()).slice(-2);
+  const heures = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${jour}/${mois}/${annee} ${heures}:${minutes}`;
 }
 
-async function chargerDonneesDevise(base, target) {
-    try {
-        // Simulation de données pour 9 intervalles de 15 minutes
-        const simulatedData = {
-            rates: {}
-        };
+// 4. Chargement des paires disponibles sur Binance
+async function chargerPairesDisponibles() {
+  try {
+    const reponse = await fetch("https://api.binance.com/api/v3/exchangeInfo");
+    const donnees = await reponse.json();
+    
+    ACTIVE_SYMBOLS = donnees.symbols
+      .filter(symbole => {
+        const deviseBase = symbole.baseAsset;
+        const deviseQuote = symbole.quoteAsset;
         
-        // Générer des données simulées pour les 9 derniers intervalles de 15 minutes
-        for (let i = 0; i < 9; i++) {
-            const time = getTimeMinutesAgo((8 - i) * 15); // De 0 à 120 minutes (8*15)
-            const timeStr = formatTime(time);
-            
-            // Variation aléatoire pour la simulation
-            const baseValue = 1 + (Math.random() * 0.1 - 0.05); // Variation de ±5%
-            simulatedData.rates[timeStr] = {
-                [target]: baseValue
-            };
-        }
-        
-        return simulatedData;
-    } catch (error) {
-        console.error(`Erreur pour ${base}/${target}:`, error);
-        return null;
-    }
+        // On garde seulement les paires FIAT/FIAT ou FIAT/USDC
+        return (FIAT_CODES.includes(deviseBase) && 
+               (FIAT_CODES.includes(deviseQuote) || deviseQuote === "USDC"));
+               // Il manquait cette parenthèse fermante ici ----^
+      })
+      .map(symbole => `${symbole.baseAsset}/${symbole.quoteAsset}`);
+    
+    console.log("Paires chargées:", ACTIVE_SYMBOLS);
+  } catch (erreur) {
+    console.error("Erreur de chargement:", erreur);
+  }
 }
 
-async function afficherLigneDevise(pair, data, tbody) {
-    const [base, target] = pair.split("/");
-    if (!data || !data.rates || Object.keys(data.rates).length < 2) {
-        const row = tbody.insertRow();
-        const cell = row.insertCell();
-        cell.colSpan = 11;
-        cell.textContent = `Pas assez de données pour ${pair}`;
-        return;
-    }
-
-    const sortedTimes = Object.keys(data.rates).sort((a, b) => {
-        return new Date('1970/01/01 ' + a) - new Date('1970/01/01 ' + b);
-    }); // Tri chronologique
-
-    const row = tbody.insertRow();
-    const pairCell = row.insertCell();
-    pairCell.textContent = pair;
-
-    let symbolSequence = "";
-
-    for (let i = 0; i < sortedTimes.length; i++) {
-        const currentTime = sortedTimes[i];
-        const previousTime = sortedTimes[i - 1];
-        const cell = row.insertCell();
-
-        let variationText = "(N/A)";
-        let variationClass = "";
-        let variationSymbol = "";
-
-        if (previousTime) {
-            const current = data.rates[currentTime][target];
-            const previous = data.rates[previousTime][target];
-
-            if (current && previous) {
-                const variation = ((current - previous) / previous) * 100;
-                variationText = `(${variation.toFixed(2)}%)`;
-                variationClass = variation > 0 ? "positive" : "negative";
-                variationSymbol = variation > 0 ? "+" : "-";
-
-                if (i >= 1 && i < sortedTimes.length) {
-                    symbolSequence += variationSymbol;
-                }
-            }
-        }
-
-        const displayText = `${currentTime} ${variationText}`;
-        cell.textContent = displayText;
-        if (variationClass) {
-            cell.classList.add(variationClass);
-        }
-    }
-
-    const symbolCell = row.insertCell();
-    symbolCell.textContent = symbolSequence;
-    symbolCell.style.fontWeight = "bold";
-    symbolCell.style.fontSize = "1.2em";
+// 5. Récupération des données historiques
+async function getDonneesHistoriques(paire, intervalle = '15m', limite = 9) {
+  try {
+    const [base, quote] = paire.split('/');
+    const symbole = `${base}${quote}`;
+    
+    const reponse = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbole}&interval=${intervalle}&limit=${limite}`
+    );
+    const donnees = await reponse.json();
+    
+    return donnees.map(item => ({
+      temps: new Date(item[0]),
+      open: parseFloat(item[1]),
+      close: parseFloat(item[4])
+    }));
+  } catch (erreur) {
+    console.error(`Erreur pour ${paire}:`, erreur);
+    return null;
+  }
 }
 
+// 6. Affichage d'une ligne du tableau
+async function afficherLigne(paire, donnees, tableau) {
+  if (!donnees || donnees.length < 2) return false;
+
+  // Vérification si les données sont à jour
+  const dernierItem = donnees[donnees.length - 1].temps;
+  if (!estAujourdhui(dernierItem)) return false;
+
+  const ligne = tableau.insertRow();
+  const cellulePaire = ligne.insertCell();
+  cellulePaire.textContent = paire;
+
+  let sequenceTendance = "";
+
+  // Parcours des 9 items
+  for (let i = 0; i < donnees.length; i++) {
+    const item = donnees[i];
+    const cellule = ligne.insertCell();
+
+    let texteVariation = "";
+    let classeVariation = "";
+    let symboleVariation = "";
+
+    // Calcul de la variation
+    if (i === donnees.length - 1 && i > 0) {
+      // Pour le dernier item (Item 9), on compare avec l'Item 8
+      const precedent = donnees[i - 1];
+      const variation = ((item.close - precedent.close) / precedent.close) * 100;
+      texteVariation = `(${variation.toFixed(2)}%)`;
+      classeVariation = variation > 0 ? "positive" : "negative";
+      symboleVariation = variation > 0 ? "+" : "-";
+    } else if (i < donnees.length - 1) {
+      // Pour les autres items, on compare avec l'item suivant
+      const suivant = donnees[i + 1];
+      const variation = ((suivant.close - item.close) / item.close) * 100;
+      texteVariation = `(${variation.toFixed(2)}%)`;
+      classeVariation = variation > 0 ? "positive" : "negative";
+      symboleVariation = variation > 0 ? "+" : "-";
+
+      // Construction de la séquence de tendance (items 2 à 8)
+      if (i > 0 && i < 8) {
+        sequenceTendance += symboleVariation;
+      }
+    }
+
+    const tempsAjuste = new Date(item.temps.getTime() + 15 * 60 * 1000);
+    cellule.textContent = `${formaterDateHeure(tempsAjuste)} ${texteVariation}`;
+    if (classeVariation) cellule.classList.add(classeVariation);
+  }
+
+  // Affichage de la tendance
+  const celluleTendance = ligne.insertCell();
+  celluleTendance.style.fontWeight = "bold";
+
+  sequenceTendance.split('').forEach(symbole => {
+    const span = document.createElement('span');
+    span.textContent = symbole;
+    span.style.color = symbole === '+' ? 'green' : 'red';
+    celluleTendance.appendChild(span);
+  });
+
+  return true;
+}
+
+// 7. Fonction principale
 async function chargerToutesDevises() {
-    const tbody = document.querySelector("#cryptoTable tbody");
-    tbody.innerHTML = "";
+  const tableau = document.querySelector("#forexTable tbody");
+  tableau.innerHTML = "";
+  
+  document.getElementById("lastUpdate").textContent = 
+    `Dernière mise à jour: ${new Date().toLocaleString()}`;
 
-    for (const symbol of SYMBOLS) {
-        const [base, target] = symbol.split("/");
-        const data = await chargerDonneesDevise(base, target);
-        await afficherLigneDevise(symbol, data, tbody);
+  let pairesAffichees = 0;
+
+  for (const paire of ACTIVE_SYMBOLS) {
+    try {
+      const donnees = await getDonneesHistoriques(paire);
+      if (donnees) {
+        const affichee = await afficherLigne(paire, donnees, tableau);
+        if (affichee) pairesAffichees++;
+      }
+    } catch (erreur) {
+      console.error(`Erreur avec ${paire}:`, erreur);
     }
+  }
+
+  if (pairesAffichees === 0) {
+    const ligne = tableau.insertRow();
+    const cellule = ligne.insertCell();
+    cellule.colSpan = 11;
+    cellule.textContent = "Aucune paire récente trouvée";
+  }
 }
 
-// Actualiser toutes les 15 minutes (pour correspondre à l'intervalle)
-chargerToutesDevises();
-setInterval(chargerToutesDevises, 15 * 60 * 1000);
+// 8. Lancement de l'application
+(async function demarrer() {
+  await chargerPairesDisponibles();
+  await chargerToutesDevises();
+  
+  // Actualisation automatique toutes les 15 minutes
+  setInterval(chargerToutesDevises, 15 * 60 * 1000);
+})();
