@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Fusion Forex & Crypto - 15min</title>
+  <title>Fusion Forex & Crypto - 30min</title>
   <style>
     /* Styles communs */
     table {
@@ -81,7 +81,7 @@
 
   <!-- Section Forex -->
   <div class="section">
-    <h1>Analyse Forex en direct - Intervalle 15min</h1>
+    <h1>Analyse Forex en direct - Intervalle 30min</h1>
     <table id="forexTable">
       <thead>
         <tr>
@@ -104,12 +104,10 @@
 
   <!-- Section Crypto -->
   <div class="section">
-    <h1>Analyse Crypto en direct - Intervalle 15min</h1>
+    <h1>Analyse Crypto en direct - Intervalle 30min</h1>
     <div id="filterControls">
       <label>Motif de 7 caractères (+/-):</label>
       <input type="text" id="patternInput" maxlength="7" />
-      <button id="filterButton">Filtrer</button>
-      <button id="resetButton">Afficher tout</button>
       <p id="resultCount"></p>
     </div>
     
@@ -135,19 +133,18 @@
 <div class="section">
   <h1>Correspondances Forex ↔ Crypto (Motif exact)</h1>
   <table id="matchTable">
-    <thead>
-      <tr>
-        <th>Forex</th>
-        <th>Tendance</th>
-        <th>Crypto</th>
-        <th>Motif</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <thead>
+    <tr>
+      <th>Forex</th>
+      <th>Tendance</th>
+      <th>Crypto</th>
+      <th>Motif</th>
+      <th>Item 9 Forex</th> <!-- ✅ Ajouté ici -->
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 </div>
-
-
-  <script src="/spot/1h.js"></script>
+  <script src="/spot/devises/1h.js"></script>
 </body>
 </html>

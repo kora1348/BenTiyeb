@@ -220,7 +220,7 @@ async function fetchAllCryptoSymbols() {
     const data = await response.json();
     const activeSymbols = data.symbols.filter(s => s.status === 'TRADING');
     const filtered = activeSymbols.filter(s =>
-      ['ETH'].includes(s.quoteAsset)
+      ['USDT', 'USDC', 'BUSD', 'TUSD', 'BTC', 'ETH', 'FDUSD', 'DAI', 'EUR', 'TRY', 'BNB'].includes(s.quoteAsset)
     );
     return filtered.map(s => ({
       base: s.baseAsset,
