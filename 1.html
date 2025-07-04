@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Variation AED/MAD - 15 min</title>
+</head>
+<body>
+  <h1>Variation AED/MAD (15 dernières minutes)</h1>
+  <p id="variation">Chargement...</p>
+
+  <script>
+    const API_KEY = "c9abb437327a4242ac6af22e70f95f7d"; // Remplace avec ta clé gratuite
+    const SYMBOL = "AED/MAD";
+
+    async function getVariation15Minutes() {
+      const output = document.getElementById("variation");
+
+      try {
+        const url = `https://api.twelvedata.com/time_series?symbol=${SYMBOL}&interval=1min&outputsize=15&apikey=${API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.values || data.values.length < 2) {
+          output.textContent = "Pas assez de données pour calculer la variation.";
+          return;
+        }
+
+        const latest = parseFloat(data.values[0].close); // plus récent
+        const oldest = parseFloat(data.values[data.values.length - 1].close); // plus ancien (il y a 15 min)
+
+        const variation = ((latest - oldest) / oldest) * 100;
+
+        output.textContent = `Variation sur 15 minutes : ${variation.toFixed(4)} % (AED/MAD)`;
+      } catch (err) {
+        console.error(err);
+        output.textContent = "Erreur lors du chargement des données.";
+      }
+    }
+
+    getVariation15Minutes();
+  </script>
+</body>
+</html>
