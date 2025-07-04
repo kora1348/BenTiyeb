@@ -1,55 +1,18 @@
-const SYMBOLS = [
-    "EUR/USD",
-    "USD/JPY",
-    "GBP/USD",
-    "AUD/USD",
-    "USD/CAD",
-    "USD/CHF",
-    "NZD/USD",
-    "EUR/GBP",
-    "EUR/JPY",
-    "GBP/JPY"
-];
+const SYMBOLS = [""];
 
 function getDateNDaysAgo(n) {
-    const date = new Date();
-    date.setDate(date.getDate() - n);
-    return date.toISOString().split("T")[0];
+  const date = new Date();
+  date.setDate(date.getDate() - n);
+  return date.toISOString().split("T")[0];
 }
 
 async function chargerDonneesDevise(base, target) {
-    const end = getDateNDaysAgo(0);   // aujourd'hui
-    const start = getDateNDaysAgo(8); // 9 derniers jours
-    
-    // API gratuite (limité à 250 requêtes/mois)
-    const url = `https://api.exchangerate-api.com/v4/latest/${base}`;
-    
-    try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Erreur API");
-        
-        const data = await res.json();
-        
-        // Simuler des données historiques (l'API gratuite ne fournit que les taux actuels)
-        const simulatedData = {
-            rates: {}
-        };
-        
-        // Générer des données simulées pour les 9 derniers jours
-        for (let i = 0; i < 9; i++) {
-            const date = getDateNDaysAgo(i);
-            // Variation aléatoire autour du taux actuel pour la simulation
-            const variation = 1 + (Math.random() * 0.02 - 0.01); // +/- 1%
-            simulatedData.rates[date] = {
-                [target]: data.rates[target] * variation
-            };
-        }
-        
-        return simulatedData;
-    } catch (error) {
-        console.error(`Erreur lors de la récupération des données pour ${base}/${target}:`, error);
-        return null;
-    }
+  const end = getDateNDaysAgo(0);   // aujourd'hui
+  const start = getDateNDaysAgo(8); // 9 derniers jours
+
+  const url = `???`;
+  const res = await fetch(url);
+  return await res.json();
 }
 
 async function afficherLigneDevise(pair, data, tbody) {
