@@ -120,6 +120,26 @@
             <h2>Paires ETH</h2>
             <div class="loading">Chargement...</div>
         </div>
+        <div class="pair-list" id="ltcPairs">
+            <h2>Paires LTC</h2>
+            <div class="loading">Chargement...</div>
+        </div>
+        <div class="pair-list" id="bnbPairs">
+            <h2>Paires BNB</h2>
+            <div class="loading">Chargement...</div>
+        </div>
+        <div class="pair-list" id="neoPairs">
+            <h2>Paires NEO</h2>
+            <div class="loading">Chargement...</div>
+        </div>
+        <div class="pair-list" id="qtumPairs">
+            <h2>Paires QTUM</h2>
+            <div class="loading">Chargement...</div>
+        </div>
+         <div class="pair-list" id="gasPairs">
+            <h2>Paires GAS*</h2>
+            <div class="loading">Chargement...</div>
+        </div>
     </div>
     
     <button class="refresh-btn" onclick="loadAllPairs()">Actualiser les données</button>
@@ -318,7 +338,12 @@
             try {
                 document.getElementById('btcPairs').innerHTML = '<h2>Paires BTC</h2><div class="loading">Chargement...</div>';
                 document.getElementById('ethPairs').innerHTML = '<h2>Paires ETH</h2><div class="loading">Chargement...</div>';
-                
+                document.getElementById('ltcPairs').innerHTML = '<h2>Paires LTC</h2><div class="loading">Chargement...</div>';
+                document.getElementById('bnbPairs').innerHTML = '<h2>Paires BNB</h2><div class="loading">Chargement...</div>';
+                document.getElementById('neoPairs').innerHTML = '<h2>Paires NEO</h2><div class="loading">Chargement...</div>';
+                document.getElementById('qtumPairs').innerHTML = '<h2>Paires QTUM</h2><div class="loading">Chargement...</div>';
+                document.getElementById('gasPairs').innerHTML = '<h2>Paires GAS</h2><div class="loading">Chargement...</div>';
+
                 const allPairs = await fetchAllCryptoSymbols();
                 
                 // Filtrer les paires BTC (où BTC est la base)
@@ -328,10 +353,31 @@
                 // Filtrer les paires ETH (où ETH est la base)
                 const ethPairs = allPairs.filter(pair => pair.base === 'ETH');
                 await displayPairsWithChange('ETH', ethPairs, 'ethPairs');
+
+                 const ltcPairs = allPairs.filter(pair => pair.base === 'LTC');
+                await displayPairsWithChange('LTC', ltcPairs, 'ltcPairs');
+
+                 const bnbPairs = allPairs.filter(pair => pair.base === 'BNB');
+                await displayPairsWithChange('BNB', bnbPairs, 'bnbPairs');
+
+                   const neoPairs = allPairs.filter(pair => pair.base === 'NEO');
+                await displayPairsWithChange('NEO', neoPairs, 'neoPairs');
+
+                    const qtumPairs = allPairs.filter(pair => pair.base === 'QTUM');
+                await displayPairsWithChange('QTUM', qtumPairs, 'qtumPairs');
+
+                    const gasPairs = allPairs.filter(pair => pair.base === 'GAS');
+                await displayPairsWithChange('GAS', gasPairs, 'gasPairs');
+
                 
             } catch (error) {
                 document.getElementById('btcPairs').innerHTML = `<h2>Paires BTC</h2><div class="error">Erreur: ${error.message}</div>`;
                 document.getElementById('ethPairs').innerHTML = `<h2>Paires ETH</h2><div class="error">Erreur: ${error.message}</div>`;
+                document.getElementById('ltcPairs').innerHTML = `<h2>Paires LTC</h2><div class="error">Erreur: ${error.message}</div>`;
+                document.getElementById('bnbPairs').innerHTML = `<h2>Paires BNB</h2><div class="error">Erreur: ${error.message}</div>`;
+                document.getElementById('neoPairs').innerHTML = `<h2>Paires NEO</h2><div class="error">Erreur: ${error.message}</div>`;
+                document.getElementById('qtumPairs').innerHTML = `<h2>Paires QTUM</h2><div class="error">Erreur: ${error.message}</div>`;
+                document.getElementById('gasPairs').innerHTML = `<h2>Paires GAS</h2><div class="error">Erreur: ${error.message}</div>`;
             }
         }
 
