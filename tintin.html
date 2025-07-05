@@ -87,6 +87,24 @@
         .refresh-btn:hover {
             background: #45a049;
         }
+        .average-card {
+            margin: 15px 0;
+            padding: 15px;
+            background: #e9f7ef;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .average-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .average-value {
+            font-size: 1.1em;
+        }
+        .section-footer {
+            margin-top: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +227,8 @@
                 grouped[pair.quote].push(pair);
             });
             
+            let allChanges = [];
+            
             // Pour chaque groupe, récupérer les données de variation
             for (const [quote, pairList] of Object.entries(grouped)) {
                 const groupDiv = document.createElement('div');
@@ -223,10 +243,11 @@
                     })
                 );
                 
+                // Filtrer les paires avec données valides
+                const validPairData = pairData.filter(data => data.candleData);
+                
                 // Afficher chaque paire avec ses données
-                pairData.forEach(data => {
-                    if (!data.candleData) return; // Ignorer les paires avec erreur
-                    
+                validPairData.forEach(data => {
                     const pairDiv = document.createElement('div');
                     pairDiv.className = 'pair-item';
                     
@@ -257,15 +278,37 @@
                     pairDiv.appendChild(symbolSpan);
                     pairDiv.appendChild(priceInfoDiv);
                     groupDiv.appendChild(pairDiv);
+                    
+                    // Ajouter au tableau global des changements
+                    allChanges.push(changePercent);
                 });
                 
                 container.appendChild(groupDiv);
             }
             
+            // Afficher la moyenne si on a des données valides
+            if (allChanges.length > 0) {
+                const total = allChanges.reduce((sum, change) => sum + change, 0);
+                const average = total / allChanges.length;
+                const averageClass = average > 0 ? 'positive' : 
+                                   average < 0 ? 'negative' : 'neutral';
+                
+                const averageCard = document.createElement('div');
+                averageCard.className = 'average-card';
+                averageCard.innerHTML = `
+                    <div class="average-title">Moyenne des variations ${crypto}:</div>
+                    <div class="average-value ${averageClass}">
+                        ${average > 0 ? '+' : ''}${average.toFixed(2)}%
+                    </div>
+                    <div>Calculée sur ${allChanges.length} paires</div>
+                `;
+                
+                container.appendChild(averageCard);
+            }
+            
             // Ajouter le nombre total
             const totalDiv = document.createElement('div');
-            totalDiv.style.marginTop = '15px';
-            totalDiv.style.fontWeight = 'bold';
+            totalDiv.className = 'section-footer';
             totalDiv.textContent = `Total: ${pairs.length} paires`;
             container.appendChild(totalDiv);
         }
