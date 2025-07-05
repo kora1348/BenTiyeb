@@ -340,8 +340,15 @@ function filterCryptoWithForexTrends() {
   let matches = [];
 
   forexTrends.forEach(forex => {
+    // Ne traiter que les motifs qui ne contiennent pas de '0'
+    if (forex.trend.includes('0')) return;
+
     cryptoRows.forEach(row => {
       const cryptoPattern = row.getAttribute('data-motif');
+
+      // Exclure aussi les motifs Crypto contenant '0'
+      if (cryptoPattern.includes('0')) return;
+
       if (cryptoPattern === forex.trend) {
         matches.push({
           forexPair: forex.pair,
@@ -361,6 +368,7 @@ function filterCryptoWithForexTrends() {
   displayMatches();
   return matches;
 }
+
 
 // 3. Afficher les correspondances trouvées
 function displayMatches() {
