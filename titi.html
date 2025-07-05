@@ -1,32 +1,41 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arbitrage Triangulaire Binance</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arbitrage Triangulaire MEXC Futures (USDT/USDC)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: #f5f5f5;
         }
         h1 {
-            color: #f0b90b;
             text-align: center;
+            color: #f0b90b;
         }
         .controls {
-            background-color: white;
+            background: white;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        label, select, input {
+            margin-right: 10px;
+            font-size: 1rem;
+        }
+        select, input {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
         button {
             background-color: #f0b90b;
-            color: white;
             border: none;
+            color: white;
             padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
@@ -35,21 +44,16 @@
         button:hover {
             background-color: #d8a600;
         }
-        select, input {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: white;
+            background: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         th, td {
             padding: 12px 15px;
-            text-align: left;
             border-bottom: 1px solid #ddd;
+            text-align: left;
         }
         th {
             background-color: #f0b90b;
@@ -72,48 +76,28 @@
             font-style: italic;
             color: #666;
         }
-        .info {
-            background-color: #e7f3ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #4a90e2;
-        }
     </style>
 </head>
 <body>
-    <h1>Détecteur d'Arbitrage Triangulaire Binance</h1>
-    
-    <div class="info">
-        <p>Cet outil analyse les paires de trading sur Binance pour détecter des opportunités d'arbitrage triangulaire avec un écart de prix significatif (> ±1%).</p>
-        <p><strong>Fonctionnalités :</strong></p>
-        <ul>
-            <li>Récupère toutes les paires crypto actives sur Binance</li>
-            <li>Calcule les relations théoriques entre les prix</li>
-            <li>Identifie les opportunités LONG/SHORT avec profit potentiel</li>
-            <li>Filtrage par devise de base (USDT, BTC, ETH, BNB)</li>
-        </ul>
-    </div>
-    
+    <h1>Détecteur d'Arbitrage Triangulaire MEXC Futures</h1>
+
     <div class="controls">
         <label for="baseCurrency">Devise de base :</label>
         <select id="baseCurrency">
             <option value="USDT">USDT</option>
-            <option value="BTC">BTC</option>
-            <option value="ETH">ETH</option>
-            <option value="BNB">BNB</option>
+            <option value="USDC">USDC</option>
             <option value="ALL">Toutes</option>
         </select>
-        
-        <label for="minProfit">Profit minimum (%):</label>
-        <input type="number" id="minProfit" value="1" min="0.1" step="0.1">
-        
+
+        <label for="minProfit">Profit minimum (%) :</label>
+        <input type="number" id="minProfit" value="1" min="0.1" step="0.1" />
+
         <button id="fetchData">Analyser les opportunités</button>
         <button id="refresh" style="margin-left: 10px;">Actualiser les prix</button>
     </div>
-    
-    <div id="loading" class="loading" style="display: none;">Chargement des données depuis Binance...</div>
-    
+
+    <div id="loading" class="loading" style="display:none;">Chargement des données depuis MEXC...</div>
+
     <div id="results">
         <table id="opportunitiesTable">
             <thead>
@@ -126,208 +110,205 @@
                 </tr>
             </thead>
             <tbody id="opportunitiesBody">
-                <!-- Les résultats seront affichés ici -->
+                <!-- Résultats ici -->
             </tbody>
         </table>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let allSymbols = [];
-            let prices = {};
-            let baseCurrencies = ['USDT', 'BTC', 'ETH', 'BNB'];
-            
-            // Éléments DOM
-            const fetchDataBtn = document.getElementById('fetchData');
-            const refreshBtn = document.getElementById('refresh');
-            const loadingElement = document.getElementById('loading');
-            const opportunitiesBody = document.getElementById('opportunitiesBody');
-            const baseCurrencySelect = document.getElementById('baseCurrency');
-            const minProfitInput = document.getElementById('minProfit');
-            
-            // Récupérer tous les symboles depuis Binance
-            async function fetchAllSymbols() {
-                try {
-                    loadingElement.style.display = 'block';
-                    const response = await fetch('https://api.binance.com/api/v3/exchangeInfo');
-                    const data = await response.json();
-                    
-                    allSymbols = data.symbols
-                        .filter(s => s.status === 'TRADING')
-                        .map(s => s.symbol);
-                    
-                    return allSymbols;
-                } catch (error) {
-                    console.error('Erreur lors de la récupération des symboles:', error);
-                    return [];
-                } finally {
-                    loadingElement.style.display = 'none';
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let allSymbols = [];
+    let prices = {};
+    const baseCurrencies = ['USDT', 'USDC'];
+
+    const fetchDataBtn = document.getElementById('fetchData');
+    const refreshBtn = document.getElementById('refresh');
+    const loadingElement = document.getElementById('loading');
+    const opportunitiesBody = document.getElementById('opportunitiesBody');
+    const baseCurrencySelect = document.getElementById('baseCurrency');
+    const minProfitInput = document.getElementById('minProfit');
+
+    // Récupérer tous les symboles depuis MEXC (endpoint similaire Binance)
+    async function fetchAllSymbols() {
+        try {
+            loadingElement.style.display = 'block';
+            // Attention, changer l'URL si MEXC a une API différente !
+            const response = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+            const data = await response.json();
+
+            // On filtre pour garder seulement symboles qui contiennent USDT ou USDC
+            allSymbols = data.symbols
+                .filter(s => s.status === 'TRADING' && (s.symbol.includes('USDT') || s.symbol.includes('USDC')))
+                .map(s => s.symbol);
+            return allSymbols;
+        } catch(e) {
+            console.error('Erreur récupération symbols', e);
+            return [];
+        } finally {
+            loadingElement.style.display = 'none';
+        }
+    }
+
+    // Récupérer les prix actuels
+    async function fetchPrices() {
+        try {
+            loadingElement.style.display = 'block';
+            // Remplacer par endpoint MEXC si besoin
+            const response = await fetch('https://api.binance.com/api/v3/ticker/price');
+            const data = await response.json();
+
+            prices = {};
+            data.forEach(item => {
+                if (item.symbol.includes('USDT') || item.symbol.includes('USDC')) {
+                    prices[item.symbol] = parseFloat(item.price);
                 }
-            }
-            
-            // Récupérer les prix actuels
-            async function fetchPrices() {
-                try {
-                    loadingElement.style.display = 'block';
-                    const response = await fetch('https://api.binance.com/api/v3/ticker/price');
-                    const data = await response.json();
-                    
-                    prices = {};
-                    data.forEach(item => {
-                        prices[item.symbol] = parseFloat(item.price);
-                    });
-                    
-                    return prices;
-                } catch (error) {
-                    console.error('Erreur lors de la récupération des prix:', error);
-                    return {};
-                } finally {
-                    loadingElement.style.display = 'none';
+            });
+            return prices;
+        } catch(e) {
+            console.error('Erreur récupération prix', e);
+            return {};
+        } finally {
+            loadingElement.style.display = 'none';
+        }
+    }
+
+    // Calcul arbitrage triangulaire
+    function calculateArbitrage(pair1, pair2, pair3, baseCurrency, minProfit, isInverse = false) {
+    if (!prices[pair1] || !prices[pair2] || !prices[pair3]) return;
+
+    let theoreticalBase, profitPercentage, pathDescription, action;
+
+    if (!isInverse) {
+        // Cas normal: A/BASE -> A/B -> B/BASE
+        theoreticalBase = (1 / prices[pair1]) * (1 / prices[pair2]) * prices[pair3];
+        profitPercentage = (theoreticalBase - 1) * 100;
+
+        // Détail étape par étape avec prix
+        pathDescription = `
+            1. <strong>Acheter</strong> ${pair1.replace(baseCurrency, '')} avec ${baseCurrency} au prix de ${prices[pair1].toFixed(6)} (${pair1})<br>
+            2. <strong>Vendre</strong> ${pair1.replace(baseCurrency, '')} contre ${pair2.replace(pair1.replace(baseCurrency, ''), '')} au prix de ${prices[pair2].toFixed(6)} (${pair2})<br>
+            3. <strong>Vendre</strong> ${pair2.replace(pair1.replace(baseCurrency, ''), '')} contre ${baseCurrency} au prix de ${prices[pair3].toFixed(6)} (${pair3})
+        `;
+
+        action = profitPercentage > 0 ? 'LONG' : 'SHORT';
+    } else {
+        // Cas inverse: BASE/A -> B/A -> BASE/B
+        theoreticalBase = prices[pair1] * prices[pair2] * (1 / prices[pair3]);
+        profitPercentage = (theoreticalBase - 1) * 100;
+
+        // Détail étape par étape avec prix
+        pathDescription = `
+            1. <strong>Acheter</strong> ${pair1.replace(baseCurrency, '')} avec ${baseCurrency} au prix de ${prices[pair1].toFixed(6)} (${pair1})<br>
+            2. <strong>Vendre</strong> ${pair1.replace(baseCurrency, '')} contre ${pair2.replace(pair1.replace(baseCurrency, ''), '')} au prix de ${prices[pair2].toFixed(6)} (${pair2})<br>
+            3. <strong>Vendre</strong> ${pair2.replace(pair1.replace(baseCurrency, ''), '')} contre ${baseCurrency} au prix de ${prices[pair3].toFixed(6)} (${pair3})
+        `;
+
+        action = profitPercentage > 0 ? 'LONG' : 'SHORT';
+    }
+
+    if (Math.abs(profitPercentage) >= minProfit) {
+        const row = document.createElement('tr');
+
+        const triangleCell = document.createElement('td');
+        triangleCell.textContent = `${pair1} → ${pair2} → ${pair3}`;
+
+        const detailsCell = document.createElement('td');
+        detailsCell.innerHTML = pathDescription;
+
+        const spreadCell = document.createElement('td');
+        spreadCell.textContent = profitPercentage.toFixed(2) + '%';
+
+        const actionCell = document.createElement('td');
+        actionCell.textContent = action;
+        actionCell.className = profitPercentage > 0 ? 'profit' : 'loss';
+
+        const profitCell = document.createElement('td');
+        profitCell.textContent = profitPercentage.toFixed(2) + '%';
+        profitCell.className = profitPercentage > 0 ? 'profit' : 'loss';
+
+        row.appendChild(triangleCell);
+        row.appendChild(detailsCell);
+        row.appendChild(spreadCell);
+        row.appendChild(actionCell);
+        row.appendChild(profitCell);
+
+        opportunitiesBody.appendChild(row);
+    }
+}
+
+
+    // Trouver opportunités
+    function findTriangularArbitrageOpportunities() {
+        const selectedBaseCurrency = baseCurrencySelect.value;
+        const minProfit = parseFloat(minProfitInput.value);
+        opportunitiesBody.innerHTML = '';
+
+        const currenciesToCheck = selectedBaseCurrency === 'ALL' ? baseCurrencies : [selectedBaseCurrency];
+
+        let found = 0;
+
+        currenciesToCheck.forEach(baseCurrency => {
+            // On prend paires qui contiennent baseCurrency en début ou fin
+            const basePairs = allSymbols.filter(s => s.startsWith(baseCurrency) || s.endsWith(baseCurrency));
+
+            basePairs.forEach(pair1 => {
+                // On extrait coinA en retirant baseCurrency du début ou de la fin
+                let coinA = '';
+                if (pair1.startsWith(baseCurrency)) {
+                    coinA = pair1.slice(baseCurrency.length);
+                } else if (pair1.endsWith(baseCurrency)) {
+                    coinA = pair1.slice(0, pair1.length - baseCurrency.length);
                 }
-            }
-            
-            // Trouver les opportunités d'arbitrage triangulaire
-            function findTriangularArbitrageOpportunities() {
-                const selectedBaseCurrency = baseCurrencySelect.value;
-                const minProfit = parseFloat(minProfitInput.value);
-                
-                opportunitiesBody.innerHTML = '';
-                
-                // Si "Toutes" est sélectionné, on vérifie toutes les devises de base
-                const currenciesToCheck = selectedBaseCurrency === 'ALL' ? baseCurrencies : [selectedBaseCurrency];
-                
-                let opportunitiesFound = 0;
-                
-                currenciesToCheck.forEach(baseCurrency => {
-                    // Trouver toutes les paires qui incluent la devise de base
-                    const basePairs = allSymbols.filter(s => s.endsWith(baseCurrency));
-                    
-                    // Pour chaque paire de base (A/BASE)
-                    basePairs.forEach(pair1 => {
-                        const coinA = pair1.replace(baseCurrency, '');
-                        
-                        // Trouver toutes les paires qui commencent par A (A/B)
-                        const coinAPairs = allSymbols.filter(s => s.startsWith(coinA) && s !== pair1);
-                        
-                        // Pour chaque paire A/B
-                        coinAPairs.forEach(pair2 => {
-                            const coinB = pair2.replace(coinA, '');
-                            
-                            // Trouver la paire B/BASE
-                            const pair3 = coinB + baseCurrency;
-                            if (allSymbols.includes(pair3)) {
-                                // Calculer l'arbitrage triangulaire
-                                calculateArbitrage(pair1, pair2, pair3, baseCurrency, minProfit);
-                                opportunitiesFound++;
-                            }
-                        });
-                        
-                        // Vérifier aussi dans l'autre sens (BASE/A)
-                        const inversePair1 = baseCurrency + coinA;
-                        if (allSymbols.includes(inversePair1)) {
-                            // Trouver toutes les paires qui se terminent par A (B/A)
-                            const coinAInversePairs = allSymbols.filter(s => s.endsWith(coinA) && s !== inversePair1);
-                            
-                            // Pour chaque paire B/A
-                            coinAInversePairs.forEach(pair2 => {
-                                const coinB = pair2.replace(coinA, '');
-                                
-                                // Trouver la paire BASE/B
-                                const pair3 = baseCurrency + coinB;
-                                if (allSymbols.includes(pair3)) {
-                                    // Calculer l'arbitrage triangulaire inverse
-                                    calculateArbitrage(inversePair1, pair2, pair3, baseCurrency, minProfit, true);
-                                    opportunitiesFound++;
-                                }
-                            });
+
+                // Trouver paires qui commencent par coinA (coinA/XXX)
+                const coinAPairs = allSymbols.filter(s => s.startsWith(coinA) && s !== pair1);
+
+                coinAPairs.forEach(pair2 => {
+                    // Extraire coinB
+                    const coinB = pair2.slice(coinA.length);
+
+                    // Trouver la paire coinB/baseCurrency
+                    const pair3 = coinB + baseCurrency;
+                    if (allSymbols.includes(pair3)) {
+                        calculateArbitrage(pair1, pair2, pair3, baseCurrency, minProfit);
+                        found++;
+                    }
+                });
+
+                // Vérifier aussi sens inverse (baseCurrency/coinA)
+                const inversePair1 = baseCurrency + coinA;
+                if (allSymbols.includes(inversePair1)) {
+                    // Paires qui se terminent par coinA (XXX/coinA)
+                    const coinAInversePairs = allSymbols.filter(s => s.endsWith(coinA) && s !== inversePair1);
+
+                    coinAInversePairs.forEach(pair2 => {
+                        const coinB = pair2.slice(0, pair2.length - coinA.length);
+                        const pair3 = baseCurrency + coinB;
+                        if (allSymbols.includes(pair3)) {
+                            calculateArbitrage(inversePair1, pair2, pair3, baseCurrency, minProfit, true);
+                            found++;
                         }
                     });
-                });
-                
-                if (opportunitiesFound === 0) {
-                    opportunitiesBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Aucune opportunité trouvée avec les critères actuels.</td></tr>';
                 }
-            }
-            
-            // Calculer le profit d'arbitrage pour un triangle donné
-            function calculateArbitrage(pair1, pair2, pair3, baseCurrency, minProfit, isInverse = false) {
-                if (!prices[pair1] || !prices[pair2] || !prices[pair3]) return;
-                
-                let theoreticalBase, actualBase, profitPercentage;
-                let pathDescription, action;
-                
-                if (!isInverse) {
-                    // Cas normal: A/BASE -> A/B -> B/BASE
-                    theoreticalBase = (1 / prices[pair1]) * (1 / prices[pair2]) * prices[pair3];
-                    actualBase = 1;
-                    profitPercentage = (theoreticalBase - actualBase) / actualBase * 100;
-                    
-                    pathDescription = `
-                        1. Vendre ${baseCurrency} pour ${pair1.replace(baseCurrency, '')} (${pair1})<br>
-                        2. Vendre ${pair1.replace(baseCurrency, '')} pour ${pair2.replace(pair1.replace(baseCurrency, ''), '')} (${pair2})<br>
-                        3. Vendre ${pair2.replace(pair1.replace(baseCurrency, ''), '')} pour ${baseCurrency} (${pair3})
-                    `;
-                    
-                    action = profitPercentage > 0 ? 'LONG' : 'SHORT';
-                } else {
-                    // Cas inverse: BASE/A -> B/A -> BASE/B
-                    theoreticalBase = prices[pair1] * prices[pair2] * (1 / prices[pair3]);
-                    actualBase = 1;
-                    profitPercentage = (theoreticalBase - actualBase) / actualBase * 100;
-                    
-                    pathDescription = `
-                        1. Vendre ${baseCurrency} pour ${pair1.replace(baseCurrency, '')} (${pair1})<br>
-                        2. Vendre ${pair1.replace(baseCurrency, '')} pour ${pair2.replace(pair1.replace(baseCurrency, ''), '')} (${pair2})<br>
-                        3. Vendre ${pair2.replace(pair1.replace(baseCurrency, ''), '')} pour ${baseCurrency} (${pair3})
-                    `;
-                    
-                    action = profitPercentage > 0 ? 'LONG' : 'SHORT';
-                }
-                
-                // Afficher seulement si le profit dépasse le seuil minimum
-                if (Math.abs(profitPercentage) >= minProfit) {
-                    const row = document.createElement('tr');
-                    
-                    const triangleCell = document.createElement('td');
-                    triangleCell.textContent = `${pair1} → ${pair2} → ${pair3}`;
-                    
-                    const detailsCell = document.createElement('td');
-                    detailsCell.innerHTML = pathDescription;
-                    
-                    const spreadCell = document.createElement('td');
-                    spreadCell.textContent = `${profitPercentage.toFixed(2)}%`;
-                    
-                    const actionCell = document.createElement('td');
-                    actionCell.textContent = action;
-                    actionCell.className = profitPercentage > 0 ? 'profit' : 'loss';
-                    
-                    const profitCell = document.createElement('td');
-                    profitCell.textContent = `${profitPercentage.toFixed(2)}%`;
-                    profitCell.className = profitPercentage > 0 ? 'profit' : 'loss';
-                    
-                    row.appendChild(triangleCell);
-                    row.appendChild(detailsCell);
-                    row.appendChild(spreadCell);
-                    row.appendChild(actionCell);
-                    row.appendChild(profitCell);
-                    
-                    opportunitiesBody.appendChild(row);
-                }
-            }
-            
-            // Initialisation
-            async function initialize() {
-                await fetchAllSymbols();
-                await fetchPrices();
-            }
-            
-            // Événements
-            fetchDataBtn.addEventListener('click', findTriangularArbitrageOpportunities);
-            refreshBtn.addEventListener('click', fetchPrices);
-            
-            // Démarrer l'application
-            initialize();
+            });
         });
-    </script>
+
+        if (found === 0) {
+            opportunitiesBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Aucune opportunité trouvée avec les critères actuels.</td></tr>`;
+        }
+    }
+
+    async function initialize() {
+        await fetchAllSymbols();
+        await fetchPrices();
+    }
+
+    fetchDataBtn.addEventListener('click', findTriangularArbitrageOpportunities);
+    refreshBtn.addEventListener('click', fetchPrices);
+
+    initialize();
+});
+</script>
+
 </body>
 </html>
