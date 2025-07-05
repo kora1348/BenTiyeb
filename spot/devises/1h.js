@@ -132,7 +132,7 @@ async function afficherLigneForex(paire, donnees, tableau) {
       const precedent = donnees[i - 1];
       const variation = ((item.close - precedent.close) / precedent.close) * 100;
       
-      if (Math.abs(variation) >= 0.04) {
+      if (Math.abs(variation) >= 0.05) {
         texteVariation = `(${variation > 0 ? '+' : '-'}${Math.abs(variation).toFixed(2)}%)`;
         classeVariation = variation > 0 ? "positive" : "negative";
       } else {
@@ -141,7 +141,7 @@ async function afficherLigneForex(paire, donnees, tableau) {
 
       // Construction de la séquence de tendance (items 2 à 8)
       if (i >= 1 && i <= 7) {
-        sequenceTendance += Math.abs(variation) >= 0.04 ? (variation > 0 ? '+' : '-') : '0';
+        sequenceTendance += Math.abs(variation) >= 0.05 ? (variation > 0 ? '+' : '-') : '0';
       }
     } else {
       texteVariation = "";
@@ -213,7 +213,7 @@ async function fetchAllCryptoSymbols() {
     const data = await response.json();
     const activeSymbols = data.symbols.filter(s => s.status === 'TRADING');
     const filtered = activeSymbols.filter(s =>
-      ['USDT', 'USDC', 'BUSD', 'TUSD', 'BTC', 'ETH', 'FDUSD', 'DAI', 'EUR', 'TRY', 'BNB'].includes(s.quoteAsset)
+      ['USDT'].includes(s.quoteAsset)
     );
     return filtered.map(s => ({
       base: s.baseAsset,
@@ -231,7 +231,6 @@ async function fetchCryptoData(symbol, base, quote) {
   try {
     const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=7`);
     const data = await response.json();
-
     if (data.length !== 7) return;
 
     let totalVariation = 0;
@@ -244,15 +243,14 @@ async function fetchCryptoData(symbol, base, quote) {
     row.appendChild(labelCell);
 
     let motif = '';
-
     for (let i = 0; i < 7; i++) {
       const open = parseFloat(data[i][1]);
       const close = parseFloat(data[i][4]);
       const variation = ((close - open) / open) * 100;
       const cell = document.createElement("td");
       let valText = Math.abs(variation).toFixed(2) + '%';
-      
-      if (Math.abs(variation) >= 0.04) {
+
+      if (Math.abs(variation) >= 0.05) {
         if (variation > 0) {
           valText = '+' + valText;
           cell.classList.add("positive");
@@ -275,19 +273,38 @@ async function fetchCryptoData(symbol, base, quote) {
 
     const totalCell = document.createElement("td");
     let totalText = Math.abs(totalVariation).toFixed(2) + '%';
-    if (Math.abs(totalVariation) >= 0.04) {
+    if (Math.abs(totalVariation) >= 0.05) {
       totalText = (totalVariation > 0 ? '+' : '-') + totalText;
       totalCell.classList.add(totalVariation > 0 ? "positive" : "negative");
     }
     totalCell.textContent = totalText;
     totalCell.style.textAlign = "center";
     row.appendChild(totalCell);
-
     tbody.appendChild(row);
+
+    // 🔥 Nouveau : Match immédiat avec Forex déjà analysé
+    if (!motif.includes('0')) {
+      const forexTrends = getAllForexTrends();
+      forexTrends.forEach(forex => {
+        if (forex.trend === motif && !forex.trend.includes('0')) {
+          savedPatterns.push({
+            forexPair: forex.pair,
+            forexTrend: forex.trend,
+            item9: forex.item9,
+            cryptoPair: `${base}/${quote}`,
+            cryptoPattern: motif
+          });
+          row.style.backgroundColor = '#fffacd';
+          displayMatches(); // Mettre à jour en live
+        }
+      });
+    }
+
   } catch (err) {
     console.error(`Erreur pour ${symbol} :`, err);
   }
 }
+
 
 // 3. Chargement de toutes les cryptos
 async function loadAllCryptos() {
@@ -411,7 +428,7 @@ function displayMatches() {
     const matchValue = match.item9.match(/\(([+-]?\d+\.\d+)%\)/);
     if (matchValue) {
       const value = parseFloat(matchValue[1]);
-      if (Math.abs(value) >= 0.04) {
+      if (Math.abs(value) >= 0.05) {
         item9Cell.classList.add(value > 0 ? "positive" : "negative");
       }
     }
@@ -429,7 +446,7 @@ function displayMatches() {
   await loadAllCryptos();
 
   // Appliquer automatiquement les correspondances
-  filterCryptoWithForexTrends();
+  //filterCryptoWithForexTrends();
 
   // Réactualisation automatique toutes les 15 minutes
   setInterval(async () => {
