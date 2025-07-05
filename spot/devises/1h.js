@@ -213,7 +213,7 @@ async function fetchAllCryptoSymbols() {
     const data = await response.json();
     const activeSymbols = data.symbols.filter(s => s.status === 'TRADING');
     const filtered = activeSymbols.filter(s =>
-      ['USDT'].includes(s.quoteAsset)
+      ['USDT', 'USDC', 'BUSD', 'TUSD', 'BTC', 'ETH', 'FDUSD', 'DAI', 'EUR', 'TRY', 'BNB'].includes(s.quoteAsset)
     );
     return filtered.map(s => ({
       base: s.baseAsset,
@@ -395,7 +395,7 @@ function displayMatches() {
   if (savedPatterns.length === 0) {
     const row = matchTable.insertRow();
     const cell = row.insertCell();
-    cell.colSpan = 6; // ✅ mise à jour du colspan à 6
+    cell.colSpan = 7;
     cell.textContent = "Aucune correspondance trouvée.";
     return;
   }
@@ -424,15 +424,17 @@ function displayMatches() {
     const item9Cell = row.insertCell();
     item9Cell.textContent = match.item9 || "-";
 
-    // ✅ Nouvelle colonne : Position (LONG ou SHORT)
     const positionCell = row.insertCell();
     const matchValue = match.item9.match(/\(([+-]?\d+\.\d+)%\)/);
+    let position = null;
     if (matchValue) {
       const value = parseFloat(matchValue[1]);
-      if (value >= 0.05) {
+      if (value >= 0.06) {
+        position = "LONG";
         positionCell.textContent = "LONG";
         positionCell.classList.add("positive");
-      } else if (value <= -0.05) {
+      } else if (value <= -0.06) {
+        position = "SHORT";
         positionCell.textContent = "SHORT";
         positionCell.classList.add("negative");
       } else {
@@ -442,16 +444,42 @@ function displayMatches() {
       positionCell.textContent = "-";
     }
 
-    // Optionnel : colorer aussi la cellule Item9 si ce n’est pas déjà fait
+    // ✅ Nouvelle colonne : Prix ajusté
+    const priceCell = row.insertCell();
+    const cryptoSymbol = match.cryptoPair.replace("/", "");
+    const latestCrypto = ALL_CRYPTO_SYMBOLS.find(c => c.symbol === cryptoSymbol);
+    if (latestCrypto) {
+      fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${cryptoSymbol}`)
+        .then(res => res.json())
+        .then(data => {
+          const price = parseFloat(data.price);
+          let adjusted = null;
+          if (position === "LONG") {
+            adjusted = price * (1 - 0.002);
+            priceCell.textContent = adjusted.toFixed(7);
+            priceCell.style.color = "green";
+          } else if (position === "SHORT") {
+            adjusted = price * (1 + 0.002);
+            priceCell.textContent = adjusted.toFixed(7);
+            priceCell.style.color = "red";
+          } else {
+            priceCell.textContent = "-";
+          }
+        }).catch(() => {
+          priceCell.textContent = "Erreur";
+        });
+    } else {
+      priceCell.textContent = "-";
+    }
+
     if (matchValue) {
       const value = parseFloat(matchValue[1]);
-      if (Math.abs(value) >= 0.05) {
+      if (Math.abs(value) >= 0.06) {
         item9Cell.classList.add(value > 0 ? "positive" : "negative");
       }
     }
   });
 }
-
 
 // =============================================
 // INITIALISATION
