@@ -395,7 +395,7 @@ function displayMatches() {
   if (savedPatterns.length === 0) {
     const row = matchTable.insertRow();
     const cell = row.insertCell();
-    cell.colSpan = 5;
+    cell.colSpan = 6; // ✅ mise à jour du colspan à 6
     cell.textContent = "Aucune correspondance trouvée.";
     return;
   }
@@ -423,9 +423,26 @@ function displayMatches() {
 
     const item9Cell = row.insertCell();
     item9Cell.textContent = match.item9 || "-";
-    
-    // Extraction de la valeur numérique de l'item9
+
+    // ✅ Nouvelle colonne : Position (LONG ou SHORT)
+    const positionCell = row.insertCell();
     const matchValue = match.item9.match(/\(([+-]?\d+\.\d+)%\)/);
+    if (matchValue) {
+      const value = parseFloat(matchValue[1]);
+      if (value >= 0.05) {
+        positionCell.textContent = "LONG";
+        positionCell.classList.add("positive");
+      } else if (value <= -0.05) {
+        positionCell.textContent = "SHORT";
+        positionCell.classList.add("negative");
+      } else {
+        positionCell.textContent = "-";
+      }
+    } else {
+      positionCell.textContent = "-";
+    }
+
+    // Optionnel : colorer aussi la cellule Item9 si ce n’est pas déjà fait
     if (matchValue) {
       const value = parseFloat(matchValue[1]);
       if (Math.abs(value) >= 0.05) {
@@ -434,6 +451,7 @@ function displayMatches() {
     }
   });
 }
+
 
 // =============================================
 // INITIALISATION
