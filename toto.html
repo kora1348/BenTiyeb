@@ -39,6 +39,7 @@
         <th>Futures</th>
         <th>Écart</th>
         <th>Funding Rate</th>
+        <th>Prochain Funding</th>
         <th>Conseil</th>
         <th>Entrée ?</th>
         <th>Sortie ?</th>
@@ -74,6 +75,18 @@
       return futuresSymbols.filter(sym => spotSymbols.has(sym));
     }
 
+    function formatTimeToFunding(nextFundingTime) {
+      const now = new Date().getTime();
+      const diff = nextFundingTime - now;
+      
+      if (diff <= 0) return "Maintenant";
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      return `${hours}h ${minutes}m`;
+    }
+
     async function fetchData() {
       const tbody = document.getElementById('table-body');
       tbody.innerHTML = '';
@@ -93,7 +106,9 @@
 
           const spotPrice = parseFloat((await spotRes.json()).price);
           const futPrice = parseFloat((await futRes.json()).price);
-          const fundingRate = parseFloat((await fundingRes.json()).lastFundingRate) * 100;
+          const fundingData = await fundingRes.json();
+          const fundingRate = parseFloat(fundingData.lastFundingRate) * 100;
+          const nextFundingTime = fundingData.nextFundingTime;
 
           const diff = futPrice - spotPrice;
           const percent = ((diff / spotPrice) * 100);
@@ -148,6 +163,7 @@
               <td class="${fundingRate > 0 ? 'negative' : fundingRate < 0 ? 'positive' : 'neutral'}">
                 ${fundingRate.toFixed(4)}%
               </td>
+              <td>${formatTimeToFunding(nextFundingTime)}</td>
               <td class="${conseilClass}">${conseil}</td>
               <td class="${entreeClass}">${entree}</td>
               <td class="${sortieClass}">${signalSortie}</td>
