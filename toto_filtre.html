@@ -176,7 +176,7 @@
   <audio id="alert-sound" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
 
   <script>
-    // Paramètres de la stratégie
+    // Paramètres de la stratégie - IDENTIQUES à toto.html
     const STRATEGY_CONFIG = {
       MIN_PROFIT_THRESHOLD: 0.15,       // Écart minimum pour entrer (en %)
       PROFIT_TAKE: 0.25,               // Niveau de prise de profit (en %)
@@ -189,7 +189,7 @@
       FUNDING_TIMING_MARGIN: 30         // Marge avant prochain funding (minutes)
     };
 
-    // Score de confiance
+    // Score de confiance - IDENTIQUES à toto.html
     const CONFIDENCE_LEVELS = {
       HIGH: { text: "Élevée", class: "positive" },
       MEDIUM: { text: "Moyenne", class: "warning" },
@@ -259,26 +259,17 @@
         const spotKlinesUrl = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&startTime=${startTimestamp}&endTime=${endTimestamp}&limit=1000`;
         const futKlinesUrl = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${timeframe}&startTime=${startTimestamp}&endTime=${endTimestamp}&limit=1000`;
         const fundingRateUrl = `https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&startTime=${startTimestamp}&endTime=${endTimestamp}&limit=1000`;
-        const spotTickerUrl = `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`;
-        const futTickerUrl = `https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${symbol}`;
-        const openInterestUrl = `https://fapi.binance.com/fapi/v1/openInterest?symbol=${symbol}`;
         
-        const [spotKlinesRes, futKlinesRes, fundingRateRes, spotTickerRes, futTickerRes, openInterestRes] = await Promise.all([
+        const [spotKlinesRes, futKlinesRes, fundingRateRes] = await Promise.all([
           fetch(spotKlinesUrl),
           fetch(futKlinesUrl),
-          fetch(fundingRateUrl),
-          fetch(spotTickerUrl),
-          fetch(futTickerUrl),
-          fetch(openInterestUrl)
+          fetch(fundingRateUrl)
         ]);
         
-        const [spotKlines, futKlines, fundingRates, spotTicker, futTicker, openInterest] = await Promise.all([
+        const [spotKlines, futKlines, fundingRates] = await Promise.all([
           spotKlinesRes.json(),
           futKlinesRes.json(),
-          fundingRateRes.json(),
-          spotTickerRes.json(),
-          futTickerRes.json(),
-          openInterestRes.json()
+          fundingRateRes.json()
         ]);
         
         // Traiter les données
@@ -300,14 +291,14 @@
           const priceDiff = futPrice - spotPrice;
           const priceDiffPercent = (priceDiff / spotPrice) * 100;
           
-          // Volumes (utilisation des données 24h comme approximation)
-          const spotVolume = parseFloat(spotTicker.quoteVolume);
-          const futVolume = parseFloat(futTicker.quoteVolume);
+          // Volumes (utilisation des volumes de la bougie comme approximation)
+          const spotVolume = parseFloat(spotData[5]); // Volume de la bougie spot
+          const futVolume = parseFloat(futData[5]); // Volume de la bougie futures
           const totalVolume = spotVolume + futVolume;
           
-          // Open Interest
-          const openInterestValue = parseFloat(openInterest.openInterest);
-          const oiVolumeRatio = openInterestValue / futVolume;
+          // Pour l'historique, on ne peut pas facilement obtenir l'Open Interest historique
+          // donc on utilise une valeur par défaut raisonnable
+          const oiVolumeRatio = 0.5;
           
           // Direction et signal
           const direction = priceDiff > 0 ? "short" : "long";
@@ -325,17 +316,49 @@
             confidence = CONFIDENCE_LEVELS.LOW;
           }
           
-          // Déterminer le signal
+          // Déterminer le signal - MÊME LOGIQUE QUE toto.html
+          const now = timestamp;
+          const nextFundingTime = timestamp + (8 * 60 * 60 * 1000); // Approximation pour l'historique
+          const timeToFunding = nextFundingTime - now;
+          const fundingSoon = timeToFunding < STRATEGY_CONFIG.FUNDING_TIMING_MARGIN * 60 * 1000;
+          
+          const entryConditions = {
+            sufficientVolume: totalVolume >= STRATEGY_CONFIG.MIN_VOLUME,
+            goodOiRatio: oiVolumeRatio <= STRATEGY_CONFIG.MAX_OI_VOLUME_RATIO,
+            priceDiff: Math.abs(priceDiffPercent) >= STRATEGY_CONFIG.MIN_PROFIT_THRESHOLD,
+            favorableFunding: favorableFunding,
+            notBeforeFunding: !fundingSoon
+          };
+          
+          const exitConditions = {
+            profitTarget: priceDiffPercent * (favorableFunding ? 1.2 : 0.8) >= STRATEGY_CONFIG.PROFIT_TAKE,
+            stopLoss: priceDiffPercent * (favorableFunding ? 1.2 : 0.8) <= -STRATEGY_CONFIG.STOP_LOSS,
+            fundingChange: !favorableFunding && Math.abs(fundingRate) > STRATEGY_CONFIG.FUNDING_SAFETY_MARGIN,
+            beforeFunding: fundingSoon
+          };
+          
           let signal, entry, exit, entryClass, exitClass, rowClass;
           
-          if (Math.abs(priceDiffPercent) >= STRATEGY_CONFIG.MIN_PROFIT_THRESHOLD && 
-              totalVolume >= STRATEGY_CONFIG.MIN_VOLUME) {
-            signal = priceDiff > 0 ? "🔻 Short Futures/Long Spot" : "🔼 Long Futures/Short Spot";
+          if (Object.values(entryConditions).every(Boolean)) {
+            signal = priceDiffPercent > 0 ? "🔻 Short Futures/Long Spot" : "🔼 Long Futures/Short Spot";
             entry = "✅ Entrer";
             exit = "⏳ Garder";
             entryClass = "positive";
             exitClass = "neutral";
-            rowClass = priceDiff > 0 ? "strong-buy" : "strong-sell";
+            rowClass = priceDiffPercent > 0 ? "strong-buy" : "strong-sell";
+          } else if (Object.values(exitConditions).some(Boolean)) {
+            let exitReason = "";
+            if (exitConditions.profitTarget) exitReason = "🎯 Profit";
+            else if (exitConditions.stopLoss) exitReason = "🛑 Stop-Loss";
+            else if (exitConditions.fundingChange) exitReason = "⚠ Funding";
+            else if (exitConditions.beforeFunding) exitReason = "⏱ Avant Funding";
+            
+            signal = "🚪 Sortir";
+            entry = "❌ Ne pas entrer";
+            exit = `🔔 ${exitReason}`;
+            entryClass = "negative";
+            exitClass = "negative";
+            rowClass = "";
           } else {
             signal = "⏳ Attendre";
             entry = "⏳ Non";
@@ -375,6 +398,7 @@
     }
 
     function calculateConfidenceLevel(metrics) {
+      // MÊME CALCUL QUE toto.html
       let score = 0;
       
       // Volume (max 40 points)
@@ -397,6 +421,7 @@
     }
 
     function calculateMaxDuration(nextFundingTime, favorableFunding) {
+      // MÊME CALCUL QUE toto.html
       const now = new Date().getTime();
       const timeToFunding = nextFundingTime - now;
       
@@ -411,6 +436,7 @@
     }
 
     function determineSignal(metrics) {
+      // MÊME LOGIQUE QUE toto.html
       const now = new Date().getTime();
       const timeToFunding = metrics.nextFundingTime - now;
       const fundingSoon = timeToFunding < STRATEGY_CONFIG.FUNDING_TIMING_MARGIN * 60 * 1000;
@@ -617,10 +643,23 @@
           return;
         }
         
-        // Filtrer les signaux significatifs
-        const significantSignals = historicalData.filter(data => 
-          Math.abs(data.priceDiffPercent) >= STRATEGY_CONFIG.MIN_PROFIT_THRESHOLD
-        );
+        // Filtrer les signaux significatifs selon les mêmes critères que toto.html
+        const significantSignals = historicalData.filter(data => {
+          const now = new Date(data.date).getTime();
+          const nextFundingTime = now + (8 * 60 * 60 * 1000); // Approximation
+          const timeToFunding = nextFundingTime - now;
+          const fundingSoon = timeToFunding < STRATEGY_CONFIG.FUNDING_TIMING_MARGIN * 60 * 1000;
+          
+          const entryConditions = {
+            sufficientVolume: data.volume >= STRATEGY_CONFIG.MIN_VOLUME,
+            goodOiRatio: data.oiVolumeRatio <= STRATEGY_CONFIG.MAX_OI_VOLUME_RATIO,
+            priceDiff: Math.abs(data.priceDiffPercent) >= STRATEGY_CONFIG.MIN_PROFIT_THRESHOLD,
+            favorableFunding: data.favorableFunding,
+            notBeforeFunding: !fundingSoon
+          };
+          
+          return Object.values(entryConditions).every(Boolean);
+        });
         
         if (significantSignals.length === 0) {
           resultsDiv.innerHTML = '<p>Aucun signal significatif trouvé pour cette période</p>';
