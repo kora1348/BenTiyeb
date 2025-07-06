@@ -33,6 +33,7 @@
   <table>
     <thead>
       <tr>
+        <th>N°</th>
         <th>Actif</th>
         <th>Spot</th>
         <th>Futures</th>
@@ -80,6 +81,7 @@
       let alertTriggered = false;
 
       const symbols = await getCommonSymbols();
+      let rowNumber = 1;
 
       for (const symbol of symbols) {
         try {
@@ -104,7 +106,7 @@
           let entree = '⏳ Non';
           let entreeClass = 'neutral';
 
-          // 🔼 Conseil d’entrée
+          // 🔼 Conseil d'entrée
           if (diff > 0.1 && fundingRate > FUNDING_ALERT_THRESHOLD) {
             conseil = '🔻 Short Futures / 🔼 Long Spot';
             conseilClass = 'positive';
@@ -136,6 +138,7 @@
 
           const row = `
             <tr>
+              <td>${rowNumber}</td>
               <td>${symbol.replace('USDT', '')}</td>
               <td>${spotPrice.toLocaleString()} USDT</td>
               <td>${futPrice.toLocaleString()} USDT</td>
@@ -151,6 +154,7 @@
             </tr>
           `;
           tbody.insertAdjacentHTML('beforeend', row);
+          rowNumber++;
         } catch (err) {
           console.error(`Erreur pour ${symbol}:`, err);
         }
