@@ -46,6 +46,7 @@
         <th>OI/Volume</th>
         <th>Funding Rate</th>
         <th>Prochain Funding</th>
+        <th>Durée idéale max</th>
         <th>Signal</th>
         <th>Entrée</th>
         <th>Sortie</th>
@@ -124,6 +125,24 @@
       if (score >= 70) return CONFIDENCE_LEVELS.HIGH;
       if (score >= 40) return CONFIDENCE_LEVELS.MEDIUM;
       return CONFIDENCE_LEVELS.LOW;
+    }
+
+    function calculateMaxDuration(nextFundingTime, favorableFunding) {
+      const now = new Date().getTime();
+      const timeToFunding = nextFundingTime - now;
+      
+      // Si le funding est favorable, on peut rester jusqu'au prochain funding
+      if (favorableFunding) {
+        return Math.max(0, Math.floor(timeToFunding / (60 * 1000)));
+      }
+      
+      // Si le funding est défavorable, on calcule le temps jusqu'au funding suivant le prochain
+      // (en supposant que les fundings ont lieu toutes les 8 heures)
+      const fundingInterval = 8 * 60 * 60 * 1000;
+      const timeAfterNextFunding = timeToFunding - fundingInterval;
+      
+      // On retourne le temps jusqu'au funding suivant moins une marge de sécurité
+      return Math.max(0, Math.floor((timeToFunding - STRATEGY_CONFIG.FUNDING_TIMING_MARGIN * 60 * 1000) / (60 * 1000)));
     }
 
     function determineSignal(metrics) {
@@ -220,6 +239,9 @@
           (priceDiff > 0 && fundingRate > STRATEGY_CONFIG.FUNDING_THRESHOLD) ||
           (priceDiff < 0 && fundingRate < -STRATEGY_CONFIG.FUNDING_THRESHOLD);
         
+        // Calcule la durée idéale maximale
+        const maxDurationMinutes = calculateMaxDuration(nextFundingTime, favorableFunding);
+        
         return {
           symbol,
           spotPrice,
@@ -231,7 +253,8 @@
           volume: totalVolume,
           oiVolumeRatio,
           favorableFunding,
-          currentProfit: priceDiffPercent * (favorableFunding ? 1.2 : 0.8) // Profit ajusté
+          currentProfit: priceDiffPercent * (favorableFunding ? 1.2 : 0.8), // Profit ajusté
+          maxDurationMinutes
         };
       } catch (error) {
         console.error(`Erreur pour ${symbol}:`, error);
@@ -277,6 +300,9 @@
             ${(marketData.fundingRate * 100).toFixed(4)}%
           </td>
           <td>${formatFundingTime(marketData.nextFundingTime)}</td>
+          <td class="${marketData.maxDurationMinutes > STRATEGY_CONFIG.MIN_HOLDING_PERIOD ? 'positive' : 'negative'}">
+            ${marketData.maxDurationMinutes}m
+          </td>
           <td class="${signalInfo.entryClass}">${signalInfo.signal}</td>
           <td class="${signalInfo.entryClass}">${signalInfo.entry}</td>
           <td class="${signalInfo.exitClass}">${signalInfo.exit}</td>
