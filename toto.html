@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Arbitrage Crypto Multi-Actifs</title>
+  <title>Arbitrage Spot vs Futures + Funding (Binance)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,11 +26,6 @@
     .positive { color: #0f0; }
     .negative { color: #f00; }
     .neutral  { color: #aaa; }
-    .alert {
-      font-weight: bold;
-      color: #ff0;
-      white-space: pre-line;
-    }
   </style>
 </head>
 <body>
@@ -44,13 +39,19 @@
         <th>Écart</th>
         <th>Funding Rate</th>
         <th>Conseil</th>
+        <th>Entrée ?</th>
+        <th>Sortie ?</th>
       </tr>
     </thead>
     <tbody id="table-body"></tbody>
   </table>
+
   <audio id="beep" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
 
   <script>
+    const PROFIT_EXIT_THRESHOLD = 0.2; // % minimum de gain pour sortir
+    const FUNDING_ALERT_THRESHOLD = 0.01; // seuil funding favorable/défavorable
+
     async function getCommonSymbols() {
       const [spotRes, futRes] = await Promise.all([
         fetch('https://api.binance.com/api/v3/exchangeInfo'),
@@ -93,19 +94,43 @@
           const fundingRate = parseFloat((await fundingRes.json()).lastFundingRate) * 100;
 
           const diff = futPrice - spotPrice;
-          const percent = ((diff / spotPrice) * 100).toFixed(4);
+          const percent = ((diff / spotPrice) * 100);
+          const percentStr = percent.toFixed(4);
 
-          // Déterminer le conseil
           let conseil = '⏳ Attente';
           let conseilClass = 'neutral';
+          let signalSortie = '⏳ Non';
+          let sortieClass = 'neutral';
+          let entree = '⏳ Non';
+          let entreeClass = 'neutral';
 
-          if (diff > 0.1 && fundingRate > 0.01) {
+          // 🔼 Conseil d’entrée
+          if (diff > 0.1 && fundingRate > FUNDING_ALERT_THRESHOLD) {
             conseil = '🔻 Short Futures / 🔼 Long Spot';
             conseilClass = 'positive';
-            alertTriggered = true;
-          } else if (diff < -0.1 && fundingRate < -0.01) {
+            entree = '✅ Oui';
+            entreeClass = 'positive';
+          } else if (diff < -0.1 && fundingRate < -FUNDING_ALERT_THRESHOLD) {
             conseil = '🔼 Long Futures / 🔻 Short Spot';
             conseilClass = 'positive';
+            entree = '✅ Oui';
+            entreeClass = 'positive';
+          }
+
+          // 🔔 Sortie - Écart resserré
+          if (
+            (conseil.includes('Long Futures') && Math.abs(percent) < PROFIT_EXIT_THRESHOLD) ||
+            (conseil.includes('Short Futures') && Math.abs(percent) < PROFIT_EXIT_THRESHOLD)
+          ) {
+            signalSortie = '🔔 Oui (Écart resserré)';
+            sortieClass = 'positive';
+            alertTriggered = true;
+          }
+
+          // ⚠ Funding défavorable
+          if ((diff > 0.1 && fundingRate < 0) || (diff < -0.1 && fundingRate > 0)) {
+            signalSortie = '⚠ Funding défavorable';
+            sortieClass = 'negative';
             alertTriggered = true;
           }
 
@@ -115,12 +140,14 @@
               <td>${spotPrice.toLocaleString()} USDT</td>
               <td>${futPrice.toLocaleString()} USDT</td>
               <td class="${diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral'}">
-                ${diff.toFixed(2)} (${percent}%)
+                ${diff.toFixed(2)} (${percentStr}%)
               </td>
               <td class="${fundingRate > 0 ? 'negative' : fundingRate < 0 ? 'positive' : 'neutral'}">
                 ${fundingRate.toFixed(4)}%
               </td>
               <td class="${conseilClass}">${conseil}</td>
+              <td class="${entreeClass}">${entree}</td>
+              <td class="${sortieClass}">${signalSortie}</td>
             </tr>
           `;
           tbody.insertAdjacentHTML('beforeend', row);
@@ -133,7 +160,7 @@
     }
 
     fetchData();
-    setInterval(fetchData, 5 * 60 * 1000); // Refresh toutes les 5 minutes
+    setInterval(fetchData, 5 * 60 * 1000); // Toutes les 5 minutes
   </script>
 </body>
 </html>
