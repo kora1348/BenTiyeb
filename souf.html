@@ -54,137 +54,136 @@
     <tbody id="table-body"></tbody>
   </table>
 
-  <script>
-    const CONFIDENCE_LEVELS = {
-      HIGH: { text: "Élevée", class: "green" },
-      MEDIUM: { text: "Moyenne", class: "blue" },
-      LOW: { text: "Faible", class: "red" }
-    };
+  <!-- ✅ Les données sont maintenant 100% FUTURES BINANCE ACTIFS -->
+<script>
+  const CONFIDENCE_LEVELS = {
+    HIGH: { text: "Élevée", class: "green" },
+    MEDIUM: { text: "Moyenne", class: "blue" },
+    LOW: { text: "Faible", class: "red" }
+  };
 
-    async function getTradableSymbols() {
-      try {
-        const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
-        const data = await res.json();
-        return data.symbols
-          .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
-          .map(s => s.symbol);
-      } catch (err) {
-        console.error("Erreur récupération des symboles:", err);
-        return [];
-      }
-    }
-
-    async function fetch4hChange(symbol) {
-      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=2`);
-      const data = await res.json();
-      const [open, close] = [parseFloat(data[0][1]), parseFloat(data[1][4])];
-      return ((close - open) / open) * 100;
-    }
-
-    async function countExtremeVariations(symbol) {
-      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=8`);
-      const data = await res.json();
-
-      let count = 0;
-      for (let i = 1; i < data.length; i++) {
-        const open = parseFloat(data[i - 1][1]);
-        const close = parseFloat(data[i][4]);
-        const change = ((close - open) / open) * 100;
-        if (change >= 3 || change <= -3) count++;
-      }
-
-      return count;
-    }
-
-    function getVariationClass(change) {
-      if (change >= 3) return "green";
-      if (change === 2 || change === -2) return "blue";
-      if (change <= -3) return "red";
-      return "grey";
-    }
-
-    function getConfidence(change) {
-      if (Math.abs(change) >= 2) return CONFIDENCE_LEVELS.HIGH;
-      if (Math.abs(change) >= 1) return CONFIDENCE_LEVELS.MEDIUM;
-      return CONFIDENCE_LEVELS.LOW;
-    }
-
-    function getSignal(change, extremes) {
-      if (extremes >= 1) {
-        if (change >= 2) {
-          return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
-        } else if (change <= -2) {
-          return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
-        } else {
-          return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "grey" };
-        }
-      } else {
-        return { entry: "❌ Ne pas entrer", exit: "⏳", rowClass: "", class: "grey" };
-      }
-    }
-
-    async function updateTable() {
-  const tbody = document.getElementById('table-body');
-  tbody.innerHTML = "";
-
-  const symbols = await getTradableSymbols();
-  const selectedSymbols = symbols;
-
-  let index = 1;
-
-  for (const symbol of selectedSymbols) {
+  async function getTradableSymbols() {
     try {
-      const [change, extremes] = await Promise.all([
-        fetch4hChange(symbol),
-        countExtremeVariations(symbol)
-      ]);
-
-      const variationClass = getVariationClass(change);
-      const signal = getSignal(change, extremes);
-      const confidence = getConfidence(change);
-
-      const row = document.createElement("tr");
-      if (signal.rowClass) row.classList.add(signal.rowClass);
-
-      row.innerHTML = `
-        <td>?</td>
-        <td>${symbol.replace("USDT", "")}</td>
-        <td class="${variationClass}">${change.toFixed(2)}%</td>
-        <td>${extremes}</td>
-        <td class="${signal.class}">${signal.entry}</td>
-        <td class="${signal.class}">${signal.exit}</td>
-        <td class="${confidence.class}">${confidence.text}</td>
-      `;
-
-      // 🔽 Insertion triée dans le tableau
-      const rows = Array.from(tbody.rows);
-      let inserted = false;
-
-      for (let i = 0; i < rows.length; i++) {
-        const existingExtreme = parseInt(rows[i].children[3].textContent);
-        if (extremes > existingExtreme) {
-          tbody.insertBefore(row, rows[i]);
-          inserted = true;
-          break;
-        }
-      }
-
-      if (!inserted) tbody.appendChild(row);
-
-      // 🧮 Mise à jour des numéros
-      Array.from(tbody.rows).forEach((tr, i) => {
-        tr.children[0].textContent = i + 1;
-      });
-
+      const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+      const data = await res.json();
+      return data.symbols
+        .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT' && s.status === 'TRADING')
+        .map(s => s.symbol);
     } catch (err) {
-      console.error("Erreur pour", symbol, err);
+      console.error("Erreur récupération des symboles:", err);
+      return [];
     }
   }
-}
 
+  async function fetch4hChange(symbol) {
+    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=2`);
+    const data = await res.json();
+    const [open, close] = [parseFloat(data[0][1]), parseFloat(data[1][4])];
+    return ((close - open) / open) * 100;
+  }
 
-    updateTable();
-    setInterval(updateTable, 5 * 60 * 1000);
-  </script>
+  async function countExtremeVariations(symbol) {
+    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=8`);
+    const data = await res.json();
+
+    let count = 0;
+    for (let i = 1; i < data.length; i++) {
+      const open = parseFloat(data[i - 1][1]);
+      const close = parseFloat(data[i][4]);
+      const change = ((close - open) / open) * 100;
+      if (change >= 3 || change <= -3) count++;
+    }
+
+    return count;
+  }
+
+  function getVariationClass(change) {
+    if (change >= 3) return "green";
+    if (change === 2 || change === -2) return "blue";
+    if (change <= -3) return "red";
+    return "grey";
+  }
+
+  function getConfidence(change) {
+    if (Math.abs(change) >= 2) return CONFIDENCE_LEVELS.HIGH;
+    if (Math.abs(change) >= 1) return CONFIDENCE_LEVELS.MEDIUM;
+    return CONFIDENCE_LEVELS.LOW;
+  }
+
+  function getSignal(change, extremes) {
+    if (extremes >= 1) {
+      if (change >= 2) {
+        return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
+      } else if (change <= -2) {
+        return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
+      } else {
+        return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "grey" };
+      }
+    } else {
+      return { entry: "❌ Ne pas entrer", exit: "⏳", rowClass: "", class: "grey" };
+    }
+  }
+
+  async function updateTable() {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = "";
+
+    const symbols = await getTradableSymbols();
+    let index = 1;
+
+    for (const symbol of symbols) {
+      try {
+        const [change, extremes] = await Promise.all([
+          fetch4hChange(symbol),
+          countExtremeVariations(symbol)
+        ]);
+
+        if (change >= 3 || change <= -3) {
+          const variationClass = getVariationClass(change);
+          const signal = getSignal(change, extremes);
+          const confidence = getConfidence(change);
+
+          const row = document.createElement("tr");
+          if (signal.rowClass) row.classList.add(signal.rowClass);
+
+          row.innerHTML = `
+            <td>?</td>
+            <td>${symbol.replace("USDT", "")}</td>
+            <td class="${variationClass}">${change.toFixed(2)}%</td>
+            <td>${extremes}</td>
+            <td class="${signal.class}">${signal.entry}</td>
+            <td class="${signal.class}">${signal.exit}</td>
+            <td class="${confidence.class}">${confidence.text}</td>
+          `;
+
+          // 🧠 Tri sur Fréq. Extrême
+          const rows = Array.from(tbody.rows);
+          let inserted = false;
+          for (let i = 0; i < rows.length; i++) {
+            const currentExtreme = parseInt(rows[i].children[3].textContent);
+            if (extremes > currentExtreme) {
+              tbody.insertBefore(row, rows[i]);
+              inserted = true;
+              break;
+            }
+          }
+
+          if (!inserted) tbody.appendChild(row);
+
+          Array.from(tbody.rows).forEach((tr, i) => {
+            tr.children[0].textContent = i + 1;
+          });
+        }
+
+      } catch (err) {
+        console.error("Erreur pour", symbol, err);
+      }
+    }
+  }
+
+  updateTable();
+  setInterval(updateTable, 5 * 60 * 1000);
+</script>
+
 </body>
 </html>
