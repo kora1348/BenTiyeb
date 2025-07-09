@@ -29,21 +29,22 @@
     th {
       background-color: #e3f2fd;
     }
-    .positive { color: #388e3c; }
-    .negative { color: #d32f2f; }
-    .neutral { color: #757575; }
+    .green { color: #388e3c; }
+    .blue { color: #1976d2; }
+    .red { color: #d32f2f; }
+    .grey { color: #757575; }
     .strong-buy { background-color: #e8f5e9; }
     .strong-sell { background-color: #ffebee; }
   </style>
 </head>
 <body>
-  <h1>📊 Stratégie Crypto - Version Allégée</h1>
+  <h1>📊 Stratégie Crypto - Variation sur 4h</h1>
   <table>
     <thead>
       <tr>
         <th>N°</th>
         <th>Actif</th>
-        <th>Taux 1h</th>
+        <th>Taux 4h</th>
         <th>Entrée</th>
         <th>Sortie</th>
         <th>Confiance</th>
@@ -54,9 +55,9 @@
 
   <script>
     const CONFIDENCE_LEVELS = {
-      HIGH: { text: "Élevée", class: "positive" },
-      MEDIUM: { text: "Moyenne", class: "neutral" },
-      LOW: { text: "Faible", class: "negative" }
+      HIGH: { text: "Élevée", class: "green" },
+      MEDIUM: { text: "Moyenne", class: "blue" },
+      LOW: { text: "Faible", class: "red" }
     };
 
     async function getTradableSymbols() {
@@ -67,10 +68,19 @@
         .map(s => s.symbol);
     }
 
-    async function fetch1hChange(symbol) {
-      const res = await fetch(`https://api.binance.com/api/v3/ticker?symbol=${symbol}`);
+    async function fetch4hChange(symbol) {
+      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=2`);
       const data = await res.json();
-      return parseFloat(data.priceChangePercent);
+      const [open, close] = [parseFloat(data[0][1]), parseFloat(data[1][4])];
+      const change = ((close - open) / open) * 100;
+      return change;
+    }
+
+    function getVariationClass(change) {
+      if (change >= 3) return "green";
+      if (change === 2 || change === -2) return "blue";
+      if (change <= -3) return "red";
+      return "grey";
     }
 
     function getConfidence(change) {
@@ -81,11 +91,11 @@
 
     function getSignal(change) {
       if (change >= 2) {
-        return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "positive" };
+        return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
       } else if (change <= -2) {
-        return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "negative" };
+        return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
       } else {
-        return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "neutral" };
+        return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "grey" };
       }
     }
 
@@ -99,7 +109,8 @@
       let i = 1;
       for (const symbol of selectedSymbols) {
         try {
-          const change = await fetch1hChange(symbol);
+          const change = await fetch4hChange(symbol);
+          const variationClass = getVariationClass(change);
           const signal = getSignal(change);
           const confidence = getConfidence(change);
 
@@ -109,7 +120,7 @@
           row.innerHTML = `
             <td>${i++}</td>
             <td>${symbol.replace("USDT", "")}</td>
-            <td class="${signal.class}">${change.toFixed(2)}%</td>
+            <td class="${variationClass}">${change.toFixed(2)}%</td>
             <td class="${signal.class}">${signal.entry}</td>
             <td class="${signal.class}">${signal.exit}</td>
             <td class="${confidence.class}">${confidence.text}</td>
