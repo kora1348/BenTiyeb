@@ -124,43 +124,64 @@
     }
 
     async function updateTable() {
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = "";
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = "";
 
-      const symbols = await getTradableSymbols();
-      const selectedSymbols = symbols; // Tous les actifs PERP
+  const symbols = await getTradableSymbols();
+  const selectedSymbols = symbols;
 
-      let i = 1;
-      for (const symbol of selectedSymbols) {
-        try {
-          const [change, extremes] = await Promise.all([
-            fetch4hChange(symbol),
-            countExtremeVariations(symbol)
-          ]);
+  let index = 1;
 
-          const variationClass = getVariationClass(change);
-          const signal = getSignal(change, extremes);
-          const confidence = getConfidence(change);
+  for (const symbol of selectedSymbols) {
+    try {
+      const [change, extremes] = await Promise.all([
+        fetch4hChange(symbol),
+        countExtremeVariations(symbol)
+      ]);
 
-          const row = document.createElement("tr");
-          if (signal.rowClass) row.classList.add(signal.rowClass);
+      const variationClass = getVariationClass(change);
+      const signal = getSignal(change, extremes);
+      const confidence = getConfidence(change);
 
-          row.innerHTML = `
-            <td>${i++}</td>
-            <td>${symbol.replace("USDT", "")}</td>
-            <td class="${variationClass}">${change.toFixed(2)}%</td>
-            <td>${extremes}</td>
-            <td class="${signal.class}">${signal.entry}</td>
-            <td class="${signal.class}">${signal.exit}</td>
-            <td class="${confidence.class}">${confidence.text}</td>
-          `;
+      const row = document.createElement("tr");
+      if (signal.rowClass) row.classList.add(signal.rowClass);
 
-          tbody.appendChild(row);
-        } catch (err) {
-          console.error("Erreur pour", symbol, err);
+      row.innerHTML = `
+        <td>?</td>
+        <td>${symbol.replace("USDT", "")}</td>
+        <td class="${variationClass}">${change.toFixed(2)}%</td>
+        <td>${extremes}</td>
+        <td class="${signal.class}">${signal.entry}</td>
+        <td class="${signal.class}">${signal.exit}</td>
+        <td class="${confidence.class}">${confidence.text}</td>
+      `;
+
+      // 🔽 Insertion triée dans le tableau
+      const rows = Array.from(tbody.rows);
+      let inserted = false;
+
+      for (let i = 0; i < rows.length; i++) {
+        const existingExtreme = parseInt(rows[i].children[3].textContent);
+        if (extremes > existingExtreme) {
+          tbody.insertBefore(row, rows[i]);
+          inserted = true;
+          break;
         }
       }
+
+      if (!inserted) tbody.appendChild(row);
+
+      // 🧮 Mise à jour des numéros
+      Array.from(tbody.rows).forEach((tr, i) => {
+        tr.children[0].textContent = i + 1;
+      });
+
+    } catch (err) {
+      console.error("Erreur pour", symbol, err);
     }
+  }
+}
+
 
     updateTable();
     setInterval(updateTable, 5 * 60 * 1000);
