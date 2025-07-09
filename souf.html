@@ -61,12 +61,18 @@
     };
 
     async function getTradableSymbols() {
-      const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
-      const data = await res.json();
-      return data.symbols
-        .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
-        .map(s => s.symbol);
-    }
+  try {
+    const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+    const data = await res.json();
+    return data.symbols
+      .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
+      .map(s => s.symbol);
+  } catch (err) {
+    console.error("Erreur récupération des symboles:", err);
+    return [];
+  }
+}
+
 
     async function fetch4hChange(symbol) {
       const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=2`);
@@ -104,7 +110,7 @@
       tbody.innerHTML = "";
 
       const symbols = await getTradableSymbols();
-      const selectedSymbols = symbols.slice(0, 20); // Limite à 20 actifs pour la démo
+      const selectedSymbols = symbols; // Prend tout
 
       let i = 1;
       for (const symbol of selectedSymbols) {
