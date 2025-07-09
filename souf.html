@@ -103,7 +103,6 @@
   };
 
   async function getTradableSymbols() {
-    // Vérifier le cache d'abord
     if (dataCache.symbols.length > 0 && 
         dataCache.lastUpdate && 
         Date.now() - dataCache.lastUpdate < dataCache.cacheDuration) {
@@ -123,61 +122,68 @@
       throw err;
     }
   }
-  
-  async function fetch1hData(symbol) {
-  try {
-    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
-    const data = await res.json();
-    
-    if (!data || data.length < 60) return { change: 0, extremeFreq: 0 };
-    
-    const firstPrice = parseFloat(data[0][4]); // Prix initial (fermeture de la première minute)
-    const lastPrice = parseFloat(data[data.length-1][4]); // Prix final (fermeture de la dernière minute)
-    const change = ((lastPrice - firstPrice) / firstPrice) * 100; // Variation sur 1h en %
-    
-    let extremeFreq = 0;
-    let thresholdCrossed = false;
-    let lastReference = firstPrice;
 
-    for (let i = 1; i < data.length; i++) {
-      const price = parseFloat(data[i][4]); // Prix de clôture de la minute i
-      const currentChange = ((price - firstPrice) / firstPrice) * 100; // Variation actuelle
+  async function fetch1hData(symbol) {
+    try {
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
+      const data = await res.json();
       
-      // Vérifier si le seuil de ±3% est franchi
-      if (!thresholdCrossed) {
-        if (Math.abs(currentChange) >= 3) {
-          thresholdCrossed = true;
-          lastReference = price; // Mettre à jour la référence au prix actuel
+      if (!data || data.length < 60) return { change: 0, extremeFreq: 0 };
+      
+      const firstPrice = parseFloat(data[0][4]);
+      const lastPrice = parseFloat(data[data.length-1][4]);
+      const change = ((lastPrice - firstPrice) / firstPrice) * 100;
+      
+      let extremeFreq = 0;
+      let thresholdCrossed = false;
+      let lastVariation = 0;
+
+      for (let i = 1; i < data.length; i++) {
+        const price = parseFloat(data[i][4]);
+        const currentChange = ((price - firstPrice) / firstPrice) * 100;
+        
+        // Vérifier si le seuil de ±1% est franchi
+        if (!thresholdCrossed) {
+          if (Math.abs(currentChange) >= 1) {
+            thresholdCrossed = true;
+            lastVariation = currentChange;
+            if (Math.abs(currentChange) >= 1.5) {
+              extremeFreq = Math.floor((Math.abs(currentChange) - 1) / 0.5) + 1;
+              lastVariation = currentChange;
+            } else {
+              extremeFreq = 0;
+            }
+          }
+          continue;
         }
-        continue;
+        
+        // Compter les extrêmes après le seuil
+        if (change >= 1 && currentChange >= lastVariation + 0.5) {
+          const steps = Math.floor((currentChange - lastVariation) / 0.5);
+          extremeFreq += steps;
+          lastVariation += steps * 0.5;
+        } else if (change <= -1 && currentChange <= lastVariation - 0.5) {
+          const steps = Math.floor((lastVariation - currentChange) / 0.5);
+          extremeFreq += steps;
+          lastVariation -= steps * 0.5;
+        }
       }
       
-      // Compter les extrêmes après le seuil
-      if (change >= 5 && price >= lastReference * 1.005) { // +0.5% pour un nouvel extrême haussier
-        extremeFreq++;
-        lastReference = price; // Mettre à jour la référence
-      } 
-      else if (change <= -5 && price <= lastReference * 0.995) { // -0.5% pour un nouvel extrême baissier
-        extremeFreq++;
-        lastReference = price; // Mettre à jour la référence
-      }
+      return { change, extremeFreq };
+    } catch (err) {
+      console.error("Erreur pour", symbol, err);
+      return { change: 0, extremeFreq: 0 };
     }
-    
-    return { change, extremeFreq };
-  } catch (err) {
-    console.error("Erreur pour", symbol, err);
-    return { change: 0, extremeFreq: 0 };
   }
-}
 
   function isExtremeVariation(change) {
-    return change >= 5 || change <= -5;
+    return change >= 1 || change <= -1;
   }
 
   function getVariationClass(change) {
-    if (change >= 5) return "green";
-    if (change === 4 || change === -4) return "blue";
-    if (change <= -5) return "red";
+    if (change >= 1) return "green";
+    if (change >= 0.5 && change < 1 || change <= -0.5 && change > -1) return "blue";
+    if (change <= -1) return "red";
     return "grey";
   }
 
@@ -190,9 +196,9 @@
 
   function getSignal(change, isExtreme) {
     if (isExtreme) {
-      if (change >= 4) {
+      if (change >= 1) {
         return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
-      } else if (change <= -4) {
+      } else if (change <= -1) {
         return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
       }
     }
@@ -205,7 +211,6 @@
     const progressBar = document.getElementById('progress-bar');
     
     try {
-      // Afficher le chargement
       tbody.innerHTML = '<tr><td colspan="7" class="loading">Chargement des données cryptos...</td></tr>';
       progressContainer.style.display = 'block';
       
@@ -220,16 +225,14 @@
       
       let index = 1;
       let hasData = false;
-      const batchSize = 20; // Traiter par lots pour éviter de bloquer le navigateur
+      const batchSize = 20;
       const totalSymbols = symbols.length;
       let processed = 0;
       const results = [];
       
-      // Traiter les symboles par lots
       for (let i = 0; i < totalSymbols; i += batchSize) {
         const batch = symbols.slice(i, i + batchSize);
         
-        // Utiliser Promise.all pour paralléliser les requêtes du lot actuel
         const batchResults = await Promise.all(batch.map(async symbol => {
           try {
             const { change, extremeFreq } = await fetch1hData(symbol);
@@ -243,38 +246,27 @@
         results.push(...batchResults);
         processed += batch.length;
         
-        // Mettre à jour la barre de progression
         const progress = Math.round((processed / totalSymbols) * 100);
         progressBar.style.width = `${progress}%`;
         progressBar.textContent = `${progress}%`;
         
-        // Permettre au navigateur de respirer entre les lots
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      // Trier les résultats selon les critères demandés
       results.sort((a, b) => {
-        // D'abord vérifier si les deux ont une variation extrême
         const aIsExtreme = isExtremeVariation(a.change);
         const bIsExtreme = isExtremeVariation(b.change);
         
-        // Si les deux sont extrêmes, trier par extremeFreq décroissant
         if (aIsExtreme && bIsExtreme) {
           return b.extremeFreq - a.extremeFreq;
-        }
-        // Si seul a est extrême, il passe avant
-        else if (aIsExtreme) {
+        } else if (aIsExtreme) {
           return -1;
-        }
-        // Si seul b est extrême, il passe avant
-        else if (bIsExtreme) {
+        } else if (bIsExtreme) {
           return 1;
         }
-        // Sinon trier par variation absolue décroissante
         return Math.abs(b.change) - Math.abs(a.change);
       });
       
-      // Afficher tous les résultats
       for (const { symbol, change, extremeFreq } of results) {
         const extreme = isExtremeVariation(change);
         const variationClass = getVariationClass(change);
@@ -311,10 +303,7 @@
     }
   }
 
-  // Lancer le premier chargement
   updateTable();
-  
-  // Actualiser toutes les 5 minutes
   setInterval(updateTable, 5 * 60 * 1000);
 </script>
 </body>
