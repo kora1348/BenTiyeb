@@ -35,26 +35,59 @@
     .grey { color: #757575; }
     .strong-buy { background-color: #e8f5e9; }
     .strong-sell { background-color: #ffebee; }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+      color: #666;
+    }
+    .error {
+      color: #d32f2f;
+      text-align: center;
+      padding: 20px;
+    }
+    .progress-container {
+      width: 100%;
+      background-color: #e0e0e0;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .progress-bar {
+      height: 20px;
+      background-color: #1e88e5;
+      border-radius: 5px;
+      width: 0%;
+      transition: width 0.3s;
+      text-align: center;
+      color: white;
+      line-height: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>📊 Stratégie Crypto - Variation sur 4h</h1>
+  <h1>📊 Stratégie Crypto - Variation sur 1h</h1>
+  <div class="progress-container" id="progress-container" style="display: none;">
+    <div class="progress-bar" id="progress-bar">0%</div>
+  </div>
   <table>
     <thead>
       <tr>
         <th>N°</th>
         <th>Actif</th>
-        <th>Taux 4h</th>
-        <th>Fréq. Extrême</th>
+        <th>Taux 1h</th>
+        <th>Extrême ?</th>
         <th>Entrée</th>
         <th>Sortie</th>
         <th>Confiance</th>
       </tr>
     </thead>
-    <tbody id="table-body"></tbody>
+    <tbody id="table-body">
+      <tr>
+        <td colspan="7" class="loading">Chargement des données cryptos...</td>
+      </tr>
+    </tbody>
   </table>
 
-  <!-- ✅ Les données sont maintenant 100% FUTURES BINANCE ACTIFS -->
 <script>
   const CONFIDENCE_LEVELS = {
     HIGH: { text: "Élevée", class: "green" },
@@ -62,39 +95,55 @@
     LOW: { text: "Faible", class: "red" }
   };
 
+  // Cache pour stocker les données entre les actualisations
+  const dataCache = {
+    symbols: [],
+    lastUpdate: null,
+    cacheDuration: 5 * 60 * 1000 // 5 minutes
+  };
+
   async function getTradableSymbols() {
+    // Vérifier le cache d'abord
+    if (dataCache.symbols.length > 0 && 
+        dataCache.lastUpdate && 
+        Date.now() - dataCache.lastUpdate < dataCache.cacheDuration) {
+      return dataCache.symbols;
+    }
+
     try {
       const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
       const data = await res.json();
-      return data.symbols
+      dataCache.symbols = data.symbols
         .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT' && s.status === 'TRADING')
         .map(s => s.symbol);
+      dataCache.lastUpdate = Date.now();
+      return dataCache.symbols;
     } catch (err) {
       console.error("Erreur récupération des symboles:", err);
-      return [];
+      throw err;
     }
   }
 
-  async function fetch4hChange(symbol) {
-    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=2`);
-    const data = await res.json();
-    const [open, close] = [parseFloat(data[0][1]), parseFloat(data[1][4])];
-    return ((close - open) / open) * 100;
+  async function fetch1hChange(symbol) {
+    try {
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=2`);
+      const data = await res.json();
+      
+      if (!data || data.length < 2) return 0;
+      
+      const currentCandle = data[1];
+      const open = parseFloat(currentCandle[1]);
+      const close = parseFloat(currentCandle[4]);
+      
+      return ((close - open) / open) * 100;
+    } catch (err) {
+      console.error("Erreur pour", symbol, err);
+      return 0;
+    }
   }
 
-  async function countExtremeVariations(symbol) {
-    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=8`);
-    const data = await res.json();
-
-    let count = 0;
-    for (let i = 1; i < data.length; i++) {
-      const open = parseFloat(data[i - 1][1]);
-      const close = parseFloat(data[i][4]);
-      const change = ((close - open) / open) * 100;
-      if (change >= 3 || change <= -3) count++;
-    }
-
-    return count;
+  function isExtremeVariation(change) {
+    return change >= 3 || change <= -3;
   }
 
   function getVariationClass(change) {
@@ -105,85 +154,121 @@
   }
 
   function getConfidence(change) {
-    if (Math.abs(change) >= 2) return CONFIDENCE_LEVELS.HIGH;
-    if (Math.abs(change) >= 1) return CONFIDENCE_LEVELS.MEDIUM;
+    const absChange = Math.abs(change);
+    if (absChange >= 2) return CONFIDENCE_LEVELS.HIGH;
+    if (absChange >= 1) return CONFIDENCE_LEVELS.MEDIUM;
     return CONFIDENCE_LEVELS.LOW;
   }
 
-  function getSignal(change, extremes) {
-    if (extremes >= 1) {
+  function getSignal(change, isExtreme) {
+    if (isExtreme) {
       if (change >= 2) {
         return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
       } else if (change <= -2) {
         return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
-      } else {
-        return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "grey" };
       }
-    } else {
-      return { entry: "❌ Ne pas entrer", exit: "⏳", rowClass: "", class: "grey" };
     }
+    return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "grey" };
   }
 
   async function updateTable() {
     const tbody = document.getElementById('table-body');
-    tbody.innerHTML = "";
-
-    const symbols = await getTradableSymbols();
-    let index = 1;
-
-    for (const symbol of symbols) {
-      try {
-        const [change, extremes] = await Promise.all([
-          fetch4hChange(symbol),
-          countExtremeVariations(symbol)
-        ]);
-
-        if (change >= 3 || change <= -3) {
-          const variationClass = getVariationClass(change);
-          const signal = getSignal(change, extremes);
-          const confidence = getConfidence(change);
-
-          const row = document.createElement("tr");
-          if (signal.rowClass) row.classList.add(signal.rowClass);
-
-          row.innerHTML = `
-            <td>?</td>
-            <td>${symbol.replace("USDT", "")}</td>
-            <td class="${variationClass}">${change.toFixed(2)}%</td>
-            <td>${extremes}</td>
-            <td class="${signal.class}">${signal.entry}</td>
-            <td class="${signal.class}">${signal.exit}</td>
-            <td class="${confidence.class}">${confidence.text}</td>
-          `;
-
-          // 🧠 Tri sur Fréq. Extrême
-          const rows = Array.from(tbody.rows);
-          let inserted = false;
-          for (let i = 0; i < rows.length; i++) {
-            const currentExtreme = parseInt(rows[i].children[3].textContent);
-            if (extremes > currentExtreme) {
-              tbody.insertBefore(row, rows[i]);
-              inserted = true;
-              break;
-            }
-          }
-
-          if (!inserted) tbody.appendChild(row);
-
-          Array.from(tbody.rows).forEach((tr, i) => {
-            tr.children[0].textContent = i + 1;
-          });
-        }
-
-      } catch (err) {
-        console.error("Erreur pour", symbol, err);
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    
+    try {
+      // Afficher le chargement
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Chargement des données cryptos...</td></tr>';
+      progressContainer.style.display = 'block';
+      
+      const symbols = await getTradableSymbols();
+      tbody.innerHTML = '';
+      
+      if (!symbols || symbols.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error">Aucun symbole trouvé</td></tr>';
+        progressContainer.style.display = 'none';
+        return;
       }
+      
+      let index = 1;
+      let hasData = false;
+      const batchSize = 20; // Traiter par lots pour éviter de bloquer le navigateur
+      const totalSymbols = symbols.length;
+      let processed = 0;
+      const results = [];
+      
+      // Traiter les symboles par lots
+      for (let i = 0; i < totalSymbols; i += batchSize) {
+        const batch = symbols.slice(i, i + batchSize);
+        
+        // Utiliser Promise.all pour paralléliser les requêtes du lot actuel
+        const batchResults = await Promise.all(batch.map(async symbol => {
+          try {
+            const change = await fetch1hChange(symbol);
+            return { symbol, change };
+          } catch (err) {
+            console.error("Erreur pour", symbol, err);
+            return { symbol, change: 0 };
+          }
+        }));
+        
+        results.push(...batchResults);
+        processed += batch.length;
+        
+        // Mettre à jour la barre de progression
+        const progress = Math.round((processed / totalSymbols) * 100);
+        progressBar.style.width = `${progress}%`;
+        progressBar.textContent = `${progress}%`;
+        
+        // Permettre au navigateur de respirer entre les lots
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Trier par variation décroissante
+      results.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+      
+      // Afficher tous les résultats
+      for (const { symbol, change } of results) {
+        const extreme = isExtremeVariation(change);
+        const variationClass = getVariationClass(change);
+        const signal = getSignal(change, extreme);
+        const confidence = getConfidence(change);
+        
+        const row = document.createElement("tr");
+        if (signal.rowClass) row.classList.add(signal.rowClass);
+        
+        row.innerHTML = `
+          <td>${index++}</td>
+          <td>${symbol.replace("USDT", "")}</td>
+          <td class="${variationClass}">${change.toFixed(2)}%</td>
+          <td>${extreme ? "Oui" : "Non"}</td>
+          <td class="${signal.class}">${signal.entry}</td>
+          <td class="${signal.class}">${signal.exit}</td>
+          <td class="${confidence.class}">${confidence.text}</td>
+        `;
+        
+        tbody.appendChild(row);
+        hasData = true;
+      }
+      
+      if (!hasData) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error">Aucune donnée disponible pour le moment</td></tr>';
+      }
+      
+      progressContainer.style.display = 'none';
+      
+    } catch (err) {
+      console.error("Erreur majeure:", err);
+      tbody.innerHTML = '<tr><td colspan="7" class="error">Erreur lors du chargement des données</td></tr>';
+      progressContainer.style.display = 'none';
     }
   }
 
+  // Lancer le premier chargement
   updateTable();
+  
+  // Actualiser toutes les 5 minutes
   setInterval(updateTable, 5 * 60 * 1000);
 </script>
-
 </body>
 </html>
