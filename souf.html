@@ -45,6 +45,7 @@
         <th>N°</th>
         <th>Actif</th>
         <th>Taux 4h</th>
+        <th>Fréq. Extrême</th>
         <th>Entrée</th>
         <th>Sortie</th>
         <th>Confiance</th>
@@ -61,25 +62,38 @@
     };
 
     async function getTradableSymbols() {
-  try {
-    const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
-    const data = await res.json();
-    return data.symbols
-      .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
-      .map(s => s.symbol);
-  } catch (err) {
-    console.error("Erreur récupération des symboles:", err);
-    return [];
-  }
-}
-
+      try {
+        const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+        const data = await res.json();
+        return data.symbols
+          .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
+          .map(s => s.symbol);
+      } catch (err) {
+        console.error("Erreur récupération des symboles:", err);
+        return [];
+      }
+    }
 
     async function fetch4hChange(symbol) {
       const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=2`);
       const data = await res.json();
       const [open, close] = [parseFloat(data[0][1]), parseFloat(data[1][4])];
-      const change = ((close - open) / open) * 100;
-      return change;
+      return ((close - open) / open) * 100;
+    }
+
+    async function countExtremeVariations(symbol) {
+      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=8`);
+      const data = await res.json();
+
+      let count = 0;
+      for (let i = 1; i < data.length; i++) {
+        const open = parseFloat(data[i - 1][1]);
+        const close = parseFloat(data[i][4]);
+        const change = ((close - open) / open) * 100;
+        if (change >= 3 || change <= -3) count++;
+      }
+
+      return count;
     }
 
     function getVariationClass(change) {
@@ -95,13 +109,17 @@
       return CONFIDENCE_LEVELS.LOW;
     }
 
-    function getSignal(change) {
-      if (change >= 2) {
-        return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
-      } else if (change <= -2) {
-        return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
+    function getSignal(change, extremes) {
+      if (extremes >= 1) {
+        if (change >= 2) {
+          return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
+        } else if (change <= -2) {
+          return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
+        } else {
+          return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "grey" };
+        }
       } else {
-        return { entry: "⏳ Attente", exit: "⏳ Attente", rowClass: "", class: "grey" };
+        return { entry: "❌ Ne pas entrer", exit: "⏳", rowClass: "", class: "grey" };
       }
     }
 
@@ -110,14 +128,18 @@
       tbody.innerHTML = "";
 
       const symbols = await getTradableSymbols();
-      const selectedSymbols = symbols; // Prend tout
+      const selectedSymbols = symbols; // Tous les actifs PERP
 
       let i = 1;
       for (const symbol of selectedSymbols) {
         try {
-          const change = await fetch4hChange(symbol);
+          const [change, extremes] = await Promise.all([
+            fetch4hChange(symbol),
+            countExtremeVariations(symbol)
+          ]);
+
           const variationClass = getVariationClass(change);
-          const signal = getSignal(change);
+          const signal = getSignal(change, extremes);
           const confidence = getConfidence(change);
 
           const row = document.createElement("tr");
@@ -127,6 +149,7 @@
             <td>${i++}</td>
             <td>${symbol.replace("USDT", "")}</td>
             <td class="${variationClass}">${change.toFixed(2)}%</td>
+            <td>${extremes}</td>
             <td class="${signal.class}">${signal.entry}</td>
             <td class="${signal.class}">${signal.exit}</td>
             <td class="${confidence.class}">${confidence.text}</td>
