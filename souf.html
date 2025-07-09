@@ -75,7 +75,7 @@
         <th>N°</th>
         <th>Actif</th>
         <th>Taux 1h</th>
-        <th>Extrême ?</th>
+        <th>Extrême Fréq.</th>
         <th>Entrée</th>
         <th>Sortie</th>
         <th>Confiance</th>
@@ -124,21 +124,58 @@
     }
   }
 
-  async function fetch1hChange(symbol) {
+  async function fetch1hData(symbol) {
     try {
-      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=2`);
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
       const data = await res.json();
       
-      if (!data || data.length < 2) return 0;
+      if (!data || data.length < 60) return { change: 0, extremeFreq: 0 };
       
-      const currentCandle = data[1];
-      const open = parseFloat(currentCandle[1]);
-      const close = parseFloat(currentCandle[4]);
+      // Calculer la variation sur 1h (première et dernière cotation)
+      const firstPrice = parseFloat(data[0][4]); // close de la première minute
+      const lastPrice = parseFloat(data[data.length-1][4]); // close de la dernière minute
+      const change = ((lastPrice - firstPrice) / firstPrice) * 100;
       
-      return ((close - open) / open) * 100;
+      // Calculer les extrêmes fréquences
+      let extremeFreq = 0;
+      let thresholdReached = false;
+      let lastExtreme = 0;
+      
+      // Seuil positif (3%)
+      if (change >= 3) {
+        const threshold = firstPrice * 1.03;
+        let lastPeak = threshold;
+        
+        for (let i = 1; i < data.length; i++) {
+          const price = parseFloat(data[i][4]);
+          if (price >= threshold) {
+            if (price >= lastPeak * 1.005) { // +0.5% depuis le dernier pic
+              extremeFreq++;
+              lastPeak = price;
+            }
+          }
+        }
+      }
+      // Seuil négatif (-3%)
+      else if (change <= -3) {
+        const threshold = firstPrice * 0.97;
+        let lastTrough = threshold;
+        
+        for (let i = 1; i < data.length; i++) {
+          const price = parseFloat(data[i][4]);
+          if (price <= threshold) {
+            if (price <= lastTrough * 0.995) { // -0.5% depuis le dernier creux
+              extremeFreq++;
+              lastTrough = price;
+            }
+          }
+        }
+      }
+      
+      return { change, extremeFreq };
     } catch (err) {
       console.error("Erreur pour", symbol, err);
-      return 0;
+      return { change: 0, extremeFreq: 0 };
     }
   }
 
@@ -204,11 +241,11 @@
         // Utiliser Promise.all pour paralléliser les requêtes du lot actuel
         const batchResults = await Promise.all(batch.map(async symbol => {
           try {
-            const change = await fetch1hChange(symbol);
-            return { symbol, change };
+            const { change, extremeFreq } = await fetch1hData(symbol);
+            return { symbol, change, extremeFreq };
           } catch (err) {
             console.error("Erreur pour", symbol, err);
-            return { symbol, change: 0 };
+            return { symbol, change: 0, extremeFreq: 0 };
           }
         }));
         
@@ -228,7 +265,7 @@
       results.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
       
       // Afficher tous les résultats
-      for (const { symbol, change } of results) {
+      for (const { symbol, change, extremeFreq } of results) {
         const extreme = isExtremeVariation(change);
         const variationClass = getVariationClass(change);
         const signal = getSignal(change, extreme);
@@ -241,7 +278,7 @@
           <td>${index++}</td>
           <td>${symbol.replace("USDT", "")}</td>
           <td class="${variationClass}">${change.toFixed(2)}%</td>
-          <td>${extreme ? "Oui" : "Non"}</td>
+          <td>${extreme ? extremeFreq : "-"}</td>
           <td class="${signal.class}">${signal.entry}</td>
           <td class="${signal.class}">${signal.exit}</td>
           <td class="${confidence.class}">${confidence.text}</td>
