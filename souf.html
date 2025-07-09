@@ -123,68 +123,61 @@
       throw err;
     }
   }
-
+  
   async function fetch1hData(symbol) {
-    try {
-      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
-      const data = await res.json();
+  try {
+    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
+    const data = await res.json();
+    
+    if (!data || data.length < 60) return { change: 0, extremeFreq: 0 };
+    
+    const firstPrice = parseFloat(data[0][4]); // Prix initial (fermeture de la première minute)
+    const lastPrice = parseFloat(data[data.length-1][4]); // Prix final (fermeture de la dernière minute)
+    const change = ((lastPrice - firstPrice) / firstPrice) * 100; // Variation sur 1h en %
+    
+    let extremeFreq = 0;
+    let thresholdCrossed = false;
+    let lastReference = firstPrice;
+
+    for (let i = 1; i < data.length; i++) {
+      const price = parseFloat(data[i][4]); // Prix de clôture de la minute i
+      const currentChange = ((price - firstPrice) / firstPrice) * 100; // Variation actuelle
       
-      if (!data || data.length < 60) return { change: 0, extremeFreq: 0 };
-      
-      // Calculer la variation sur 1h (première et dernière cotation)
-      const firstPrice = parseFloat(data[0][4]); // close de la première minute
-      const lastPrice = parseFloat(data[data.length-1][4]); // close de la dernière minute
-      const change = ((lastPrice - firstPrice) / firstPrice) * 100;
-      
-      // Calculer les extrêmes fréquences
-      let extremeFreq = 0;
-      
-      // Seuil positif (3%)
-      if (change >= 3) {
-        const threshold = firstPrice * 1.03;
-        let lastPeak = threshold;
-        
-        for (let i = 1; i < data.length; i++) {
-          const price = parseFloat(data[i][4]);
-          if (price >= threshold) {
-            if (price >= lastPeak * 1.005) { // +0.5% depuis le dernier pic
-              extremeFreq++;
-              lastPeak = price;
-            }
-          }
+      // Vérifier si le seuil de ±3% est franchi
+      if (!thresholdCrossed) {
+        if (Math.abs(currentChange) >= 3) {
+          thresholdCrossed = true;
+          lastReference = price; // Mettre à jour la référence au prix actuel
         }
-      }
-      // Seuil négatif (-3%)
-      else if (change <= -3) {
-        const threshold = firstPrice * 0.97;
-        let lastTrough = threshold;
-        
-        for (let i = 1; i < data.length; i++) {
-          const price = parseFloat(data[i][4]);
-          if (price <= threshold) {
-            if (price <= lastTrough * 0.995) { // -0.5% depuis le dernier creux
-              extremeFreq++;
-              lastTrough = price;
-            }
-          }
-        }
+        continue;
       }
       
-      return { change, extremeFreq };
-    } catch (err) {
-      console.error("Erreur pour", symbol, err);
-      return { change: 0, extremeFreq: 0 };
+      // Compter les extrêmes après le seuil
+      if (change >= 5 && price >= lastReference * 1.005) { // +0.5% pour un nouvel extrême haussier
+        extremeFreq++;
+        lastReference = price; // Mettre à jour la référence
+      } 
+      else if (change <= -5 && price <= lastReference * 0.995) { // -0.5% pour un nouvel extrême baissier
+        extremeFreq++;
+        lastReference = price; // Mettre à jour la référence
+      }
     }
+    
+    return { change, extremeFreq };
+  } catch (err) {
+    console.error("Erreur pour", symbol, err);
+    return { change: 0, extremeFreq: 0 };
   }
+}
 
   function isExtremeVariation(change) {
-    return change >= 3 || change <= -3;
+    return change >= 5 || change <= -5;
   }
 
   function getVariationClass(change) {
-    if (change >= 3) return "green";
-    if (change === 2 || change === -2) return "blue";
-    if (change <= -3) return "red";
+    if (change >= 5) return "green";
+    if (change === 4 || change === -4) return "blue";
+    if (change <= -5) return "red";
     return "grey";
   }
 
@@ -197,9 +190,9 @@
 
   function getSignal(change, isExtreme) {
     if (isExtreme) {
-      if (change >= 2) {
+      if (change >= 4) {
         return { entry: "📈 Acheter", exit: "🔒 Conserver", rowClass: "strong-buy", class: "green" };
-      } else if (change <= -2) {
+      } else if (change <= -4) {
         return { entry: "📉 Vendre", exit: "⚠ Sortir", rowClass: "strong-sell", class: "red" };
       }
     }
