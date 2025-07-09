@@ -138,8 +138,6 @@
       
       // Calculer les extrêmes fréquences
       let extremeFreq = 0;
-      let thresholdReached = false;
-      let lastExtreme = 0;
       
       // Seuil positif (3%)
       if (change >= 3) {
@@ -261,8 +259,27 @@
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      // Trier par variation décroissante
-      results.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+      // Trier les résultats selon les critères demandés
+      results.sort((a, b) => {
+        // D'abord vérifier si les deux ont une variation extrême
+        const aIsExtreme = isExtremeVariation(a.change);
+        const bIsExtreme = isExtremeVariation(b.change);
+        
+        // Si les deux sont extrêmes, trier par extremeFreq décroissant
+        if (aIsExtreme && bIsExtreme) {
+          return b.extremeFreq - a.extremeFreq;
+        }
+        // Si seul a est extrême, il passe avant
+        else if (aIsExtreme) {
+          return -1;
+        }
+        // Si seul b est extrême, il passe avant
+        else if (bIsExtreme) {
+          return 1;
+        }
+        // Sinon trier par variation absolue décroissante
+        return Math.abs(b.change) - Math.abs(a.change);
+      });
       
       // Afficher tous les résultats
       for (const { symbol, change, extremeFreq } of results) {
