@@ -199,13 +199,13 @@
   }
 
   function getSignal(change, fundingRate) {
-    // Nouvelle stratégie: 
-    // Si Taux 1h est négatif et Funding Rate positif -> SHORT (rouge)
-    // Si Taux 1h est positif et Funding Rate négatif -> LONG (vert)
+    // Nouvelle stratégie avec condition sur le funding rate:
+    // Si Taux 1h est négatif et Funding Rate > 0.06% -> SHORT (rouge)
+    // Si Taux 1h est positif et Funding Rate < -0.06% -> LONG (vert)
     // Sinon Attente (gris)
-    if (change < 0 && fundingRate > 0) {
+    if (change < 0 && fundingRate > 0.06) {
       return { entry: "SHORT", class: "red", rowClass: "strong-sell" };
-    } else if (change > 0 && fundingRate < 0) {
+    } else if (change > 0 && fundingRate < -0.06) {
       return { entry: "LONG", class: "green", rowClass: "strong-buy" };
     }
     return { entry: "Attente", class: "grey", rowClass: "" };
@@ -274,7 +274,7 @@
         }
         
         // Déterminer la couleur du funding rate
-        const fundingClass = fundingRate > 0 ? "red" : fundingRate < 0 ? "green" : "grey";
+        const fundingClass = fundingRate > 0.06 ? "red" : fundingRate < -0.06 ? "green" : "grey";
         
         const row = document.createElement("tr");
         if (signal.rowClass) row.classList.add(signal.rowClass);
