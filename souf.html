@@ -77,6 +77,8 @@
         <th>Taux 1h</th>
         <th>Extrême Fréq.</th>
         <th>Prix</th>
+        <th>Funding Rate</th>
+        <th>Prochain Funding</th>
         <th>Entrée</th>
         <th>Sortie</th>
         <th>Confiance</th>
@@ -84,7 +86,7 @@
     </thead>
     <tbody id="table-body">
       <tr>
-        <td colspan="8" class="loading">Chargement des données cryptos...</td>
+        <td colspan="10" class="loading">Chargement des données cryptos...</td>
       </tr>
     </tbody>
   </table>
@@ -121,6 +123,23 @@
     } catch (err) {
       console.error("Erreur récupération des symboles:", err);
       throw err;
+    }
+  }
+
+  async function fetchFundingData(symbol) {
+    try {
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${symbol}`);
+      const data = await res.json();
+      
+      if (!data) return { fundingRate: 0, nextFundingTime: 0 };
+      
+      const fundingRate = parseFloat(data.lastFundingRate) * 100; // en pourcentage
+      const nextFundingTime = data.nextFundingTime;
+      
+      return { fundingRate, nextFundingTime };
+    } catch (err) {
+      console.error("Erreur funding pour", symbol, err);
+      return { fundingRate: 0, nextFundingTime: 0 };
     }
   }
 
@@ -162,6 +181,20 @@
     }
   }
 
+  function formatNextFundingTime(nextFundingTime) {
+    if (!nextFundingTime) return "-";
+    
+    const now = Date.now();
+    const diff = nextFundingTime - now;
+    
+    if (diff <= 0) return "Maintenant";
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours}h ${minutes}m`;
+  }
+
   function isExtremeVariation(change) {
     return change >= 1 || change <= -1;
   }
@@ -197,14 +230,14 @@
     const progressBar = document.getElementById('progress-bar');
     
     try {
-      tbody.innerHTML = '<tr><td colspan="8" class="loading">Chargement des données cryptos...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="loading">Chargement des données cryptos...</td></tr>';
       progressContainer.style.display = 'block';
       
       const symbols = await getTradableSymbols();
       tbody.innerHTML = '';
       
       if (!symbols || symbols.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="error">Aucun symbole trouvé</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="error">Aucun symbole trouvé</td></tr>';
         progressContainer.style.display = 'none';
         return;
       }
@@ -222,10 +255,11 @@
         const batchResults = await Promise.all(batch.map(async symbol => {
           try {
             const { change, extremeFreq, lastPrice } = await fetch1hData(symbol);
-            return { symbol, change, extremeFreq, lastPrice };
+            const { fundingRate, nextFundingTime } = await fetchFundingData(symbol);
+            return { symbol, change, extremeFreq, lastPrice, fundingRate, nextFundingTime };
           } catch (err) {
             console.error("Erreur pour", symbol, err);
-            return { symbol, change: 0, extremeFreq: 0, lastPrice: 0 };
+            return { symbol, change: 0, extremeFreq: 0, lastPrice: 0, fundingRate: 0, nextFundingTime: 0 };
           }
         }));
         
@@ -251,7 +285,7 @@
       
       const sortedResults = [...filteredResults, ...otherResults];
       
-      for (const { symbol, change, extremeFreq, lastPrice } of sortedResults) {
+      for (const { symbol, change, extremeFreq, lastPrice, fundingRate, nextFundingTime } of sortedResults) {
         const extreme = isExtremeVariation(change);
         const variationClass = getVariationClass(change);
         const signal = getSignal(change, extreme);
@@ -269,6 +303,9 @@
           }
         }
         
+        // Déterminer la couleur du funding rate
+        const fundingClass = fundingRate > 0 ? "red" : fundingRate < 0 ? "green" : "grey";
+        
         const row = document.createElement("tr");
         if (signal.rowClass) row.classList.add(signal.rowClass);
         
@@ -278,6 +315,8 @@
           <td class="${variationClass}">${change.toFixed(2)}%</td>
           <td>${extreme ? extremeFreq : "-"}</td>
           <td>${adjustedPrice}$</td>
+          <td class="${fundingClass}">${fundingRate.toFixed(4)}%</td>
+          <td>${formatNextFundingTime(nextFundingTime)}</td>
           <td class="${signal.class}">${signal.entry}</td>
           <td class="${signal.class}">${signal.exit}</td>
           <td class="${confidence.class}">${confidence.text}</td>
@@ -288,14 +327,14 @@
       }
       
       if (!hasData) {
-        tbody.innerHTML = '<tr><td colspan="8" class="error">Aucune donnée disponible pour le moment</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="error">Aucune donnée disponible pour le moment</td></tr>';
       }
       
       progressContainer.style.display = 'none';
       
     } catch (err) {
       console.error("Erreur majeure:", err);
-      tbody.innerHTML = '<tr><td colspan="8" class="error">Erreur lors du chargement des données</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="error">Erreur lors du chargement des données</td></tr>';
       progressContainer.style.display = 'none';
     }
   }
