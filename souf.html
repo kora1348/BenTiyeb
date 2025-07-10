@@ -200,12 +200,12 @@
 
   function getSignal(change, fundingRate) {
     // Nouvelle stratégie avec condition sur le funding rate:
-    // Si Taux 1h est négatif et Funding Rate > 0.06% -> SHORT (rouge)
-    // Si Taux 1h est positif et Funding Rate < -0.06% -> LONG (vert)
+    // Si Taux 1h est négatif (<= -1%) et Funding Rate > 0.06% -> SHORT (rouge)
+    // Si Taux 1h est positif (>= 1%) et Funding Rate < -0.06% -> LONG (vert)
     // Sinon Attente (gris)
-    if (change < 0 && fundingRate > 0.06) {
+    if (change <= -1 && fundingRate > 0.06) {
       return { entry: "SHORT", class: "red", rowClass: "strong-sell" };
-    } else if (change > 0 && fundingRate < -0.06) {
+    } else if (change >= 1 && fundingRate < -0.06) {
       return { entry: "LONG", class: "green", rowClass: "strong-buy" };
     }
     return { entry: "Attente", class: "grey", rowClass: "" };
