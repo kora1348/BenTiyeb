@@ -136,42 +136,42 @@
   }
 
   async function fetch1hData(symbol) {
-    try {
-      // Récupérer les 2 dernières bougies horaires pour calculer la variation
-      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=2`);
-      const data = await res.json();
-      
-      if (!data || data.length < 2) return { change: 0, extremeFreq: 0, lastPrice: 0 };
-      
-      const previousClose = parseFloat(data[0][4]); // Prix de clôture de la bougie précédente
-      const currentClose = parseFloat(data[1][4]); // Prix de clôture de la bougie actuelle
-      const change = ((currentClose - previousClose) / previousClose) * 100;
-      
-      // Pour la fréquence extrême, nous allons regarder les variations intra-bougie
-      let extremeFreq = 0;
-      const high = parseFloat(data[1][2]);
-      const low = parseFloat(data[1][3]);
-      const open = parseFloat(data[1][1]);
-      
-      // Calculer les variations significatives à l'intérieur de la bougie horaire
-      if (change > 0) {
-        const peak = (high - open) / open * 100;
-        if (peak >= 1.5) {
-          extremeFreq = Math.floor((peak - 1) / 0.5);
-        }
-      } else if (change < 0) {
-        const drop = (open - low) / open * 100;
-        if (drop >= 1.5) {
-          extremeFreq = Math.floor((drop - 1) / 0.5);
+  try {
+    // Récupère les données des 60 dernières minutes en 1m
+    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
+    const data = await res.json();
+
+    if (!data || data.length < 2) return { change: 0, extremeFreq: 0, lastPrice: 0 };
+
+    const baseOpen = parseFloat(data[0][1]); // prix d'ouverture au début de l'heure
+    let maxChange = 0;
+    let extremeFreq = 0;
+
+    for (const candle of data) {
+      const high = parseFloat(candle[2]); // plus haut du moment
+      const change = ((high - baseOpen) / baseOpen) * 100;
+
+      if (change >= 4.5) {
+        const diffFromThreshold = change - 4.5;
+        const freq = Math.floor(diffFromThreshold / 0.5) + 1;
+        if (freq > extremeFreq) {
+          extremeFreq = freq;
         }
       }
-      
-      return { change, extremeFreq, lastPrice: currentClose };
-    } catch (err) {
-      console.error("Erreur pour", symbol, err);
-      return { change: 0, extremeFreq: 0, lastPrice: 0 };
+      // On ne diminue jamais le compteur si ça redescend
     }
+
+    const lastClose = parseFloat(data[data.length - 1][4]);
+    const change1h = ((lastClose - baseOpen) / baseOpen) * 100;
+
+    return { change: change1h, extremeFreq, lastPrice: lastClose };
+
+  } catch (err) {
+    console.error("Erreur fetch1hData pour", symbol, err);
+    return { change: 0, extremeFreq: 0, lastPrice: 0 };
   }
+}
+
 
   function formatNextFundingTime(nextFundingTime) {
     if (!nextFundingTime) return "-";
@@ -188,24 +188,20 @@
   }
 
   function isExtremeVariation(change) {
-    return change >= 1 || change <= -1;
+    return change >= 4.5 || change <= -4.5;
   }
 
   function getVariationClass(change) {
-    if (change >= 1) return "green";
-    if (change >= 0.5 && change < 1 || change <= -0.5 && change > -1) return "blue";
-    if (change <= -1) return "red";
+    if (change >= 4.5) return "green";
+    if (change <= -4.5) return "red";
+    if (change >= 3 || change <= -3) return "blue";
     return "grey";
   }
 
   function getSignal(change, fundingRate) {
-    // Nouvelle stratégie avec condition sur le funding rate:
-    // Si Taux 1h est négatif (<= -1%) et Funding Rate > 0.06% -> SHORT (rouge)
-    // Si Taux 1h est positif (>= 1%) et Funding Rate < -0.06% -> LONG (vert)
-    // Sinon Attente (gris)
-    if (change <= -1 && fundingRate > 0.06) {
+    if (change <= -4.5 && fundingRate > 0.06) {
       return { entry: "SHORT", class: "red", rowClass: "strong-sell" };
-    } else if (change >= 1 && fundingRate < -0.06) {
+    } else if (change >= 4.5 && fundingRate < -0.06) {
       return { entry: "LONG", class: "green", rowClass: "strong-buy" };
     }
     return { entry: "Attente", class: "grey", rowClass: "" };
@@ -260,12 +256,11 @@
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      // Nouveau tri: d'abord les LONG/SHORT, puis par variation absolue
+      // Tri des résultats
       results.sort((a, b) => {
         const signalA = getSignal(a.change, a.fundingRate).entry;
         const signalB = getSignal(b.change, b.fundingRate).entry;
         
-        // Priorité aux signaux LONG/SHORT
         if ((signalA === "LONG" || signalA === "SHORT") && !(signalB === "LONG" || signalB === "SHORT")) {
           return -1;
         }
@@ -273,7 +268,6 @@
           return 1;
         }
         
-        // Si les deux ont ou n'ont pas de signal, trier par variation absolue
         return Math.abs(b.change) - Math.abs(a.change);
       });
 
@@ -281,13 +275,11 @@
         const variationClass = getVariationClass(change);
         const signal = getSignal(change, fundingRate);
         
-        // Calculer le prix ajusté avec 5 décimales
         let adjustedPrice = "-";
         if (lastPrice > 0) {
           adjustedPrice = lastPrice.toFixed(5);
         }
         
-        // Déterminer la couleur du funding rate
         const fundingClass = fundingRate > 0.06 ? "red" : fundingRate < -0.06 ? "green" : "grey";
         
         const row = document.createElement("tr");
@@ -297,7 +289,7 @@
           <td>${index++}</td>
           <td>${symbol.replace("USDT", "")}</td>
           <td class="${variationClass}">${change.toFixed(2)}%</td>
-          <td>${isExtremeVariation(change) ? extremeFreq : "-"}</td>
+          <td>${extremeFreq > 0 ? extremeFreq : "-"}</td>
           <td>${adjustedPrice}$</td>
           <td class="${fundingClass}">${fundingRate.toFixed(4)}%</td>
           <td>${formatNextFundingTime(nextFundingTime)}</td>
