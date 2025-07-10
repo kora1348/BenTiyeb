@@ -76,6 +76,7 @@
         <th>Actif</th>
         <th>Taux 1h</th>
         <th>Extrême Fréq.</th>
+        <th>Prix</th>
         <th>Entrée</th>
         <th>Sortie</th>
         <th>Confiance</th>
@@ -83,7 +84,7 @@
     </thead>
     <tbody id="table-body">
       <tr>
-        <td colspan="7" class="loading">Chargement des données cryptos...</td>
+        <td colspan="8" class="loading">Chargement des données cryptos...</td>
       </tr>
     </tbody>
   </table>
@@ -128,7 +129,7 @@
       const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
       const data = await res.json();
       
-      if (!data || data.length < 60) return { change: 0, extremeFreq: 0 };
+      if (!data || data.length < 60) return { change: 0, extremeFreq: 0, lastPrice: 0 };
       
       const firstPrice = parseFloat(data[0][4]);
       const lastPrice = parseFloat(data[data.length-1][4]);
@@ -142,7 +143,6 @@
         const price = parseFloat(data[i][4]);
         const currentChange = ((price - firstPrice) / firstPrice) * 100;
         
-        // Vérifier si le seuil de ±1% est franchi
         if (!thresholdCrossed) {
           if (Math.abs(currentChange) >= 1) {
             thresholdCrossed = true;
@@ -157,7 +157,6 @@
           continue;
         }
         
-        // Compter les extrêmes après le seuil
         if (change >= 1 && currentChange >= lastVariation + 0.5) {
           const steps = Math.floor((currentChange - lastVariation) / 0.5);
           extremeFreq += steps;
@@ -169,10 +168,10 @@
         }
       }
       
-      return { change, extremeFreq };
+      return { change, extremeFreq, lastPrice };
     } catch (err) {
       console.error("Erreur pour", symbol, err);
-      return { change: 0, extremeFreq: 0 };
+      return { change: 0, extremeFreq: 0, lastPrice: 0 };
     }
   }
 
@@ -211,14 +210,14 @@
     const progressBar = document.getElementById('progress-bar');
     
     try {
-      tbody.innerHTML = '<tr><td colspan="7" class="loading">Chargement des données cryptos...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="loading">Chargement des données cryptos...</td></tr>';
       progressContainer.style.display = 'block';
       
       const symbols = await getTradableSymbols();
       tbody.innerHTML = '';
       
       if (!symbols || symbols.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="error">Aucun symbole trouvé</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="error">Aucun symbole trouvé</td></tr>';
         progressContainer.style.display = 'none';
         return;
       }
@@ -235,11 +234,11 @@
         
         const batchResults = await Promise.all(batch.map(async symbol => {
           try {
-            const { change, extremeFreq } = await fetch1hData(symbol);
-            return { symbol, change, extremeFreq };
+            const { change, extremeFreq, lastPrice } = await fetch1hData(symbol);
+            return { symbol, change, extremeFreq, lastPrice };
           } catch (err) {
             console.error("Erreur pour", symbol, err);
-            return { symbol, change: 0, extremeFreq: 0 };
+            return { symbol, change: 0, extremeFreq: 0, lastPrice: 0 };
           }
         }));
         
@@ -267,11 +266,23 @@
         return Math.abs(b.change) - Math.abs(a.change);
       });
       
-      for (const { symbol, change, extremeFreq } of results) {
+      for (const { symbol, change, extremeFreq, lastPrice } of results) {
         const extreme = isExtremeVariation(change);
         const variationClass = getVariationClass(change);
         const signal = getSignal(change, extreme);
         const confidence = getConfidence(change);
+        
+        // Calculer le prix ajusté avec 5 décimales
+        let adjustedPrice = "-";
+        if (lastPrice > 0) {
+          if (signal.entry === "📈 Acheter") {
+            adjustedPrice = (lastPrice * (1 - 0.002)).toFixed(5); // -0.20%
+          } else if (signal.entry === "📉 Vendre") {
+            adjustedPrice = (lastPrice * (1 + 0.002)).toFixed(5); // +0.20%
+          } else {
+            adjustedPrice = lastPrice.toFixed(5); // Prix actuel si "Attente"
+          }
+        }
         
         const row = document.createElement("tr");
         if (signal.rowClass) row.classList.add(signal.rowClass);
@@ -281,6 +292,7 @@
           <td>${symbol.replace("USDT", "")}</td>
           <td class="${variationClass}">${change.toFixed(2)}%</td>
           <td>${extreme ? extremeFreq : "-"}</td>
+          <td>${adjustedPrice}$</td>
           <td class="${signal.class}">${signal.entry}</td>
           <td class="${signal.class}">${signal.exit}</td>
           <td class="${confidence.class}">${confidence.text}</td>
@@ -291,14 +303,14 @@
       }
       
       if (!hasData) {
-        tbody.innerHTML = '<tr><td colspan="7" class="error">Aucune donnée disponible pour le moment</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="error">Aucune donnée disponible pour le moment</td></tr>';
       }
       
       progressContainer.style.display = 'none';
       
     } catch (err) {
       console.error("Erreur majeure:", err);
-      tbody.innerHTML = '<tr><td colspan="7" class="error">Erreur lors du chargement des données</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="error">Erreur lors du chargement des données</td></tr>';
       progressContainer.style.display = 'none';
     }
   }
