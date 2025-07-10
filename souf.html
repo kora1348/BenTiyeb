@@ -80,24 +80,16 @@
         <th>Funding Rate</th>
         <th>Prochain Funding</th>
         <th>Entrée</th>
-        <th>Sortie</th>
-        <th>Confiance</th>
       </tr>
     </thead>
     <tbody id="table-body">
       <tr>
-        <td colspan="10" class="loading">Chargement des données cryptos...</td>
+        <td colspan="8" class="loading">Chargement des données cryptos...</td>
       </tr>
     </tbody>
   </table>
 
 <script>
-  const CONFIDENCE_LEVELS = {
-    HIGH: { text: "Élevée", class: "green" },
-    MEDIUM: { text: "Moyenne", class: "blue" },
-    LOW: { text: "Faible", class: "red" }
-  };
-
   // Cache pour stocker les données entre les actualisations
   const dataCache = {
     symbols: [],
@@ -206,22 +198,17 @@
     return "grey";
   }
 
-  function getConfidence(change) {
-    const absChange = Math.abs(change);
-    if (absChange >= 2) return CONFIDENCE_LEVELS.HIGH;
-    if (absChange >= 1) return CONFIDENCE_LEVELS.MEDIUM;
-    return CONFIDENCE_LEVELS.LOW;
-  }
-
-  function getSignal(change, isExtreme) {
-    if (isExtreme) {
-      if (change >= 1) {
-        return { entry: " Acheter", exit: " Conserver", rowClass: "strong-buy", class: "green" };
-      } else if (change <= -1) {
-        return { entry: " Vendre", exit: " Sortir", rowClass: "strong-sell", class: "red" };
-      }
+  function getSignal(change, fundingRate) {
+    // Nouvelle stratégie: 
+    // Si Taux 1h est négatif et Funding Rate positif -> SHORT (rouge)
+    // Si Taux 1h est positif et Funding Rate négatif -> LONG (vert)
+    // Sinon Attente (gris)
+    if (change < 0 && fundingRate > 0) {
+      return { entry: "SHORT", class: "red", rowClass: "strong-sell" };
+    } else if (change > 0 && fundingRate < 0) {
+      return { entry: "LONG", class: "green", rowClass: "strong-buy" };
     }
-    return { entry: " Attente", exit: " Attente", rowClass: "", class: "grey" };
+    return { entry: "Attente", class: "grey", rowClass: "" };
   }
 
   async function updateTable() {
@@ -230,14 +217,14 @@
     const progressBar = document.getElementById('progress-bar');
     
     try {
-      tbody.innerHTML = '<tr><td colspan="10" class="loading">Chargement des données cryptos...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="loading">Chargement des données cryptos...</td></tr>';
       progressContainer.style.display = 'block';
       
       const symbols = await getTradableSymbols();
       tbody.innerHTML = '';
       
       if (!symbols || symbols.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="error">Aucun symbole trouvé</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="error">Aucun symbole trouvé</td></tr>';
         progressContainer.style.display = 'none';
         return;
       }
@@ -273,34 +260,17 @@
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      // Filtrer les résultats avec une variation significative
-      const filteredResults = results.filter(r => isExtremeVariation(r.change));
-      
       // Trier par variation absolue décroissante
-      filteredResults.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+      results.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
       
-      // Ajouter les autres résultats non extrêmes
-      const otherResults = results.filter(r => !isExtremeVariation(r.change))
-        .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
-      
-      const sortedResults = [...filteredResults, ...otherResults];
-      
-      for (const { symbol, change, extremeFreq, lastPrice, fundingRate, nextFundingTime } of sortedResults) {
-        const extreme = isExtremeVariation(change);
+      for (const { symbol, change, extremeFreq, lastPrice, fundingRate, nextFundingTime } of results) {
         const variationClass = getVariationClass(change);
-        const signal = getSignal(change, extreme);
-        const confidence = getConfidence(change);
+        const signal = getSignal(change, fundingRate);
         
         // Calculer le prix ajusté avec 5 décimales
         let adjustedPrice = "-";
         if (lastPrice > 0) {
-          if (signal.entry === " Acheter") {
-            adjustedPrice = (lastPrice * (1 - 0.002)).toFixed(5); // -0.20%
-          } else if (signal.entry === " Vendre") {
-            adjustedPrice = (lastPrice * (1 + 0.002)).toFixed(5); // +0.20%
-          } else {
-            adjustedPrice = lastPrice.toFixed(5); // Prix actuel si "Attente"
-          }
+          adjustedPrice = lastPrice.toFixed(5);
         }
         
         // Déterminer la couleur du funding rate
@@ -313,13 +283,11 @@
           <td>${index++}</td>
           <td>${symbol.replace("USDT", "")}</td>
           <td class="${variationClass}">${change.toFixed(2)}%</td>
-          <td>${extreme ? extremeFreq : "-"}</td>
+          <td>${isExtremeVariation(change) ? extremeFreq : "-"}</td>
           <td>${adjustedPrice}$</td>
           <td class="${fundingClass}">${fundingRate.toFixed(4)}%</td>
           <td>${formatNextFundingTime(nextFundingTime)}</td>
           <td class="${signal.class}">${signal.entry}</td>
-          <td class="${signal.class}">${signal.exit}</td>
-          <td class="${confidence.class}">${confidence.text}</td>
         `;
         
         tbody.appendChild(row);
@@ -327,14 +295,14 @@
       }
       
       if (!hasData) {
-        tbody.innerHTML = '<tr><td colspan="10" class="error">Aucune donnée disponible pour le moment</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="error">Aucune donnée disponible pour le moment</td></tr>';
       }
       
       progressContainer.style.display = 'none';
       
     } catch (err) {
       console.error("Erreur majeure:", err);
-      tbody.innerHTML = '<tr><td colspan="10" class="error">Erreur lors du chargement des données</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="error">Erreur lors du chargement des données</td></tr>';
       progressContainer.style.display = 'none';
     }
   }
