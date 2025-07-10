@@ -260,9 +260,23 @@
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      // Trier par variation absolue décroissante
-      results.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
-      
+      // Nouveau tri: d'abord les LONG/SHORT, puis par variation absolue
+      results.sort((a, b) => {
+        const signalA = getSignal(a.change, a.fundingRate).entry;
+        const signalB = getSignal(b.change, b.fundingRate).entry;
+        
+        // Priorité aux signaux LONG/SHORT
+        if ((signalA === "LONG" || signalA === "SHORT") && !(signalB === "LONG" || signalB === "SHORT")) {
+          return -1;
+        }
+        if (!(signalA === "LONG" || signalA === "SHORT") && (signalB === "LONG" || signalB === "SHORT")) {
+          return 1;
+        }
+        
+        // Si les deux ont ou n'ont pas de signal, trier par variation absolue
+        return Math.abs(b.change) - Math.abs(a.change);
+      });
+
       for (const { symbol, change, extremeFreq, lastPrice, fundingRate, nextFundingTime } of results) {
         const variationClass = getVariationClass(change);
         const signal = getSignal(change, fundingRate);
