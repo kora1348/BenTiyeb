@@ -142,8 +142,8 @@
       for (const candle of data) {
         const high = parseFloat(candle[2]);
         const change = ((high - baseOpen) / baseOpen) * 100;
-        if (change >= 4.5) {
-          const diffFromThreshold = change - 4.5;
+        if (change >= 9) {
+          const diffFromThreshold = change - 9;
           const freq = Math.floor(diffFromThreshold / 0.5) + 1;
           if (freq > extremeFreq) {
             extremeFreq = freq;
@@ -184,8 +184,8 @@
   }
 
   function getVariationClass(change) {
-    if (change >= 4.5) return "green";
-    if (change <= -4.5) return "red";
+    if (change >= 9) return "green";
+    if (change <= -9) return "red";
     if (change >= 3 || change <= -3) return "blue";
     return "grey";
   }
@@ -196,9 +196,9 @@
   }
 
   function getSignal(change, fundingRate) {
-    if (change <= -4.5 && fundingRate > 0.06) {
+    if (change <= -9 && fundingRate > 0.06) {
       return { entry: "SHORT", class: "red", rowClass: "strong-sell" };
-    } else if (change >= 4.5 && fundingRate < -0.06) {
+    } else if (change >= 9 && fundingRate < -0.06) {
       return { entry: "LONG", class: "green", rowClass: "strong-buy" };
     }
     return { entry: "Attente", class: "grey", rowClass: "" };
