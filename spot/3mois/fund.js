@@ -6,69 +6,69 @@ async function fetchCryptoData(symbol) {
     );
     const priceData = await priceResponse.json();
 
-    // Récupération des funding rates (nécessite une autre API)
+    // Récupération des funding rates
     const fundingResponse = await fetch(
-      `https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=24` // 24 derniers taux (8h * 3 = 24h)
+      `https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=72` // 72 derniers taux (8h * 3 = 24h * 3 jours)
     );
     const fundingData = await fundingResponse.json();
 
     const cryptoRow = document.getElementById(symbol);
+    const dateOptions = { year: "2-digit", month: "2-digit", day: "2-digit" };
 
     for (let i = 0; i < priceData.length; i++) {
-      const dayStart = new Date(priceData[i][0]).setHours(0, 0, 0, 0);
-      const dayEnd = new Date(priceData[i][6]).setHours(23, 59, 59, 999);
+      // Définition des plages horaires spécifiques à Binance (02h00 - 01h59 UTC)
+      const candleOpenTime = new Date(priceData[i][0]);
+      const candleCloseTime = new Date(priceData[i][6]);
+      
+      // La bougie du jour J commence à 02h00 UTC de J et finit à 01h59 UTC de J+1
+      const dayStart = new Date(candleOpenTime);
+      dayStart.setHours(2, 0, 0, 0); // 02:00:00.000 UTC
+      
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      dayEnd.setHours(1, 59, 59, 999); // 01:59:59.999 UTC du lendemain
 
       // Calcul de la variation de prix
       const openPrice = parseFloat(priceData[i][1]);
       const closePrice = parseFloat(priceData[i][4]);
-      const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+      const priceVariation = ((closePrice - openPrice) / openPrice) * 100;
 
-      // Calcul du funding rate journalier (somme des 3 taux de la journée)
+      // Calcul du funding rate journalier (somme des 3 taux de la période 02h-01h59)
       let dailyFunding = 0;
+      let fundingCount = 0;
+      
       fundingData.forEach(rate => {
         const rateTime = new Date(rate.fundingTime);
-        if (rateTime >= dayStart && rateTime <= dayEnd) {
-          dailyFunding += parseFloat(rate.fundingRate) * 100; // Conversion en pourcentage
+        if (rateTime >= dayStart && rateTime < dayEnd) {
+          dailyFunding += parseFloat(rate.fundingRate) * 100;
+          fundingCount++;
         }
       });
 
-      // Index des cellules
-      const itemCellIndex = i * 2 + 1;
-      const fundCellIndex = i * 2 + 2;
+      // Formatage des valeurs
+      const formattedDate = dayStart.toLocaleDateString("fr-FR", dateOptions);
+      const formattedVariation = priceVariation.toFixed(2) + '%';
+      const formattedFunding = fundingCount > 0 ? dailyFunding.toFixed(5) + '%' : 'N/A';
 
-      // Cellule Item (variation de prix)
-      const itemCell = cryptoRow.insertCell(itemCellIndex);
-      const options = {
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit"
-      };
-      itemCell.textContent = `${new Date(dayStart).toLocaleDateString("fr-FR", options)}: ${weeklyVariation.toFixed(2)}%`;
+      // Insertion des cellules
+      const itemCell = cryptoRow.insertCell(i * 2 + 1);
+      itemCell.textContent = `${formattedDate}: ${formattedVariation}`;
+      itemCell.classList.add(priceVariation > 0 ? "positive" : priceVariation < 0 ? "negative" : "");
 
-      if (weeklyVariation > 0) {
-        itemCell.classList.add("positive");
-      } else if (weeklyVariation < 0) {
-        itemCell.classList.add("negative");
-      }
-
-      // Cellule Fund (funding rate)
-      const fundCell = cryptoRow.insertCell(fundCellIndex);
-      fundCell.textContent = dailyFunding.toFixed(5) + "%";
+      const fundCell = cryptoRow.insertCell(i * 2 + 2);
+      fundCell.textContent = `${formattedDate}: ${formattedFunding}`;
+      fundCell.classList.add(dailyFunding > 0 ? "positive" : dailyFunding < 0 ? "negative" : "");
       fundCell.style.textAlign = "center";
-
-      // Appliquer le style en fonction du signe du funding rate
-      if (dailyFunding > 0) {
-        fundCell.classList.add("positive");
-      } else if (dailyFunding < 0) {
-        fundCell.classList.add("negative");
-      }
     }
 
   } catch (error) {
     console.error(`Erreur pour ${symbol}:`, error);
+    const errorCell = document.getElementById(symbol).insertCell(1);
+    errorCell.colSpan = 14;
+    errorCell.textContent = `Erreur de chargement: ${error.message}`;
+    errorCell.style.color = "red";
   }
 }
-
 
 fetchCryptoData("HYPER");
 fetchCryptoData("1INCH");
