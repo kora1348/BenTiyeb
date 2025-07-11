@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Trading Futures Binance</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+      position: sticky;
+      top: 0;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .positive {
+      color: green;
+    }
+    .negative {
+      color: red;
+    }
+    button {
+      background-color: #fb3831;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #loading {
+      margin: 20px;
+      font-weight: bold;
+    }
+    #lastUpdate {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    #cryptoCount {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    #longSignals {
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid green;
+      color: green;
+    }
+    #shortSignals {
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid red;
+      color: red;
+    }
+    .signal-item {
+      margin: 5px 0;
+      padding: 5px;
+      background-color: #f8f8f8;
+      border-radius: 3px;
+    }
+    .signal-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="window.location.href='../../../../index.html'">Accueil</button>
+  <h2>Trading Futures Binance - Day Story</h2>
+  <div id="lastUpdate">Mise à jour en cours...</div>
+  <div id="heure"></div>
+  <div id="cryptoCount"></div>
+  <div id="loading">Chargement des données...</div>
+  
+  <!-- Nouveaux éléments pour afficher les signaux -->
+  <div id="longSignals">
+    <div class="signal-header">Signaux LONG (Variation positive + Funding ≤ -0.05%)</div>
+    <div id="longList"></div>
+  </div>
+  
+  <div id="shortSignals">
+    <div class="signal-header">Signaux SHORT (Variation négative + Funding ≥ 0.05%)</div>
+    <div id="shortList"></div>
+  </div>
+
+  <table id="cryptoTable">
+    <thead>
+      <tr>
+        <th>N°</th>
+        <th>Crypto</th>
+        <th>Item 1</th>
+        <th>Fund 1</th>
+        <th>Item 2</th>
+        <th>Fund 2</th>
+        <th>Item 3</th>
+        <th>Fund 3</th>
+        <th>Item 4</th>
+        <th>Fund 4</th>
+        <th>Item 5</th>
+        <th>Fund 5</th>
+        <th>Item 6</th>
+        <th>Fund 6</th>
+        <th>Item 7</th>
+        <th>Fund 7</th>
+      </tr>
+    </thead>
+    <tbody id="cryptoTableBody">
+      <!-- Les lignes seront ajoutées dynamiquement -->
+    </tbody>
+  </table>
+
+  <script>
+    // Variables globales
+    let cryptoCounter = 0;
+    let loadedCryptos = 0;
+    let totalCryptos = 0;
+    const longSignals = [];
+    const shortSignals = [];
+
+    // Fonction pour mettre à jour l'heure
+    function updateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('fr-FR');
+      document.getElementById('heure').textContent = `Heure actuelle: ${timeString}`;
+    }
+
+    // Mettre à jour l'heure immédiatement puis toutes les secondes
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // Fonction pour mettre à jour le compteur de cryptos
+    function updateCryptoCount() {
+      document.getElementById('cryptoCount').textContent = 
+        `Cryptos affichées: ${loadedCryptos}/${totalCryptos}`;
+    }
+
+    // Fonction pour afficher les signaux
+    function displaySignals() {
+      const longListElement = document.getElementById('longList');
+      const shortListElement = document.getElementById('shortList');
+      
+      // Afficher les signaux LONG
+      if (longSignals.length > 0) {
+        longListElement.innerHTML = '';
+        longSignals.forEach(signal => {
+          const div = document.createElement('div');
+          div.className = 'signal-item';
+          div.textContent = signal;
+          longListElement.appendChild(div);
+        });
+      } else {
+        longListElement.innerHTML = "<div class='signal-item'>Aucun signal LONG trouvé</div>";
+      }
+      
+      // Afficher les signaux SHORT
+      if (shortSignals.length > 0) {
+        shortListElement.innerHTML = '';
+        shortSignals.forEach(signal => {
+          const div = document.createElement('div');
+          div.className = 'signal-item';
+          div.textContent = signal;
+          shortListElement.appendChild(div);
+        });
+      } else {
+        shortListElement.innerHTML = "<div class='signal-item'>Aucun signal SHORT trouvé</div>";
+      }
+    }
+
+    // Fonction principale pour charger les données
+    async function loadCryptoData() {
+      try {
+        // 1. Récupérer la liste des symboles futures USDT
+        const response = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+        const data = await response.json();
+        
+        // Filtrer les paires USDT et extraire les symboles
+        const usdtFutures = data.symbols
+          .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
+          .map(s => s.baseAsset)
+          .filter((value, index, self) => self.indexOf(value) === index) // Supprimer les doublons
+          .sort();
+        
+        totalCryptos = usdtFutures.length;
+        updateCryptoCount();
+        
+        // 2. Mettre à jour la date de dernière mise à jour
+        const updateDate = new Date().toLocaleDateString('fr-FR');
+        document.getElementById('lastUpdate').textContent = `Mise à jour: ${updateDate}`;
+        
+        // 3. Créer le tableau
+        const tableBody = document.getElementById('cryptoTableBody');
+        tableBody.innerHTML = ''; // Vider le tableau
+        
+        // 4. Pour chaque crypto, créer une ligne et charger les données
+        for (const symbol of usdtFutures) {
+          const row = document.createElement('tr');
+          row.id = `row_${symbol}`;
+          
+          // Cellule Numéro
+          const numberTd = document.createElement('td');
+          numberTd.textContent = ++cryptoCounter;
+          row.appendChild(numberTd);
+          
+          // Cellule Crypto
+          const cryptoTd = document.createElement('td');
+          cryptoTd.textContent = symbol;
+          row.appendChild(cryptoTd);
+          
+          // Ajouter la ligne au tableau (masquée par défaut)
+          row.style.display = 'none';
+          tableBody.appendChild(row);
+          
+          // Charger les données pour cette crypto
+          fetchCryptoData(symbol);
+        }
+        
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        document.getElementById('loading').textContent = 'Erreur lors du chargement des données. Veuillez réessayer.';
+      }
+    }
+
+    // Fonction pour récupérer les données d'une crypto spécifique
+    async function fetchCryptoData(symbol) {
+      try {
+        // Récupération des données de prix (spot pour la variation)
+        const priceResponse = await fetch(
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=7`
+        );
+        const priceData = await priceResponse.json();
+
+        // Récupération des funding rates
+        const fundingResponse = await fetch(
+          `https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=72`
+        );
+        const fundingData = await fundingResponse.json();
+
+        const cryptoRow = document.getElementById(`row_${symbol}`);
+        const dateOptions = { year: "2-digit", month: "2-digit", day: "2-digit" };
+
+        // Variables pour la dernière journée
+        let lastDayVariation = 0;
+        let lastDayFunding = 0;
+
+        for (let i = 0; i < priceData.length; i++) {
+          // Définition des plages horaires spécifiques à Binance (02h00 - 01h59 UTC)
+          const candleOpenTime = new Date(priceData[i][0]);
+          const candleCloseTime = new Date(priceData[i][6]);
+          
+          // La bougie du jour J commence à 02h00 UTC de J et finit à 01h59 UTC de J+1
+          const dayStart = new Date(candleOpenTime);
+          dayStart.setHours(2, 0, 0, 0); // 02:00:00.000 UTC
+          
+          const dayEnd = new Date(dayStart);
+          dayEnd.setDate(dayEnd.getDate() + 1);
+          dayEnd.setHours(1, 59, 59, 999); // 01:59:59.999 UTC du lendemain
+
+          // Calcul de la variation de prix
+          const openPrice = parseFloat(priceData[i][1]);
+          const closePrice = parseFloat(priceData[i][4]);
+          const priceVariation = ((closePrice - openPrice) / openPrice) * 100;
+
+          // Calcul du funding rate journalier (somme des 3 taux de la période 02h-01h59)
+          let dailyFunding = 0;
+          let fundingCount = 0;
+          
+          fundingData.forEach(rate => {
+            const rateTime = new Date(rate.fundingTime);
+            if (rateTime >= dayStart && rateTime < dayEnd) {
+              dailyFunding += parseFloat(rate.fundingRate) * 100;
+              fundingCount++;
+            }
+          });
+
+          // Stocker les valeurs de la dernière journée
+          if (i === 0) {
+            lastDayVariation = priceVariation;
+            lastDayFunding = dailyFunding;
+          }
+
+          // Formatage des valeurs
+          const formattedDate = dayStart.toLocaleDateString("fr-FR", dateOptions);
+          const formattedVariation = priceVariation.toFixed(2) + '%';
+          const formattedFunding = fundingCount > 0 ? dailyFunding.toFixed(5) + '%' : 'N/A';
+
+          // Création des cellules
+          const itemCell = document.createElement('td');
+          itemCell.textContent = `${formattedDate}: ${formattedVariation}`;
+          itemCell.className = priceVariation > 0 ? "positive" : priceVariation < 0 ? "negative" : "";
+
+          const fundCell = document.createElement('td');
+          fundCell.textContent = `${formattedDate}: ${formattedFunding}`;
+          fundCell.className = dailyFunding > 0 ? "positive" : dailyFunding < 0 ? "negative" : "";
+          fundCell.style.textAlign = "center";
+
+          // Ajout des cellules à la ligne
+          cryptoRow.appendChild(itemCell);
+          cryptoRow.appendChild(fundCell);
+        }
+
+        // Vérifier les règles de trading
+        if (lastDayVariation > 0 && lastDayFunding <= -0.05) {
+          longSignals.push(`${symbol} - Variation: ${lastDayVariation.toFixed(2)}%, Funding: ${lastDayFunding.toFixed(5)}%`);
+        } else if (lastDayVariation < 0 && lastDayFunding >= 0.05) {
+          shortSignals.push(`${symbol} - Variation: ${lastDayVariation.toFixed(2)}%, Funding: ${lastDayFunding.toFixed(5)}%`);
+        }
+
+        // Afficher la ligne seulement si le chargement a réussi
+        cryptoRow.style.display = '';
+        loadedCryptos++;
+        updateCryptoCount();
+        
+        // Cacher le message de chargement quand tout est chargé
+        if (loadedCryptos === totalCryptos) {
+          document.getElementById('loading').style.display = 'none';
+          displaySignals(); // Afficher les signaux une fois tout chargé
+        }
+
+      } catch (error) {
+        console.error(`Erreur pour ${symbol}:`, error);
+        // Supprimer la ligne en cas d'erreur
+        const rowToRemove = document.getElementById(`row_${symbol}`);
+        if (rowToRemove) {
+          rowToRemove.remove();
+          cryptoCounter--; // Décrémenter le compteur car la ligne est supprimée
+        }
+        
+        // Mettre à jour le compteur même en cas d'erreur
+        loadedCryptos++;
+        updateCryptoCount();
+        
+        // Cacher le message de chargement quand tout est traité (même avec erreurs)
+        if (loadedCryptos === totalCryptos) {
+          document.getElementById('loading').style.display = 'none';
+          displaySignals(); // Afficher les signaux même si certaines cryptos ont échoué
+        }
+      }
+    }
+
+    // Démarrer le chargement des données
+    loadCryptoData();
+  </script>
+</body>
+</html>
