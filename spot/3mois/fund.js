@@ -1,61 +1,75 @@
 async function fetchCryptoData(symbol) {
   try {
-    const response = await fetch(
+    // Récupération des données de prix
+    const priceResponse = await fetch(
       `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=7`
     );
-    const data = await response.json();
+    const priceData = await priceResponse.json();
 
-    // Mise à jour du tableau avec les données
+    // Récupération des funding rates (nécessite une autre API)
+    const fundingResponse = await fetch(
+      `https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=24` // 24 derniers taux (8h * 3 = 24h)
+    );
+    const fundingData = await fundingResponse.json();
+
     const cryptoRow = document.getElementById(symbol);
 
-    for (let i = 0; i < data.length; i++) {
-      const openPrice = parseFloat(data[i][1]);
-      const closePrice = parseFloat(data[i][4]);
-      const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
-      
-      // Calcul du fonds journalier (différence entre high et low)
-      const dailyHigh = parseFloat(data[i][2]);
-      const dailyLow = parseFloat(data[i][3]);
-      const dailyFund = dailyHigh - dailyLow;
+    for (let i = 0; i < priceData.length; i++) {
+      const dayStart = new Date(priceData[i][0]).setHours(0, 0, 0, 0);
+      const dayEnd = new Date(priceData[i][6]).setHours(23, 59, 59, 999);
 
-      // Index des cellules (1 pour Item1, 2 pour Fund1, 3 pour Item2, etc.)
+      // Calcul de la variation de prix
+      const openPrice = parseFloat(priceData[i][1]);
+      const closePrice = parseFloat(priceData[i][4]);
+      const weeklyVariation = ((closePrice - openPrice) / openPrice) * 100;
+
+      // Calcul du funding rate journalier (somme des 3 taux de la journée)
+      let dailyFunding = 0;
+      fundingData.forEach(rate => {
+        const rateTime = new Date(rate.fundingTime);
+        if (rateTime >= dayStart && rateTime <= dayEnd) {
+          dailyFunding += parseFloat(rate.fundingRate) * 100; // Conversion en pourcentage
+        }
+      });
+
+      // Index des cellules
       const itemCellIndex = i * 2 + 1;
       const fundCellIndex = i * 2 + 2;
 
-      // Cellule Item
+      // Cellule Item (variation de prix)
       const itemCell = cryptoRow.insertCell(itemCellIndex);
-      const weekStartDate = new Date(data[i][0]);
-      const weekEndDate = new Date(data[i][6]);
       const options = {
         year: "2-digit",
         month: "2-digit",
-        day: "2-digit",
-        hour: "numeric",
-        minute: "numeric",
+        day: "2-digit"
       };
-      
-      itemCell.textContent = `${weekStartDate.toLocaleDateString("fr-FR", options)} - ${weekEndDate.toLocaleDateString("fr-FR", options)}: ${weeklyVariation.toFixed(2)}%`;
+      itemCell.textContent = `${new Date(dayStart).toLocaleDateString("fr-FR", options)}: ${weeklyVariation.toFixed(2)}%`;
 
-      // Style pour la variation
       if (weeklyVariation > 0) {
         itemCell.classList.add("positive");
       } else if (weeklyVariation < 0) {
         itemCell.classList.add("negative");
       }
 
-      // Cellule Fund
+      // Cellule Fund (funding rate)
       const fundCell = cryptoRow.insertCell(fundCellIndex);
-      fundCell.textContent = dailyFund.toFixed(4);
+      fundCell.textContent = dailyFunding.toFixed(5) + "%";
       fundCell.style.textAlign = "center";
+
+      // Appliquer le style en fonction du signe du funding rate
+      if (dailyFunding > 0) {
+        fundCell.classList.add("positive");
+      } else if (dailyFunding < 0) {
+        fundCell.classList.add("negative");
+      }
     }
 
   } catch (error) {
-    console.error(
-      `Erreur lors de la récupération des données pour ${symbol}:`,
-      error
-    );
+    console.error(`Erreur pour ${symbol}:`, error);
   }
 }
+
+
 fetchCryptoData("HYPER");
 fetchCryptoData("1INCH");
 fetchCryptoData("AAVE");
