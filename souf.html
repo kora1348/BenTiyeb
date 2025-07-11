@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Stratégie Crypto Simplifiée</title>
+  <title>Stratégie Crypto - Données Horaires</title>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
@@ -14,43 +14,41 @@
       text-align: center;
       color: #1e88e5;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-      background-color: white;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    .time-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
-    th, td {
-      padding: 0.9rem;
+    .time-btn {
+      background-color: #1e88e5;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      flex: 0 0 calc(12.5% - 10px);
+      box-sizing: border-box;
+      transition: background-color 0.3s;
+    }
+    .time-btn:hover {
+      background-color: #1565c0;
+    }
+    .date-selector {
       text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #e3f2fd;
-    }
-    .green { color: #388e3c; }
-    .blue { color: #1976d2; }
-    .red { color: #d32f2f; }
-    .grey { color: #757575; }
-    .strong-buy { background-color: #e8f5e9; }
-    .strong-sell { background-color: #ffebee; }
-    .loading {
-      text-align: center;
-      padding: 20px;
-      font-style: italic;
-      color: #666;
-    }
-    .error {
-      color: #d32f2f;
-      text-align: center;
-      padding: 20px;
+      margin: 20px 0;
     }
     .progress-container {
       width: 100%;
       background-color: #e0e0e0;
       border-radius: 5px;
       margin: 20px 0;
+      display: none;
     }
     .progress-bar {
       height: 20px;
@@ -65,244 +63,265 @@
   </style>
 </head>
 <body>
-  <h1> Stratégie Crypto - Variation sur 1h</h1>
-  <div class="progress-container" id="progress-container" style="display: none;">
+  <h1>Données des Bougies Horaires</h1>
+  
+  <div class="date-selector">
+    <label for="target-date">Date : </label>
+    <input type="date" id="target-date" class="date-input">
+  </div>
+  
+  <div class="time-buttons" id="time-buttons">
+    <!-- Les boutons seront générés par JavaScript -->
+  </div>
+  
+  <div class="progress-container" id="progress-container">
     <div class="progress-bar" id="progress-bar">0%</div>
   </div>
-  <table>
-    <thead>
-      <tr>
-        <th>N°</th>
-        <th>Actif</th>
-        <th>Taux 1h</th>
-        <th>Taux 1j</th>
-        <th>Extrême Fréq.</th>
-        <th>Prix</th>
-        <th>Funding Rate</th>
-        <th>Prochain Funding</th>
-        <th>Entrée</th>
-      </tr>
-    </thead>
-    <tbody id="table-body">
-      <tr>
-        <td colspan="9" class="loading">Chargement des données cryptos...</td>
-      </tr>
-    </tbody>
-  </table>
 
 <script>
-  const dataCache = {
-    symbols: [],
-    lastUpdate: null,
-    cacheDuration: 5 * 60 * 1000
-  };
-
-  async function getTradableSymbols() {
-    if (dataCache.symbols.length > 0 &&
-        dataCache.lastUpdate &&
-        Date.now() - dataCache.lastUpdate < dataCache.cacheDuration) {
-      return dataCache.symbols;
+  // Configuration initiale
+  let targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() - 1); // Hier par défaut
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser le sélecteur de date
+    const dateInput = document.getElementById('target-date');
+    dateInput.valueAsDate = targetDate;
+    dateInput.max = new Date().toISOString().split('T')[0];
+    
+    dateInput.addEventListener('change', function() {
+      targetDate = new Date(this.value);
+    });
+    
+    // Créer les boutons d'heure
+    createTimeButtons();
+  });
+  
+  // Créer les boutons pour chaque heure
+  function createTimeButtons() {
+    const container = document.getElementById('time-buttons');
+    container.innerHTML = '';
+    
+    for (let hour = 0; hour < 24; hour++) {
+      const btn = document.createElement('button');
+      btn.className = 'time-btn';
+      btn.textContent = `${hour.toString().padStart(2, '0')}h00`;
+      btn.onclick = () => downloadHourlyData(hour);
+      container.appendChild(btn);
     }
-
+  }
+  
+  // Obtenir le timestamp pour une heure spécifique
+  function getHourlyTimestamp(hour) {
+    const date = new Date(targetDate);
+    date.setHours(hour, 0, 0, 0);
+    return date.getTime();
+  }
+  
+  // Obtenir les symboles tradables
+  async function getTradableSymbols() {
     try {
       const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
       const data = await res.json();
-      dataCache.symbols = data.symbols
+      return data.symbols
         .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT' && s.status === 'TRADING')
         .map(s => s.symbol);
-      dataCache.lastUpdate = Date.now();
-      return dataCache.symbols;
     } catch (err) {
       console.error("Erreur récupération des symboles:", err);
       throw err;
     }
   }
-
-  async function fetchFundingData(symbol) {
+  
+  // Récupérer la bougie horaire exacte
+  async function fetchHourlyCandle(symbol, hourTimestamp) {
     try {
-      const res = await fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${symbol}`);
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&startTime=${hourTimestamp}&limit=1`);
       const data = await res.json();
-      if (!data) return { fundingRate: 0, nextFundingTime: 0 };
-      const fundingRate = parseFloat(data.lastFundingRate) * 100;
-      const nextFundingTime = data.nextFundingTime;
-      return { fundingRate, nextFundingTime };
+      return data && data.length > 0 ? data[0] : null;
     } catch (err) {
-      console.error("Erreur funding pour", symbol, err);
-      return { fundingRate: 0, nextFundingTime: 0 };
+      console.error("Erreur bougie horaire pour", symbol, err);
+      return null;
     }
   }
-
-  async function fetch1hData(symbol) {
+  
+  // Récupérer la bougie quotidienne
+  async function fetchDailyCandle(symbol, timestamp) {
     try {
-      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=60`);
+      const date = new Date(timestamp);
+      date.setHours(0, 0, 0, 0);
+      const dailyTimestamp = date.getTime();
+      
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1d&startTime=${dailyTimestamp}&limit=1`);
       const data = await res.json();
-      if (!data || data.length < 2) return { change1h: 0, extremeFreq: 0, lastPrice: 0 };
-      const baseOpen = parseFloat(data[0][1]);
-      let extremeFreq = 0;
-      for (const candle of data) {
-        const high = parseFloat(candle[2]);
-        const change = ((high - baseOpen) / baseOpen) * 100;
-        if (change >= 9) {
-          const diffFromThreshold = change - 9;
-          const freq = Math.floor(diffFromThreshold / 0.5) + 1;
-          if (freq > extremeFreq) {
-            extremeFreq = freq;
-          }
-        }
+      return data && data.length > 0 ? data[0] : null;
+    } catch (err) {
+      console.error("Erreur bougie quotidienne pour", symbol, err);
+      return null;
+    }
+  }
+  
+  // Récupérer les bougies des 60 dernières minutes pour calculer l'extrême fréquence
+  async function fetchLast60Minutes(symbol, hourTimestamp) {
+    try {
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1m&startTime=${hourTimestamp - 3600000}&endTime=${hourTimestamp}&limit=60`);
+      return await res.json();
+    } catch (err) {
+      console.error("Erreur 60 dernières minutes pour", symbol, err);
+      return null;
+    }
+  }
+  
+  // Calculer l'extrême fréquence
+  function calculateExtremeFreq(candles, basePrice) {
+    if (!candles || !basePrice) return 0;
+    
+    let extremeFreq = 0;
+    for (const candle of candles) {
+      const high = parseFloat(candle[2]);
+      const change = ((high - basePrice) / basePrice) * 100;
+      if (change >= 9) {
+        const diffFromThreshold = change - 9;
+        const freq = Math.floor(diffFromThreshold / 0.5) + 1;
+        if (freq > extremeFreq) extremeFreq = freq;
       }
-      const lastClose = parseFloat(data[data.length - 1][4]);
-      const change1h = ((lastClose - baseOpen) / baseOpen) * 100;
-      return { change1h, extremeFreq, lastPrice: lastClose };
-    } catch (err) {
-      console.error("Erreur fetch1hData pour", symbol, err);
-      return { change1h: 0, extremeFreq: 0, lastPrice: 0 };
     }
+    return extremeFreq;
   }
-
-  async function fetch1dChange(symbol) {
-    try {
-      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1d&limit=2`);
-      const data = await res.json();
-      if (!data || data.length < 2) return 0;
-      const previousClose = parseFloat(data[0][4]);
-      const currentClose = parseFloat(data[1][4]);
-      return ((currentClose - previousClose) / previousClose) * 100;
-    } catch (err) {
-      console.error("Erreur variation 1j pour", symbol, err);
-      return 0;
-    }
+  
+  // Télécharger les données au format CSV
+  function downloadDataAsCSV(data, hour) {
+    const dateStr = targetDate.toISOString().split('T')[0];
+    let csvContent = "N°;Actif;Ouverture;Plus haut;Plus bas;Clôture;Volume;Taux 1h;Taux 1j;Extrême Fréq.;Funding Rate;Signal\n";
+    
+    data.forEach((item, index) => {
+      const row = [
+        index + 1,
+        item.symbol.replace("USDT", ""),
+        item.open,
+        item.high,
+        item.low,
+        item.close,
+        item.volume,
+        `${item.change1h.toFixed(2)}%`,
+        `${item.change1d.toFixed(2)}%`,
+        item.extremeFreq > 0 ? item.extremeFreq : "-",
+        `${item.fundingRate.toFixed(4)}%`,
+        item.signal
+      ].join(";");
+      
+      csvContent += row + "\n";
+    });
+    
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `crypto_${dateStr}_${hour.toString().padStart(2, '0')}h00.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
-
-  function formatNextFundingTime(nextFundingTime) {
-    if (!nextFundingTime) return "-";
-    const now = Date.now();
-    const diff = nextFundingTime - now;
-    if (diff <= 0) return "Maintenant";
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  }
-
-  function getVariationClass(change) {
-    if (change >= 9) return "green";
-    if (change <= -9) return "red";
-    if (change >= 3 || change <= -3) return "blue";
-    return "grey";
-  }
-
-  function getDayClass(change) {
-    if (change >= 0) return "green";
-    return "red";
-  }
-
-  function getSignal(change, fundingRate) {
-    if (change <= -9 && fundingRate > 0.06) {
-      return { entry: "SHORT", class: "red", rowClass: "strong-sell" };
-    } else if (change >= 9 && fundingRate < -0.06) {
-      return { entry: "LONG", class: "green", rowClass: "strong-buy" };
-    }
-    return { entry: "Attente", class: "grey", rowClass: "" };
-  }
-
-  async function updateTable() {
-    const tbody = document.getElementById('table-body');
+  
+  // Fonction principale pour télécharger les données horaires
+  async function downloadHourlyData(hour) {
     const progressContainer = document.getElementById('progress-container');
     const progressBar = document.getElementById('progress-bar');
-
+    
     try {
-      tbody.innerHTML = '<tr><td colspan="9" class="loading">Chargement des données cryptos...</td></tr>';
       progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressBar.textContent = '0%';
+      
+      const hourlyTimestamp = getHourlyTimestamp(hour);
       const symbols = await getTradableSymbols();
-      tbody.innerHTML = '';
+      
       if (!symbols || symbols.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="error">Aucun symbole trouvé</td></tr>';
-        progressContainer.style.display = 'none';
+        alert("Aucun symbole trouvé");
         return;
       }
-
-      let index = 1;
-      let hasData = false;
-      const batchSize = 20;
+      
+      const results = [];
+      const batchSize = 5;
       const totalSymbols = symbols.length;
       let processed = 0;
-      const results = [];
-
+      
       for (let i = 0; i < totalSymbols; i += batchSize) {
         const batch = symbols.slice(i, i + batchSize);
+        
         const batchResults = await Promise.all(batch.map(async symbol => {
           try {
-            const { change1h, extremeFreq, lastPrice } = await fetch1hData(symbol);
-            const change1d = await fetch1dChange(symbol);
-            const { fundingRate, nextFundingTime } = await fetchFundingData(symbol);
-            return { symbol, change1h, change1d, extremeFreq, lastPrice, fundingRate, nextFundingTime };
+            // Récupérer la bougie horaire
+            const hourlyCandle = await fetchHourlyCandle(symbol, hourlyTimestamp);
+            if (!hourlyCandle) return null;
+            
+            const open = parseFloat(hourlyCandle[1]);
+            const high = parseFloat(hourlyCandle[2]);
+            const low = parseFloat(hourlyCandle[3]);
+            const close = parseFloat(hourlyCandle[4]);
+            const volume = parseFloat(hourlyCandle[5]);
+            
+            // Récupérer la bougie quotidienne
+            const dailyCandle = await fetchDailyCandle(symbol, hourlyTimestamp);
+            const dailyOpen = dailyCandle ? parseFloat(dailyCandle[1]) : close;
+            const change1d = ((close - dailyOpen) / dailyOpen) * 100;
+            
+            // Récupérer les 60 dernières minutes pour l'extrême fréquence
+            const last60Minutes = await fetchLast60Minutes(symbol, hourlyTimestamp);
+            const change1h = ((close - open) / open) * 100;
+            const extremeFreq = calculateExtremeFreq(last60Minutes, open);
+            
+            // Récupérer le funding rate (approximatif)
+            const fundingRate = await fetchFundingRateAtTime(symbol, hourlyTimestamp);
+            
+            // Déterminer le signal
+            const signal = getSignal(change1h, fundingRate);
+            
+            return {
+              symbol,
+              open,
+              high,
+              low,
+              close,
+              volume,
+              change1h,
+              change1d,
+              extremeFreq,
+              fundingRate,
+              signal
+            };
           } catch (err) {
-            console.error("Erreur pour", symbol, err);
-            return { symbol, change1h: 0, change1d: 0, extremeFreq: 0, lastPrice: 0, fundingRate: 0, nextFundingTime: 0 };
+            console.error("Erreur traitement pour", symbol, err);
+            return null;
           }
         }));
-
-        results.push(...batchResults);
+        
+        results.push(...batchResults.filter(item => item !== null));
         processed += batch.length;
         const progress = Math.round((processed / totalSymbols) * 100);
         progressBar.style.width = `${progress}%`;
         progressBar.textContent = `${progress}%`;
-        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-
+      
+      // Trier par signal puis par variation
       results.sort((a, b) => {
-        const signalA = getSignal(a.change1h, a.fundingRate).entry;
-        const signalB = getSignal(b.change1h, b.fundingRate).entry;
-        if ((signalA === "LONG" || signalA === "SHORT") && !(signalB === "LONG" || signalB === "SHORT")) {
-          return -1;
-        }
-        if (!(signalA === "LONG" || signalA === "SHORT") && (signalB === "LONG" || signalB === "SHORT")) {
-          return 1;
-        }
+        if (a.signal !== "Attente" && b.signal === "Attente") return -1;
+        if (a.signal === "Attente" && b.signal !== "Attente") return 1;
         return Math.abs(b.change1h) - Math.abs(a.change1h);
       });
-
-      for (const { symbol, change1h, change1d, extremeFreq, lastPrice, fundingRate, nextFundingTime } of results) {
-        const variationClass = getVariationClass(change1h);
-        const dayClass = getDayClass(change1d);
-        const signal = getSignal(change1h, fundingRate);
-        let adjustedPrice = "-";
-        if (lastPrice > 0) adjustedPrice = lastPrice.toFixed(5);
-        const fundingClass = fundingRate > 0.06 ? "red" : fundingRate < -0.06 ? "green" : "grey";
-
-        const row = document.createElement("tr");
-        if (signal.rowClass) row.classList.add(signal.rowClass);
-
-        row.innerHTML = `
-          <td>${index++}</td>
-          <td>${symbol.replace("USDT", "")}</td>
-          <td class="${variationClass}">${change1h.toFixed(2)}%</td>
-          <td class="${dayClass}">${change1d.toFixed(2)}%</td>
-          <td>${extremeFreq > 0 ? extremeFreq : "-"}</td>
-          <td>${adjustedPrice}$</td>
-          <td class="${fundingClass}">${fundingRate.toFixed(4)}%</td>
-          <td>${formatNextFundingTime(nextFundingTime)}</td>
-          <td class="${signal.class}">${signal.entry}</td>
-        `;
-
-        tbody.appendChild(row);
-        hasData = true;
-      }
-
-      if (!hasData) {
-        tbody.innerHTML = '<tr><td colspan="9" class="error">Aucune donnée disponible pour le moment</td></tr>';
-      }
-
-      progressContainer.style.display = 'none';
-
+      
+      downloadDataAsCSV(results, hour);
+      
     } catch (err) {
-      console.error("Erreur majeure:", err);
-      tbody.innerHTML = '<tr><td colspan="9" class="error">Erreur lors du chargement des données</td></tr>';
+      console.error("Erreur lors du téléchargement:", err);
+      alert("Une erreur est survenue");
+    } finally {
       progressContainer.style.display = 'none';
     }
   }
-
-  updateTable();
-  setInterval(updateTable, 5 * 60 * 1000);
+  
+  // [Conserver les autres fonctions utilitaires comme fetchFundingRateAtTime et getSignal]
 </script>
 </body>
 </html>
