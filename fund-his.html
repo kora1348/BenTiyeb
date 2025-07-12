@@ -37,9 +37,6 @@
       color: white;
       border: none;
       padding: 10px 20px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
       font-size: 16px;
       margin: 4px 2px;
       cursor: pointer;
@@ -49,26 +46,17 @@
       margin: 20px;
       font-weight: bold;
     }
-    #lastUpdate {
+    #lastUpdate, #cryptoCount, #heure {
       margin: 10px 0;
       font-weight: bold;
     }
-    #cryptoCount {
-      margin: 10px 0;
-      font-weight: bold;
-    }
-    #longSignals {
+    #longSignals, #shortSignals {
       margin: 20px 0;
       padding: 10px;
-      border: 1px solid green;
-      color: green;
+      border: 1px solid;
     }
-    #shortSignals {
-      margin: 20px 0;
-      padding: 10px;
-      border: 1px solid red;
-      color: red;
-    }
+    #longSignals { color: green; border-color: green; }
+    #shortSignals { color: red; border-color: red; }
     .signal-item {
       margin: 5px 0;
       padding: 5px;
@@ -91,12 +79,12 @@
   <div id="heure"></div>
   <div id="cryptoCount"></div>
   <div id="loading">Chargement des données...</div>
-  
+
   <div id="longSignals">
     <div class="signal-header">Signaux LONG (Variation positive + Funding ≤ -0.05%)</div>
     <div id="longList"></div>
   </div>
-  
+
   <div id="shortSignals">
     <div class="signal-header">Signaux SHORT (Variation négative + Funding ≥ 0.05%)</div>
     <div id="shortList"></div>
@@ -107,235 +95,176 @@
       <tr>
         <th>N°</th>
         <th>Crypto</th>
-        <th>Item 1</th>
-        <th>Fund 1</th>
-        <th>Item 2</th>
-        <th>Fund 2</th>
-        <th>Item 3</th>
-        <th>Fund 3</th>
-        <th>Item 4</th>
-        <th>Fund 4</th>
-        <th>Item 5</th>
-        <th>Fund 5</th>
-        <th>Item 6</th>
-        <th>Fund 6</th>
-        <th>Item 7</th>
-        <th>Fund 7</th>
+        <th>Item 1</th><th>Fund 1</th>
+        <th>Item 2</th><th>Fund 2</th>
+        <th>Item 3</th><th>Fund 3</th>
+        <th>Item 4</th><th>Fund 4</th>
+        <th>Item 5</th><th>Fund 5</th>
+        <th>Item 6</th><th>Fund 6</th>
+        <th>Item 7</th><th>Fund 7</th>
       </tr>
     </thead>
-    <tbody id="cryptoTableBody">
-      <!-- Les lignes seront ajoutées dynamiquement -->
-    </tbody>
+    <tbody id="cryptoTableBody"></tbody>
   </table>
 
   <script>
-    // Variables globales
-    let cryptoCounter = 0;
-    let loadedCryptos = 0;
-    let totalCryptos = 0;
     const longSignals = [];
     const shortSignals = [];
+    let loadedCryptos = 0;
+    let totalCryptos = 0;
 
-    // Fonction pour mettre à jour l'heure
     function updateTime() {
       const now = new Date();
-      const timeString = now.toLocaleTimeString('fr-FR');
-      const heureElement = document.getElementById('heure');
-      if (heureElement) {
-        heureElement.textContent = `Heure actuelle: ${timeString}`;
-      }
+      document.getElementById('heure').textContent = `Heure actuelle: ${now.toLocaleTimeString('fr-FR')}`;
     }
 
-    // Fonction pour mettre à jour le compteur de cryptos
     function updateCryptoCount() {
-      const countElement = document.getElementById('cryptoCount');
-      if (countElement) {
-        countElement.textContent = `Cryptos affichées: ${loadedCryptos}/${totalCryptos}`;
-      }
+      document.getElementById('cryptoCount').textContent =
+        `Cryptos affichées: ${loadedCryptos}/${totalCryptos}`;
     }
 
-    // Fonction pour afficher les signaux
     function displaySignals() {
-      const longListElement = document.getElementById('longList');
-      const shortListElement = document.getElementById('shortList');
-      
-      if (longListElement) {
-        if (longSignals.length > 0) {
-          longListElement.innerHTML = '';
-          longSignals.forEach(signal => {
-            const div = document.createElement('div');
-            div.className = 'signal-item';
-            div.textContent = signal;
-            longListElement.appendChild(div);
-          });
-        } else {
-          longListElement.innerHTML = "<div class='signal-item'>Aucun signal LONG trouvé</div>";
-        }
-      }
-      
-      if (shortListElement) {
-        if (shortSignals.length > 0) {
-          shortListElement.innerHTML = '';
-          shortSignals.forEach(signal => {
-            const div = document.createElement('div');
-            div.className = 'signal-item';
-            div.textContent = signal;
-            shortListElement.appendChild(div);
-          });
-        } else {
-          shortListElement.innerHTML = "<div class='signal-item'>Aucun signal SHORT trouvé</div>";
-        }
-      }
+      const longList = document.getElementById('longList');
+      const shortList = document.getElementById('shortList');
+
+      longList.innerHTML = longSignals.length
+        ? longSignals.map(s => `<div class="signal-item">${s}</div>`).join('')
+        : `<div class="signal-item">Aucun signal LONG trouvé</div>`;
+
+      shortList.innerHTML = shortSignals.length
+        ? shortSignals.map(s => `<div class="signal-item">${s}</div>`).join('')
+        : `<div class="signal-item">Aucun signal SHORT trouvé</div>`;
     }
 
-    // Fonction principale pour charger les données
     async function loadCryptoData() {
       try {
-        const loadingElement = document.getElementById('loading');
-        const lastUpdateElement = document.getElementById('lastUpdate');
-        const tableBody = document.getElementById('cryptoTableBody');
+        const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+        const data = await res.json();
 
-        if (!loadingElement || !lastUpdateElement || !tableBody) {
-          throw new Error('Éléments HTML manquants');
-        }
-
-        // 1. Récupérer la liste des symboles
-        const response = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
-        const data = await response.json();
-        
-        // Filtrer les paires valides
         const usdtFutures = data.symbols
-          .filter(s => 
-            s.quoteAsset === 'USDT' && 
-            s.status === 'TRADING' &&
-            s.contractType === 'PERPETUAL'
-          )
+          .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING' && s.contractType === 'PERPETUAL')
           .map(s => s.baseAsset)
-          .filter((value, index, self) => self.indexOf(value) === index)
+          .filter((v, i, a) => a.indexOf(v) === i)
           .sort();
-        
+
         totalCryptos = usdtFutures.length;
         updateCryptoCount();
-        
-        lastUpdateElement.textContent = `Mise à jour: ${new Date().toLocaleDateString('fr-FR')}`;
+
+        document.getElementById('lastUpdate').textContent =
+          `Mise à jour: ${new Date().toLocaleDateString('fr-FR')}`;
+        const tableBody = document.getElementById('cryptoTableBody');
         tableBody.innerHTML = '';
-        
-        // Chargement en parallèle
-        const fetchPromises = usdtFutures.map(symbol => {
+
+        const fetches = usdtFutures.map(symbol => {
           const row = document.createElement('tr');
           row.id = `row_${symbol}`;
           row.className = 'hidden-row';
-          
-          const numberTd = document.createElement('td');
-          numberTd.textContent = ++cryptoCounter;
-          row.appendChild(numberTd);
-          
-          const cryptoTd = document.createElement('td');
-          cryptoTd.textContent = symbol;
-          row.appendChild(cryptoTd);
-          
+
+          const numTd = document.createElement('td');
+          numTd.className = 'number-col';
+          numTd.textContent = ''; // sera mis plus tard
+          row.appendChild(numTd);
+
+          const symbolTd = document.createElement('td');
+          symbolTd.textContent = symbol;
+          row.appendChild(symbolTd);
+
           tableBody.appendChild(row);
-          
-          return fetchCryptoData(symbol)
-            .then(() => {
+
+          return fetchCryptoData(symbol).then(success => {
+            if (success) {
+              row.classList.remove('hidden-row');
               loadedCryptos++;
               updateCryptoCount();
-            })
-            .catch(error => {
-              console.error(`Erreur pour ${symbol}:`, error);
-              const rowToRemove = document.getElementById(`row_${symbol}`);
-              if (rowToRemove) rowToRemove.remove();
-              cryptoCounter--;
-              totalCryptos--;
-              updateCryptoCount();
-            });
+            } else {
+              row.remove();
+            }
+          });
         });
 
-        await Promise.all(fetchPromises);
-        
-      } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
-        const loadingElement = document.getElementById('loading');
-        if (loadingElement) {
-          loadingElement.textContent = 'Erreur lors du chargement des données. Veuillez réessayer.';
-        }
+        await Promise.all(fetches);
+
+        // Réattribuer les numéros visibles
+        document.querySelectorAll('#cryptoTableBody tr:not(.hidden-row)').forEach((row, index) => {
+          const numCell = row.querySelector('.number-col');
+          if (numCell) numCell.textContent = index + 1;
+        });
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById('loading').textContent = "Erreur de chargement.";
       } finally {
-        const loadingElement = document.getElementById('loading');
-        if (loadingElement) {
-          loadingElement.style.display = 'none';
-        }
+        document.getElementById('loading').style.display = 'none';
         displaySignals();
       }
     }
 
-    // Fonction pour récupérer les données d'une crypto
     async function fetchCryptoData(symbol) {
-      const [exchangeInfo, priceData, fundingData] = await Promise.all([
-        fetch(`https://fapi.binance.com/fapi/v1/exchangeInfo?symbol=${symbol}USDT`).then(res => res.json()),
-        fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}USDT&interval=1d&limit=7`).then(res => res.json()),
-        fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=72`).then(res => res.json())
-      ]);
+      try {
+        const [priceData, fundingData] = await Promise.all([
+          fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}USDT&interval=1d&limit=7`).then(r => r.json()),
+          fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=72`).then(r => r.json())
+        ]);
 
-      if (!exchangeInfo.symbols || exchangeInfo.symbols[0].status !== 'TRADING') {
-        throw new Error('Symbol not trading');
-      }
+        const row = document.getElementById(`row_${symbol}`);
+        if (!row || !priceData || !fundingData) return false;
 
-      const cryptoRow = document.getElementById(`row_${symbol}`);
-      if (!cryptoRow) return;
+        let lastVariation = 0, lastFunding = 0;
 
-      const dateOptions = { year: "2-digit", month: "2-digit", day: "2-digit" };
-      let lastDayVariation = 0;
-      let lastDayFunding = 0;
+        for (let i = 0; i < 7; i++) {
+          const k = priceData[i];
+          if (!k) continue;
 
-      for (let i = 0; i < priceData.length; i++) {
-        const candleOpenTime = new Date(priceData[i][0]);
-        const dayStart = new Date(candleOpenTime);
-        dayStart.setHours(2, 0, 0, 0);
-        
-        const dayEnd = new Date(dayStart);
-        dayEnd.setDate(dayEnd.getDate() + 1);
-        dayEnd.setHours(1, 59, 59, 999);
+          const open = parseFloat(k[1]);
+          const close = parseFloat(k[4]);
+          const variation = ((close - open) / open) * 100;
 
-        const openPrice = parseFloat(priceData[i][1]);
-        const closePrice = parseFloat(priceData[i][4]);
-        const priceVariation = ((closePrice - openPrice) / openPrice) * 100;
+          const openTime = new Date(k[0]);
+          const dayStart = new Date(openTime);
+          dayStart.setHours(2, 0, 0, 0);
+          const dayEnd = new Date(dayStart);
+          dayEnd.setDate(dayEnd.getDate() + 1);
+          dayEnd.setHours(1, 59, 59, 999);
 
-        let dailyFunding = 0;
-        fundingData.forEach(rate => {
-          const rateTime = new Date(rate.fundingTime);
-          if (rateTime >= dayStart && rateTime < dayEnd) {
-            dailyFunding += parseFloat(rate.fundingRate) * 100;
+          let fund = 0;
+          fundingData.forEach(f => {
+            const t = new Date(f.fundingTime);
+            if (t >= dayStart && t <= dayEnd) {
+              fund += parseFloat(f.fundingRate) * 100;
+            }
+          });
+
+          const date = dayStart.toLocaleDateString("fr-FR", { year: "2-digit", month: "2-digit", day: "2-digit" });
+
+          const tdVar = document.createElement('td');
+          tdVar.textContent = `${date}: ${variation.toFixed(2)}%`;
+          tdVar.className = variation > 0 ? "positive" : "negative";
+          row.appendChild(tdVar);
+
+          const tdFund = document.createElement('td');
+          tdFund.textContent = `${date}: ${fund.toFixed(5)}%`;
+          tdFund.className = fund > 0 ? "positive" : "negative";
+          tdFund.style.textAlign = 'center';
+          row.appendChild(tdFund);
+
+          if (i === 0) {
+            lastVariation = variation;
+            lastFunding = fund;
           }
-        });
-
-        if (i === 0) {
-          lastDayVariation = priceVariation;
-          lastDayFunding = dailyFunding;
         }
 
-        const itemCell = document.createElement('td');
-        itemCell.textContent = `${dayStart.toLocaleDateString("fr-FR", dateOptions)}: ${priceVariation.toFixed(2)}%`;
-        itemCell.className = priceVariation > 0 ? "positive" : "negative";
-        
-        const fundCell = document.createElement('td');
-        fundCell.textContent = `${dayStart.toLocaleDateString("fr-FR", dateOptions)}: ${dailyFunding.toFixed(5)}%`;
-        fundCell.className = dailyFunding > 0 ? "positive" : "negative";
-        fundCell.style.textAlign = "center";
+        if (lastVariation > 0 && lastFunding <= -0.05) {
+          longSignals.push(`${symbol} - Variation: ${lastVariation.toFixed(2)}%, Funding: ${lastFunding.toFixed(5)}%`);
+        } else if (lastVariation < 0 && lastFunding >= 0.05) {
+          shortSignals.push(`${symbol} - Variation: ${lastVariation.toFixed(2)}%, Funding: ${lastFunding.toFixed(5)}%`);
+        }
 
-        cryptoRow.appendChild(itemCell);
-        cryptoRow.appendChild(fundCell);
+        return true;
+      } catch (e) {
+        return false;
       }
-
-      if (lastDayVariation > 0 && lastDayFunding <= -0.05) {
-        longSignals.push(`${symbol} - Variation: ${lastDayVariation.toFixed(2)}%, Funding: ${lastDayFunding.toFixed(5)}%`);
-      } else if (lastDayVariation < 0 && lastDayFunding >= 0.05) {
-        shortSignals.push(`${symbol} - Variation: ${lastDayVariation.toFixed(2)}%, Funding: ${lastDayFunding.toFixed(5)}%`);
-      }
-
-      cryptoRow.classList.remove('hidden-row');
     }
 
-    // Initialisation
     updateTime();
     setInterval(updateTime, 1000);
     loadCryptoData();
