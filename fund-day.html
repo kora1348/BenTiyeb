@@ -116,11 +116,11 @@
 
   <script>
     // Variables globales
-    let cryptoCounter = 0;
     let loadedCryptos = 0;
     let totalCryptos = 0;
     const longSignals = [];
     const shortSignals = [];
+    let displayedRows = 0; // Pour suivre le nombre de lignes affichées
 
     // Fonction pour mettre à jour l'heure
     function updateTime() {
@@ -136,7 +136,7 @@
     // Fonction pour mettre à jour le compteur de cryptos
     function updateCryptoCount() {
       document.getElementById('cryptoCount').textContent = 
-        `Cryptos affichées: ${loadedCryptos}/${totalCryptos}`;
+        `Cryptos affichées: ${displayedRows}/${totalCryptos}`;
     }
 
     // Fonction pour afficher les signaux
@@ -197,13 +197,13 @@
         tableBody.innerHTML = ''; // Vider le tableau
         
         // 4. Pour chaque crypto, créer une ligne et charger les données
-        for (const symbol of usdtFutures) {
+        usdtFutures.forEach((symbol, index) => {
           const row = document.createElement('tr');
           row.id = `row_${symbol}`;
           
-          // Cellule Numéro
+          // Cellule Numéro (vide pour l'instant, sera mise à jour après)
           const numberTd = document.createElement('td');
-          numberTd.textContent = ++cryptoCounter;
+          numberTd.id = `num_${symbol}`;
           row.appendChild(numberTd);
           
           // Cellule Crypto
@@ -217,7 +217,7 @@
           
           // Charger les données pour cette crypto
           fetchCryptoData(symbol);
-        }
+        });
         
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
@@ -300,6 +300,11 @@
 
         // Afficher la ligne seulement si le chargement a réussi
         cryptoRow.style.display = '';
+        
+        // Mettre à jour le numéro de ligne
+        displayedRows++;
+        document.getElementById(`num_${symbol}`).textContent = displayedRows;
+        
         loadedCryptos++;
         updateCryptoCount();
         
@@ -315,7 +320,6 @@
         const rowToRemove = document.getElementById(`row_${symbol}`);
         if (rowToRemove) {
           rowToRemove.remove();
-          cryptoCounter--; // Décrémenter le compteur car la ligne est supprimée
         }
         
         // Mettre à jour le compteur même en cas d'erreur
