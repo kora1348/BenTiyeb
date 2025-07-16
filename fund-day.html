@@ -37,9 +37,6 @@
       color: white;
       border: none;
       padding: 10px 20px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
       font-size: 16px;
       margin: 4px 2px;
       cursor: pointer;
@@ -141,29 +138,28 @@
     }
 
     async function loadCryptoData() {
-  try {
-    const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
-    const data = await res.json();
+      try {
+        const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+        const data = await res.json();
 
-    const usdtFutures = data.symbols
-      .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
-      .map(s => s.baseAsset)
-      .filter((v, i, a) => a.indexOf(v) === i)
-      .sort();
+        const usdtFutures = data.symbols
+          .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
+          .map(s => s.baseAsset)
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .sort();
 
-    totalCryptos = usdtFutures.length;
-    updateCryptoCount();
+        totalCryptos = usdtFutures.length;
+        updateCryptoCount();
 
-    document.getElementById('lastUpdate').textContent = `Mise à jour: ${new Date().toLocaleDateString('fr-FR')}`;
+        document.getElementById('lastUpdate').textContent = `Mise à jour: ${new Date().toLocaleDateString('fr-FR')}`;
 
-    // 🔥 Chargement ultra rapide en parallèle
-    await Promise.all(usdtFutures.map(symbol => fetchCryptoData(symbol)));
+        await Promise.all(usdtFutures.map(symbol => fetchCryptoData(symbol)));
 
-  } catch (error) {
-    console.error('Erreur lors du chargement des symboles:', error);
-    document.getElementById('loading').textContent = 'Erreur de chargement.';
-  }
-}
+      } catch (error) {
+        console.error('Erreur lors du chargement des symboles:', error);
+        document.getElementById('loading').textContent = 'Erreur de chargement.';
+      }
+    }
 
     async function fetchCryptoData(symbol) {
       try {
@@ -216,10 +212,16 @@
         row.append(numTd, symTd, varTd, fundTd);
         tableBody.appendChild(row);
 
+        const adjustedPrice = variation > 0 && fundingSum <= -0.05
+          ? (close * 0.99).toFixed(5)
+          : variation < 0 && fundingSum >= 0.05
+          ? (close * 1.01).toFixed(5)
+          : null;
+
         if (variation > 0 && fundingSum <= -0.05)
-          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%`);
+          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}% , Prix: ${adjustedPrice}$`);
         else if (variation < 0 && fundingSum >= 0.05)
-          shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%`);
+          shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, Prix: ${adjustedPrice}$`);
 
       } catch (error) {
         console.warn(`Crypto délistée ou erreur pour ${symbol}`, error);
