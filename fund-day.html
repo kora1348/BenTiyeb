@@ -213,13 +213,13 @@
         tableBody.appendChild(row);
 
         const adjustedPrice = variation > 0 && fundingSum <= -0.05
-          ? (close * 0.99).toFixed(5)
+          ? (close * 0.98).toFixed(5)
           : variation < 0 && fundingSum >= 0.05
-          ? (close * 1.01).toFixed(5)
+          ? (close * 1.02).toFixed(5)
           : null;
 
         if (variation > 0 && fundingSum <= -0.05)
-          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}% , Prix: ${adjustedPrice}$`);
+          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, Prix: ${adjustedPrice}$`);
         else if (variation < 0 && fundingSum >= 0.05)
           shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, Prix: ${adjustedPrice}$`);
 
