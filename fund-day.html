@@ -218,9 +218,9 @@
         const shortPrice = (close * 1.02).toFixed(5); // +2%
 
         if (variation > 0 && fundingSum <= -0.05) {
-          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, Prix Actuel: ${currentPrice}$, Prix Long: ${longPrice}$, Prix Short: ${shortPrice}$`);
+          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, (Prix Actuel: ${currentPrice}$), Prix Long: ${longPrice}$, Prix Short*: ${shortPrice}$`);
         } else if (variation < 0 && fundingSum >= 0.05) {
-          shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, Prix Actuel: ${currentPrice}$, Prix Short: ${shortPrice}$, Prix Long: ${longPrice}$`);
+          shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, (Prix Actuel: ${currentPrice}$), Prix Short: ${shortPrice}$, Prix Long*: ${longPrice}$`);
         }
 
       } catch (error) {
