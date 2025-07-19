@@ -212,15 +212,15 @@
         row.append(numTd, symTd, varTd, fundTd);
         tableBody.appendChild(row);
 
-        // Calcul des prix
-        const currentPrice = close.toFixed(5);
-        const longPrice = (close * 0.98).toFixed(5); // -2%
-        const shortPrice = (close * 1.02).toFixed(5); // +2%
+        const currentPrice = close;
+        const priceBas = (currentPrice * 0.98).toFixed(5);
+        const priceHaut = (currentPrice * 1.02).toFixed(5);
+        const currentStr = currentPrice.toFixed(5);
 
         if (variation > 0 && fundingSum <= -0.05) {
-          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, (Prix Actuel: ${currentPrice}$), Prix Long: ${longPrice}$, Prix Short*: ${shortPrice}$`);
+          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, (Prix Actuel: ${currentStr}$  || Prix Long : ${priceBas}$ || Prix Short* : ${priceHaut}$)`);
         } else if (variation < 0 && fundingSum >= 0.05) {
-          shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, (Prix Actuel: ${currentPrice}$), Prix Short: ${shortPrice}$, Prix Long*: ${longPrice}$`);
+          shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, (Prix Actuel: ${currentStr}$  || Prix Short : ${priceHaut}$ || Prix Long* : ${priceBas}$)`);
         }
 
       } catch (error) {
