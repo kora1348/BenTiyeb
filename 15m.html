@@ -33,11 +33,47 @@
       margin: 10px 0;
       font-weight: bold;
     }
+    #randomSignal {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
+    }
+    .long {
+      background-color: rgba(0, 255, 0, 0.1);
+      border: 2px solid green;
+      color: green;
+    }
+    .short {
+      background-color: rgba(255, 0, 0, 0.1);
+      border: 2px solid red;
+      color: red;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
   <h2>Trading Futures Binance - 15min</h2>
   <div id="heure"></div>
+
+  <div id="randomSignalContainer">
+    <div id="randomSignal">Cliquez sur le bouton pour générer un signal aléatoire</div>
+    <button onclick="generateRandomSignal()">Générer un signal</button>
+  </div>
 
   <table id="cryptoTable">
     <thead>
@@ -51,6 +87,9 @@
   </table>
 
   <script>
+    let cryptoList = [];
+    let cryptoData = [];
+
     function updateTime() {
       const now = new Date();
       document.getElementById('heure').textContent = `Date: ${now.toLocaleDateString('fr-FR')} - Heure: ${now.toLocaleTimeString('fr-FR')}`;
@@ -64,13 +103,13 @@
         const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
         const data = await res.json();
 
-        const usdtFutures = data.symbols
+        cryptoList = data.symbols
           .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
           .map(s => s.baseAsset)
           .filter((v, i, a) => a.indexOf(v) === i)
           .sort();
 
-        usdtFutures.forEach(symbol => fetchCryptoData(symbol));
+        await Promise.all(cryptoList.map(symbol => fetchCryptoData(symbol)));
 
       } catch (error) {
         console.error('Erreur:', error);
@@ -85,6 +124,13 @@
         const prevClose = parseFloat(priceData[0][4]);
         const currentClose = parseFloat(priceData[1][4]);
         const variation = ((currentClose - prevClose) / prevClose) * 100;
+
+        // Stocker les données pour le signal aléatoire
+        cryptoData.push({
+          symbol: symbol,
+          variation: variation,
+          currentPrice: currentClose
+        });
 
         const tableBody = document.getElementById('cryptoTableBody');
         const row = document.createElement('tr');
@@ -103,6 +149,39 @@
       } catch (error) {
         console.warn(`Erreur pour ${symbol}`, error);
       }
+    }
+
+    function generateRandomSignal() {
+      if (cryptoData.length === 0) {
+        document.getElementById('randomSignal').textContent = "Données non chargées, veuillez patienter...";
+        return;
+      }
+
+      // Sélectionner une crypto aléatoire
+      const randomCrypto = cryptoData[Math.floor(Math.random() * cryptoData.length)];
+      
+      // Générer un signal aléatoire (LONG ou SHORT)
+      const signalType = Math.random() > 0.5 ? 'LONG' : 'SHORT';
+      
+      // Calculer les prix cibles (±2%)
+      const targetPrice = signalType === 'LONG' 
+        ? (randomCrypto.currentPrice * 1.02).toFixed(5)
+        : (randomCrypto.currentPrice * 0.98).toFixed(5);
+      
+      const stopPrice = signalType === 'LONG'
+        ? (randomCrypto.currentPrice * 0.98).toFixed(5)
+        : (randomCrypto.currentPrice * 1.02).toFixed(5);
+
+      // Afficher le signal
+      const signalElement = document.getElementById('randomSignal');
+      signalElement.className = signalType.toLowerCase();
+      signalElement.innerHTML = `
+        <strong>Signal ${signalType} aléatoire:</strong><br>
+        ${randomCrypto.symbol} - Prix actuel: ${randomCrypto.currentPrice.toFixed(5)} USDT<br>
+        Variation 15min: <span class="${randomCrypto.variation > 0 ? 'positive' : 'negative'}">${randomCrypto.variation.toFixed(2)}%</span><br>
+        Prix cible: ${targetPrice} USDT (+2%)<br>
+        Stop recommandé: ${stopPrice} USDT (-2%)
+      `;
     }
 
     loadCryptoData();
