@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Variation 4h - Cryptos Binance</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    #totalVariation {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #00ffff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #444;
+      text-align: left;
+    }
+    th {
+      background-color: #222;
+      position: sticky;
+      top: 0;
+    }
+    tr:nth-child(even) {
+      background-color: #1c1c1c;
+    }
+    .positive {
+      color: limegreen;
+    }
+    .negative {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📊 Variation sur 4h - Cryptos USDT</h2>
+<div id="totalVariation">Total des variations : 0.00%</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>N°</th>
+      <th>Crypto</th>
+      <th>Variation 4h + Date/Heure</th>
+    </tr>
+  </thead>
+  <tbody id="cryptoTableBody"></tbody>
+</table>
+
+<script>
+  let counter = 0;
+  let total = 0;
+
+  async function loadData() {
+    try {
+      const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+      const data = await res.json();
+
+      const symbols = data.symbols
+        .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
+        .map(s => s.symbol)
+        .filter(sym => sym.endsWith('USDT'));
+
+      const fetches = symbols.map(symbol => fetchVariation(symbol));
+      await Promise.allSettled(fetches);
+
+      updateTotal();
+    } catch (err) {
+      console.error('Erreur lors du chargement:', err);
+    }
+  }
+
+  async function fetchVariation(symbol) {
+    try {
+      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=2`);
+      const data = await res.json();
+      if (data.length < 2) return;
+
+      const previousClose = parseFloat(data[0][4]);
+      const currentClose = parseFloat(data[1][4]);
+      const variation = ((currentClose - previousClose) / previousClose) * 100;
+
+      const dateMs = data[1][0]; // timestamp of latest 4h candle open
+      const dateFR = new Date(dateMs).toLocaleString('fr-FR');
+
+      addRow(symbol.replace('USDT', ''), variation, dateFR);
+      total += variation;
+
+    } catch (err) {
+      console.warn('Erreur pour', symbol, err);
+    }
+  }
+
+  function addRow(symbol, variation, dateFR) {
+    const tbody = document.getElementById('cryptoTableBody');
+    const row = document.createElement('tr');
+
+    const numberCell = document.createElement('td');
+    numberCell.textContent = ++counter;
+
+    const symbolCell = document.createElement('td');
+    symbolCell.textContent = symbol;
+
+    const varCell = document.createElement('td');
+    varCell.innerHTML = `${variation.toFixed(2)}%<br><small>${dateFR}</small>`;
+    varCell.className = variation > 0 ? 'positive' : variation < 0 ? 'negative' : '';
+
+    row.appendChild(numberCell);
+    row.appendChild(symbolCell);
+    row.appendChild(varCell);
+
+    tbody.appendChild(row);
+  }
+
+  function updateTotal() {
+    const totalDiv = document.getElementById('totalVariation');
+    totalDiv.textContent = `Total des variations : ${total.toFixed(2)}%`;
+  }
+
+  loadData();
+</script>
+
+</body>
+</html>
