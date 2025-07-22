@@ -1,139 +1,358 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <title>Variation 4h - Cryptos Binance</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #111;
-      color: #fff;
-      padding: 20px;
-    }
-    h2 {
-      text-align: center;
-    }
-    #totalVariation {
-      text-align: center;
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 10px;
-      color: #00ffff;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #444;
-      text-align: left;
-    }
-    th {
-      background-color: #222;
-      position: sticky;
-      top: 0;
-    }
-    tr:nth-child(even) {
-      background-color: #1c1c1c;
-    }
-    .positive {
-      color: limegreen;
-    }
-    .negative {
-      color: red;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Signaux Crypto - Binance</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a0e17;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #121a2a;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.1);
+        }
+        h1 {
+            color: #4fc3f7;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #1e88e5;
+            padding-bottom: 10px;
+        }
+        .signal-card {
+            background: linear-gradient(135deg, #1e2b4a 0%, #121a2a 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1e88e5;
+        }
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .signal-id {
+            font-weight: bold;
+            color: #4fc3f7;
+            background-color: rgba(31, 136, 229, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .signal-time {
+            color: #90a4ae;
+        }
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .crypto-item {
+            background-color: #1a2238;
+            padding: 15px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+        }
+        .crypto-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .crypto-pair {
+            color: #90a4ae;
+            font-size: 14px;
+        }
+        .signal-type {
+            margin-top: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            align-self: flex-start;
+        }
+        .long {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        .short {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        .crypto-stats {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .positive {
+            color: #4caf50;
+        }
+        .negative {
+            color: #f44336;
+        }
+        .generate-btn {
+            background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            transition: all 0.3s;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 136, 229, 0.4);
+        }
+        .history-title {
+            color: #4fc3f7;
+            margin-top: 40px;
+            border-bottom: 1px solid #1e88e5;
+            padding-bottom: 5px;
+        }
+        .history-item {
+            background-color: #1a2238;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-time {
+            color: #90a4ae;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Générateur de Signaux Crypto (4h)</h1>
+        
+        <div id="currentSignal">
+            <div class="signal-card">
+                <div class="signal-header">
+                    <span class="signal-id">ID: Chargement...</span>
+                    <span class="signal-time">Date: --/--/---- --:--:--</span>
+                </div>
+                <div class="crypto-grid">
+                    <div class="crypto-item">
+                        <div class="crypto-name">--</div>
+                        <div class="crypto-pair">--/USDT</div>
+                        <span class="signal-type long">LONG</span>
+                        <div class="crypto-stats">Variation 4h: <span class="positive">+0.00%</span></div>
+                    </div>
+                    <div class="crypto-item">
+                        <div class="crypto-name">--</div>
+                        <div class="crypto-pair">--/USDT</div>
+                        <span class="signal-type short">SHORT</span>
+                        <div class="crypto-stats">Variation 4h: <span class="negative">-0.00%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button id="generateBtn" class="generate-btn">Générer un Nouveau Signal</button>
+        
+        <h3 class="history-title">Historique des Signaux</h3>
+        <div id="signalHistory"></div>
+    </div>
 
-<h2>📊 Variation sur 4h - Cryptos USDT</h2>
-<div id="totalVariation">Total des variations : 0.00%</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>N°</th>
-      <th>Crypto</th>
-      <th>Variation 4h + Date/Heure</th>
-    </tr>
-  </thead>
-  <tbody id="cryptoTableBody"></tbody>
-</table>
-
-<script>
-  let counter = 0;
-  let total = 0;
-
-  async function loadData() {
-    try {
-      const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
-      const data = await res.json();
-
-      const symbols = data.symbols
-        .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
-        .map(s => s.symbol)
-        .filter(sym => sym.endsWith('USDT'));
-
-      const fetches = symbols.map(symbol => fetchVariation(symbol));
-      await Promise.allSettled(fetches);
-
-      updateTotal();
-    } catch (err) {
-      console.error('Erreur lors du chargement:', err);
-    }
-  }
-
-  async function fetchVariation(symbol) {
-    try {
-      const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=2`);
-      const data = await res.json();
-      if (data.length < 2) return;
-
-      const previousClose = parseFloat(data[0][4]);
-      const currentClose = parseFloat(data[1][4]);
-      const variation = ((currentClose - previousClose) / previousClose) * 100;
-
-      const dateMs = data[1][0]; // timestamp of latest 4h candle open
-      const dateFR = new Date(dateMs).toLocaleString('fr-FR');
-
-      addRow(symbol.replace('USDT', ''), variation, dateFR);
-      total += variation;
-
-    } catch (err) {
-      console.warn('Erreur pour', symbol, err);
-    }
-  }
-
-  function addRow(symbol, variation, dateFR) {
-    const tbody = document.getElementById('cryptoTableBody');
-    const row = document.createElement('tr');
-
-    const numberCell = document.createElement('td');
-    numberCell.textContent = ++counter;
-
-    const symbolCell = document.createElement('td');
-    symbolCell.textContent = symbol;
-
-    const varCell = document.createElement('td');
-    varCell.innerHTML = `${variation.toFixed(2)}%<br><small>${dateFR}</small>`;
-    varCell.className = variation > 0 ? 'positive' : variation < 0 ? 'negative' : '';
-
-    row.appendChild(numberCell);
-    row.appendChild(symbolCell);
-    row.appendChild(varCell);
-
-    tbody.appendChild(row);
-  }
-
-  function updateTotal() {
-    const totalDiv = document.getElementById('totalVariation');
-    totalDiv.textContent = `Total des variations : ${total.toFixed(2)}%`;
-  }
-
-  loadData();
-</script>
-
+    <script>
+        // Configuration
+        const API_URL = 'https://fapi.binance.com/fapi/v1';
+        const HISTORY_SIZE = 5;
+        
+        // Éléments DOM
+        const generateBtn = document.getElementById('generateBtn');
+        const currentSignalDiv = document.getElementById('currentSignal');
+        const historyDiv = document.getElementById('signalHistory');
+        
+        // Générer un ID unique
+        function generateSignalId() {
+            return 'SIG-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 100).toString().padStart(2, '0');
+        }
+        
+        // Formater la date
+        function formatDate(date) {
+            return date.toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        // Récupérer les données des cryptos
+        async function getCryptoData() {
+            try {
+                // Récupérer la liste des paires USDT
+                const response = await fetch(`${API_URL}/exchangeInfo`);
+                const data = await response.json();
+                
+                const usdtPairs = data.symbols
+                    .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
+                    .map(s => s.symbol);
+                
+                // Récupérer les variations sur 4h
+                const variationPromises = usdtPairs.map(async pair => {
+                    try {
+                        const klinesRes = await fetch(`${API_URL}/klines?symbol=${pair}&interval=4h&limit=2`);
+                        const klines = await klinesRes.json();
+                        
+                        if (klines.length < 2) return null;
+                        
+                        const prevClose = parseFloat(klines[0][4]);
+                        const currentClose = parseFloat(klines[1][4]);
+                        const variation = ((currentClose - prevClose) / prevClose) * 100;
+                        
+                        return {
+                            symbol: pair.replace('USDT', ''),
+                            pair,
+                            variation,
+                            timestamp: klines[1][0]
+                        };
+                    } catch (e) {
+                        console.error(`Erreur pour ${pair}:`, e);
+                        return null;
+                    }
+                });
+                
+                const results = await Promise.all(variationPromises);
+                return results.filter(r => r !== null);
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                return [];
+            }
+        }
+        
+        // Générer un signal
+        async function generateSignal() {
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Analyse en cours...';
+            
+            try {
+                const cryptos = await getCryptoData();
+                if (cryptos.length === 0) throw new Error('Aucune donnée disponible');
+                
+                // Trier par performance
+                cryptos.sort((a, b) => b.variation - a.variation);
+                
+                // Sélectionner les meilleures et pires performances
+                const best = cryptos[0];
+                const worst = cryptos[cryptos.length - 1];
+                
+                // Créer le signal
+                const signalId = generateSignalId();
+                const now = new Date();
+                
+                const signal = {
+                    id: signalId,
+                    date: now,
+                    cryptos: [
+                        {
+                            name: best.symbol,
+                            pair: best.pair,
+                            type: 'LONG',
+                            variation: best.variation,
+                            timestamp: best.timestamp
+                        },
+                        {
+                            name: worst.symbol,
+                            pair: worst.pair,
+                            type: 'SHORT',
+                            variation: worst.variation,
+                            timestamp: worst.timestamp
+                        }
+                    ]
+                };
+                
+                // Afficher le signal
+                displaySignal(signal);
+                
+                // Ajouter à l'historique
+                addToHistory(signal);
+                
+            } catch (error) {
+                alert('Erreur lors de la génération du signal: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Générer un Nouveau Signal';
+            }
+        }
+        
+        // Afficher le signal actuel
+        function displaySignal(signal) {
+            const signalTime = formatDate(signal.date);
+            
+            const crypto1 = signal.cryptos[0];
+            const crypto2 = signal.cryptos[1];
+            
+            currentSignalDiv.innerHTML = `
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-id">ID: ${signal.id}</span>
+                        <span class="signal-time">Date: ${signalTime}</span>
+                    </div>
+                    <div class="crypto-grid">
+                        <div class="crypto-item">
+                            <div class="crypto-name">${crypto1.name}</div>
+                            <div class="crypto-pair">${crypto1.pair}</div>
+                            <span class="signal-type ${crypto1.type.toLowerCase()}">${crypto1.type}</span>
+                            <div class="crypto-stats">Variation 4h: <span class="${crypto1.variation >= 0 ? 'positive' : 'negative'}">${crypto1.variation.toFixed(2)}%</span></div>
+                        </div>
+                        <div class="crypto-item">
+                            <div class="crypto-name">${crypto2.name}</div>
+                            <div class="crypto-pair">${crypto2.pair}</div>
+                            <span class="signal-type ${crypto2.type.toLowerCase()}">${crypto2.type}</span>
+                            <div class="crypto-stats">Variation 4h: <span class="${crypto2.variation >= 0 ? 'positive' : 'negative'}">${crypto2.variation.toFixed(2)}%</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Ajouter à l'historique
+        function addToHistory(signal) {
+            const signalTime = formatDate(signal.date);
+            const crypto1 = signal.cryptos[0];
+            const crypto2 = signal.cryptos[1];
+            
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <div>
+                    <strong>${signal.id}</strong> - 
+                    ${crypto1.name} <span class="${crypto1.type.toLowerCase()}">${crypto1.type}</span> / 
+                    ${crypto2.name} <span class="${crypto2.type.toLowerCase()}">${crypto2.type}</span>
+                </div>
+                <div class="history-time">${signalTime}</div>
+            `;
+            
+            historyDiv.insertBefore(historyItem, historyDiv.firstChild);
+            
+            // Limiter la taille de l'historique
+            if (historyDiv.children.length > HISTORY_SIZE) {
+                historyDiv.removeChild(historyDiv.lastChild);
+            }
+        }
+        
+        // Événements
+        generateBtn.addEventListener('click', generateSignal);
+        
+        // Générer un premier signal au chargement
+        window.addEventListener('load', generateSignal);
+    </script>
 </body>
 </html>
