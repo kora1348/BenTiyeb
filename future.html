@@ -2,307 +2,215 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Trading Futures Binance - Day Trading</title>
+  <title>Bitcoin Extreme Oscillators - Feux de Trading</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      padding: 20px;
     }
     table {
-      border-collapse: collapse;
       width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
     }
     th, td {
-      border: 1px solid #ddd;
       padding: 8px;
-      text-align: left;
+      border: 1px solid #ccc;
+      text-align: center;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: #f5f5f5;
       position: sticky;
       top: 0;
     }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    .positive {
+    .green {
       color: green;
+      font-weight: bold;
     }
-    .negative {
+    .red {
       color: red;
-    }
-    button {
-      background-color: #fb3831;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 4px 2px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    #loading {
-      margin: 20px;
       font-weight: bold;
     }
-    #lastUpdate, #cryptoCount, #heure {
-      margin: 10px 0;
+    .neutral {
+      color: gray;
+    }
+    .signal-box {
+      margin-top: 30px;
+      padding: 15px;
+      border: 2px solid #333;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    .signal-box ul {
+      margin-top: 10px;
+    }
+    .signal-box li {
       font-weight: bold;
-    }
-    #longSignals, #shortSignals {
-      margin: 20px 0;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    #longSignals {
-      border: 1px solid green;
-      color: green;
-    }
-    #shortSignals {
-      border: 1px solid red;
-      color: red;
-    }
-    .signal-item {
-      margin: 5px 0;
-      padding: 5px;
-      background-color: #f8f8f8;
-      border-radius: 3px;
-    }
-    .signal-header {
-      font-weight: bold;
-      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  <button onclick="window.location.href='../../../../index.html'">Accueil</button>
-  <h2>Trading Futures Binance - Day Trading</h2>
-  <div id="lastUpdate">Mise à jour en cours...</div>
-  <div id="heure"></div>
-  <div id="cryptoCount"></div>
+  <h1>📊 Bitcoin Cycle Extreme Oscillators</h1>
+  <p>Sélectionne une date (UTC) pour voir les recommandations de trading :</p>
+  <input type="date" id="customDate" />
+  <button onclick="loadCryptoData()">Rechercher</button>
 
-  <div style="margin-top: 20px;">
-    <label for="customDate">Choisir une date (UTC) :</label>
-    <input type="date" id="customDate" />
-    <button onclick="loadCryptoDataByDate()">Rechercher</button>
-  </div>
-
-  <div id="loading">Chargement des données...</div>
-
-  <div id="longSignals">
-    <div class="signal-header">Signaux LONG (variation > +3% ET Funding ≤ -0.05%)</div>
-    <div id="longList"></div>
-  </div>
-
-  <div id="shortSignals">
-    <div class="signal-header">Signaux SHORT (variation < -3% ET Funding ≥ 0.05%)</div>
-    <div id="shortList"></div>
-  </div>
+  <div id="loading">En attente de chargement...</div>
 
   <table id="cryptoTable">
     <thead>
       <tr>
-        <th>N°</th>
+        <th>#</th>
         <th>Crypto</th>
         <th>Variation</th>
         <th>Funding</th>
-        <th>Score (optionnel)</th>
+        <th>Score</th>
+        <th>Feu</th>
+        <th>Entrée OK ?</th>
+        <th>Sortie Recommandée</th>
       </tr>
     </thead>
     <tbody id="cryptoTableBody"></tbody>
   </table>
 
+  <div id="recommendations" class="signal-box"></div>
+
   <script>
-    let totalCryptos = 0;
-    let loadedCryptos = 0;
-    let displayCounter = 0;
-    const longSignals = [];
-    const shortSignals = [];
-    
-    // Tableau pour stocker le score de chaque crypto (optionnel)
     const cryptoScores = [];
+    let total = 0, loaded = 0;
 
-    function updateTime() {
-      const now = new Date();
-      document.getElementById('heure').textContent = `Heure actuelle: ${now.toLocaleTimeString('fr-FR')}`;
-    }
-    updateTime();
-    setInterval(updateTime, 1000);
+    async function loadCryptoData() {
+      const date = document.getElementById("customDate").value;
+      if (!date) return alert("Sélectionne une date.");
 
-    function updateCryptoCount() {
-      document.getElementById('cryptoCount').textContent = `Cryptos affichées: ${displayCounter}/${totalCryptos}`;
-    }
-
-    function displaySignals() {
-      const longList = document.getElementById('longList');
-      const shortList = document.getElementById('shortList');
-
-      longList.innerHTML = longSignals.length
-        ? longSignals.map(s => `<div class="signal-item">${s}</div>`).join('')
-        : "<div class='signal-item'>Aucun signal LONG trouvé</div>";
-
-      shortList.innerHTML = shortSignals.length
-        ? shortSignals.map(s => `<div class="signal-item">${s}</div>`).join('')
-        : "<div class='signal-item'>Aucun signal SHORT trouvé</div>";
-    }
-
-    // Fonction de recommandation finale basée sur les signaux cumulés
-    function recommanderTrading() {
-      // On fusionne les signaux LONG et SHORT pour générer une recommandation globale
-      const recommandations = [];
-
-      longSignals.forEach(signal => {
-        const symbol = signal.split(" - ")[0];
-        recommandations.push({ type: "LONG", symbol });
-      });
-
-      shortSignals.forEach(signal => {
-        const symbol = signal.split(" - ")[0];
-        recommandations.push({ type: "SHORT", symbol });
-      });
-
-      const resultDiv = document.createElement('div');
-      resultDiv.style.marginTop = '30px';
-      resultDiv.style.padding = '15px';
-      resultDiv.style.border = '2px solid #444';
-      resultDiv.style.backgroundColor = '#f9f9f9';
-
-      if (recommandations.length === 0) {
-        resultDiv.innerHTML = `<strong>Aucune crypto à trader aujourd'hui selon les conditions extrêmes.</strong>`;
-      } else {
-        resultDiv.innerHTML = `<strong>Cryptos recommandées pour trader aujourd'hui :</strong><ul>` +
-          recommandations.map(r => `<li>${r.symbol} → ${r.type}</li>`).join('') +
-          `</ul>`;
-      }
-
-      document.body.appendChild(resultDiv);
-    }
-
-    async function loadCryptoDataByDate() {
-      const input = document.getElementById("customDate").value;
-      if (!input) return alert("Veuillez choisir une date.");
-
-      const selectedDate = new Date(input);
-      selectedDate.setUTCHours(2, 0, 0, 0);
-      const start = new Date(selectedDate);
-      const end = new Date(selectedDate);
+      const target = new Date(date);
+      target.setUTCHours(2, 0, 0, 0);
+      const end = new Date(target);
       end.setUTCDate(end.getUTCDate() + 1);
       end.setUTCHours(1, 59, 59, 999);
 
-      document.getElementById('cryptoTableBody').innerHTML = '';
-      displayCounter = 0;
-      loadedCryptos = 0;
-      longSignals.length = 0;
-      shortSignals.length = 0;
+      document.getElementById("loading").textContent = "Chargement...";
+      document.getElementById("cryptoTableBody").innerHTML = '';
+      document.getElementById("recommendations").innerHTML = '';
       cryptoScores.length = 0;
-      updateCryptoCount();
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('loading').textContent = `Chargement des données pour ${input}...`;
 
-      try {
-        const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
-        const data = await res.json();
+      const res = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+      const data = await res.json();
 
-        const usdtFutures = data.symbols
-          .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
-          .map(s => s.baseAsset)
-          .filter((v, i, a) => a.indexOf(v) === i)
-          .sort();
+      const symbols = data.symbols
+        .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
+        .map(s => s.baseAsset)
+        .filter((v, i, a) => a.indexOf(v) === i);
 
-        totalCryptos = usdtFutures.length;
-        updateCryptoCount();
+      total = symbols.length;
+      loaded = 0;
 
-        await Promise.all(usdtFutures.map(symbol => fetchDataForDate(symbol, start, end)));
-      } catch (error) {
-        console.error("Erreur:", error);
-        document.getElementById("loading").textContent = "Erreur de chargement.";
+      for (const sym of symbols) {
+        fetchCrypto(sym, target, end);
       }
     }
 
-    async function fetchDataForDate(symbol, start, end) {
+    async function fetchCrypto(symbol, start, end) {
       try {
-        const klinesUrl = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=1000`;
-        const fundingUrl = `https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=1000`;
+        const [kRes, fRes] = await Promise.all([
+          fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1d&limit=1000`),
+          fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}USDT&limit=1000`)
+        ]);
 
-        const [priceRes, fundingRes] = await Promise.all([fetch(klinesUrl), fetch(fundingUrl)]);
-        if (!priceRes.ok || !fundingRes.ok) throw new Error("Données indisponibles");
+        const kData = await kRes.json();
+        const fData = await fRes.json();
 
-        const priceData = await priceRes.json();
-        const fundingData = await fundingRes.json();
-
-        // Recherche de la bougie correspondant à la date choisie
-        const targetDay = priceData.find(k => {
-          const kDate = new Date(k[0]);
-          return kDate.toISOString().slice(0, 10) === start.toISOString().slice(0, 10);
+        const kline = kData.find(k => {
+          const d = new Date(k[0]);
+          return d.toISOString().slice(0, 10) === start.toISOString().slice(0, 10);
         });
 
-        if (!targetDay) return;
+        if (!kline) return increment();
 
-        const open = parseFloat(targetDay[1]);
-        const close = parseFloat(targetDay[4]);
+        const open = parseFloat(kline[1]);
+        const close = parseFloat(kline[4]);
         const variation = ((close - open) / open) * 100;
 
-        // Calcul de la somme des funding rates pour la journée sélectionnée
-        let fundingSum = 0, count = 0;
-        fundingData.forEach(rate => {
-          const t = new Date(rate.fundingTime);
+        let funding = 0;
+        let count = 0;
+        for (const f of fData) {
+          const t = new Date(f.fundingTime);
           if (t >= start && t <= end) {
-            fundingSum += parseFloat(rate.fundingRate) * 100;
+            funding += parseFloat(f.fundingRate) * 100;
             count++;
           }
-        });
-
-        // Calcul d'un score simplifié (optionnel)
-        // Ici, on peut ajouter d'autres critères pour simuler le "score de condition de marché"
-        // Par exemple : score = variation factor + funding factor
-        let score = 0;
-        if (variation > 3) score += 1;
-        else if (variation < -3) score -= 1;
-        if (fundingSum <= -0.05) score += 1;
-        else if (fundingSum >= 0.05) score -= 1;
-
-        cryptoScores.push({ symbol, score });
-
-        const tableBody = document.getElementById('cryptoTableBody');
-        const row = document.createElement('tr');
-
-        const numTd = document.createElement('td');
-        numTd.textContent = ++displayCounter;
-        const symTd = document.createElement('td');
-        symTd.textContent = symbol;
-        const varTd = document.createElement('td');
-        varTd.textContent = variation.toFixed(2) + '%';
-        varTd.className = variation > 0 ? 'positive' : variation < 0 ? 'negative' : '';
-        const fundTd = document.createElement('td');
-        fundTd.textContent = count > 0 ? fundingSum.toFixed(5) + '%' : 'N/A';
-        fundTd.className = fundingSum > 0 ? 'positive' : fundingSum < 0 ? 'negative' : '';
-        fundTd.style.textAlign = 'center';
-        const scoreTd = document.createElement('td');
-        scoreTd.textContent = score;
-
-        row.append(numTd, symTd, varTd, fundTd, scoreTd);
-        tableBody.appendChild(row);
-
-        // Signal LONG si variation >3% ET funding ≤ -0.05%
-        if (variation > 3 && fundingSum <= -0.05)
-          longSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, Score: ${score}`);
-        // Signal SHORT si variation < -3% ET funding ≥ 0.05%
-        else if (variation < -3 && fundingSum >= 0.05)
-          shortSignals.push(`${symbol} - Variation: ${variation.toFixed(2)}%, Funding: ${fundingSum.toFixed(5)}%, Score: ${score}`);
-
-      } catch (err) {
-        console.warn(`Erreur pour ${symbol}`, err);
-      } finally {
-        loadedCryptos++;
-        updateCryptoCount();
-        // Lorsque toutes les cryptos sont chargées, on affiche les signaux et lance la recommandation
-        if (loadedCryptos === totalCryptos) {
-          document.getElementById("loading").style.display = "none";
-          displaySignals();
-          recommanderTrading();
         }
+
+        let score = 0;
+        if (variation >= 3) score++;
+        else if (variation <= -3) score--;
+
+        if (funding <= -0.05) score++;
+        else if (funding >= 0.05) score--;
+
+        let feu = '⚪';
+        let feuClass = 'neutral';
+        let decision = '';
+        let entree = 'NON';
+        let sortie = 'NON';
+
+        if (score === 2) {
+          feu = '🟢';
+          feuClass = 'green';
+          decision = 'LONG';
+          entree = 'OUI';
+        } else if (score === -2) {
+          feu = '🔴';
+          feuClass = 'red';
+          decision = 'SHORT';
+          entree = 'OUI';
+        }
+
+        if ((score === 1 && funding >= 0.05) || (score === -1 && funding <= -0.05)) {
+          sortie = 'OUI';
+        }
+
+        if (decision)
+          cryptoScores.push({ symbol, score, decision });
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${loaded + 1}</td>
+          <td>${symbol}</td>
+          <td class="${variation > 0 ? 'green' : variation < 0 ? 'red' : 'neutral'}">${variation.toFixed(2)}%</td>
+          <td class="${funding > 0 ? 'red' : funding < 0 ? 'green' : 'neutral'}">${funding.toFixed(5)}%</td>
+          <td>${score}</td>
+          <td class="${feuClass}">${feu}</td>
+          <td>${entree}</td>
+          <td>${sortie}</td>
+        `;
+        document.getElementById("cryptoTableBody").appendChild(row);
+      } catch (e) {
+        console.warn("Erreur:", symbol, e);
+      } finally {
+        increment();
       }
+    }
+
+    function increment() {
+      loaded++;
+      if (loaded === total) {
+        document.getElementById("loading").textContent = "Chargement terminé.";
+        showRecommendations();
+      }
+    }
+
+    function showRecommendations() {
+      const box = document.getElementById("recommendations");
+      if (cryptoScores.length === 0) {
+        box.innerHTML = `<strong>Aucune crypto ne présente de score extrême aujourd’hui.</strong>`;
+        return;
+      }
+      box.innerHTML = `<strong>🔥 Cryptos recommandées aujourd’hui :</strong><ul>` +
+        cryptoScores.map(c => {
+          const color = c.decision === 'LONG' ? 'green' : 'red';
+          return `<li class="${color}">${c.symbol} → ${c.decision} (Score ${c.score})</li>`;
+        }).join('') + `</ul>`;
     }
   </script>
 </body>
