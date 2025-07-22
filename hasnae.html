@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de Signaux Crypto - Binance</title>
+    <title>Signaux Crypto avec Prix Prédéfinis</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -96,6 +96,20 @@
         .negative {
             color: #f44336;
         }
+        .price-levels {
+            margin-top: 10px;
+            background-color: #1e2b4a;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .price-label {
+            font-weight: bold;
+        }
         .generate-btn {
             background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
             color: white;
@@ -112,30 +126,11 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(30, 136, 229, 0.4);
         }
-        .history-title {
-            color: #4fc3f7;
-            margin-top: 40px;
-            border-bottom: 1px solid #1e88e5;
-            padding-bottom: 5px;
-        }
-        .history-item {
-            background-color: #1a2238;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .history-time {
-            color: #90a4ae;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Générateur de Signaux Crypto (4h)</h1>
+        <h1>Signaux Crypto avec Prix Prédéfinis</h1>
         
         <div id="currentSignal">
             <div class="signal-card">
@@ -149,36 +144,61 @@
                         <div class="crypto-pair">--/USDT</div>
                         <span class="signal-type long">LONG</span>
                         <div class="crypto-stats">Variation 4h: <span class="positive">+0.00%</span></div>
+                        <div class="price-levels">
+                            <div class="price-row">
+                                <span class="price-label">Prix Actuel:</span>
+                                <span>--.-- USDT</span>
+                            </div>
+                            <div class="price-row">
+                                <span class="price-label">Entrée (0.2% ↓):</span>
+                                <span>--.-- USDT</span>
+                            </div>
+                            <div class="price-row">
+                                <span class="price-label">TP (0.2% ↑):</span>
+                                <span>--.-- USDT</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="crypto-item">
                         <div class="crypto-name">--</div>
                         <div class="crypto-pair">--/USDT</div>
                         <span class="signal-type short">SHORT</span>
                         <div class="crypto-stats">Variation 4h: <span class="negative">-0.00%</span></div>
+                        <div class="price-levels">
+                            <div class="price-row">
+                                <span class="price-label">Prix Actuel:</span>
+                                <span>--.-- USDT</span>
+                            </div>
+                            <div class="price-row">
+                                <span class="price-label">Entrée (0.2% ↑):</span>
+                                <span>--.-- USDT</span>
+                            </div>
+                            <div class="price-row">
+                                <span class="price-label">TP (0.2% ↓):</span>
+                                <span>--.-- USDT</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
         <button id="generateBtn" class="generate-btn">Générer un Nouveau Signal</button>
-        
-        <h3 class="history-title">Historique des Signaux</h3>
-        <div id="signalHistory"></div>
     </div>
 
     <script>
         // Configuration
         const API_URL = 'https://fapi.binance.com/fapi/v1';
-        const HISTORY_SIZE = 5;
+        const ENTRY_OFFSET_PCT = 0.2; // 0.2%
+        const TP_PCT = 0.2; // 0.2%
         
         // Éléments DOM
         const generateBtn = document.getElementById('generateBtn');
         const currentSignalDiv = document.getElementById('currentSignal');
-        const historyDiv = document.getElementById('signalHistory');
         
         // Générer un ID unique
         function generateSignalId() {
-            return 'SIG-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            return 'SIG-' + Date.now().toString().slice(-6);
         }
         
         // Formater la date
@@ -191,6 +211,18 @@
                 minute: '2-digit',
                 second: '2-digit'
             });
+        }
+        
+        // Récupérer le prix actuel
+        async function getCurrentPrice(pair) {
+            try {
+                const response = await fetch(`${API_URL}/ticker/price?symbol=${pair}`);
+                const data = await response.json();
+                return parseFloat(data.price);
+            } catch (error) {
+                console.error('Erreur prix:', error);
+                return null;
+            }
         }
         
         // Récupérer les données des cryptos
@@ -237,6 +269,27 @@
             }
         }
         
+        // Calculer les niveaux de prix
+        function calculateLevels(currentPrice, type) {
+            if (type === 'LONG') {
+                const entryPrice = currentPrice * (1 - ENTRY_OFFSET_PCT/100);
+                const tpPrice = entryPrice * (1 + TP_PCT/100);
+                return {
+                    current: currentPrice.toFixed(4),
+                    entry: entryPrice.toFixed(4),
+                    tp: tpPrice.toFixed(4)
+                };
+            } else {
+                const entryPrice = currentPrice * (1 + ENTRY_OFFSET_PCT/100);
+                const tpPrice = entryPrice * (1 - TP_PCT/100);
+                return {
+                    current: currentPrice.toFixed(4),
+                    entry: entryPrice.toFixed(4),
+                    tp: tpPrice.toFixed(4)
+                };
+            }
+        }
+        
         // Générer un signal
         async function generateSignal() {
             generateBtn.disabled = true;
@@ -253,98 +306,84 @@
                 const best = cryptos[0];
                 const worst = cryptos[cryptos.length - 1];
                 
+                // Récupérer les prix actuels
+                const bestPrice = await getCurrentPrice(best.pair);
+                const worstPrice = await getCurrentPrice(worst.pair);
+                
+                if (!bestPrice || !worstPrice) throw new Error('Impossible de récupérer les prix');
+                
+                // Calculer les niveaux
+                const bestLevels = calculateLevels(bestPrice, 'LONG');
+                const worstLevels = calculateLevels(worstPrice, 'SHORT');
+                
                 // Créer le signal
                 const signalId = generateSignalId();
                 const now = new Date();
                 
-                const signal = {
-                    id: signalId,
-                    date: now,
-                    cryptos: [
-                        {
-                            name: best.symbol,
-                            pair: best.pair,
-                            type: 'LONG',
-                            variation: best.variation,
-                            timestamp: best.timestamp
-                        },
-                        {
-                            name: worst.symbol,
-                            pair: worst.pair,
-                            type: 'SHORT',
-                            variation: worst.variation,
-                            timestamp: worst.timestamp
-                        }
-                    ]
-                };
-                
                 // Afficher le signal
-                displaySignal(signal);
-                
-                // Ajouter à l'historique
-                addToHistory(signal);
+                currentSignalDiv.innerHTML = `
+                    <div class="signal-card">
+                        <div class="signal-header">
+                            <span class="signal-id">ID: ${signalId}</span>
+                            <span class="signal-time">Date: ${formatDate(now)}</span>
+                        </div>
+                        <div class="crypto-grid">
+                            <div class="crypto-item">
+                                <div class="crypto-name">${best.symbol}</div>
+                                <div class="crypto-pair">${best.pair}</div>
+                                <span class="signal-type long">LONG</span>
+                                <div class="crypto-stats">Variation 4h: <span class="${best.variation >= 0 ? 'positive' : 'negative'}">${best.variation.toFixed(2)}%</span></div>
+                                <div class="price-levels">
+                                    <div class="price-row">
+                                        <span class="price-label">Prix Actuel:</span>
+                                        <span>${bestLevels.current} USDT</span>
+                                    </div>
+                                    <div class="price-row">
+                                        <span class="price-label">Entrée (0.2% ↓):</span>
+                                        <span>${bestLevels.entry} USDT</span>
+                                    </div>
+                                    <div class="price-row">
+                                        <span class="price-label">TP (0.2% ↑):</span>
+                                        <span>${bestLevels.tp} USDT</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="crypto-item">
+                                <div class="crypto-name">${worst.symbol}</div>
+                                <div class="crypto-pair">${worst.pair}</div>
+                                <span class="signal-type short">SHORT</span>
+                                <div class="crypto-stats">Variation 4h: <span class="${worst.variation >= 0 ? 'positive' : 'negative'}">${worst.variation.toFixed(2)}%</span></div>
+                                <div class="price-levels">
+                                    <div class="price-row">
+                                        <span class="price-label">Prix Actuel:</span>
+                                        <span>${worstLevels.current} USDT</span>
+                                    </div>
+                                    <div class="price-row">
+                                        <span class="price-label">Entrée (0.2% ↑):</span>
+                                        <span>${worstLevels.entry} USDT</span>
+                                    </div>
+                                    <div class="price-row">
+                                        <span class="price-label">TP (0.2% ↓):</span>
+                                        <span>${worstLevels.tp} USDT</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
                 
             } catch (error) {
-                alert('Erreur lors de la génération du signal: ' + error.message);
+                alert('Erreur: ' + error.message);
+                currentSignalDiv.innerHTML = `
+                    <div class="signal-card">
+                        <div style="color: #f44336; text-align: center;">
+                            Erreur lors de la génération du signal: ${error.message}
+                        </div>
+                    </div>
+                `;
             } finally {
                 generateBtn.disabled = false;
                 generateBtn.textContent = 'Générer un Nouveau Signal';
-            }
-        }
-        
-        // Afficher le signal actuel
-        function displaySignal(signal) {
-            const signalTime = formatDate(signal.date);
-            
-            const crypto1 = signal.cryptos[0];
-            const crypto2 = signal.cryptos[1];
-            
-            currentSignalDiv.innerHTML = `
-                <div class="signal-card">
-                    <div class="signal-header">
-                        <span class="signal-id">ID: ${signal.id}</span>
-                        <span class="signal-time">Date: ${signalTime}</span>
-                    </div>
-                    <div class="crypto-grid">
-                        <div class="crypto-item">
-                            <div class="crypto-name">${crypto1.name}</div>
-                            <div class="crypto-pair">${crypto1.pair}</div>
-                            <span class="signal-type ${crypto1.type.toLowerCase()}">${crypto1.type}</span>
-                            <div class="crypto-stats">Variation 4h: <span class="${crypto1.variation >= 0 ? 'positive' : 'negative'}">${crypto1.variation.toFixed(2)}%</span></div>
-                        </div>
-                        <div class="crypto-item">
-                            <div class="crypto-name">${crypto2.name}</div>
-                            <div class="crypto-pair">${crypto2.pair}</div>
-                            <span class="signal-type ${crypto2.type.toLowerCase()}">${crypto2.type}</span>
-                            <div class="crypto-stats">Variation 4h: <span class="${crypto2.variation >= 0 ? 'positive' : 'negative'}">${crypto2.variation.toFixed(2)}%</span></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Ajouter à l'historique
-        function addToHistory(signal) {
-            const signalTime = formatDate(signal.date);
-            const crypto1 = signal.cryptos[0];
-            const crypto2 = signal.cryptos[1];
-            
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            historyItem.innerHTML = `
-                <div>
-                    <strong>${signal.id}</strong> - 
-                    ${crypto1.name} <span class="${crypto1.type.toLowerCase()}">${crypto1.type}</span> / 
-                    ${crypto2.name} <span class="${crypto2.type.toLowerCase()}">${crypto2.type}</span>
-                </div>
-                <div class="history-time">${signalTime}</div>
-            `;
-            
-            historyDiv.insertBefore(historyItem, historyDiv.firstChild);
-            
-            // Limiter la taille de l'historique
-            if (historyDiv.children.length > HISTORY_SIZE) {
-                historyDiv.removeChild(historyDiv.lastChild);
             }
         }
         
