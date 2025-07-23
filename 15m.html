@@ -71,8 +71,8 @@
   <div id="heure"></div>
 
   <div id="randomSignalContainer">
-    <div id="randomSignal">Cliquez sur le bouton pour générer un signal aléatoire</div>
-    <button onclick="generateRandomSignal()">Générer un signal</button>
+    <div id="randomSignal">Cliquez sur le bouton pour générer un signal basé sur le funding rate</div>
+    <button onclick="generateSignal()">Générer un signal</button>
   </div>
 
   <table id="cryptoTable">
@@ -110,7 +110,6 @@
           .sort();
 
         await Promise.all(cryptoList.map(symbol => fetchCryptoData(symbol)));
-
       } catch (error) {
         console.error('Erreur:', error);
       }
@@ -125,7 +124,6 @@
         const currentClose = parseFloat(priceData[1][4]);
         const variation = ((currentClose - prevClose) / prevClose) * 100;
 
-        // Stocker les données pour le signal aléatoire
         cryptoData.push({
           symbol: symbol,
           variation: variation,
@@ -136,7 +134,7 @@
         const row = document.createElement('tr');
 
         const numTd = document.createElement('td');
-        numTd.textContent = document.getElementById('cryptoTableBody').childElementCount + 1;
+        numTd.textContent = tableBody.childElementCount + 1;
         const symTd = document.createElement('td');
         symTd.textContent = symbol;
         const varTd = document.createElement('td');
@@ -151,36 +149,61 @@
       }
     }
 
-    function generateRandomSignal() {
+    async function generateSignal() {
       if (cryptoData.length === 0) {
         document.getElementById('randomSignal').textContent = "Données non chargées, veuillez patienter...";
         return;
       }
 
-      // Sélectionner une crypto aléatoire
-      const randomCrypto = cryptoData[Math.floor(Math.random() * cryptoData.length)];
-      
-      // Générer un signal aléatoire (LONG ou SHORT)
-      const signalType = Math.random() > 0.5 ? 'LONG' : 'SHORT';
-      
-      // Calculer les prix cibles (±2%)
-      const targetPrice = signalType === 'LONG' 
-        ? (randomCrypto.currentPrice * 1.02).toFixed(5)
-        : (randomCrypto.currentPrice * 0.98).toFixed(5);
-      
-      const stopPrice = signalType === 'LONG'
-        ? (randomCrypto.currentPrice * 0.98).toFixed(5)
-        : (randomCrypto.currentPrice * 1.02).toFixed(5);
+      let selectedCrypto = null;
+      let fundingRate = null;
+      let signalType = '';
 
-      // Afficher le signal
+      for (let i = 0; i < cryptoData.length; i++) {
+        const candidate = cryptoData[Math.floor(Math.random() * cryptoData.length)];
+
+        try {
+          const fundingRes = await fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${candidate.symbol}USDT`);
+          const fundingData = await fundingRes.json();
+          const rate = parseFloat(fundingData.lastFundingRate);
+
+          if (!isNaN(rate)) {
+            fundingRate = rate;
+            selectedCrypto = candidate;
+            signalType = rate > 0 ? 'SHORT' : 'LONG';
+            break;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
       const signalElement = document.getElementById('randomSignal');
+
+      if (!selectedCrypto || fundingRate === null) {
+        signalElement.textContent = "Impossible de générer un signal (funding rate non disponible)";
+        signalElement.className = '';
+        return;
+      }
+
+      const targetPrice = signalType === 'LONG'
+        ? (selectedCrypto.currentPrice * 1.02).toFixed(5)
+        : (selectedCrypto.currentPrice * 0.98).toFixed(5);
+
+      const stopPrice = signalType === 'LONG'
+        ? (selectedCrypto.currentPrice * 0.98).toFixed(5)
+        : (selectedCrypto.currentPrice * 1.02).toFixed(5);
+
+      const fundingRateFormatted = (fundingRate * 100).toFixed(4) + '%';
+
       signalElement.className = signalType.toLowerCase();
       signalElement.innerHTML = `
-        <strong>Signal ${signalType} aléatoire:</strong><br>
-        ${randomCrypto.symbol} - Prix actuel: ${randomCrypto.currentPrice.toFixed(5)} USDT<br>
-        Variation 15min: <span class="${randomCrypto.variation > 0 ? 'positive' : 'negative'}">${randomCrypto.variation.toFixed(2)}%</span><br>
+        <strong>Signal ${signalType} (selon Funding Rate):</strong><br>
+        ${selectedCrypto.symbol} - Prix actuel: ${selectedCrypto.currentPrice.toFixed(5)} USDT<br>
+        Variation 15min: <span class="${selectedCrypto.variation > 0 ? 'positive' : 'negative'}">${selectedCrypto.variation.toFixed(2)}%</span><br>
         Prix cible: ${targetPrice} USDT (+2%)<br>
-        Stop recommandé: ${stopPrice} USDT (-2%)
+        Stop recommandé: ${stopPrice} USDT (-2%)<br>
+        <span>Funding Rate: ${fundingRateFormatted}</span>
       `;
     }
 
