@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Prix de liquidation estimés (Daily)</title>
+  <title>Prix global de liquidation & conseil</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <style>
     body {
@@ -27,49 +27,89 @@
       margin: 10px;
     }
     .result {
-      font-size: 24px;
+      font-size: 22px;
       margin-top: 30px;
     }
     .price {
-      color: #2a9d8f;
       font-weight: bold;
+      color: #2a9d8f;
+    }
+    .advice {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #d90429;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Prix de liquidation estimés (Daily)</h1>
+    <h1>Prix global de liquidation & conseil</h1>
     <label for="symbol">Crypto :</label>
     <select id="symbol">
       <option value="BTCUSDT">BTC/USDT</option>
       <option value="ETHUSDT">ETH/USDT</option>
       <option value="BNBUSDT">BNB/USDT</option>
     </select>
-    <button onclick="charger()">Calculer</button>
+    <button onclick="calculer()">Calculer</button>
 
     <div id="result" class="result">
-      <p>Prix liquidation Long estimé : <span id="prixLiqLong" class="price">-</span> USDT</p>
-      <p>Prix liquidation Short estimé : <span id="prixLiqShort" class="price">-</span> USDT</p>
+      <p>Prix actuel : <span id="prixActuel" class="price">-</span> USDT</p>
+      <p>Prix liquidation Long : <span id="prixLiqLong" class="price">-</span> USDT</p>
+      <p>Prix liquidation Short : <span id="prixLiqShort" class="price">-</span> USDT</p>
+      <p>Prix global de liquidation estimé : <span id="prixGlobal" class="price">-</span> USDT</p>
+      <div id="conseil" class="advice"></div>
     </div>
   </div>
 
 <script>
-  async function charger() {
+  async function calculer() {
     const symbol = document.getElementById('symbol').value;
-    const levier = 10; // Levier utilisé pour l’estimation
+    const levier = 10;
 
     try {
-      // Récupérer le prix actuel
-      const res = await axios.get(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${symbol}`);
-      const price = parseFloat(res.data.price);
+      // 1. Prix actuel
+      const prixRes = await axios.get(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${symbol}`);
+      const price = parseFloat(prixRes.data.price);
 
-      // Calculer prix liquidation
+      // 2. Open Interest daily
+      const oiRes = await axios.get(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${symbol}&period=1d&limit=1`);
+      const oiData = oiRes.data;
+      const latestOI = oiData.length ? parseFloat(oiData[0].sumOpenInterestValue) : 0;
+
+      // 3. Ratio Long/Short daily
+      const ratioRes = await axios.get(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${symbol}&period=1d&limit=1`);
+      const ratioData = ratioRes.data[0];
+      const ratioLong = parseFloat(ratioData.longAccount);
+      const ratioShort = 1 - ratioLong;
+
+      // 4. Prix liquidation
       const prixLiqLong = price * (1 - 1 / levier);
       const prixLiqShort = price * (1 + 1 / levier);
 
-      // Afficher les prix
+      // 5. Prix global pondéré
+      const poidsLong = ratioLong * latestOI;
+      const poidsShort = ratioShort * latestOI;
+      const prixGlobal = (prixLiqLong * poidsLong + prixLiqShort * poidsShort) / (poidsLong + poidsShort);
+
+      // Affichage
+      document.getElementById('prixActuel').textContent = price.toFixed(2);
       document.getElementById('prixLiqLong').textContent = prixLiqLong.toFixed(2);
       document.getElementById('prixLiqShort').textContent = prixLiqShort.toFixed(2);
+      document.getElementById('prixGlobal').textContent = prixGlobal.toFixed(2);
+
+      // 6. Conseil simple basé sur prix actuel vs prix global liquidation
+      const conseilDiv = document.getElementById('conseil');
+      if (price < prixGlobal) {
+        conseilDiv.textContent = "⚠️ Attention, le prix est sous le seuil global de liquidation. Risque accru de liquidations LONG. Prudence ou position short recommandée.";
+        conseilDiv.style.color = "#d90429";
+      } else if (price > prixGlobal) {
+        conseilDiv.textContent = "⚠️ Attention, le prix est au-dessus du seuil global de liquidation. Risque accru de liquidations SHORT. Prudence ou position long recommandée.";
+        conseilDiv.style.color = "#2a9d8f";
+      } else {
+        conseilDiv.textContent = "Le prix est proche du seuil global de liquidation. Reste vigilant et surveille les mouvements.";
+        conseilDiv.style.color = "#f4a261";
+      }
 
     } catch(e) {
       alert("Erreur lors du chargement des données. Vérifie ta connexion.");
@@ -77,8 +117,7 @@
     }
   }
 
-  // Chargement initial
-  charger();
+  calculer();
 </script>
 </body>
 </html>
