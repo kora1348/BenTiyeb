@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prix de liquidation estimés (Daily)</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f9f9f9;
+      max-width: 600px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    select, button {
+      padding: 8px;
+      font-size: 16px;
+      margin: 10px;
+    }
+    .result {
+      font-size: 24px;
+      margin-top: 30px;
+    }
+    .price {
+      color: #2a9d8f;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Prix de liquidation estimés (Daily)</h1>
+    <label for="symbol">Crypto :</label>
+    <select id="symbol">
+      <option value="BTCUSDT">BTC/USDT</option>
+      <option value="ETHUSDT">ETH/USDT</option>
+      <option value="BNBUSDT">BNB/USDT</option>
+    </select>
+    <button onclick="charger()">Calculer</button>
+
+    <div id="result" class="result">
+      <p>Prix liquidation Long estimé : <span id="prixLiqLong" class="price">-</span> USDT</p>
+      <p>Prix liquidation Short estimé : <span id="prixLiqShort" class="price">-</span> USDT</p>
+    </div>
+  </div>
+
+<script>
+  async function charger() {
+    const symbol = document.getElementById('symbol').value;
+    const levier = 10; // Levier utilisé pour l’estimation
+
+    try {
+      // Récupérer le prix actuel
+      const res = await axios.get(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${symbol}`);
+      const price = parseFloat(res.data.price);
+
+      // Calculer prix liquidation
+      const prixLiqLong = price * (1 - 1 / levier);
+      const prixLiqShort = price * (1 + 1 / levier);
+
+      // Afficher les prix
+      document.getElementById('prixLiqLong').textContent = prixLiqLong.toFixed(2);
+      document.getElementById('prixLiqShort').textContent = prixLiqShort.toFixed(2);
+
+    } catch(e) {
+      alert("Erreur lors du chargement des données. Vérifie ta connexion.");
+      console.error(e);
+    }
+  }
+
+  // Chargement initial
+  charger();
+</script>
+</body>
+</html>
