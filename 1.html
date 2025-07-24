@@ -1,425 +1,230 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Liquidation Pro Radar - Binance/Bitget</title>
-  <!-- Librairies Pro -->
-  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Radar Zones de Liquidation Binance</title>
   <style>
-    :root {
-      --color-long: rgba(255, 59, 48, 0.7);
-      --color-short: rgba(52, 199, 89, 0.7);
-      --color-bg: #0f0f12;
-      --color-panel: #1e1e24;
-    }
     body {
-      font-family: 'Roboto', sans-serif;
-      background: var(--color-bg);
-      color: white;
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #eee;
+      margin: 0; padding: 20px;
     }
-    .dashboard {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      padding: 16px;
-      max-width: 1800px;
-      margin: 0 auto;
-    }
-    .chart-panel {
-      background: var(--color-panel);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-    }
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(30, 30, 36, 0.9);
-      border-bottom: 1px solid #2a2a35;
-    }
-    .symbol-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .symbol {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .price {
-      font-size: 18px;
-      font-family: 'Roboto Mono', monospace;
-    }
-    .up { color: #00e676; }
-    .down { color: #ff3b30; }
-    .chart-container {
-      height: 500px;
-      position: relative;
-    }
-    .liquidation-level {
-      position: absolute;
-      left: 0;
-      right: 0;
-      padding: 8px 16px;
-      font-size: 13px;
-      font-weight: 600;
+    h1 {
       text-align: center;
-      backdrop-filter: blur(4px);
+      color: #00ff99;
+      margin-bottom: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #222;
+      border-radius: 10px;
+      padding: 15px 20px;
+      box-shadow: 0 0 20px #00ff9955;
+    }
+    #legend {
+      margin-top: 15px;
+      background: #333;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      user-select: none;
+    }
+    #zonesTable {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    #zonesTable th, #zonesTable td {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+      text-align: center;
+    }
+    #zonesTable th {
+      background: #004d00;
+      color: #00ff99;
+      position: sticky;
+      top: 0;
       z-index: 10;
     }
-    .long-level {
-      bottom: 10%;
-      background: var(--color-long);
+    tr:hover {
+      background: #333;
     }
-    .short-level {
-      top: 10%;
-      background: var(--color-short);
+
+    /* Couleurs des zones */
+    .longZone {
+      background-color: #0b4d0b;
+      color: #a6f3a6;
     }
-    .timeframe-selector {
-      display: flex;
-      background: #2a2a35;
-      border-radius: 8px;
-      padding: 4px;
+    .shortZone {
+      background-color: #5d0b0b;
+      color: #f3a6a6;
     }
-    .timeframe-btn {
-      background: transparent;
-      border: none;
-      color: #a0a0b0;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 0.2s;
-    }
-    .timeframe-btn.active {
-      background: #3a3a4a;
-      color: white;
-    }
-    .exchange-selector {
-      background: #2a2a35;
-      border-radius: 8px;
-      padding: 6px;
-      border: none;
-      color: white;
-      font-size: 13px;
-    }
-    .stats-bar {
-      display: flex;
-      gap: 15px;
-      padding: 12px 16px;
-      background: rgba(30, 30, 36, 0.9);
-      border-top: 1px solid #2a2a35;
-      font-size: 13px;
-    }
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .stat-value {
-      font-family: 'Roboto Mono', monospace;
-      font-weight: 600;
+    .strongZone {
+      border: 2px solid #fff;
     }
   </style>
 </head>
 <body>
-  <div class="dashboard">
-    <!-- BTC Panel -->
-    <div class="chart-panel">
-      <div class="chart-header">
-        <div class="symbol-info">
-          <span class="symbol">BTC/USDT</span>
-          <span class="price" id="btc-price">--</span>
-        </div>
-        <div class="timeframe-selector">
-          <button class="timeframe-btn active" data-tf="15m">15m</button>
-          <button class="timeframe-btn" data-tf="1h">1H</button>
-          <button class="timeframe-btn" data-tf="4h">4H</button>
-          <button class="timeframe-btn" data-tf="1d">1D</button>
-        </div>
-      </div>
-      <div class="chart-container" id="btc-chart">
-        <div class="liquidation-level long-level" id="btc-long-liq">
-          LONG LIQUIDATIONS: $-- (--%)
-        </div>
-        <div class="liquidation-level short-level" id="btc-short-liq">
-          SHORT LIQUIDATIONS: $-- (--%)
-        </div>
-      </div>
-      <div class="stats-bar">
-        <div class="stat-item">
-          <span>24h Change:</span>
-          <span class="stat-value" id="btc-change">--%</span>
-        </div>
-        <div class="stat-item">
-          <span>O.I:</span>
-          <span class="stat-value" id="btc-oi">--</span>
-        </div>
-        <div class="stat-item">
-          <span>Liquidation Heat:</span>
-          <span class="stat-value" id="btc-heat">--</span>
-        </div>
-      </div>
-    </div>
+  <div class="container">
+    <h1>Radar Zones de Liquidation Binance (en temps réel)</h1>
 
-    <!-- ETH Panel -->
-    <div class="chart-panel">
-      <div class="chart-header">
-        <div class="symbol-info">
-          <span class="symbol">ETH/USDT</span>
-          <span class="price" id="eth-price">--</span>
-        </div>
-        <div class="timeframe-selector">
-          <button class="timeframe-btn active" data-tf="15m">15m</button>
-          <button class="timeframe-btn" data-tf="1h">1H</button>
-          <button class="timeframe-btn" data-tf="4h">4H</button>
-          <button class="timeframe-btn" data-tf="1d">1D</button>
-        </div>
-      </div>
-      <div class="chart-container" id="eth-chart">
-        <div class="liquidation-level long-level" id="eth-long-liq">
-          LONG LIQUIDATIONS: $-- (--%)
-        </div>
-        <div class="liquidation-level short-level" id="eth-short-liq">
-          SHORT LIQUIDATIONS: $-- (--%)
-        </div>
-      </div>
-      <div class="stats-bar">
-        <div class="stat-item">
-          <span>24h Change:</span>
-          <span class="stat-value" id="eth-change">--%</span>
-        </div>
-        <div class="stat-item">
-          <span>O.I:</span>
-          <span class="stat-value" id="eth-oi">--</span>
-        </div>
-        <div class="stat-item">
-          <span>Liquidation Heat:</span>
-          <span class="stat-value" id="eth-heat">--</span>
-        </div>
-      </div>
+    <table id="zonesTable">
+      <thead>
+        <tr>
+          <th>Prix zone (USDT)</th>
+          <th>% Liquidations LONG</th>
+          <th>% Liquidations SHORT</th>
+          <th>Volume total liquidé (USDT)</th>
+          <th>Type dominant</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="legend">
+      <h3>Comment utiliser ces zones :</h3>
+      <ul>
+        <li><span style="color:#0b4d0b; font-weight:bold;">🟢 Zones LONG dominantes :</span> Beaucoup de positions LONG liquidées ici → potentiel point d'entrée à l'achat, rebond possible.</li>
+        <li><span style="color:#5d0b0b; font-weight:bold;">🔴 Zones SHORT dominantes :</span> Beaucoup de positions SHORT liquidées → zones de danger, possible correction à la baisse.</li>
+        <li><span style="border:2px solid #fff; padding: 2px 5px;">⚫ Zones fortes :</span> Niveaux avec gros volume de liquidations, à surveiller impérativement.</li>
+      </ul>
+
+      <h3>Stratégie :</h3>
+      <ul>
+        <li>Pour acheter : cherchez zones >70% LONG, attendez confirmation de rebond (volume, mèches).</li>
+        <li>Pour vendre : cherchez zones >70% SHORT, attendez rejet du niveau avec volume.</li>
+        <li>À éviter : zones trop récentes avec énorme volume, zones éloignées du prix actuel ou non testées.</li>
+      </ul>
     </div>
   </div>
 
-  <script>
-    // Configuration
-    const CONFIG = {
-      exchanges: ['binance', 'bitget'],
-      symbols: ['BTCUSDT', 'ETHUSDT'],
-      timeframe: '15m',
-      updateInterval: 15000 // 15 seconds
-    };
+<script>
+  const wsUrl = 'wss://fstream.binance.com/ws/!forceOrder@arr';
+  const zonesTableBody = document.querySelector('#zonesTable tbody');
 
-    // État global
-    const state = {
-      btc: {
-        price: null,
-        chart: null,
-        series: null,
-        liquidationLevels: { long: null, short: null }
-      },
-      eth: {
-        price: null,
-        chart: null,
-        series: null,
-        liquidationLevels: { long: null, short: null }
-      }
-    };
+  // On va stocker les liquidations dans des "zones" de prix (tranches de 10 USDT par exemple)
+  const PRICE_STEP = 10;
 
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', () => {
-      initCharts();
-      initEventListeners();
-      loadAllData();
-      setInterval(loadAllData, CONFIG.updateInterval);
+  // Données agrégées par tranche de prix
+  // Structure : { [priceZone]: { longVolume: number, shortVolume: number, longCount: number, shortCount: number } }
+  const zonesData = {};
+
+  function roundPrice(price) {
+    return Math.floor(price / PRICE_STEP) * PRICE_STEP;
+  }
+
+  // Met à jour le tableau HTML des zones à chaque réception de liquidations
+  function updateTable() {
+    zonesTableBody.innerHTML = '';
+
+    // Transforme zonesData en tableau trié par volume total décroissant
+    const zonesArray = Object.entries(zonesData).map(([zone, data]) => {
+      const totalVolume = data.longVolume + data.shortVolume;
+      const longPct = totalVolume ? (data.longVolume / totalVolume) * 100 : 0;
+      const shortPct = totalVolume ? (data.shortVolume / totalVolume) * 100 : 0;
+      let dominant = longPct > shortPct ? 'LONG' : 'SHORT';
+
+      return {
+        zone: parseInt(zone),
+        longPct,
+        shortPct,
+        totalVolume,
+        dominant,
+        data
+      };
     });
 
-    function initCharts() {
-      // BTC Chart
-      state.btc.chart = LightweightCharts.createChart('btc-chart', {
-        layout: {
-          background: { color: 'transparent' },
-          textColor: '#e0e0e0',
-          fontSize: 12
-        },
-        grid: {
-          vertLines: { color: 'rgba(42, 42, 53, 0.8)' },
-          horzLines: { color: 'rgba(42, 42, 53, 0.8)' }
-        },
-        crosshair: {
-          mode: LightweightCharts.CrosshairMode.Normal
-        },
-        timeScale: {
-          borderColor: 'rgba(42, 42, 53, 0.8)',
-          timeVisible: true
-        },
-        rightPriceScale: {
-          borderColor: 'rgba(42, 42, 53, 0.8)'
-        }
-      });
-      state.btc.series = state.btc.chart.addCandlestickSeries({
-        upColor: '#00e676',
-        downColor: '#ff3b30',
-        borderDownColor: '#ff3b30',
-        borderUpColor: '#00e676',
-        wickDownColor: '#ff3b30',
-        wickUpColor: '#00e676'
-      });
+    // Trie décroissant par volume total
+    zonesArray.sort((a,b) => b.totalVolume - a.totalVolume);
 
-      // ETH Chart
-      state.eth.chart = LightweightCharts.createChart('eth-chart', {
-        layout: {
-          background: { color: 'transparent' },
-          textColor: '#e0e0e0',
-          fontSize: 12
-        },
-        grid: {
-          vertLines: { color: 'rgba(42, 42, 53, 0.8)' },
-          horzLines: { color: 'rgba(42, 42, 53, 0.8)' }
-        },
-        crosshair: {
-          mode: LightweightCharts.CrosshairMode.Normal
-        },
-        timeScale: {
-          borderColor: 'rgba(42, 42, 53, 0.8)',
-          timeVisible: true
-        },
-        rightPriceScale: {
-          borderColor: 'rgba(42, 42, 53, 0.8)'
-        }
-      });
-      state.eth.series = state.eth.chart.addCandlestickSeries({
-        upColor: '#00e676',
-        downColor: '#ff3b30',
-        borderDownColor: '#ff3b30',
-        borderUpColor: '#00e676',
-        wickDownColor: '#ff3b30',
-        wickUpColor: '#00e676'
-      });
-    }
+    // Limite à 20 zones affichées (les plus importantes)
+    const limitedZones = zonesArray.slice(0, 20);
 
-    function initEventListeners() {
-      // Timeframe selection
-      document.querySelectorAll('.timeframe-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          CONFIG.timeframe = btn.dataset.tf;
-          loadAllData();
-        });
-      });
-    }
+    for (const z of limitedZones) {
+      const tr = document.createElement('tr');
 
-    async function loadAllData() {
-      try {
-        const [btcData, ethData] = await Promise.all([
-          fetchSymbolData('BTCUSDT'),
-          fetchSymbolData('ETHUSDT')
-        ]);
-        
-        updateChart('btc', btcData);
-        updateChart('eth', ethData);
-      } catch (error) {
-        console.error('Error loading data:', error);
+      // Couleur selon dominance
+      if (z.longPct > 70) {
+        tr.classList.add('longZone');
+      } else if (z.shortPct > 70) {
+        tr.classList.add('shortZone');
       }
-    }
 
-    async function fetchSymbolData(symbol) {
-      try {
-        // 1. Fetch Price Data
-        const klines = await axios.get(`https://api.binance.com/api/v3/klines`, {
-          params: {
-            symbol: symbol,
-            interval: CONFIG.timeframe,
-            limit: 100
-          }
-        });
-        
-        // 2. Fetch Liquidation Data (simulated)
-        const oiResponse = await axios.get(`https://fapi.binance.com/fapi/v1/openInterest`, {
-          params: { symbol: symbol }
-        });
-        
-        // 3. Fetch 24h Change
-        const ticker = await axios.get(`https://api.binance.com/api/v3/ticker/24hr`, {
-          params: { symbol: symbol }
-        });
-        
-        // Process data
-        const currentPrice = parseFloat(klines.data[klines.data.length - 1][4]);
-        const openInterest = parseFloat(oiResponse.data.openInterest);
-        
-        // Calculate liquidation levels (simplified)
-        const liquidationLevels = {
-          long: currentPrice * 0.97, // 3% below
-          short: currentPrice * 1.03 // 3% above
-        };
-        
-        // Prepare candle data
-        const candles = klines.data.map(k => ({
-          time: k[0] / 1000,
-          open: parseFloat(k[1]),
-          high: parseFloat(k[2]),
-          low: parseFloat(k[3]),
-          close: parseFloat(k[4])
-        }));
-        
-        return {
-          symbol,
-          currentPrice,
-          priceChangePercent: parseFloat(ticker.data.priceChangePercent),
-          openInterest,
-          liquidationLevels,
-          candles
-        };
-      } catch (error) {
-        console.error(`Error fetching ${symbol} data:`, error);
-        throw error;
+      // Bordure forte si volume > seuil (ex: 1 million USDT)
+      if (z.totalVolume > 1_000_000) {
+        tr.classList.add('strongZone');
       }
-    }
 
-    function updateChart(symbol, data) {
-      const stateKey = symbol.toLowerCase().includes('btc') ? 'btc' : 'eth';
-      const elements = {
-        price: document.getElementById(`${stateKey}-price`),
-        change: document.getElementById(`${stateKey}-change`),
-        oi: document.getElementById(`${stateKey}-oi`),
-        heat: document.getElementById(`${stateKey}-heat`),
-        longLiq: document.getElementById(`${stateKey}-long-liq`),
-        shortLiq: document.getElementById(`${stateKey}-short-liq`)
+      tr.innerHTML = `
+        <td>${z.zone.toLocaleString()}</td>
+        <td>${z.longPct.toFixed(1)}%</td>
+        <td>${z.shortPct.toFixed(1)}%</td>
+        <td>${z.totalVolume.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
+        <td>${z.dominant}</td>
+      `;
+
+      zonesTableBody.appendChild(tr);
+    }
+  }
+
+  function handleLiquidation(liq) {
+    const price = parseFloat(liq.p);
+    const qty = parseFloat(liq.q);
+    const amount = price * qty;
+    const isLong = liq.S === 'BUY'; // BUY = liquidation LONG
+    const zonePrice = roundPrice(price);
+
+    if (!zonesData[zonePrice]) {
+      zonesData[zonePrice] = {
+        longVolume: 0,
+        shortVolume: 0,
+        longCount: 0,
+        shortCount: 0
       };
-      
-      // Update price
-      state[stateKey].price = data.currentPrice;
-      elements.price.textContent = data.currentPrice.toFixed(2);
-      elements.price.className = `price ${data.priceChangePercent >= 0 ? 'up' : 'down'}`;
-      
-      // Update stats
-      elements.change.textContent = `${data.priceChangePercent.toFixed(2)}%`;
-      elements.change.className = data.priceChangePercent >= 0 ? 'up' : 'down';
-      elements.oi.textContent = `${(data.openInterest / 1000000).toFixed(2)}M`;
-      
-      // Update liquidation levels
-      state[stateKey].liquidationLevels = data.liquidationLevels;
-      const longDistance = ((data.currentPrice - data.liquidationLevels.long) / data.currentPrice * 100).toFixed(2);
-      const shortDistance = ((data.liquidationLevels.short - data.currentPrice) / data.currentPrice * 100).toFixed(2);
-      
-      elements.longLiq.textContent = `LONG LIQUIDATIONS: $${data.liquidationLevels.long.toFixed(2)} (${longDistance}%)`;
-      elements.shortLiq.textContent = `SHORT LIQUIDATIONS: $${data.liquidationLevels.short.toFixed(2)} (${shortDistance}%)`;
-      
-      // Update heat (simulated)
-      elements.heat.textContent = `${Math.floor(Math.random() * 100)}/100`;
-      
-      // Update chart
-      state[stateKey].series.setData(data.candles);
-      state[stateKey].chart.timeScale().fitContent();
     }
-  </script>
+
+    if (isLong) {
+      zonesData[zonePrice].longVolume += amount;
+      zonesData[zonePrice].longCount++;
+    } else {
+      zonesData[zonePrice].shortVolume += amount;
+      zonesData[zonePrice].shortCount++;
+    }
+
+    updateTable();
+  }
+
+  function connectWs() {
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      console.log('WebSocket connecté');
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if(data.o) {
+        handleLiquidation(data.o);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket déconnecté, reconnexion dans 5s');
+      setTimeout(connectWs, 5000);
+    };
+
+    ws.onerror = (err) => {
+      console.error('WebSocket error', err);
+      ws.close();
+    };
+  }
+
+  connectWs();
+</script>
+
 </body>
 </html>
