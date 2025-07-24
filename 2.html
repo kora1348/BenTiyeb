@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar Liquidations & Signaux ACHAT/VENTE</title>
+<style>
+  body {
+    background: #121212; color: #eee; font-family: Arial, sans-serif; margin: 20px;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin-top: 20px;
+  }
+  th, td {
+    padding: 10px; text-align: center; border-bottom: 1px solid #444;
+  }
+  th {
+    background: #004d00; color: #00ff99; position: sticky; top: 0;
+  }
+  tr.achat {
+    background-color: #0b4d0b;
+    color: #a6f3a6;
+  }
+  tr.vente {
+    background-color: #5d0b0b;
+    color: #f3a6a6;
+  }
+  tr.fort {
+    border: 2px solid #fff;
+  }
+  td[title] {
+    cursor: help;
+    border-bottom: 1px dotted #ccc;
+  }
+</style>
+</head>
+<body>
+<h1>Radar Liquidations Binance & Signaux ACHAT/VENTE</h1>
+
+<table id="radarTable">
+  <thead>
+    <tr>
+      <th>Crypto</th>
+      <th>Prix Zone (USDT)</th>
+      <th>% Liquidations LONG</th>
+      <th>% Liquidations SHORT</th>
+      <th>Volume Total Liquidé (USDT)</th>
+      <th>Signal</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+  const wsUrl = 'wss://fstream.binance.com/ws/!forceOrder@arr';
+  const tbody = document.querySelector('#radarTable tbody');
+  const PRICE_STEP = 10;
+  const dataByCrypto = {};
+
+  function roundPrice(price) {
+    return Math.floor(price / PRICE_STEP) * PRICE_STEP;
+  }
+
+  function updateTable() {
+    tbody.innerHTML = '';
+
+    Object.entries(dataByCrypto).forEach(([crypto, zones]) => {
+      Object.entries(zones).forEach(([zonePrice, data]) => {
+        const totalVol = data.longVol + data.shortVol;
+        if (totalVol === 0) return;
+
+        const longPct = (data.longVol / totalVol) * 100;
+        const shortPct = (data.shortVol / totalVol) * 100;
+
+        // Signal: 
+        // - Si SHORT dominante => signal ACHAT (shorts liquidés = rebond possible)
+        // - Si LONG dominante => signal VENTE (longs liquidés = baisse possible)
+        let signal = '-';
+        let rowClass = '';
+        let tooltip = '';
+
+        if (shortPct > 70) {
+          signal = 'ACHAT (LONG)';
+          rowClass = 'achat';
+          tooltip = "Beaucoup de positions SHORT liquidées → shorts éliminés, possible rebond haussier.";
+        } else if (longPct > 70) {
+          signal = 'VENTE (SHORT)';
+          rowClass = 'vente';
+          tooltip = "Beaucoup de positions LONG liquidées → longs éliminés, pression vendeuse possible.";
+        }
+
+        if (totalVol > 1_000_000) {
+          rowClass += ' fort';
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = rowClass.trim();
+
+        tr.innerHTML = `
+          <td>${crypto}</td>
+          <td>${parseInt(zonePrice).toLocaleString()}</td>
+          <td>${longPct.toFixed(1)}%</td>
+          <td>${shortPct.toFixed(1)}%</td>
+          <td>${totalVol.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
+          <td title="${tooltip}"><strong>${signal}</strong></td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    });
+  }
+
+  function handleLiquidation(liq) {
+    const price = parseFloat(liq.p);
+    const qty = parseFloat(liq.q);
+    const amount = price * qty;
+    const isLong = liq.S === 'BUY';
+    const crypto = liq.s;
+
+    const zonePrice = roundPrice(price);
+
+    if (!dataByCrypto[crypto]) dataByCrypto[crypto] = {};
+    if (!dataByCrypto[crypto][zonePrice]) {
+      dataByCrypto[crypto][zonePrice] = {
+        longVol: 0,
+        shortVol: 0,
+        longCount: 0,
+        shortCount: 0
+      };
+    }
+
+    if (isLong) {
+      dataByCrypto[crypto][zonePrice].longVol += amount;
+      dataByCrypto[crypto][zonePrice].longCount++;
+    } else {
+      dataByCrypto[crypto][zonePrice].shortVol += amount;
+      dataByCrypto[crypto][zonePrice].shortCount++;
+    }
+
+    updateTable();
+  }
+
+  function connectWs() {
+    const ws = new WebSocket(wsUrl);
+    ws.onopen = () => console.log('WebSocket connecté');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.o) {
+        handleLiquidation(data.o);
+      }
+    };
+    ws.onclose = () => {
+      console.log('WebSocket déconnecté, reconnexion dans 5s');
+      setTimeout(connectWs, 5000);
+    };
+    ws.onerror = (err) => {
+      console.error('Erreur WebSocket:', err);
+      ws.close();
+    };
+  }
+  connectWs();
+</script>
+</body>
+</html>
