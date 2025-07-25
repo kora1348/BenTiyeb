@@ -2,64 +2,395 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Stats de Liquidations Binance</title>
+<title>Système de Trading par Liquidations Binance</title>
 <style>
-body { font-family: Arial, sans-serif; background: #121212; color: #eee; padding: 20px; }
-h1, h2 { color: #fff; }
-.stat { margin-bottom: 10px; }
-.liq { border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
+body { font-family: 'Segoe UI', sans-serif; background: #0f0f12; color: #e0e0e0; padding: 20px; max-width: 1200px; margin: 0 auto; }
+h1, h2 { color: #ffffff; }
+.stat-container { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+.stat-box { background: #1e1e2a; padding: 15px; border-radius: 8px; flex: 1; min-width: 250px; }
+.liq-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.liq-card { background: #1e1e2a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid; }
+.long { border-color: #0ecb81; }
+.short { border-color: #f6465d; }
+.signal { background: #2a1e2a; border-left: 4px solid #aa00ff; }
+#controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+button { background: #2a2a3a; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+button:hover { background: #3a3a4a; }
+button.active { background: #4a4a5a; }
+#loading { color: #aaa; margin: 10px 0; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.tabs { display: flex; margin-bottom: 15px; }
+.tab { padding: 10px 15px; cursor: pointer; background: #1e1e2a; margin-right: 5px; border-radius: 5px 5px 0 0; }
+.tab.active { background: #2a2a3a; }
+.big-number { font-size: 24px; font-weight: bold; margin: 5px 0; }
+.green { color: #0ecb81; }
+.red { color: #f6465d; }
+.purple { color: #aa00ff; }
 </style>
 </head>
 <body>
-<h1>📊 Liquidations Binance Live</h1>
-<div class="stat" id="totalLiqs">Total liquidations : 0</div>
-<div class="stat" id="totalAmount">Valeur totale liquidée : 0 USDT</div>
-<div class="stat" id="averageBySymbol">Moyenne par symbole :</div>
-<div id="output"></div>
+<h1>🚀 Système de Trading par Liquidations Binance</h1>
+
+<div class="tabs">
+    <div class="tab active" data-tab="dashboard">Dashboard</div>
+    <div class="tab" data-tab="signals">Signaux</div>
+    <div class="tab" data-tab="stats">Statistiques</div>
+</div>
+
+<div id="controls">
+    <button id="30min">Dernières 30 min</button>
+    <button id="1hour">Dernière heure</button>
+    <button id="live" class="active">Live seulement</button>
+    <button id="refresh">Actualiser</button>
+</div>
+
+<div id="loading"></div>
+
+<div class="tab-content active" id="dashboard">
+    <div class="stat-container">
+        <div class="stat-box">
+            <h3>Total Liquidations</h3>
+            <div class="big-number" id="totalLiqs">0</div>
+        </div>
+        <div class="stat-box">
+            <h3>Valeur Totale</h3>
+            <div class="big-number" id="totalAmount">0 USDT</div>
+        </div>
+        <div class="stat-box">
+            <h3>Dernier Signal</h3>
+            <div class="big-number purple" id="lastSignal">Aucun</div>
+        </div>
+    </div>
+
+    <h2>Dernières Liquidations</h2>
+    <div class="liq-container" id="output"></div>
+</div>
+
+<div class="tab-content" id="signals">
+    <h2>Signaux Récemment Détectés</h2>
+    <div id="signalsOutput"></div>
+</div>
+
+<div class="tab-content" id="stats">
+    <h2>Statistiques par Symbole</h2>
+    <div id="statsOutput"></div>
+</div>
 
 <script>
-const socket = new WebSocket("wss://fstream.binance.com/ws/!forceOrder@arr");
-let totalLiquidations = 0;
-let totalAmount = 0;
-const symbolStats = {};
-
-socket.onmessage = function(event) {
-const data = JSON.parse(event.data);
-const liq = data.o;
-const amount = parseFloat(liq.q) * parseFloat(liq.p);
-const symbol = liq.s;
-
-totalLiquidations++;
-totalAmount += amount;
-
-if (!symbolStats[symbol]) {
-symbolStats[symbol] = { count: 0, total: 0 };
-}
-symbolStats[symbol].count++;
-symbolStats[symbol].total += amount;
-
-// Affichage HTML
-const html = `
-<div class="liq">
-<strong>${symbol}</strong> - ${liq.S === "BUY" ? "Short liquidé 🔻" : "Long liquidé 🔺"}<br>
-💰 Prix : ${liq.p} | Volume : ${liq.q}<br>
-💸 Montant liquidé : ${amount.toFixed(2)} USDT
-</div>
-`;
-document.getElementById("output").innerHTML = html + document.getElementById("output").innerHTML;
-
-// Mise à jour stats
-document.getElementById("totalLiqs").textContent = `Total liquidations : ${totalLiquidations}`;
-document.getElementById("totalAmount").textContent = `Valeur totale liquidée : ${totalAmount.toFixed(2)} USDT`;
-
-let avgHTML = "<ul>";
-for (let sym in symbolStats) {
-const avg = symbolStats[sym].total / symbolStats[sym].count;
-avgHTML += `<li>${sym} → Moyenne : ${avg.toFixed(2)} USDT</li>`;
-}
-avgHTML += "</ul>";
-document.getElementById("averageBySymbol").innerHTML = "Moyenne par symbole :" + avgHTML;
+// Configuration
+const config = {
+    maxDisplayItems: 50,
+    largeLiquidationMultiplier: 2.5,
+    signalValidMinutes: 30,
+    refreshInterval: 60000
 };
+
+// État de l'application
+const state = {
+    displayMode: 'live',
+    allLiquidations: [],
+    signals: [],
+    symbolStats: {},
+    totalLiquidations: 0,
+    totalAmount: 0,
+    wsConnected: false
+};
+
+// Éléments DOM
+const elements = {
+    output: document.getElementById("output"),
+    signalsOutput: document.getElementById("signalsOutput"),
+    statsOutput: document.getElementById("statsOutput"),
+    totalLiqs: document.getElementById("totalLiqs"),
+    totalAmount: document.getElementById("totalAmount"),
+    lastSignal: document.getElementById("lastSignal"),
+    loading: document.getElementById("loading"),
+    tabs: document.querySelectorAll(".tab"),
+    tabContents: document.querySelectorAll(".tab-content")
+};
+
+// Formatage des nombres
+const formatter = {
+    amount: (value) => {
+        if (value >= 1000000) return `$${(value/1000000).toFixed(1)}M`;
+        if (value >= 1000) return `$${(value/1000).toFixed(1)}K`;
+        return `$${value.toFixed(2)}`;
+    },
+    price: (value) => parseFloat(value).toFixed(4),
+    volume: (value) => parseFloat(value).toFixed(4),
+    time: (timestamp) => new Date(timestamp || Date.now()).toLocaleTimeString()
+};
+
+// Connexion WebSocket
+function connectWebSocket() {
+    const socket = new WebSocket("wss://fstream.binance.com/ws/!forceOrder@arr");
+    
+    socket.onopen = () => {
+        state.wsConnected = true;
+        console.log("WebSocket connecté");
+    };
+    
+    socket.onclose = () => {
+        state.wsConnected = false;
+        console.log("WebSocket déconnecté - tentative de reconnexion dans 5s");
+        setTimeout(connectWebSocket, 5000);
+    };
+    
+    socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        processLiquidation(data.o, false);
+    };
+}
+
+// Récupération des données historiques
+async function fetchHistoricalLiquidations(minutes) {
+    try {
+        elements.loading.textContent = "Chargement des données historiques...";
+        
+        const endTime = Date.now();
+        const startTime = endTime - (minutes * 60 * 1000);
+        
+        const response = await fetch(`https://fapi.binance.com/fapi/v1/allForceOrders?startTime=${startTime}&endTime=${endTime}`);
+        const data = await response.json();
+        
+        // Traiter les données historiques
+        data.reverse().forEach(item => {
+            processLiquidation(item, true);
+        });
+        
+        elements.loading.textContent = `Données chargées: ${data.length} liquidations`;
+        setTimeout(() => { elements.loading.textContent = ''; }, 3000);
+        updateDashboard();
+    } catch (error) {
+        console.error("Erreur historique:", error);
+        elements.loading.textContent = "Erreur de chargement";
+    }
+}
+
+// Traitement d'une liquidation
+function processLiquidation(liq, isHistorical) {
+    const amount = parseFloat(liq.q) * parseFloat(liq.p);
+    const symbol = liq.s;
+    const timestamp = liq.T || Date.now();
+    
+    // Mise à jour des stats
+    state.totalLiquidations++;
+    state.totalAmount += amount;
+    
+    if (!state.symbolStats[symbol]) {
+        state.symbolStats[symbol] = { count: 0, total: 0, longLiqs: 0, shortLiqs: 0 };
+    }
+    
+    state.symbolStats[symbol].count++;
+    state.symbolStats[symbol].total += amount;
+    
+    if (liq.S === "BUY") {
+        state.symbolStats[symbol].shortLiqs++;
+    } else {
+        state.symbolStats[symbol].longLiqs++;
+    }
+    
+    // Stocker la liquidation
+    const liquidation = {
+        ...liq,
+        amount,
+        timestamp,
+        isHistorical
+    };
+    
+    state.allLiquidations.unshift(liquidation);
+    
+    // Vérifier si c'est une grosse liquidation (signal potentiel)
+    if (isLargeLiquidation(liquidation)) {
+        const signal = createSignal(liquidation);
+        state.signals.unshift(signal);
+        displaySignal(signal);
+        elements.lastSignal.textContent = `${signal.type === 'LONG' ? 'LONG' : 'SHORT'} ${signal.symbol} ${formatter.amount(signal.amount)}`;
+    }
+    
+    // Affichage
+    if (state.displayMode === 'live' || isHistorical) {
+        displayLiquidation(liquidation);
+    }
+    
+    // Mise à jour de l'interface
+    updateDashboard();
+}
+
+// Détection des grosses liquidations
+function isLargeLiquidation(liq) {
+    const symbol = liq.s;
+    if (!state.symbolStats[symbol] || state.symbolStats[symbol].count < 5) return false;
+    
+    const avg = state.symbolStats[symbol].total / state.symbolStats[symbol].count;
+    return liq.amount > avg * config.largeLiquidationMultiplier;
+}
+
+// Création d'un signal de trading
+function createSignal(liq) {
+    return {
+        symbol: liq.s,
+        type: liq.S === "BUY" ? "LONG" : "SHORT",
+        price: parseFloat(liq.p),
+        amount: liq.amount,
+        timestamp: liq.timestamp,
+        expiration: liq.timestamp + (config.signalValidMinutes * 60 * 1000)
+    };
+}
+
+// Affichage d'une liquidation
+function displayLiquidation(liq) {
+    const liqClass = liq.S === "BUY" ? "short" : "long";
+    const direction = liq.S === "BUY" ? "Short liquidé" : "Long liquidé";
+    const signalFlag = isLargeLiquidation(liq) ? 'signal' : '';
+    
+    const card = document.createElement('div');
+    card.className = `liq-card ${liqClass} ${signalFlag}`;
+    card.innerHTML = `
+        <div style="display: flex; justify-content: space-between;">
+            <strong>${liq.s}</strong>
+            <span>${formatter.time(liq.timestamp)}</span>
+        </div>
+        <div>${direction} ${liq.isHistorical ? '(historique)' : ''}</div>
+        <div>💰 Prix: ${formatter.price(liq.p)} | Volume: ${formatter.volume(liq.q)}</div>
+        <div>💸 Montant: <strong>${formatter.amount(liq.amount)}</strong></div>
+        ${isLargeLiquidation(liq) ? `<div class="purple">⚠️ Signal ${liq.S === "BUY" ? 'LONG' : 'SHORT'} potentiel</div>` : ''}
+    `;
+    
+    elements.output.prepend(card);
+    
+    // Limiter le nombre d'éléments affichés
+    const items = elements.output.querySelectorAll('.liq-card');
+    if (items.length > config.maxDisplayItems) {
+        items[items.length-1].remove();
+    }
+}
+
+// Affichage d'un signal
+function displaySignal(signal) {
+    const isActive = signal.expiration > Date.now();
+    const signalClass = isActive ? 'active-signal' : 'expired-signal';
+    
+    const card = document.createElement('div');
+    card.className = `liq-card ${signal.type.toLowerCase()} ${signalClass}`;
+    card.innerHTML = `
+        <div style="display: flex; justify-content: space-between;">
+            <strong>${signal.symbol}</strong>
+            <span>${formatter.time(signal.timestamp)}</span>
+        </div>
+        <div class="big-number ${signal.type === 'LONG' ? 'green' : 'red'}">${signal.type}</div>
+        <div>🎯 Prix liquidation: ${formatter.price(signal.price)}</div>
+        <div>📊 Montant: ${formatter.amount(signal.amount)}</div>
+        <div>⏱️ ${isActive ? 'Valide pour encore ' + Math.round((signal.expiration - Date.now())/60000) + ' min' : 'Expiré'}</div>
+        <div>📈 Stratégie: ${getStrategyAdvice(signal)}</div>
+    `;
+    
+    elements.signalsOutput.prepend(card);
+}
+
+// Conseils de stratégie
+function getStrategyAdvice(signal) {
+    if (signal.type === 'LONG') {
+        return "Entrée après stabilisation avec stop-loss sous le plus bas récent. Cible: 1.5-2x le risque.";
+    } else {
+        return "Entrée après pullback avec stop-loss au-dessus du plus haut récent. Cible: 1.5-2x le risque.";
+    }
+}
+
+// Mise à jour du dashboard
+function updateDashboard() {
+    elements.totalLiqs.textContent = state.totalLiquidations;
+    elements.totalAmount.textContent = formatter.amount(state.totalAmount);
+    updateStatsTab();
+}
+
+// Mise à jour de l'onglet statistiques
+function updateStatsTab() {
+    let html = '<div class="stat-container">';
+    
+    for (let symbol in state.symbolStats) {
+        const stats = state.symbolStats[symbol];
+        const avg = stats.total / stats.count;
+        const longRatio = (stats.longLiqs / stats.count * 100).toFixed(1);
+        const shortRatio = (stats.shortLiqs / stats.count * 100).toFixed(1);
+        
+        html += `
+        <div class="stat-box">
+            <h3>${symbol}</h3>
+            <div>Total: ${stats.count} liquidations</div>
+            <div>Moyenne: ${formatter.amount(avg)}</div>
+            <div>Longs: <span class="green">${longRatio}%</span></div>
+            <div>Shorts: <span class="red">${shortRatio}%</span></div>
+        </div>
+        `;
+    }
+    
+    html += '</div>';
+    elements.statsOutput.innerHTML = html;
+}
+
+// Gestion des onglets
+elements.tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        // Désactiver tous les onglets
+        elements.tabs.forEach(t => t.classList.remove('active'));
+        elements.tabContents.forEach(c => c.classList.remove('active'));
+        
+        // Activer l'onglet sélectionné
+        tab.classList.add('active');
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+    });
+});
+
+// Gestion des boutons de contrôle
+document.getElementById("30min").addEventListener('click', () => {
+    state.displayMode = '30min';
+    resetDisplay();
+    fetchHistoricalLiquidations(30);
+});
+
+document.getElementById("1hour").addEventListener('click', () => {
+    state.displayMode = '1hour';
+    resetDisplay();
+    fetchHistoricalLiquidations(60);
+});
+
+document.getElementById("live").addEventListener('click', () => {
+    state.displayMode = 'live';
+    resetDisplay();
+});
+
+document.getElementById("refresh").addEventListener('click', () => {
+    if (state.displayMode === '30min') {
+        resetDisplay();
+        fetchHistoricalLiquidations(30);
+    } else if (state.displayMode === '1hour') {
+        resetDisplay();
+        fetchHistoricalLiquidations(60);
+    }
+});
+
+function resetDisplay() {
+    elements.output.innerHTML = '';
+    state.allLiquidations = [];
+    state.totalLiquidations = 0;
+    state.totalAmount = 0;
+    state.symbolStats = {};
+    elements.lastSignal.textContent = 'Aucun';
+}
+
+// Initialisation
+connectWebSocket();
+fetchHistoricalLiquidations(30);
+
+// Actualisation périodique
+setInterval(() => {
+    if (state.displayMode !== 'live') {
+        document.getElementById("refresh").click();
+    }
+}, config.refreshInterval);
 </script>
 </body>
 </html>
