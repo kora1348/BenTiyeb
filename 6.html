@@ -114,28 +114,37 @@
         }
 
         // 2. API MEXC (Futures)
-        async function fetchMEXCData() {
-            try {
-                const response = await axios.get(`https://api.mexc.com/api/v3/klines?symbol=${SYMBOL}&interval=15m&limit=10`);
-                mexcData = response.data.map(c => ({
-                    time: new Date(c[0]),
-                    open: parseFloat(c[1]),
-                    high: parseFloat(c[2]),
-                    low: parseFloat(c[3]),
-                    close: parseFloat(c[4]),
-                    volume: parseFloat(c[5]),
-                    isGreen: parseFloat(c[4]) > parseFloat(c[1])
-                }));
-                lastMEXCUpdate = new Date();
-                
-                updateMEXCChart();
-                checkArbitrage();
-                mexcSignal.innerHTML = `<span>Dernière bougie: <span class="${mexcData[mexcData.length-1].isGreen ? 'green-candle' : 'red-candle'}">${mexcData[mexcData.length-1].close.toFixed(6)}</span> (${lastMEXCUpdate.toLocaleTimeString()})</span>`;
-            } catch (error) {
-                console.error("Erreur API MEXC:", error);
-                mexcSignal.innerHTML = `<span class="red-candle">Erreur API MEXC</span>`;
+        // 2. API MEXC via proxy PHP
+async function fetchMEXCData() {
+    try {
+        const response = await axios.get(`https://bentiyeb-crypto.com/proxy-mexc.php`, {
+            params: {
+                symbol: SYMBOL,
+                interval: INTERVAL,
+                limit: 10
             }
-        }
+        });
+
+        mexcData = response.data.map(c => ({
+            time: new Date(c[0]),
+            open: parseFloat(c[1]),
+            high: parseFloat(c[2]),
+            low: parseFloat(c[3]),
+            close: parseFloat(c[4]),
+            volume: parseFloat(c[5]),
+            isGreen: parseFloat(c[4]) > parseFloat(c[1])
+        }));
+
+        lastMEXCUpdate = new Date();
+        updateMEXCChart();
+        checkArbitrage();
+        mexcSignal.innerHTML = `<span>Dernière bougie: <span class="${mexcData[mexcData.length - 1].isGreen ? 'green-candle' : 'red-candle'}">${mexcData[mexcData.length - 1].close.toFixed(6)}</span> (${lastMEXCUpdate.toLocaleTimeString()})</span>`;
+    } catch (error) {
+        console.error("Erreur proxy MEXC:", error);
+        mexcSignal.innerHTML = `<span class="red-candle">Erreur API MEXC (proxy)</span>`;
+    }
+}
+
 
         // 3. Détection d'arbitrage
         function checkArbitrage() {
