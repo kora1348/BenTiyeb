@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détecteur de Liquidations - Binance API</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        #container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #order-book { display: flex; justify-content: space-between; margin-top: 20px; }
+        #chart-container { margin-top: 20px; }
+        .alert { color: red; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Détecteur de Liquidations (BTC/USDT)</h1>
+        <p>Ce script identifie les zones où les bots pourraient chasser les stops.</p>
+        
+        <div id="order-book">
+            <div>
+                <h3>Ordres d'achat (Bids)</h3>
+                <table id="bids-table">
+                    <thead><tr><th>Prix</th><th>Volume</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div>
+                <h3>Ordres de vente (Asks)</h3>
+                <table id="asks-table">
+                    <thead><tr><th>Prix</th><th>Volume</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="chart-container">
+            <canvas id="price-chart"></canvas>
+        </div>
+
+        <div id="alerts">
+            <h3>Zones à risque</h3>
+            <ul id="alert-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Config
+        const SYMBOL = "BTCUSDT";
+        const DEPTH_LIMIT = 20; // Nombre de niveaux d'ordre book à analyser
+        const LIQUIDATION_THRESHOLD = 10; // Seuil de volume pour alerte (en BTC)
+
+        // Éléments DOM
+        const bidsTable = document.getElementById("bids-table").querySelector("tbody");
+        const asksTable = document.getElementById("asks-table").querySelector("tbody");
+        const alertList = document.getElementById("alert-list");
+        const ctx = document.getElementById("price-chart").getContext("2d");
+
+        // Données
+        let orderBookData = { bids: [], asks: [] };
+        let priceChart;
+
+        // 1. Récupérer l'ordre book Binance
+        async function fetchOrderBook() {
+            try {
+                const response = await axios.get(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=${DEPTH_LIMIT}`);
+                orderBookData = response.data;
+                updateTables();
+                detectLiquidationZones();
+            } catch (error) {
+                console.error("Erreur API Binance:", error);
+            }
+        }
+
+        // 2. Mettre à jour les tables HTML
+        function updateTables() {
+            // Bid (achats)
+            bidsTable.innerHTML = orderBookData.bids.map(bid => `
+                <tr>
+                    <td>${parseFloat(bid[0]).toFixed(2)}</td>
+                    <td>${parseFloat(bid[1]).toFixed(4)} BTC</td>
+                </tr>
+            `).join("");
+
+            // Ask (ventes)
+            asksTable.innerHTML = orderBookData.asks.map(ask => `
+                <tr>
+                    <td>${parseFloat(ask[0]).toFixed(2)}</td>
+                    <td>${parseFloat(ask[1]).toFixed(4)} BTC</td>
+                </tr>
+            `).join("");
+        }
+
+        // 3. Détecter les zones de liquidation
+        function detectLiquidationZones() {
+            alertList.innerHTML = "";
+
+            // Analyse des bids (zones de support)
+            orderBookData.bids.forEach(bid => {
+                const price = parseFloat(bid[0]);
+                const volume = parseFloat(bid[1]);
+
+                if (volume > LIQUIDATION_THRESHOLD) {
+                    alertList.innerHTML += `
+                        <li class="alert">
+                            🔥 <strong>Support vulnérable</strong> à ${price.toFixed(2)} USDT 
+                            (Volume: ${volume.toFixed(2)} BTC)
+                        </li>
+                    `;
+                }
+            });
+
+            // Analyse des asks (zones de résistance)
+            orderBookData.asks.forEach(ask => {
+                const price = parseFloat(ask[0]);
+                const volume = parseFloat(ask[1]);
+
+                if (volume > LIQUIDATION_THRESHOLD) {
+                    alertList.innerHTML += `
+                        <li class="alert">
+                            🔥 <strong>Résistance vulnérable</strong> à ${price.toFixed(2)} USDT 
+                            (Volume: ${volume.toFixed(2)} BTC)
+                        </li>
+                    `;
+                }
+            });
+
+            // Si aucune alerte
+            if (alertList.innerHTML === "") {
+                alertList.innerHTML = "<li>Aucune zone de liquidation massive détectée.</li>";
+            }
+        }
+
+        // 4. Initialiser le graphique
+        function initChart() {
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Prix BTC/USDT', data: [] }] },
+                options: { responsive: true, scales: { x: { display: false } } }
+            });
+        }
+
+        // 5. Lancer l'analyse
+        initChart();
+        fetchOrderBook();
+        setInterval(fetchOrderBook, 5000); // Rafraîchir toutes les 5 secondes
+    </script>
+</body>
+</html>
