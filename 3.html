@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Stats de Liquidations Binance</title>
+<style>
+body { font-family: Arial, sans-serif; background: #121212; color: #eee; padding: 20px; }
+h1, h2 { color: #fff; }
+.stat { margin-bottom: 10px; }
+.liq { border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<h1>📊 Liquidations Binance Live</h1>
+<div class="stat" id="totalLiqs">Total liquidations : 0</div>
+<div class="stat" id="totalAmount">Valeur totale liquidée : 0 USDT</div>
+<div class="stat" id="averageBySymbol">Moyenne par symbole :</div>
+<div id="output"></div>
+
+<script>
+const socket = new WebSocket("wss://fstream.binance.com/ws/!forceOrder@arr");
+let totalLiquidations = 0;
+let totalAmount = 0;
+const symbolStats = {};
+
+socket.onmessage = function(event) {
+const data = JSON.parse(event.data);
+const liq = data.o;
+const amount = parseFloat(liq.q) * parseFloat(liq.p);
+const symbol = liq.s;
+
+totalLiquidations++;
+totalAmount += amount;
+
+if (!symbolStats[symbol]) {
+symbolStats[symbol] = { count: 0, total: 0 };
+}
+symbolStats[symbol].count++;
+symbolStats[symbol].total += amount;
+
+// Affichage HTML
+const html = `
+<div class="liq">
+<strong>${symbol}</strong> - ${liq.S === "BUY" ? "Short liquidé 🔻" : "Long liquidé 🔺"}<br>
+💰 Prix : ${liq.p} | Volume : ${liq.q}<br>
+💸 Montant liquidé : ${amount.toFixed(2)} USDT
+</div>
+`;
+document.getElementById("output").innerHTML = html + document.getElementById("output").innerHTML;
+
+// Mise à jour stats
+document.getElementById("totalLiqs").textContent = `Total liquidations : ${totalLiquidations}`;
+document.getElementById("totalAmount").textContent = `Valeur totale liquidée : ${totalAmount.toFixed(2)} USDT`;
+
+let avgHTML = "<ul>";
+for (let sym in symbolStats) {
+const avg = symbolStats[sym].total / symbolStats[sym].count;
+avgHTML += `<li>${sym} → Moyenne : ${avg.toFixed(2)} USDT</li>`;
+}
+avgHTML += "</ul>";
+document.getElementById("averageBySymbol").innerHTML = "Moyenne par symbole :" + avgHTML;
+};
+</script>
+</body>
+</html>
