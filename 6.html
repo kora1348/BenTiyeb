@@ -108,23 +108,30 @@
         }
 
         // 2. Récupérer les données MEXC via proxy
-        async function fetchMEXCData() {
+       // Configuration MEXC corrigée
+
+
+// 2. Récupérer les données MEXC via proxy - Version corrigée
+async function fetchMEXCData() {
     try {
         const response = await axios.get(
             `${PROXY_URL}?symbol=${MEXC_SYMBOL}&interval=${INTERVAL}&limit=${LIMIT}`
         );
         
-        // Vérifiez que la réponse est bien un tableau
+        // Debug
+        console.log("Réponse MEXC brute:", response.data);
+        
         if (!Array.isArray(response.data)) {
-            throw new Error("La réponse de l'API MEXC n'est pas un tableau valide");
+            throw new Error(`Réponse invalide: ${JSON.stringify(response.data)}`);
         }
         
         const data = response.data.map(candle => ({
-            time: new Date(candle[0]),
+            time: new Date(candle[0] * 1000), // Convertit en ms
             open: parseFloat(candle[1]),
             high: parseFloat(candle[2]),
             low: parseFloat(candle[3]),
             close: parseFloat(candle[4]),
+            volume: parseFloat(candle[5]),
             isGreen: parseFloat(candle[4]) > parseFloat(candle[1])
         }));
         
@@ -133,10 +140,9 @@
         mexcInfo.innerHTML = `Dernière bougie: <span class="${data[data.length-1].isGreen ? 'green-candle' : 'red-candle'}">${data[data.length-1].close.toFixed(6)}</span>`;
     } catch (error) {
         console.error("Erreur API MEXC:", error);
-        mexcInfo.innerHTML = `<span class="red-candle">Erreur API MEXC: ${error.message}</span>`;
+        mexcInfo.innerHTML = `<span class="red-candle">Erreur MEXC: ${error.message}</span>`;
     }
 }
-
         // 3. Mettre à jour les graphiques
         function updateChart(platform, data) {
             const ctx = platform === 'binance' ? binanceChartCtx : mexcChartCtx;
