@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Détection Gros Ordres Binance Futures</title>
+  <style>
+    body {
+      background: #121212;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      padding: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background-color: #222;
+    }
+    input {
+      width: 80px;
+      padding: 4px;
+      margin-bottom: 10px;
+      background: #222;
+      color: #eee;
+      border: 1px solid #555;
+    }
+    .achat {
+      color: #00ff88;
+    }
+    .vente {
+      color: #ff5555;
+    }
+  </style>
+</head>
+<body>
+  <h2>🟢 Surveillance des Gros Ordres Binance Futures (USDT)</h2>
+  <label for="threshold">Seuil (en crypto, ex: 5): </label>
+  <input id="threshold" type="number" value="5" min="0.1" step="0.1" />
+  <table>
+    <thead>
+      <tr>
+        <th>Symbole</th>
+        <th>Type</th>
+        <th>Quantité</th>
+        <th>Prix</th>
+      </tr>
+    </thead>
+    <tbody id="orders-body"></tbody>
+  </table>
+
+  <script>
+    const thresholdInput = document.getElementById('threshold');
+    const ordersBody = document.getElementById('orders-body');
+    let threshold = parseFloat(thresholdInput.value);
+
+    thresholdInput.addEventListener('input', () => {
+      threshold = parseFloat(thresholdInput.value);
+    });
+
+    // Récupère tous les symboles USDT du marché Futures
+    fetch("https://fapi.binance.com/fapi/v1/exchangeInfo")
+      .then(res => res.json())
+      .then(data => {
+        const usdtSymbols = data.symbols
+          .filter(s => s.contractType === 'PERPETUAL' && s.symbol.endsWith('USDT'))
+          .map(s => s.symbol.toLowerCase())
+          .slice(0, 50); // ← limite à 50 symboles pour performances
+
+        usdtSymbols.forEach(symbol => {
+          const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@depth20@100ms`);
+          
+          ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const bids = data.bids || [];
+            const asks = data.asks || [];
+
+            // On efface les anciennes lignes de ce symbole
+            const existing = document.querySelectorAll(`tr[data-symbol="${symbol}"]`);
+            existing.forEach(row => row.remove());
+
+            let html = "";
+
+            bids.forEach(([price, qty]) => {
+              if (parseFloat(qty) >= threshold) {
+                html += `
+                  <tr data-symbol="${symbol}">
+                    <td>${symbol.toUpperCase()}</td>
+                    <td class="achat">Achat</td>
+                    <td>${parseFloat(qty)}</td>
+                    <td>${parseFloat(price)}</td>
+                  </tr>`;
+              }
+            });
+
+            asks.forEach(([price, qty]) => {
+              if (parseFloat(qty) >= threshold) {
+                html += `
+                  <tr data-symbol="${symbol}">
+                    <td>${symbol.toUpperCase()}</td>
+                    <td class="vente">Vente</td>
+                    <td>${parseFloat(qty)}</td>
+                    <td>${parseFloat(price)}</td>
+                  </tr>`;
+              }
+            });
+
+            if (html) {
+              ordersBody.insertAdjacentHTML("beforeend", html);
+            }
+          };
+
+          ws.onerror = (err) => console.error(`Erreur WS ${symbol}:`, err);
+        });
+      })
+      .catch(err => {
+        ordersBody.innerHTML = `<tr><td colspan="4">Erreur chargement des symboles : ${err.message}</td></tr>`;
+      });
+  </script>
+</body>
+</html>
