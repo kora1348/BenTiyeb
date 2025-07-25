@@ -14,12 +14,18 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
 $response = curl_exec($ch);
+
 if(curl_errno($ch)) {
     http_response_code(500);
     echo json_encode(["error" => curl_error($ch)]);
 } else {
-    http_response_code(200);
-    echo $response;
+    // Ajoutez cette ligne pour décoder puis ré-encoder le JSON
+    $data = json_decode($response, true);
+    if(json_last_error() === JSON_ERROR_NONE) {
+        echo json_encode($data);
+    } else {
+        echo json_encode(["error" => "Invalid JSON from MEXC API"]);
+    }
 }
 curl_close($ch);
 ?>
