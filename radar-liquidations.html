@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Radar Futures Binance avec détection mèches</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border: 1px solid #333;
+    }
+    th {
+      background-color: #1e1e1e;
+    }
+    tr.bearish { background-color: #3f1111; }
+    tr.bullish { background-color: #113f2f; }
+    tr.neutral { background-color: #2a2a2a; }
+  </style>
+</head>
+<body>
+  <h1>📊 Radar Liquidations Binance Futures avec détection mèches</h1>
+  <table id="cryptoTable">
+    <thead>
+      <tr>
+        <th>Symbole</th>
+        <th>Ratio L/S</th>
+        <th>% Long</th>
+        <th>% Short</th>
+        <th>Funding Rate</th>
+        <th>Open Interest (M$)</th>
+        <th>Fourchette 24h (%)</th>
+        <th>Signal</th>
+      </tr>
+    </thead>
+    <tbody id="cryptoBody"></tbody>
+  </table>
+
+  <script>
+    async function fetchAllData() {
+      const tableBody = document.getElementById("cryptoBody");
+      tableBody.innerHTML = "";
+
+      try {
+        // Récupérer la liste des symboles perpétuels USDT
+        const exchangeInfo = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo").then(r => r.json());
+        const symbols = exchangeInfo.symbols
+          .filter(s => s.contractType === "PERPETUAL" && s.symbol.endsWith("USDT"))
+          .map(s => s.symbol);
+
+        // Créer toutes les requêtes pour chaque symbole
+        const requests = symbols.map(async symbol => {
+          try {
+            // Récupérer simultanément : ratio L/S, funding rate, ticker 24h
+            const [ratioData, fundingData, tickerData] = await Promise.all([
+              fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${symbol}&period=5m&limit=1`).then(r => r.json()),
+              fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&limit=1`).then(r => r.json()),
+              fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${symbol}`).then(r => r.json())
+            ]);
+
+            // Parsing des données
+            const longRate = parseFloat(ratioData[0].longAccount) * 100;
+            const shortRate = parseFloat(ratioData[0].shortAccount) * 100;
+            const ratio = (longRate / shortRate).toFixed(2);
+
+            const funding = parseFloat(fundingData[0].fundingRate) * 100;
+
+            const openInterest = parseFloat(tickerData.openInterest);
+            const lastPrice = parseFloat(tickerData.lastPrice);
+            const oiUSD = ((openInterest * lastPrice) / 1e6).toFixed(2);
+
+            const highPrice = parseFloat(tickerData.highPrice);
+            const lowPrice = parseFloat(tickerData.lowPrice);
+
+            // Calculer la fourchette % (volatilité approximative sur 24h)
+            const rangePercent = ((highPrice - lowPrice) / ((highPrice + lowPrice)/2)) * 100;
+
+            // Logique pour signal + détection grosse mèche
+            let signal = "Neutre";
+            let rowClass = "neutral";
+
+            // Conditions funding extrême
+            const fundingLongRisk = funding > 0.08 && longRate > 60 && oiUSD > 30;
+            const fundingShortRisk = funding < -0.08 && shortRate > 60 && oiUSD > 30;
+
+            // Condition grosse mèche suspectée (>5% range sur 24h)
+            const bigWick = rangePercent > 5;
+
+            if (fundingLongRisk && bigWick) {
+              signal = "🔴 LONGs à risque + grosse mèche";
+              rowClass = "bearish";
+            } else if (fundingShortRisk && bigWick) {
+              signal = "🟢 SHORTs à risque + grosse mèche";
+              rowClass = "bullish";
+            } else if (fundingLongRisk) {
+              signal = "🔴 LONGs à risque";
+              rowClass = "bearish";
+            } else if (fundingShortRisk) {
+              signal = "🟢 SHORTs à risque";
+              rowClass = "bullish";
+            } else if (bigWick) {
+              signal = "⚠️ Grosse mèche détectée";
+              rowClass = "neutral";
+            }
+
+            return `
+              <tr class="${rowClass}">
+                <td>${symbol}</td>
+                <td>${ratio}</td>
+                <td>${longRate.toFixed(2)}%</td>
+                <td>${shortRate.toFixed(2)}%</td>
+                <td>${funding.toFixed(4)}%</td>
+                <td>${oiUSD}</td>
+                <td>${rangePercent.toFixed(2)}%</td>
+                <td>${signal}</td>
+              </tr>
+            `;
+          } catch {
+            return "";
+          }
+        });
+
+        const rows = await Promise.all(requests);
+        tableBody.innerHTML = rows.join("");
+
+      } catch (error) {
+        console.error("Erreur lors du chargement des données :", error);
+      }
+    }
+
+    fetchAllData();
+    setInterval(fetchAllData, 300000000000000000); // rafraîchit toutes les 30s
+  </script>
+</body>
+</html>
+
+
