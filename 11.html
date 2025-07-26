@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphique Binance Futures - Multi Cryptos (3m)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f1923;
+      color: #eaeaea;
+      margin: 0;
+      padding: 20px;
+    }
+    #container {
+      max-width: 1000px;
+      margin: auto;
+      background: #1a2a3a;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    canvas {
+      width: 100% !important;
+      height: 350px !important;
+    }
+    select {
+      padding: 8px;
+      margin-bottom: 20px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+    }
+    .price-info {
+      margin-top: 15px;
+      font-size: 1.2em;
+    }
+    .green-candle {
+      color: #4caf50;
+      font-weight: bold;
+    }
+    .red-candle {
+      color: #f44336;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>📊 Graphique Binance Futures (3m)</h1>
+    <p>Sélectionne une crypto pour voir son graphique & zones acheteurs/vendeurs</p>
+
+    <select id="symbolSelect">
+      <option disabled selected>Chargement des cryptos...</option>
+    </select>
+
+    <canvas id="binance-chart"></canvas>
+    <div id="price-info" class="price-info">Chargement...</div>
+  </div>
+
+  <script>
+    const INTERVAL = "3m";
+    const LIMIT = 160;
+    const REFRESH_INTERVAL_MS = 3 * 60 * 1000;
+    let selectedSymbol = "BTCUSDT";
+
+    const chartCtx = document.getElementById("binance-chart").getContext("2d");
+    const priceInfo = document.getElementById("price-info");
+    const symbolSelect = document.getElementById("symbolSelect");
+    let binanceChart;
+    let supportLevel = null;
+    let resistanceLevel = null;
+
+    async function fetchAllFuturesSymbols() {
+      try {
+        const res = await axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo");
+        const symbols = res.data.symbols
+          .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT")
+          .map(s => s.symbol)
+          .sort();
+
+        symbolSelect.innerHTML = symbols.map(sym => 
+          `<option value="${sym}" ${sym === selectedSymbol ? "selected" : ""}>${sym}</option>`
+        ).join("");
+
+        symbolSelect.addEventListener("change", () => {
+          selectedSymbol = symbolSelect.value;
+          fetchBinanceKlines(); // reload chart
+        });
+
+        fetchBinanceKlines(); // load initial
+        setInterval(fetchBinanceKlines, REFRESH_INTERVAL_MS);
+      } catch (err) {
+        console.error("Erreur récupération symboles:", err);
+      }
+    }
+
+    async function fetchOrderBook() {
+      try {
+        const res = await axios.get(`https://api.binance.com/api/v3/depth?symbol=${selectedSymbol}&limit=100`);
+        const bids = res.data.bids.map(b => ({ price: parseFloat(b[0]), volume: parseFloat(b[1]) }));
+        const asks = res.data.asks.map(a => ({ price: parseFloat(a[0]), volume: parseFloat(a[1]) }));
+
+        const topBid = bids.reduce((max, bid) => bid.volume > max.volume ? bid : max, bids[0]);
+        const topAsk = asks.reduce((max, ask) => ask.volume > max.volume ? ask : max, asks[0]);
+
+        supportLevel = topBid.price;
+        resistanceLevel = topAsk.price;
+      } catch (error) {
+        console.error("Erreur carnet d'ordres:", error);
+      }
+    }
+
+    async function fetchBinanceKlines() {
+      try {
+        const url = `https://api.binance.com/api/v3/klines?symbol=${selectedSymbol}&interval=${INTERVAL}&limit=${LIMIT}`;
+        const response = await axios.get(url);
+
+        const data = response.data.map(candle => ({
+          time: new Date(candle[0]),
+          open: parseFloat(candle[1]),
+          high: parseFloat(candle[2]),
+          low: parseFloat(candle[3]),
+          close: parseFloat(candle[4]),
+        }));
+
+        const last = data[data.length - 1];
+        const isGreen = last.close > last.open;
+
+        await fetchOrderBook();
+
+        priceInfo.innerHTML = `Dernier prix (${selectedSymbol}) : <span class="${isGreen ? "green-candle" : "red-candle"}">${last.close.toFixed(6)}</span>`;
+        if (resistanceLevel) {
+          priceInfo.innerHTML += ` | Zone Vendeurs : <span class="red-candle">${resistanceLevel.toFixed(6)}</span>`;
+        }
+        if (supportLevel) {
+          priceInfo.innerHTML += ` | Zone Acheteurs : <span class="green-candle">${supportLevel.toFixed(6)}</span>`;
+        }
+
+        updateChart(data);
+      } catch (error) {
+        console.error("Erreur API Binance:", error);
+        priceInfo.innerHTML = `<span class="red-candle">Erreur de chargement</span>`;
+      }
+    }
+
+    function updateChart(data) {
+      const labels = data.map(d => {
+        const h = d.time.getHours().toString().padStart(2, "0");
+        const m = d.time.getMinutes().toString().padStart(2, "0");
+        return `${h}:${m}`;
+      });
+
+      const closePrices = data.map(d => d.close);
+
+      if (binanceChart) binanceChart.destroy();
+
+      binanceChart = new Chart(chartCtx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `${selectedSymbol} (3m)`,
+            data: closePrices,
+            borderColor: "#4fc3f7",
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            annotation: {
+              annotations: {
+                ...(supportLevel && {
+                  support: {
+                    type: 'line',
+                    yMin: supportLevel,
+                    yMax: supportLevel,
+                    borderColor: 'green',
+                    borderWidth: 2,
+                    label: {
+                      content: `Zone Acheteurs (${supportLevel.toFixed(6)})`,
+                      enabled: true,
+                      position: 'start',
+                      backgroundColor: 'green',
+                      color: 'white'
+                    }
+                  }
+                }),
+                ...(resistanceLevel && {
+                  resistance: {
+                    type: 'line',
+                    yMin: resistanceLevel,
+                    yMax: resistanceLevel,
+                    borderColor: 'red',
+                    borderWidth: 2,
+                    label: {
+                      content: `Zone Vendeurs (${resistanceLevel.toFixed(6)})`,
+                      enabled: true,
+                      position: 'start',
+                      backgroundColor: 'red',
+                      color: 'white'
+                    }
+                  }
+                })
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: value => parseFloat(value).toFixed(6)
+              }
+            }
+          }
+        },
+        plugins: [Chart.registry.getPlugin('annotation')]
+      });
+    }
+
+    fetchAllFuturesSymbols();
+  </script>
+</body>
+</html>
