@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphique Binance Futures - Multi Cryptos (3m)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f1923;
+      color: #eaeaea;
+      margin: 0;
+      padding: 20px;
+    }
+    #container {
+      max-width: 1000px;
+      margin: auto;
+      background: #1a2a3a;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .chart-container {
+      margin-bottom: 30px;
+      background: #1a2a3a;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    canvas {
+      width: 100% !important;
+      height: 250px !important;
+    }
+    select, button {
+      padding: 8px;
+      margin-bottom: 20px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+    }
+    button {
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .price-info {
+      margin-top: 10px;
+      font-size: 1em;
+    }
+    .green-candle {
+      color: #4caf50;
+      font-weight: bold;
+    }
+    .red-candle {
+      color: #f44336;
+      font-weight: bold;
+    }
+    .chart-group-controls {
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>📊 Graphiques Binance Futures (3m) - Groupes de 15</h1>
+    
+    <div class="chart-group-controls">
+      <select id="symbolGroupSelect">
+        <option disabled selected>Chargement des groupes...</option>
+      </select>
+      <button id="prevGroupBtn">← Précédent</button>
+      <button id="nextGroupBtn">Suivant →</button>
+    </div>
+
+    <div id="chartsContainer"></div>
+  </div>
+
+  <script>
+    const INTERVAL = "3m";
+    const LIMIT = 100;
+    const GROUP_SIZE = 15;
+    let allSymbols = [];
+    let currentGroupIndex = 0;
+    let symbolGroups = [];
+
+    function fetchAllFuturesSymbols() {
+      axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo")
+        .then(function(res) {
+          allSymbols = res.data.symbols
+            .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT")
+            .map(s => s.symbol)
+            .sort();
+
+          symbolGroups = [];
+          for (let i = 0; i < allSymbols.length; i += GROUP_SIZE) {
+            symbolGroups.push(allSymbols.slice(i, i + GROUP_SIZE));
+          }
+
+          updateGroupSelector();
+          loadCurrentGroup();
+        })
+        .catch(function(err) {
+          console.error("Erreur récupération symboles:", err);
+        });
+    }
+
+    function updateGroupSelector() {
+      const groupSelect = document.getElementById("symbolGroupSelect");
+      groupSelect.innerHTML = symbolGroups.map((group, index) => 
+        `<option value="${index}">Groupe ${index + 1} (${group[0]} à ${group[group.length - 1]})</option>`
+      ).join("");
+      
+      groupSelect.value = currentGroupIndex;
+      
+      groupSelect.addEventListener("change", function() {
+        currentGroupIndex = parseInt(this.value);
+        loadCurrentGroup();
+      });
+    }
+
+    document.getElementById("prevGroupBtn").addEventListener("click", function() {
+      if (currentGroupIndex > 0) {
+        currentGroupIndex--;
+        document.getElementById("symbolGroupSelect").value = currentGroupIndex;
+        loadCurrentGroup();
+      }
+    });
+    
+    document.getElementById("nextGroupBtn").addEventListener("click", function() {
+      if (currentGroupIndex < symbolGroups.length - 1) {
+        currentGroupIndex++;
+        document.getElementById("symbolGroupSelect").value = currentGroupIndex;
+        loadCurrentGroup();
+      }
+    });
+
+    function loadCurrentGroup() {
+      const chartsContainer = document.getElementById("chartsContainer");
+      chartsContainer.innerHTML = "<p>Chargement des graphiques...</p>";
+      
+      if (symbolGroups.length === 0 || currentGroupIndex >= symbolGroups.length) return;
+      
+      const currentGroup = symbolGroups[currentGroupIndex];
+      chartsContainer.innerHTML = "";
+      
+      currentGroup.forEach(function(symbol) {
+        createChartElement(symbol);
+        fetchBinanceKlines(symbol);
+      });
+    }
+
+    function createChartElement(symbol) {
+      const chartsContainer = document.getElementById("chartsContainer");
+      
+      const chartDiv = document.createElement("div");
+      chartDiv.className = "chart-container";
+      chartDiv.id = `chart-${symbol}`;
+      
+      chartDiv.innerHTML = `
+        <h3>${symbol}</h3>
+        <canvas id="chart-canvas-${symbol}"></canvas>
+        <div id="price-info-${symbol}" class="price-info">Chargement...</div>
+      `;
+      
+      chartsContainer.appendChild(chartDiv);
+    }
+
+    function fetchBinanceKlines(symbol) {
+      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}`;
+
+      axios.get(url)
+        .then(function(response) {
+          const data = response.data.map(candle => ({
+            time: new Date(candle[0]),
+            open: parseFloat(candle[1]),
+            high: parseFloat(candle[2]),
+            low: parseFloat(candle[3]),
+            close: parseFloat(candle[4]),
+          }));
+
+          updateChart(symbol, data);
+        })
+        .catch(function(error) {
+          console.warn(`Erreur API Binance pour ${symbol}. Bloc supprimé.`);
+          const chartDiv = document.getElementById(`chart-${symbol}`);
+          if (chartDiv) chartDiv.remove();
+        });
+    }
+
+    function updateChart(symbol, data) {
+      const last = data[data.length - 1];
+      const isGreen = last.close > last.open;
+
+      const priceInfo = document.getElementById(`price-info-${symbol}`);
+      priceInfo.innerHTML = `Dernier prix: <span class="${isGreen ? "green-candle" : "red-candle"}">${last.close.toFixed(6)}</span>`;
+
+      const zoneVendeur = (last.close * 1.0015).toFixed(6); // Simulée
+      const zoneAcheteur = (last.close * 0.998).toFixed(6);  // Simulée
+
+      const labels = data.map(d => {
+        const h = d.time.getHours().toString().padStart(2, "0");
+        const m = d.time.getMinutes().toString().padStart(2, "0");
+        return `${h}:${m}`;
+      });
+
+      const ctx = document.getElementById(`chart-canvas-${symbol}`).getContext("2d");
+
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `${symbol} (3m)`,
+            data: data.map(d => d.close),
+            borderColor: "#4fc3f7",
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            annotation: {
+              annotations: {
+                zoneVendeur: {
+                  type: 'line',
+                  yMin: zoneVendeur,
+                  yMax: zoneVendeur,
+                  borderColor: 'red',
+                  borderWidth: 2,
+                  label: {
+                    content: `Zone Vendeurs (${zoneVendeur})`,
+                    enabled: true,
+                    backgroundColor: 'red',
+                    color: '#fff',
+                    font: { weight: 'bold' }
+                  }
+                },
+                zoneAcheteur: {
+                  type: 'line',
+                  yMin: zoneAcheteur,
+                  yMax: zoneAcheteur,
+                  borderColor: 'green',
+                  borderWidth: 2,
+                  label: {
+                    content: `Zone Acheteurs (${zoneAcheteur})`,
+                    enabled: true,
+                    backgroundColor: 'green',
+                    color: '#fff',
+                    font: { weight: 'bold' }
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: value => parseFloat(value).toFixed(6)
+              }
+            }
+          }
+        },
+        plugins: [Chart.registry.getPlugin('annotation')]
+      });
+
+      priceInfo.innerHTML = `
+        Dernier prix: <span class="${isGreen ? "green-candle" : "red-candle"}">${last.close.toFixed(6)}</span> |
+        Zone Vendeurs: <span class="red-candle">${zoneVendeur}</span> |
+        Zone Acheteurs: <span class="green-candle">${zoneAcheteur}</span>
+      `;
+    }
+
+    fetchAllFuturesSymbols();
+  </script>
+</body>
+</html>
