@@ -42,8 +42,7 @@
 <body>
   <div id="container">
     <h1>📊 Graphique Binance - IDEXUSDT (12h)</h1>
-    <p>Données des dernières 12 heures - Intervalle 15 minutes</p>
-
+    <p>Données + zone avec acheteurs/vendeurs</p>
     <canvas id="binance-chart"></canvas>
     <div id="price-info" class="price-info">Chargement...</div>
   </div>
@@ -51,12 +50,31 @@
   <script>
     const SYMBOL = "IDEXUSDT";
     const INTERVAL = "15m";
-    const LIMIT = 48; // 12h = 48 bougies en 15m
-    const REFRESH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+    const LIMIT = 48;
+    const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
 
     const chartCtx = document.getElementById("binance-chart").getContext("2d");
     const priceInfo = document.getElementById("price-info");
     let binanceChart;
+
+    let supportLevel = null;
+    let resistanceLevel = null;
+
+    async function fetchOrderBook() {
+      try {
+        const res = await axios.get(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=100`);
+        const bids = res.data.bids.map(b => ({ price: parseFloat(b[0]), volume: parseFloat(b[1]) }));
+        const asks = res.data.asks.map(a => ({ price: parseFloat(a[0]), volume: parseFloat(a[1]) }));
+
+        const topBid = bids.reduce((max, bid) => bid.volume > max.volume ? bid : max, bids[0]);
+        const topAsk = asks.reduce((max, ask) => ask.volume > max.volume ? ask : max, asks[0]);
+
+        supportLevel = topBid.price;
+        resistanceLevel = topAsk.price;
+      } catch (error) {
+        console.error("Erreur carnet d'ordres:", error);
+      }
+    }
 
     async function fetchBinanceKlines() {
       try {
@@ -71,11 +89,12 @@
           close: parseFloat(candle[4]),
         }));
 
-        updateChart(data);
-
         const last = data[data.length - 1];
         const isGreen = last.close > last.open;
         priceInfo.innerHTML = `Dernier prix : <span class="${isGreen ? "green-candle" : "red-candle"}">${last.close.toFixed(6)}</span>`;
+
+        await fetchOrderBook();
+        updateChart(data);
       } catch (error) {
         console.error("Erreur API Binance:", error);
         priceInfo.innerHTML = `<span class="red-candle">Erreur de chargement</span>`;
@@ -88,6 +107,7 @@
         const m = d.time.getMinutes().toString().padStart(2, "0");
         return `${h}:${m}`;
       });
+
       const closePrices = data.map(d => d.close);
 
       if (binanceChart) binanceChart.destroy();
@@ -107,6 +127,44 @@
         },
         options: {
           responsive: true,
+          plugins: {
+            annotation: {
+              annotations: {
+                ...(supportLevel && {
+                  support: {
+                    type: 'line',
+                    yMin: supportLevel,
+                    yMax: supportLevel,
+                    borderColor: 'green',
+                    borderWidth: 2,
+                    label: {
+                      content: 'Zone Acheteurs',
+                      enabled: true,
+                      position: 'start',
+                      backgroundColor: 'green',
+                      color: 'white'
+                    }
+                  }
+                }),
+                ...(resistanceLevel && {
+                  resistance: {
+                    type: 'line',
+                    yMin: resistanceLevel,
+                    yMax: resistanceLevel,
+                    borderColor: 'red',
+                    borderWidth: 2,
+                    label: {
+                      content: 'Zone Vendeurs',
+                      enabled: true,
+                      position: 'start',
+                      backgroundColor: 'red',
+                      color: 'white'
+                    }
+                  }
+                })
+              }
+            }
+          },
           scales: {
             y: {
               ticks: {
@@ -114,13 +172,17 @@
               }
             }
           }
-        }
+        },
+        plugins: [Chart.registry.getPlugin('annotation')]
       });
     }
 
-    // Démarrage + mise à jour toutes les 30 min
+    // Chargement initial + toutes les 30 minutes
     fetchBinanceKlines();
     setInterval(fetchBinanceKlines, REFRESH_INTERVAL_MS);
   </script>
+
+  <!-- Chart.js annotation plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
 </body>
 </html>
