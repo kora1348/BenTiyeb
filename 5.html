@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analyse Binance Zones Acheteurs/Vendeurs</title>
+  <title>Analyse Binance - Zones Acheteurs/Vendeurs + Bougies</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <style>
     body {
@@ -15,7 +16,7 @@
       padding: 20px;
     }
     #container {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: auto;
       background: #1a2a3a;
       padding: 20px;
@@ -24,9 +25,10 @@
     canvas {
       width: 100% !important;
       height: 400px !important;
+      margin-top: 20px;
     }
     .zone-label {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       padding: 10px;
       border-radius: 8px;
       margin-top: 10px;
@@ -35,46 +37,88 @@
 </head>
 <body>
   <div id="container">
-    <h1>📊 Zones d'Acheteurs et Vendeurs (Binance Futures)</h1>
-    <canvas id="binance-chart"></canvas>
-    <div id="zones-info" class="zone-label">Chargement des données...</div>
+    <h1>📊 Binance: Bougies 1D + Zones Acheteurs/Vendeurs</h1>
+    <canvas id="candlestick-chart"></canvas>
+    <canvas id="orderbook-chart"></canvas>
+    <div id="zones-info" class="zone-label">Chargement...</div>
   </div>
 
   <script>
     const SYMBOL = "BTCUSDT";
-    const INTERVAL = "15m";
-    const LIMIT = 50;
+    const CANDLE_INTERVAL = "1d";
+    const CANDLE_LIMIT = 50;
+    const ORDERBOOK_LIMIT = 1000;
 
-    const chartCtx = document.getElementById("binance-chart").getContext("2d");
-    let binanceChart;
+    let candleChart, orderbookChart;
 
-    async function fetchBinanceData() {
+    const candleCtx = document.getElementById("candlestick-chart").getContext("2d");
+    const orderCtx = document.getElementById("orderbook-chart").getContext("2d");
+
+    async function fetchCandlesticks() {
       try {
-        const response = await axios.get(
-          `https://fapi.binance.com/fapi/v1/depth?symbol=${SYMBOL}&limit=1000`
-        );
-
-        const bids = response.data.bids.map(([price, qty]) => ({
-          price: parseFloat(price),
-          qty: parseFloat(qty),
-        }));
-        const asks = response.data.asks.map(([price, qty]) => ({
-          price: parseFloat(price),
-          qty: parseFloat(qty),
+        const res = await axios.get(`https://api.binance.com/api/v3/klines?symbol=${SYMBOL}&interval=${CANDLE_INTERVAL}&limit=${CANDLE_LIMIT}`);
+        const candles = res.data.map(c => ({
+          x: new Date(c[0]),
+          o: parseFloat(c[1]),
+          h: parseFloat(c[2]),
+          l: parseFloat(c[3]),
+          c: parseFloat(c[4])
         }));
 
-        // Garder les plus gros ordres (ex : top 20)
+        if (candleChart) candleChart.destroy();
+
+        candleChart = new Chart(candleCtx, {
+          type: 'candlestick',
+          data: {
+            datasets: [{
+              label: `${SYMBOL} (${CANDLE_INTERVAL})`,
+              data: candles,
+              color: {
+                up: '#4caf50',
+                down: '#f44336',
+                unchanged: '#999'
+              }
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                time: {
+                  unit: 'day'
+                },
+                ticks: {
+                  maxRotation: 0,
+                  autoSkip: true
+                }
+              },
+              y: {
+                beginAtZero: false
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Erreur bougies Binance :", error);
+      }
+    }
+
+    async function fetchOrderbook() {
+      try {
+        const res = await axios.get(`https://fapi.binance.com/fapi/v1/depth?symbol=${SYMBOL}&limit=${ORDERBOOK_LIMIT}`);
+
+        const bids = res.data.bids.map(([p, q]) => ({ price: parseFloat(p), qty: parseFloat(q) }));
+        const asks = res.data.asks.map(([p, q]) => ({ price: parseFloat(p), qty: parseFloat(q) }));
+
         const topBids = bids.sort((a, b) => b.qty - a.qty).slice(0, 20);
         const topAsks = asks.sort((a, b) => b.qty - a.qty).slice(0, 20);
 
-        const bidPrices = topBids.map(b => b.price);
-        const askPrices = topAsks.map(a => a.price);
+        const avgBid = averageQty(topBids);
+        const avgAsk = averageQty(topAsks);
 
-        // Détecter les zones où il y a beaucoup de volume
-        const bidZones = topBids.filter(b => b.qty > averageQty(topBids) * 1.5);
-        const askZones = topAsks.filter(a => a.qty > averageQty(topAsks) * 1.5);
+        const bidZones = topBids.filter(b => b.qty > avgBid * 1.5);
+        const askZones = topAsks.filter(a => a.qty > avgAsk * 1.5);
 
-        // Affichage
         document.getElementById("zones-info").innerHTML = `
           <strong>Zones d'Acheteurs :</strong><br>
           ${bidZones.map(z => `🟢 ${z.price} (${z.qty})`).join("<br>")}
@@ -83,9 +127,47 @@
           ${askZones.map(z => `🔴 ${z.price} (${z.qty})`).join("<br>")}
         `;
 
-        drawChart(bidPrices, askPrices, topBids, topAsks);
+        if (orderbookChart) orderbookChart.destroy();
+
+        orderbookChart = new Chart(orderCtx, {
+          type: "bar",
+          data: {
+            labels: [
+              ...topBids.map(b => b.price.toFixed(2)),
+              ...topAsks.map(a => a.price.toFixed(2))
+            ],
+            datasets: [
+              {
+                label: "Buy Orders",
+                data: topBids.map(b => b.qty),
+                backgroundColor: "rgba(76, 175, 80, 0.6)",
+              },
+              {
+                label: "Sell Orders",
+                data: topAsks.map(a => a.qty),
+                backgroundColor: "rgba(244, 67, 54, 0.6)",
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                title: { display: true, text: "Prix" },
+                ticks: {
+                  maxRotation: 90,
+                  minRotation: 45,
+                }
+              },
+              y: {
+                title: { display: true, text: "Volume" }
+              }
+            }
+          }
+        });
+
       } catch (error) {
-        console.error("Erreur récupération Binance Order Book:", error);
+        console.error("Erreur carnet d'ordres Binance :", error);
         document.getElementById("zones-info").innerText = "Erreur API Binance";
       }
     }
@@ -95,49 +177,13 @@
       return total / arr.length;
     }
 
-    function drawChart(bidPrices, askPrices, bids, asks) {
-      const labels = [...bids.map(b => b.price), ...asks.map(a => a.price)];
-
-      if (binanceChart) binanceChart.destroy();
-
-      binanceChart = new Chart(chartCtx, {
-        type: "bar",
-        data: {
-          labels: labels.map(p => p.toFixed(2)),
-          datasets: [
-            {
-              label: "Buy Orders",
-              data: bids.map(b => b.qty),
-              backgroundColor: "rgba(76, 175, 80, 0.6)",
-              borderColor: "#4caf50",
-              borderWidth: 1,
-            },
-            {
-              label: "Sell Orders",
-              data: asks.map(a => a.qty),
-              backgroundColor: "rgba(244, 67, 54, 0.6)",
-              borderColor: "#f44336",
-              borderWidth: 1,
-            }
-          ],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              title: { display: true, text: "Prix" },
-              ticks: { maxRotation: 90, minRotation: 45 }
-            },
-            y: {
-              title: { display: true, text: "Volume" }
-            }
-          },
-        },
-      });
+    async function updateAll() {
+      await fetchCandlesticks();
+      await fetchOrderbook();
     }
 
-    fetchBinanceData();
-    setInterval(fetchBinanceData, 30000); // refresh toutes les 30 secondes
+    updateAll();
+    setInterval(updateAll, 1200000); // 20 minutes en ms
   </script>
 </body>
 </html>
