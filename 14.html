@@ -92,6 +92,11 @@
       font-weight: bold;
       margin-top: 8px;
     }
+    .alert-buyer {
+      color: #4caf50;
+      font-weight: bold;
+      margin-top: 8px;
+    }
     h3 {
       color: #64b5f6;
       margin-top: 0;
@@ -120,34 +125,34 @@
 </head>
 <body>
   <div id="container">
-    <h1>Graphiques Binance Futures (3m) - Groupes de 25</h1>
+    <h1>Graphiques Binance Futures (3m) - Groupes de 50</h1>
     
-    <div class="pagination-controls" id="topPagination">
-      <select id="symbolGroupSelect">
-        <option disabled selected>Chargement des groupes...</option>
-      </select>
-      <button id="prevGroupBtnTop">← Précédent</button>
-      <button id="nextGroupBtnTop">Suivant →</button>
-    </div>
+<div class="pagination-controls" id="topPagination">
+  <select id="symbolGroupSelect">
+    <option disabled selected>Chargement des groupes...</option>
+  </select>
+  <button id="prevGroupBtnTop">← Précédent</button>
+  <button id="nextGroupBtnTop">Suivant →</button>
+</div>
 
-    <div id="chartsContainer"></div>
+<div id="chartsContainer"></div>
 
-    <div class="pagination-controls" id="bottomPagination">
-      <select id="symbolGroupSelectBottom">
-        <option disabled selected>Chargement des groupes...</option>
-      </select>
-      <button id="prevGroupBtnBottom">← Précédent</button>
-      <button id="nextGroupBtnBottom">Suivant →</button>
-    </div>
-  </div>
+<div class="pagination-controls" id="bottomPagination">
+  <select id="symbolGroupSelectBottom">
+    <option disabled selected>Chargement des groupes...</option>
+  </select>
+  <button id="prevGroupBtnBottom">← Précédent</button>
+  <button id="nextGroupBtnBottom">Suivant →</button>
+</div>  </div>
 
   <script>
     const INTERVAL = "3m";
     const LIMIT = 100;
-    const GROUP_SIZE = 25;
+    const GROUP_SIZE = 50;
     let allSymbols = [];
     let currentGroupIndex = 0;
     let symbolGroups = [];
+    let previousPrices = {}; // Pour stocker les prix précédents par symbole
 
     function fetchAllFuturesSymbols() {
       axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo")
@@ -257,6 +262,7 @@
         <h3>${symbol}</h3>
         <canvas id="chart-canvas-${symbol}"></canvas>
         <div id="price-info-${symbol}" class="price-info">Chargement...</div>
+        <div id="alert-${symbol}"></div>
       `;
       
       chartsContainer.appendChild(chartDiv);
@@ -288,10 +294,24 @@
 
     function updateChart(symbol, data) {
       const last = data[data.length - 1];
+      const prev = data.length > 1 ? data[data.length - 2] : last;
       const isGreen = last.close > last.open;
 
       const zoneVendeur = last.close * 1.0015;
       const zoneAcheteur = last.close * 0.998;
+
+      // Vérifier si le prix vient d'en bas et touche la zone acheteuse
+      let buyerAlert = '';
+      if (previousPrices[symbol]) {
+        // Vérifier si le prix précédent était en dessous de la zone acheteuse
+        // et que maintenant il touche ou dépasse la zone acheteuse
+        if (previousPrices[symbol] < zoneAcheteur && last.close >= zoneAcheteur) {
+          buyerAlert = `<div class="alert-buyer" id="buyer-alert-${symbol}">ALERTE: ${symbol} vient de toucher la zone acheteurs depuis le bas!</div>`;
+        }
+      }
+      
+      // Stocker le prix actuel pour la prochaine vérification
+      previousPrices[symbol] = last.close;
 
       const labels = data.map(d => {
         const h = d.time.getHours().toString().padStart(2, "0");
@@ -420,6 +440,14 @@
         Zone Acheteurs: <span class="green-candle">${zoneAcheteur.toFixed(6)}</span>
         ${alertMessage}
       `;
+
+      // Afficher l'alerte acheteur si nécessaire
+      const alertDiv = document.getElementById(`alert-${symbol}`);
+      if (buyerAlert) {
+        alertDiv.innerHTML = buyerAlert;
+      } else {
+        alertDiv.innerHTML = '';
+      }
     }
 
     fetchAllFuturesSymbols();
