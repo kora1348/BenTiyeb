@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Graphique Binance - IDEXUSDT (12h)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <style>
     body {
@@ -91,9 +92,17 @@
 
         const last = data[data.length - 1];
         const isGreen = last.close > last.open;
-        priceInfo.innerHTML = `Dernier prix : <span class="${isGreen ? "green-candle" : "red-candle"}">${last.close.toFixed(6)}</span>`;
 
         await fetchOrderBook();
+
+        priceInfo.innerHTML = `Dernier prix : <span class="${isGreen ? "green-candle" : "red-candle"}">${last.close.toFixed(6)}</span>`;
+        if (resistanceLevel) {
+          priceInfo.innerHTML += ` | Zone Vendeurs : <span class="red-candle">${resistanceLevel.toFixed(6)}</span>`;
+        }
+        if (supportLevel) {
+          priceInfo.innerHTML += ` | Zone Acheteurs : <span class="green-candle">${supportLevel.toFixed(6)}</span>`;
+        }
+
         updateChart(data);
       } catch (error) {
         console.error("Erreur API Binance:", error);
@@ -138,7 +147,7 @@
                     borderColor: 'green',
                     borderWidth: 2,
                     label: {
-                      content: 'Zone Acheteurs',
+                      content: `Zone Acheteurs (${supportLevel.toFixed(6)})`,
                       enabled: true,
                       position: 'start',
                       backgroundColor: 'green',
@@ -154,7 +163,7 @@
                     borderColor: 'red',
                     borderWidth: 2,
                     label: {
-                      content: 'Zone Vendeurs',
+                      content: `Zone Vendeurs (${resistanceLevel.toFixed(6)})`,
                       enabled: true,
                       position: 'start',
                       backgroundColor: 'red',
@@ -181,8 +190,5 @@
     fetchBinanceKlines();
     setInterval(fetchBinanceKlines, REFRESH_INTERVAL_MS);
   </script>
-
-  <!-- Chart.js annotation plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
 </body>
 </html>
