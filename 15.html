@@ -153,22 +153,29 @@
     let currentGroupIndex = 0;
     let symbolGroups = [];
     let previousPrices = {}; // Pour stocker les prix précédents par symbole
-    let volatilityData = {}; // Pour stocker les données de volatilité
+    let priceChangeData = {}; // Pour stocker les données de variation de prix
+    let activeSymbols = new Set(); // Pour suivre les symboles actuellement listés
 
     function fetchAllFuturesSymbols() {
       axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo")
         .then(function(res) {
+          // Récupérer uniquement les symboles actifs (status: TRADING)
           allSymbols = res.data.symbols
-            .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT")
+            .filter(s => s.contractType === "PERPETUAL" && 
+                        s.quoteAsset === "USDT" && 
+                        s.status === "TRADING")
             .map(s => s.symbol);
 
-          // Charger les données pour calculer la volatilité
-          fetchVolatilityData().then(() => {
-            // Trier les symboles par volatilité (descendant)
+          // Mettre à jour les symboles actifs
+          activeSymbols = new Set(allSymbols);
+
+          // Charger les données pour calculer les variations de prix
+          fetchPriceChangeData().then(() => {
+            // Trier les symboles par variation de prix (descendant)
             allSymbols.sort((a, b) => {
-              const volA = volatilityData[a] ? volatilityData[a].volatility : 0;
-              const volB = volatilityData[b] ? volatilityData[b].volatility : 0;
-              return volB - volA;
+              const changeA = priceChangeData[a] ? Math.abs(priceChangeData[a].priceChange) : 0;
+              const changeB = priceChangeData[b] ? Math.abs(priceChangeData[b].priceChange) : 0;
+              return changeB - changeA;
             });
 
             symbolGroups = [];
@@ -178,6 +185,9 @@
 
             updateGroupSelectors();
             loadCurrentGroup();
+
+            // Vérifier périodiquement les symboles actifs
+            setInterval(checkActiveSymbols, 300000); // Toutes les 5 minutes
           });
         })
         .catch(function(err) {
@@ -185,39 +195,65 @@
         });
     }
 
-    async function fetchVolatilityData() {
+    async function checkActiveSymbols() {
+      try {
+        const response = await axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo");
+        const newActiveSymbols = new Set(
+          response.data.symbols
+            .filter(s => s.contractType === "PERPETUAL" && 
+                        s.quoteAsset === "USDT" && 
+                        s.status === "TRADING")
+            .map(s => s.symbol)
+        );
+
+        // Vérifier les différences
+        const removedSymbols = [];
+        activeSymbols.forEach(symbol => {
+          if (!newActiveSymbols.has(symbol)) {
+            removedSymbols.push(symbol);
+          }
+        });
+
+        // Supprimer les graphiques des symboles delistés
+        if (removedSymbols.length > 0) {
+          removedSymbols.forEach(symbol => {
+            const chartDiv = document.getElementById(`chart-${symbol}`);
+            if (chartDiv) chartDiv.remove();
+          });
+          console.log(`Symboles delistés supprimés: ${removedSymbols.join(', ')}`);
+        }
+
+        // Mettre à jour les symboles actifs
+        activeSymbols = newActiveSymbols;
+      } catch (error) {
+        console.error("Erreur vérification symboles actifs:", error);
+      }
+    }
+
+    async function fetchPriceChangeData() {
       // Créer un tableau de promesses pour toutes les requêtes
       const promises = allSymbols.map(symbol => 
         axios.get(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}`)
           .then(response => {
             const data = response.data.map(candle => ({
-              high: parseFloat(candle[2]),
-              low: parseFloat(candle[3]),
+              open: parseFloat(candle[1]),
               close: parseFloat(candle[4]),
             }));
 
-            // Calculer la volatilité (écart type des variations en pourcentage)
-            const priceChanges = [];
-            for (let i = 1; i < data.length; i++) {
-              const change = (data[i].close - data[i-1].close) / data[i-1].close;
-              priceChanges.push(change);
-            }
+            // Calculer la variation de prix sur la période
+            const firstPrice = data[0].open;
+            const lastPrice = data[data.length - 1].close;
+            const priceChange = (lastPrice - firstPrice) / firstPrice;
 
-            // Calculer l'écart type
-            const avg = priceChanges.reduce((a, b) => a + b, 0) / priceChanges.length;
-            const squareDiffs = priceChanges.map(value => Math.pow(value - avg, 2));
-            const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length;
-            const volatility = Math.sqrt(avgSquareDiff);
-
-            volatilityData[symbol] = {
-              volatility: volatility,
-              lastPrice: data[data.length - 1].close
+            priceChangeData[symbol] = {
+              priceChange: priceChange,
+              lastPrice: lastPrice
             };
           })
           .catch(error => {
-            console.warn(`Erreur API Binance pour ${symbol} (volatilité).`);
-            volatilityData[symbol] = {
-              volatility: 0,
+            console.warn(`Erreur API Binance pour ${symbol} (variation).`);
+            priceChangeData[symbol] = {
+              priceChange: 0,
               lastPrice: 0
             };
           })
@@ -294,6 +330,13 @@
       function loadNextChart() {
         if (index >= currentGroup.length) return;
         const symbol = currentGroup[index];
+        
+        // Vérifier si le symbole est toujours actif
+        if (!activeSymbols.has(symbol)) {
+          index++;
+          return loadNextChart();
+        }
+        
         createChartElement(symbol);
         fetchBinanceKlines(symbol, () => {
           index++;
@@ -310,11 +353,12 @@
       chartDiv.className = "chart-container";
       chartDiv.id = `chart-${symbol}`;
       
-      // Ajouter la volatilité dans le titre
-      const volatility = volatilityData[symbol] ? (volatilityData[symbol].volatility * 100).toFixed(2) + '%' : 'N/A';
+      // Ajouter la variation de prix dans le titre
+      const priceChange = priceChangeData[symbol] ? (priceChangeData[symbol].priceChange * 100).toFixed(2) + '%' : 'N/A';
+      const changeColor = priceChangeData[symbol] && priceChangeData[symbol].priceChange >= 0 ? '#4caf50' : '#f44336';
       
       chartDiv.innerHTML = `
-        <h3>${symbol} <span style="font-size: 0.8em; color: #ffb74d;">(Vol: ${volatility})</span></h3>
+        <h3>${symbol} <span style="font-size: 0.8em; color: ${changeColor};">(Var: ${priceChange})</span></h3>
         <canvas id="chart-canvas-${symbol}"></canvas>
         <div id="price-info-${symbol}" class="price-info">Chargement...</div>
         <div id="alert-${symbol}"></div>
@@ -328,6 +372,14 @@
 
       axios.get(url)
         .then(function(response) {
+          // Vérifier à nouveau si le symbole est toujours actif
+          if (!activeSymbols.has(symbol)) {
+            const chartDiv = document.getElementById(`chart-${symbol}`);
+            if (chartDiv) chartDiv.remove();
+            if (callback) callback();
+            return;
+          }
+
           const data = response.data.map(candle => ({
             time: new Date(candle[0]),
             open: parseFloat(candle[1]),
@@ -348,6 +400,13 @@
     }
 
     function updateChart(symbol, data) {
+      // Vérifier une dernière fois si le symbole est toujours actif
+      if (!activeSymbols.has(symbol)) {
+        const chartDiv = document.getElementById(`chart-${symbol}`);
+        if (chartDiv) chartDiv.remove();
+        return;
+      }
+
       const last = data[data.length - 1];
       const prev = data.length > 1 ? data[data.length - 2] : last;
       const isGreen = last.close > last.open;
