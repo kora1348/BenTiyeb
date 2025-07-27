@@ -84,3 +84,13 @@ th, td {
     .medium { background-color: #ffe599; }
     .high { background-color: #f6b26b; }
     .very-high { background-color: #66e066; font-weight: bold; }
+
+
+    canvas {
+  width: 100% !important;
+  height: 500px !important; /* Augmenté de 300px à 500px */
+}@media (max-width: 768px) {
+  canvas {
+    height: 300px !important;
+  }
+}

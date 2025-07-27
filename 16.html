@@ -16,7 +16,7 @@
       padding: 20px;
     }
     #container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: auto;
       background: #17212b;
       padding: 20px;
@@ -39,7 +39,7 @@
     }
     canvas {
       width: 100% !important;
-      height: 300px !important;
+      height: 500px !important; /* Augmenté de 300px à 500px */
     }
     select, button {
       padding: 10px 15px;
@@ -120,6 +120,9 @@
         margin-left: 0;
         margin-bottom: 10px;
       }
+      canvas {
+        height: 300px !important; /* Taille réduite pour mobile */
+      }
     }
   </style>
 </head>
@@ -146,32 +149,28 @@
 </div>  </div>
 
   <script>
-    const INTERVAL = "1d";  // Changé de "3m" à "1d"
+    const INTERVAL = "1d";
     const LIMIT = 100;
     const GROUP_SIZE = 50;
     let allSymbols = [];
     let currentGroupIndex = 0;
     let symbolGroups = [];
-    let previousPrices = {}; // Pour stocker les prix précédents par symbole
-    let priceChangeData = {}; // Pour stocker les données de variation de prix
-    let activeSymbols = new Set(); // Pour suivre les symboles actuellement listés
+    let previousPrices = {};
+    let priceChangeData = {};
+    let activeSymbols = new Set();
 
     function fetchAllFuturesSymbols() {
       axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo")
         .then(function(res) {
-          // Récupérer uniquement les symboles actifs (status: TRADING)
           allSymbols = res.data.symbols
             .filter(s => s.contractType === "PERPETUAL" && 
                         s.quoteAsset === "USDT" && 
                         s.status === "TRADING")
             .map(s => s.symbol);
 
-          // Mettre à jour les symboles actifs
           activeSymbols = new Set(allSymbols);
 
-          // Charger les données pour calculer les variations de prix
           fetchPriceChangeData().then(() => {
-            // Trier les symboles par variation de prix (descendant)
             allSymbols.sort((a, b) => {
               const changeA = priceChangeData[a] ? Math.abs(priceChangeData[a].priceChange) : 0;
               const changeB = priceChangeData[b] ? Math.abs(priceChangeData[b].priceChange) : 0;
@@ -185,9 +184,7 @@
 
             updateGroupSelectors();
             loadCurrentGroup();
-
-            // Vérifier périodiquement les symboles actifs
-            setInterval(checkActiveSymbols, 300000); // Toutes les 5 minutes
+            setInterval(checkActiveSymbols, 300000);
           });
         })
         .catch(function(err) {
@@ -206,7 +203,6 @@
             .map(s => s.symbol)
         );
 
-        // Vérifier les différences
         const removedSymbols = [];
         activeSymbols.forEach(symbol => {
           if (!newActiveSymbols.has(symbol)) {
@@ -214,7 +210,6 @@
           }
         });
 
-        // Supprimer les graphiques des symboles delistés
         if (removedSymbols.length > 0) {
           removedSymbols.forEach(symbol => {
             const chartDiv = document.getElementById(`chart-${symbol}`);
@@ -223,7 +218,6 @@
           console.log(`Symboles delistés supprimés: ${removedSymbols.join(', ')}`);
         }
 
-        // Mettre à jour les symboles actifs
         activeSymbols = newActiveSymbols;
       } catch (error) {
         console.error("Erreur vérification symboles actifs:", error);
@@ -231,7 +225,6 @@
     }
 
     async function fetchPriceChangeData() {
-      // Créer un tableau de promesses pour toutes les requêtes
       const promises = allSymbols.map(symbol => 
         axios.get(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}`)
           .then(response => {
@@ -240,7 +233,6 @@
               close: parseFloat(candle[4]),
             }));
 
-            // Calculer la variation de prix sur la période
             const firstPrice = data[0].open;
             const lastPrice = data[data.length - 1].close;
             const priceChange = (lastPrice - firstPrice) / firstPrice;
@@ -259,7 +251,6 @@
           })
       );
 
-      // Attendre que toutes les requêtes soient terminées
       await Promise.all(promises);
     }
 
@@ -325,13 +316,11 @@
       const currentGroup = symbolGroups[currentGroupIndex];
       chartsContainer.innerHTML = "";
       
-      // Charger les graphiques de manière séquentielle pour éviter les surcharges
       let index = 0;
       function loadNextChart() {
         if (index >= currentGroup.length) return;
         const symbol = currentGroup[index];
         
-        // Vérifier si le symbole est toujours actif
         if (!activeSymbols.has(symbol)) {
           index++;
           return loadNextChart();
@@ -340,7 +329,7 @@
         createChartElement(symbol);
         fetchBinanceKlines(symbol, () => {
           index++;
-          setTimeout(loadNextChart, 50); // Délai minime pour éviter les blocages
+          setTimeout(loadNextChart, 50);
         });
       }
       loadNextChart();
@@ -353,7 +342,6 @@
       chartDiv.className = "chart-container";
       chartDiv.id = `chart-${symbol}`;
       
-      // Ajouter la variation de prix dans le titre
       const priceChange = priceChangeData[symbol] ? (priceChangeData[symbol].priceChange * 100).toFixed(2) + '%' : 'N/A';
       const changeColor = priceChangeData[symbol] && priceChangeData[symbol].priceChange >= 0 ? '#4caf50' : '#f44336';
       
@@ -372,7 +360,6 @@
 
       axios.get(url)
         .then(function(response) {
-          // Vérifier à nouveau si le symbole est toujours actif
           if (!activeSymbols.has(symbol)) {
             const chartDiv = document.getElementById(`chart-${symbol}`);
             if (chartDiv) chartDiv.remove();
@@ -400,7 +387,6 @@
     }
 
     function updateChart(symbol, data) {
-      // Vérifier une dernière fois si le symbole est toujours actif
       if (!activeSymbols.has(symbol)) {
         const chartDiv = document.getElementById(`chart-${symbol}`);
         if (chartDiv) chartDiv.remove();
@@ -414,17 +400,13 @@
       const zoneVendeur = last.close * 1.0015;
       const zoneAcheteur = last.close * 0.998;
 
-      // Vérifier si le prix vient d'en bas et touche la zone acheteuse
       let buyerAlert = '';
       if (previousPrices[symbol]) {
-        // Vérifier si le prix précédent était en dessous de la zone acheteuse
-        // et que maintenant il touche ou dépasse la zone acheteuse
         if (previousPrices[symbol] < zoneAcheteur && last.close >= zoneAcheteur) {
           buyerAlert = `<div class="alert-buyer" id="buyer-alert-${symbol}">ALERTE: ${symbol} vient de toucher la zone acheteurs depuis le bas!</div>`;
         }
       }
       
-      // Stocker le prix actuel pour la prochaine vérification
       previousPrices[symbol] = last.close;
 
       const labels = data.map(d => {
@@ -555,7 +537,6 @@
         ${alertMessage}
       `;
 
-      // Afficher l'alerte acheteur si nécessaire
       const alertDiv = document.getElementById(`alert-${symbol}`);
       if (buyerAlert) {
         alertDiv.innerHTML = buyerAlert;
