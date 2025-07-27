@@ -41,7 +41,7 @@
       width: 100% !important;
       height: 300px !important;
     }
-    select, button {
+    select, button, input {
       padding: 10px 15px;
       margin-bottom: 20px;
       background: #2b3a4a;
@@ -54,7 +54,7 @@
     select {
       min-width: 300px;
     }
-    button {
+    button, input {
       cursor: pointer;
       margin-left: 10px;
       background: #2b3a4a;
@@ -62,6 +62,18 @@
     }
     button:hover {
       background: #3d4f62;
+    }
+    .date-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .date-controls label {
+      color: #64b5f6;
+      font-weight: bold;
     }
     .pagination-controls {
       display: flex;
@@ -112,10 +124,10 @@
       padding: 20px;
     }
     @media (max-width: 768px) {
-      .pagination-controls {
+      .pagination-controls, .date-controls {
         flex-direction: column;
       }
-      select, button {
+      select, button, input {
         width: 100%;
         margin-left: 0;
         margin-bottom: 10px;
@@ -127,23 +139,31 @@
   <div id="container">
     <h1>Graphiques Binance Futures (1M-B) - Groupes de 50</h1>
     
-<div class="pagination-controls" id="topPagination">
-  <select id="symbolGroupSelect">
-    <option disabled selected>Chargement des groupes...</option>
-  </select>
-  <button id="prevGroupBtnTop">← Précédent</button>
-  <button id="nextGroupBtnTop">Suivant →</button>
-</div>
+    <div class="date-controls">
+      <label for="endDate">Date de fin de mois :</label>
+      <input type="text" id="endDate" placeholder="JJ/MM/AAAA" />
+      <button id="updateDateBtn">Mettre à jour</button>
+      <button id="currentMonthBtn">Mois en cours</button>
+    </div>
 
-<div id="chartsContainer"></div>
+    <div class="pagination-controls" id="topPagination">
+      <select id="symbolGroupSelect">
+        <option disabled selected>Chargement des groupes...</option>
+      </select>
+      <button id="prevGroupBtnTop">← Précédent</button>
+      <button id="nextGroupBtnTop">Suivant →</button>
+    </div>
 
-<div class="pagination-controls" id="bottomPagination">
-  <select id="symbolGroupSelectBottom">
-    <option disabled selected>Chargement des groupes...</option>
-  </select>
-  <button id="prevGroupBtnBottom">← Précédent</button>
-  <button id="nextGroupBtnBottom">Suivant →</button>
-</div>  </div>
+    <div id="chartsContainer"></div>
+
+    <div class="pagination-controls" id="bottomPagination">
+      <select id="symbolGroupSelectBottom">
+        <option disabled selected>Chargement des groupes...</option>
+      </select>
+      <button id="prevGroupBtnBottom">← Précédent</button>
+      <button id="nextGroupBtnBottom">Suivant →</button>
+    </div>
+  </div>
 
   <script>
     const INTERVAL = "1M";
@@ -155,6 +175,51 @@
     let previousPrices = {}; // Pour stocker les prix précédents par symbole
     let priceChangeData = {}; // Pour stocker les données de variation de prix
     let activeSymbols = new Set(); // Pour suivre les symboles actuellement listés
+    let endDate = new Date(); // Date de fin par défaut (aujourd'hui)
+
+    // Fonction pour formater la date en JJ/MM/AAAA
+    function formatDate(date) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Fonction pour parser la date depuis le format JJ/MM/AAAA
+    function parseDate(dateStr) {
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return null;
+      
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+      
+      if (isNaN(day)) return null;
+      if (isNaN(month)) return null;
+      if (isNaN(year)) return null;
+      
+      const date = new Date(year, month, day);
+      
+      // Vérifier que la date est valide
+      if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+        return null;
+      }
+      
+      return date;
+    }
+
+    // Initialiser le champ de date avec la date du dernier jour du mois en cours
+    function initDateInput() {
+      const now = new Date();
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      document.getElementById('endDate').value = formatDate(lastDay);
+      endDate = lastDay;
+    }
+
+    // Fonction pour obtenir le timestamp Unix en millisecondes
+    function getTimestamp(date) {
+      return date.getTime();
+    }
 
     function fetchAllFuturesSymbols() {
       axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo")
@@ -233,7 +298,7 @@
     async function fetchPriceChangeData() {
       // Créer un tableau de promesses pour toutes les requêtes
       const promises = allSymbols.map(symbol => 
-        axios.get(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}`)
+        axios.get(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}&endTime=${getTimestamp(endDate)}`)
           .then(response => {
             const data = response.data.map(candle => ({
               open: parseFloat(candle[1]),
@@ -381,7 +446,8 @@
     }
 
     function fetchBinanceKlines(symbol, callback) {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}`;
+      const endTime = getTimestamp(endDate);
+      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}&endTime=${endTime}`;
 
       axios.get(url)
         .then(function(response) {
@@ -445,9 +511,10 @@
       previousPrices[symbol] = last.close;
 
       const labels = data.map(d => {
-        const h = d.time.getHours().toString().padStart(2, "0");
-        const m = d.time.getMinutes().toString().padStart(2, "0");
-        return `${h}:${m}`;
+        const date = new Date(d.time);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return `${day}/${month}`;
       });
 
       const ctx = document.getElementById(`chart-canvas-${symbol}`).getContext("2d");
@@ -461,7 +528,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: `${symbol} (3m)`,
+            label: `${symbol} (1M)`,
             data: data.map(d => d.close),
             borderColor: "#4fc3f7",
             borderWidth: 2,
@@ -581,8 +648,44 @@
       }
     }
 
-    fetchAllFuturesSymbols();
-    setupPaginationButtons();
+    // Initialiser l'application
+    function initApp() {
+      initDateInput();
+      fetchAllFuturesSymbols();
+      setupPaginationButtons();
+      
+      // Configurer le bouton de mise à jour de la date
+      document.getElementById('updateDateBtn').addEventListener('click', function() {
+        const dateStr = document.getElementById('endDate').value;
+        const newDate = parseDate(dateStr);
+        
+        if (newDate) {
+          endDate = newDate;
+          // Recharger les données
+          fetchPriceChangeData().then(() => {
+            loadCurrentGroup();
+          });
+        } else {
+          alert('Format de date invalide. Veuillez utiliser le format JJ/MM/AAAA.');
+        }
+      });
+      
+      // Configurer le bouton pour revenir au mois en cours
+      document.getElementById('currentMonthBtn').addEventListener('click', function() {
+        const now = new Date();
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        document.getElementById('endDate').value = formatDate(lastDay);
+        endDate = lastDay;
+        
+        // Recharger les données
+        fetchPriceChangeData().then(() => {
+          loadCurrentGroup();
+        });
+      });
+    }
+
+    // Démarrer l'application lorsque la page est chargée
+    window.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
