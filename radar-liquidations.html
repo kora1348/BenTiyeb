@@ -1,155 +1,413 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Radar Futures Binance - Signaux Entrée/Sortie</title>
-  <style>
-    body {
-      background-color: #121212;
-      color: #f0f0f0;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    th, td {
-      padding: 8px;
-      text-align: center;
-      border: 1px solid #333;
-    }
-    th {
-      background-color: #1e1e1e;
-    }
-    tr.bearish { background-color: #3f1111; }
-    tr.bullish { background-color: #113f2f; }
-    tr.neutral { background-color: #2a2a2a; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Liquidations Binance - Alerte Short & Long (Premium)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0e1621;
+  color: #e3eaf2;
+  margin: 0;
+  padding: 20px;
+}
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: #17212b;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+h1 {
+  color: #64b5f6;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.alert-banner {
+  background: #1f2d3b;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: bold;
+  border-left: 4px solid #64b5f6;
+  line-height: 1.5em;
+  white-space: pre-line;
+}
+.alert-short {
+  border-left-color: #ff5252;
+}
+.alert-long {
+  border-left-color: #4caf50;
+}
+select {
+  width: 100%;
+  padding: 12px;
+  background: #2b3a4a;
+  color: white;
+  border: 1px solid #3d4f62;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+.chart-container {
+  background: #1f2d3b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border-left: 4px solid #64b5f6;
+}
+canvas {
+  width: 100% !important;
+  height: 350px !important;
+}
+.price-info {
+  background: #252b3b;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+.red { color: #ff5252; font-weight: bold; }
+.green { color: #4caf50; font-weight: bold; }
+.highlight {
+  background: #3a4466;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.loading {
+  color: #64b5f6;
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+.accuracy-indicator {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 5px;
+}
+</style>
 </head>
 <body>
-  <h1>📊 Radar Binance Futures - Signaux Entrée/Sortie</h1>
-  <table id="cryptoTable">
-    <thead>
-      <tr>
-        <th>Symbole</th>
-        <th>Ratio L/S</th>
-        <th>% Long</th>
-        <th>% Short</th>
-        <th>Funding Rate</th>
-        <th>Open Interest (M$)</th>
-        <th>Fourchette 24h (%)</th>
-        <th>Signal</th>
-      </tr>
-    </thead>
-    <tbody id="cryptoBody"></tbody>
-  </table>
+<div class="container">
+  <h1>🔥 Alerte Liquidations Binance Futures (Premium)</h1>
 
-  <script>
-    // Mémoire locale du funding précédent pour détecter changement de signe et sortie
-    const previousFunding = new Map();
+  <div id="shortAlert" class="alert-banner alert-short" style="display: none;"></div>
+  <div id="longAlert" class="alert-banner alert-long" style="display: none;"></div>
 
-    async function fetchAllData() {
-      const tableBody = document.getElementById("cryptoBody");
-      tableBody.innerHTML = "";
+  <select id="cryptoSelect">
+    <option value="">Chargement des cryptos...</option>
+  </select>
 
-      try {
-        const exchangeInfo = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo").then(r => r.json());
-        const symbols = exchangeInfo.symbols
-          .filter(s => s.contractType === "PERPETUAL" && s.symbol.endsWith("USDT"))
-          .map(s => s.symbol);
+  <div class="chart-container">
+    <canvas id="priceChart"></canvas>
+  </div>
 
-        const requests = symbols.map(async symbol => {
-          try {
-            const [ratioData, fundingData, tickerData] = await Promise.all([
-              fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${symbol}&period=5m&limit=1`).then(r => r.json()),
-              fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&limit=1`).then(r => r.json()),
-              fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${symbol}`).then(r => r.json())
-            ]);
+  <div class="price-info" id="priceInfo">
+    Sélectionnez une cryptomonnaie pour voir les données détaillées.
+  </div>
+</div>
 
-            const longRate = parseFloat(ratioData[0].longAccount) * 100;
-            const shortRate = parseFloat(ratioData[0].shortAccount) * 100;
-            const ratio = (longRate / shortRate).toFixed(2);
+<script>
+let priceChart = null;
+let allSymbols = [];
+let shortAlerts = [];
+let longAlerts = [];
 
-            const funding = parseFloat(fundingData[0].fundingRate) * 100;
+// Nouveau : Paramètres avancés
+const SETTINGS = {
+  SHORT_BUFFER: 0.98, // 2% sous le haut (au lieu de 1.5%)
+  LONG_BUFFER: 1.02,  // 2% au-dessus du bas
+  VOLATILITY_WINDOW: 14, // Période pour calculer la volatilité
+  ALERT_THRESHOLD: 3, // Seuil d'alerte en %
+  USE_SMOOTHING: true // Lissage des données
+};
 
-            const openInterest = parseFloat(tickerData.openInterest);
-            const lastPrice = parseFloat(tickerData.lastPrice);
-            const oiUSD = ((openInterest * lastPrice) / 1e6).toFixed(2);
+async function loadAllSymbols() {
+  try {
+    const res = await axios.get('https://fapi.binance.com/fapi/v1/exchangeInfo');
+    allSymbols = res.data.symbols
+      .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
+      .map(s => s.symbol);
+    updateSelect();
+    await checkAllLiquidations();
+  } catch (e) {
+    console.error("Erreur de chargement des symboles:", e);
+  }
+}
 
-            const highPrice = parseFloat(tickerData.highPrice);
-            const lowPrice = parseFloat(tickerData.lowPrice);
-            const rangePercent = ((highPrice - lowPrice) / ((highPrice + lowPrice) / 2)) * 100;
+async function checkAllLiquidations() {
+  shortAlerts = [];
+  longAlerts = [];
+  const shortBox = document.getElementById('shortAlert');
+  const longBox = document.getElementById('longAlert');
+  shortBox.style.display = 'none';
+  longBox.style.display = 'none';
+  shortBox.innerHTML = '';
+  longBox.innerHTML = '';
 
-            // Init signal et classe
-            let signal = "Neutre";
-            let rowClass = "neutral";
+  // Nouveau : On vérifie les 100 premières cryptos par volume
+  const toCheck = allSymbols.slice(0, 100);
 
-            // Conditions entrées
-            const bigWick = rangePercent > 5;
-            const fundingLongRisk = funding > 0.08 && longRate > 60 && oiUSD > 30;
-            const fundingShortRisk = funding < -0.08 && shortRate > 60 && oiUSD > 30;
+  const tasks = toCheck.map(async (symbol) => {
+    try {
+      const data = await fetchPriceData(symbol);
+      const last = data[data.length - 1].close;
+      const zones = await calculateLiquidationZones(symbol, data);
+      
+      const distanceShort = ((zones.short - last) / last) * 100;
+      const distanceLong = ((last - zones.long) / last) * 100;
 
-            // Récupérer funding précédent
-            const prevFunding = previousFunding.get(symbol) ?? 0;
-
-            // Logique signal entrée/sortie
-            if (fundingShortRisk && bigWick) {
-              signal = "🟢 Entrée LONG possible";
-              rowClass = "bullish";
-            } else if (fundingLongRisk && bigWick) {
-              signal = "🔴 Entrée SHORT possible";
-              rowClass = "bearish";
-            } else if (
-              prevFunding < 0 && funding > 0.03
-            ) {
-              signal = "⚠️ Sortir LONG / Take Profit";
-              rowClass = "bearish";
-            } else if (
-              prevFunding > 0 && funding < -0.03
-            ) {
-              signal = "⚠️ Sortir SHORT / Take Profit";
-              rowClass = "bullish";
-            } else if (bigWick) {
-              signal = "⚠️ Grosse mèche détectée";
-              rowClass = "neutral";
-            }
-
-            // Mise à jour funding précédent
-            previousFunding.set(symbol, funding);
-
-            return `
-              <tr class="${rowClass}">
-                <td>${symbol}</td>
-                <td>${ratio}</td>
-                <td>${longRate.toFixed(2)}%</td>
-                <td>${shortRate.toFixed(2)}%</td>
-                <td>${funding.toFixed(4)}%</td>
-                <td>${oiUSD}</td>
-                <td>${rangePercent.toFixed(2)}%</td>
-                <td>${signal}</td>
-              </tr>
-            `;
-          } catch {
-            return "";
-          }
+      // Nouveau : Score de confiance basé sur la volatilité
+      const confidence = calculateConfidenceScore(data);
+      
+      if (distanceShort < SETTINGS.ALERT_THRESHOLD) {
+        shortAlerts.push({ 
+          symbol, 
+          price: last.toFixed(4), 
+          liq: zones.short.toFixed(4), 
+          dist: distanceShort.toFixed(2),
+          confidence: confidence.short
         });
+      }
 
-        const rows = await Promise.all(requests);
-        tableBody.innerHTML = rows.join("");
+      if (distanceLong < SETTINGS.ALERT_THRESHOLD) {
+        longAlerts.push({ 
+          symbol, 
+          price: last.toFixed(4), 
+          liq: zones.long.toFixed(4), 
+          dist: distanceLong.toFixed(2),
+          confidence: confidence.long
+        });
+      }
 
-      } catch (error) {
-        console.error("Erreur lors du chargement des données :", error);
+    } catch (e) {
+      console.warn(`Erreur avec ${symbol}:`, e.message);
+    }
+  });
+
+  await Promise.all(tasks);
+
+  // Tri par distance et confiance
+  shortAlerts.sort((a, b) => a.dist - b.dist);
+  longAlerts.sort((a, b) => a.dist - b.dist);
+
+  if (shortAlerts.length > 0) {
+    shortBox.innerHTML = shortAlerts.map(s =>
+      `📉 ${s.symbol} — Prix: ${s.price}, Liquidation Short: ${s.liq} (Distance: +${s.dist}%) ${getConfidenceStars(s.confidence)}`
+    ).join('\n');
+    shortBox.style.display = 'block';
+    document.getElementById('cryptoSelect').value = shortAlerts[0].symbol;
+    loadChart();
+  }
+
+  if (longAlerts.length > 0) {
+    longBox.innerHTML = longAlerts.map(s =>
+      `📈 ${s.symbol} — Prix: ${s.price}, Liquidation Long: ${s.liq} (Distance: -${s.dist}%) ${getConfidenceStars(s.confidence)}`
+    ).join('\n');
+    longBox.style.display = 'block';
+  }
+}
+
+// Nouveau : Calcul du score de confiance
+function calculateConfidenceScore(data) {
+  const prices = data.map(d => d.close);
+  const changes = [];
+  
+  for (let i = 1; i < prices.length; i++) {
+    changes.push(Math.abs((prices[i] - prices[i-1]) / prices[i-1]));
+  }
+  
+  const avgChange = changes.reduce((a, b) => a + b, 0) / changes.length;
+  const volatility = Math.sqrt(changes.reduce((a, b) => a + Math.pow(b - avgChange, 2), 0) / changes.length);
+  
+  // Plus la volatilité est faible, plus la confiance est élevée
+  const confidence = Math.min(1, 1 / (volatility * 10));
+  
+  return {
+    short: confidence,
+    long: confidence
+  };
+}
+
+function getConfidenceStars(confidence) {
+  const stars = '★'.repeat(Math.round(confidence * 5));
+  return `[${stars.padEnd(5, '☆')}]`;
+}
+
+async function fetchPriceData(symbol) {
+  const res = await axios.get(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1d&limit=30`);
+  return res.data.map(d => ({
+    time: new Date(d[0]),
+    open: +d[1], high: +d[2], low: +d[3], close: +d[4],
+    volume: +d[5]
+  }));
+}
+
+// Nouvelle méthode de calcul des zones de liquidation
+async function calculateLiquidationZones(symbol, data) {
+  // 1. Calcul des moyennes mobiles pour lisser les données
+  const closes = data.map(d => d.close);
+  const highs = data.map(d => d.high);
+  const lows = data.map(d => d.low);
+  
+  // 2. Calcul de la volatilité
+  const volatility = calculateVolatility(closes);
+  
+  // 3. Calcul des zones avec ajustement dynamique
+  const dynamicShortBuffer = SETTINGS.SHORT_BUFFER - (volatility * 0.5);
+  const dynamicLongBuffer = SETTINGS.LONG_BUFFER + (volatility * 0.5);
+  
+  // 4. Filtrage des wicks extrêmes
+  const filteredHighs = filterOutliers(highs);
+  const filteredLows = filterOutliers(lows);
+  
+  // 5. Calcul des zones finales
+  return {
+    short: weightedAverage(filteredHighs) * dynamicShortBuffer,
+    long: weightedAverage(filteredLows) * dynamicLongBuffer,
+    volatility: volatility
+  };
+}
+
+// Nouveau : Calcul de la volatilité (écart-type des rendements)
+function calculateVolatility(prices) {
+  const returns = [];
+  for (let i = 1; i < prices.length; i++) {
+    returns.push((prices[i] - prices[i-1]) / prices[i-1]);
+  }
+  const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+  const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
+  return Math.sqrt(variance);
+}
+
+// Nouveau : Filtre les valeurs aberrantes
+function filterOutliers(values) {
+  if (values.length < 3) return values;
+  
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const stdDev = Math.sqrt(values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length);
+  
+  return values.filter(v => Math.abs(v - mean) <= stdDev * 2);
+}
+
+// Nouveau : Moyenne pondérée (plus de poids aux valeurs récentes)
+function weightedAverage(values) {
+  const weights = [];
+  const totalWeights = values.length * (values.length + 1) / 2;
+  
+  for (let i = 0; i < values.length; i++) {
+    weights.push((i + 1) / totalWeights);
+  }
+  
+  return values.reduce((a, v, i) => a + v * weights[i], 0);
+}
+
+function updateSelect() {
+  const select = document.getElementById('cryptoSelect');
+  select.innerHTML = allSymbols.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+async function loadChart() {
+  const symbol = document.getElementById('cryptoSelect').value;
+  if (!symbol) return;
+
+  document.getElementById('priceInfo').innerHTML = `<div class="loading">Chargement des données pour ${symbol}...</div>`;
+
+  try {
+    const data = await fetchPriceData(symbol);
+    const zones = await calculateLiquidationZones(symbol, data);
+    updateChart(symbol, data, zones);
+    updateInfo(symbol, data, zones);
+  } catch (e) {
+    document.getElementById('priceInfo').innerHTML = `<span class="red">Erreur : ${e.message}</span>`;
+  }
+}
+
+function updateChart(symbol, data, zones) {
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  if (priceChart) priceChart.destroy();
+
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(d => d.time.toLocaleDateString()),
+      datasets: [{
+        label: `${symbol} Prix`,
+        data: data.map(d => d.close),
+        borderColor: '#64b5f6',
+        tension: 0.1,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        annotation: {
+          annotations: {
+            shortLine: {
+              type: 'line',
+              yMin: zones.short,
+              yMax: zones.short,
+              borderColor: '#ff5252',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              label: {
+                content: `Short ~${zones.short.toFixed(2)}`,
+                display: true,
+                backgroundColor: 'rgba(255,82,82,0.7)'
+              }
+            },
+            longLine: {
+              type: 'line',
+              yMin: zones.long,
+              yMax: zones.long,
+              borderColor: '#4caf50',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              label: {
+                content: `Long ~${zones.long.toFixed(2)}`,
+                display: true,
+                backgroundColor: 'rgba(76,175,80,0.7)'
+              }
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#2b3a4a' } },
+        y: { grid: { color: '#2b3a4a' } }
       }
     }
+  });
+}
 
-    fetchAllData();
-      setInterval(fetchAllData, 300000000000000000); //
-  </script>
+function updateInfo(symbol, data, zones) {
+  const last = data[data.length - 1].close;
+  const distShort = ((zones.short - last) / last * 100).toFixed(2);
+  const distLong = ((last - zones.long) / last * 100).toFixed(2);
+  const confidence = calculateConfidenceScore(data);
+
+  document.getElementById('priceInfo').innerHTML = `
+    <strong>${symbol}</strong> — Dernier prix: <span class="highlight">${last.toFixed(4)}</span>
+    <div class="accuracy-indicator">Précision estimée: ${getConfidenceStars((confidence.short + confidence.long)/2)}</div><br>
+    <span class="red">📉 Liquidation Short: ${zones.short.toFixed(4)}</span><br>
+    Distance: <span class="red">+${distShort}%</span><br><br>
+    <span class="green">📈 Liquidation Long: ${zones.long.toFixed(4)}</span><br>
+    Distance: <span class="green">-${distLong}%</span>
+  `;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAllSymbols();
+  document.getElementById('cryptoSelect').addEventListener('change', loadChart);
+  setInterval(checkAllLiquidations, 5 * 60 * 1000); // Actualisation toutes les 3 minutes
+});
+</script>
 </body>
 </html>
