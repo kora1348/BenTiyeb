@@ -156,8 +156,8 @@ let realLiquidations = {};
 
 // Paramètres configurables
 const SETTINGS = {
-  MAX_DISTANCE: 10,
-  MIN_CONFIDENCE: 3,
+  MAX_DISTANCE: 5,  // Changé de 10 à 5
+  MIN_CONFIDENCE: 4, // Changé de 3 à 4
   SHORT_BUFFER: 0.98,
   LONG_BUFFER: 1.02,
   VOLATILITY_WINDOW: 14,
@@ -166,11 +166,16 @@ const SETTINGS = {
 
 // Chargement initial
 document.addEventListener('DOMContentLoaded', () => {
+  // CORRECTION : Mise à jour des valeurs affichées AVANT le chargement
+  document.getElementById('distanceValue').textContent = SETTINGS.MAX_DISTANCE + '%';
+  document.getElementById('confidenceValue').textContent = SETTINGS.MIN_CONFIDENCE + ' étoiles';
+  document.getElementById('distanceFilter').value = SETTINGS.MAX_DISTANCE;
+  document.getElementById('confidenceFilter').value = SETTINGS.MIN_CONFIDENCE;
+
   loadAllSymbols();
   setupEventListeners();
-  setInterval(checkAllLiquidations, 3 * 60 * 1000); // Actualisation toutes les 3 minutes
+  setInterval(checkAllLiquidations, 3 * 60 * 1000);
 });
-
 function setupEventListeners() {
   document.getElementById('cryptoSelect').addEventListener('change', loadChart);
   
