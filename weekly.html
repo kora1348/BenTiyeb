@@ -1,552 +1,571 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Graphique Binance Futures - Multi Cryptos (1d)</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #0e1621;
-      color: #e3eaf2;
-      margin: 0;
-      padding: 20px;
-    }
-    #container {
-      max-width: 1400px;
-      margin: auto;
-      background: #17212b;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-    h1 {
-      color: #64b5f6;
-      text-align: center;
-      margin-bottom: 25px;
-      font-size: 1.8rem;
-    }
-    .chart-container {
-      margin-bottom: 30px;
-      background: #1f2d3b;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      border-left: 4px solid #64b5f6;
-    }
-    canvas {
-      width: 100% !important;
-      height: 500px !important; /* Augmenté de 300px à 500px */
-    }
-    select, button {
-      padding: 10px 15px;
-      margin-bottom: 20px;
-      background: #2b3a4a;
-      color: #e3eaf2;
-      border: 1px solid #3d4f62;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      transition: all 0.2s;
-    }
-    select {
-      min-width: 300px;
-    }
-    button {
-      cursor: pointer;
-      margin-left: 10px;
-      background: #2b3a4a;
-      font-weight: 600;
-    }
-    button:hover {
-      background: #3d4f62;
-    }
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 20px 0;
-    }
-    .price-info {
-      margin-top: 15px;
-      font-size: 1em;
-      padding: 10px;
-      background: #2b3a4a;
-      border-radius: 6px;
-      display: inline-block;
-    }
-    .green-candle {
-      color: #4caf50;
-      font-weight: bold;
-    }
-    .red-candle {
-      color: #f44336;
-      font-weight: bold;
-    }
-    .alert-warning {
-      color: #ffb74d;
-      font-weight: bold;
-      margin-top: 8px;
-    }
-    .alert-buyer {
-      color: #4caf50;
-      font-weight: bold;
-      margin-top: 8px;
-    }
-    h3 {
-      color: #64b5f6;
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 1.3rem;
-      display: flex;
-      align-items: center;
-    }
-    .loading {
-      color: #64b5f6;
-      text-align: center;
-      font-style: italic;
-      padding: 20px;
-    }
-    @media (max-width: 768px) {
-      .pagination-controls {
-        flex-direction: column;
-      }
-      select, button {
-        width: 100%;
-        margin-left: 0;
-        margin-bottom: 10px;
-      }
-      canvas {
-        height: 300px !important; /* Taille réduite pour mobile */
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Liquidations Binance - Alerte Ultra-Précise</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0e1621;
+  color: #e3eaf2;
+  margin: 0;
+  padding: 20px;
+}
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: #17212b;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+h1 {
+  color: #64b5f6;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.alert-banner {
+  background: #1f2d3b;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: bold;
+  border-left: 4px solid #64b5f6;
+  line-height: 1.5em;
+  white-space: pre-line;
+}
+.alert-short {
+  border-left-color: #ff5252;
+}
+.alert-long {
+  border-left-color: #4caf50;
+}
+select {
+  width: 100%;
+  padding: 12px;
+  background: #2b3a4a;
+  color: white;
+  border: 1px solid #3d4f62;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+.chart-container {
+  background: #1f2d3b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border-left: 4px solid #64b5f6;
+}
+canvas {
+  width: 100% !important;
+  height: 350px !important;
+}
+.price-info {
+  background: #252b3b;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+.red { color: #ff5252; font-weight: bold; }
+.green { color: #4caf50; font-weight: bold; }
+.highlight {
+  background: #3a4466;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.loading {
+  color: #64b5f6;
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+.accuracy-indicator {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 5px;
+}
+.filter-panel {
+  background: #1f2d3b;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+.filter-control {
+  margin: 10px 0;
+}
+.filter-label {
+  display: block;
+  margin-bottom: 5px;
+}
+.filter-slider {
+  width: 100%;
+}
+.filter-value {
+  color: #64b5f6;
+  font-weight: bold;
+}
+.real-liquidations {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #888;
+}
+</style>
 </head>
 <body>
-  <div id="container">
-    <h1>Graphiques Binance Futures (1w) - Groupes de 50</h1>
-    
-<div class="pagination-controls" id="topPagination">
-  <select id="symbolGroupSelect">
-    <option disabled selected>Chargement des groupes...</option>
+<div class="container">
+  <h1>🔥 Liquidations Binance - Version Ultra-Précise</h1>
+
+  <div class="filter-panel">
+    <div class="filter-control">
+      <label class="filter-label">Distance maximale: <span class="filter-value" id="distanceValue">10%</span></label>
+      <input type="range" min="1" max="30" value="10" class="filter-slider" id="distanceFilter">
+    </div>
+    <div class="filter-control">
+      <label class="filter-label">Seuil de confiance: <span class="filter-value" id="confidenceValue">3 étoiles</span></label>
+      <input type="range" min="1" max="5" value="3" class="filter-slider" id="confidenceFilter">
+    </div>
+  </div>
+
+  <div id="shortAlert" class="alert-banner alert-short" style="display: none;"></div>
+  <div id="longAlert" class="alert-banner alert-long" style="display: none;"></div>
+
+  <select id="cryptoSelect">
+    <option value="">Chargement des cryptos...</option>
   </select>
-  <button id="prevGroupBtnTop">← Précédent</button>
-  <button id="nextGroupBtnTop">Suivant →</button>
+
+  <div class="chart-container">
+    <canvas id="priceChart"></canvas>
+  </div>
+
+  <div class="price-info" id="priceInfo">
+    Sélectionnez une cryptomonnaie pour voir les données détaillées.
+  </div>
 </div>
 
-<div id="chartsContainer"></div>
+<script>
+let priceChart = null;
+let allSymbols = [];
+let shortAlerts = [];
+let longAlerts = [];
+let realLiquidations = {};
 
-<div class="pagination-controls" id="bottomPagination">
-  <select id="symbolGroupSelectBottom">
-    <option disabled selected>Chargement des groupes...</option>
-  </select>
-  <button id="prevGroupBtnBottom">← Précédent</button>
-  <button id="nextGroupBtnBottom">Suivant →</button>
-</div>  </div>
+// Paramètres configurables
+const SETTINGS = {
+  MAX_DISTANCE: 10,
+  MIN_CONFIDENCE: 3,
+  SHORT_BUFFER: 0.98,
+  LONG_BUFFER: 1.02,
+  VOLATILITY_WINDOW: 14,
+  USE_SMOOTHING: true
+};
 
-  <script>
-    const INTERVAL = "1M";
-    const LIMIT = 100;
-    const GROUP_SIZE = 50;
-    let allSymbols = [];
-    let currentGroupIndex = 0;
-    let symbolGroups = [];
-    let previousPrices = {};
-    let priceChangeData = {};
-    let activeSymbols = new Set();
+// Chargement initial
+document.addEventListener('DOMContentLoaded', () => {
+  loadAllSymbols();
+  setupEventListeners();
+  setInterval(checkAllLiquidations, 3 * 60 * 1000); // Actualisation toutes les 3 minutes
+});
 
-    function fetchAllFuturesSymbols() {
-      axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo")
-        .then(function(res) {
-          allSymbols = res.data.symbols
-            .filter(s => s.contractType === "PERPETUAL" && 
-                        s.quoteAsset === "USDT" && 
-                        s.status === "TRADING")
-            .map(s => s.symbol);
+function setupEventListeners() {
+  document.getElementById('cryptoSelect').addEventListener('change', loadChart);
+  
+  document.getElementById('distanceFilter').addEventListener('input', function(e) {
+    SETTINGS.MAX_DISTANCE = parseInt(e.target.value);
+    document.getElementById('distanceValue').textContent = SETTINGS.MAX_DISTANCE + '%';
+    checkAllLiquidations();
+  });
+  
+  document.getElementById('confidenceFilter').addEventListener('input', function(e) {
+    SETTINGS.MIN_CONFIDENCE = parseInt(e.target.value);
+    document.getElementById('confidenceValue').textContent = SETTINGS.MIN_CONFIDENCE + ' étoiles';
+    checkAllLiquidations();
+  });
+}
 
-          activeSymbols = new Set(allSymbols);
+async function loadAllSymbols() {
+  try {
+    const [exchangeInfo, liquidations] = await Promise.all([
+      axios.get('https://fapi.binance.com/fapi/v1/exchangeInfo'),
+      fetchRealLiquidations()
+    ]);
+    
+    allSymbols = exchangeInfo.data.symbols
+      .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
+      .map(s => s.symbol);
+    
+    realLiquidations = processRealLiquidations(liquidations);
+    updateSelect();
+    await checkAllLiquidations();
+  } catch (e) {
+    console.error("Erreur de chargement:", e);
+  }
+}
 
-          fetchPriceChangeData().then(() => {
-            allSymbols.sort((a, b) => {
-              const changeA = priceChangeData[a] ? Math.abs(priceChangeData[a].priceChange) : 0;
-              const changeB = priceChangeData[b] ? Math.abs(priceChangeData[b].priceChange) : 0;
-              return changeB - changeA;
-            });
+async function fetchRealLiquidations() {
+  try {
+    const response = await axios.get('https://fapi.binance.com/fapi/v1/allForceOrders?limit=1000');
+    return response.data;
+  } catch (e) {
+    console.warn("Impossible de récupérer les liquidations réelles, utilisation des estimations");
+    return [];
+  }
+}
 
-            symbolGroups = [];
-            for (let i = 0; i < allSymbols.length; i += GROUP_SIZE) {
-              symbolGroups.push(allSymbols.slice(i, i + GROUP_SIZE));
-            }
-
-            updateGroupSelectors();
-            loadCurrentGroup();
-            setInterval(checkActiveSymbols, 300000);
-          });
-        })
-        .catch(function(err) {
-          console.error("Erreur récupération symboles:", err);
-        });
+function processRealLiquidations(liquidations) {
+  const result = {};
+  
+  liquidations.forEach(liq => {
+    if (!result[liq.symbol]) {
+      result[liq.symbol] = { shorts: [], longs: [] };
     }
-
-    async function checkActiveSymbols() {
-      try {
-        const response = await axios.get("https://fapi.binance.com/fapi/v1/exchangeInfo");
-        const newActiveSymbols = new Set(
-          response.data.symbols
-            .filter(s => s.contractType === "PERPETUAL" && 
-                        s.quoteAsset === "USDT" && 
-                        s.status === "TRADING")
-            .map(s => s.symbol)
-        );
-
-        const removedSymbols = [];
-        activeSymbols.forEach(symbol => {
-          if (!newActiveSymbols.has(symbol)) {
-            removedSymbols.push(symbol);
-          }
-        });
-
-        if (removedSymbols.length > 0) {
-          removedSymbols.forEach(symbol => {
-            const chartDiv = document.getElementById(`chart-${symbol}`);
-            if (chartDiv) chartDiv.remove();
-          });
-          console.log(`Symboles delistés supprimés: ${removedSymbols.join(', ')}`);
-        }
-
-        activeSymbols = newActiveSymbols;
-      } catch (error) {
-        console.error("Erreur vérification symboles actifs:", error);
-      }
-    }
-
-    async function fetchPriceChangeData() {
-      const promises = allSymbols.map(symbol => 
-        axios.get(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}`)
-          .then(response => {
-            const data = response.data.map(candle => ({
-              open: parseFloat(candle[1]),
-              close: parseFloat(candle[4]),
-            }));
-
-            const firstPrice = data[0].open;
-            const lastPrice = data[data.length - 1].close;
-            const priceChange = (lastPrice - firstPrice) / firstPrice;
-
-            priceChangeData[symbol] = {
-              priceChange: priceChange,
-              lastPrice: lastPrice
-            };
-          })
-          .catch(error => {
-            console.warn(`Erreur API Binance pour ${symbol} (variation).`);
-            priceChangeData[symbol] = {
-              priceChange: 0,
-              lastPrice: 0
-            };
-          })
-      );
-
-      await Promise.all(promises);
-    }
-
-    function updateGroupSelectors() {
-      const groupSelectTop = document.getElementById("symbolGroupSelect");
-      const groupSelectBottom = document.getElementById("symbolGroupSelectBottom");
-      const options = symbolGroups.map((group, index) => 
-        `<option value="${index}">Groupe ${index + 1} (${group[0]} à ${group[group.length - 1]})</option>`
-      ).join("");
-      
-      groupSelectTop.innerHTML = options;
-      groupSelectBottom.innerHTML = options;
-      
-      groupSelectTop.value = currentGroupIndex;
-      groupSelectBottom.value = currentGroupIndex;
-      
-      groupSelectTop.addEventListener("change", function() {
-        currentGroupIndex = parseInt(this.value);
-        document.getElementById("symbolGroupSelectBottom").value = currentGroupIndex;
-        loadCurrentGroup();
+    
+    if (liq.side === 'SELL') { // Liquidation short
+      result[liq.symbol].shorts.push({
+        price: parseFloat(liq.price),
+        time: new Date(liq.time),
+        quantity: parseFloat(liq.executedQty)
       });
-
-      groupSelectBottom.addEventListener("change", function() {
-        currentGroupIndex = parseInt(this.value);
-        document.getElementById("symbolGroupSelect").value = currentGroupIndex;
-        loadCurrentGroup();
+    } else { // Liquidation long
+      result[liq.symbol].longs.push({
+        price: parseFloat(liq.price),
+        time: new Date(liq.time),
+        quantity: parseFloat(liq.executedQty)
       });
     }
+  });
+  
+  return result;
+}
 
-    function setupPaginationButtons() {
-      const prevButtons = [document.getElementById("prevGroupBtnTop"), document.getElementById("prevGroupBtnBottom")];
-      const nextButtons = [document.getElementById("nextGroupBtnTop"), document.getElementById("nextGroupBtnBottom")];
+async function checkAllLiquidations() {
+  shortAlerts = [];
+  longAlerts = [];
+  
+  const toCheck = allSymbols.slice(0, 100); // Limité aux 100 premières pour performance
 
-      prevButtons.forEach(btn => {
-        btn.addEventListener("click", function() {
-          if (currentGroupIndex > 0) {
-            currentGroupIndex--;
-            document.getElementById("symbolGroupSelect").value = currentGroupIndex;
-            document.getElementById("symbolGroupSelectBottom").value = currentGroupIndex;
-            loadCurrentGroup();
-          }
-        });
-      });
+  const tasks = toCheck.map(async (symbol) => {
+    try {
+      const [priceData, liqData] = await Promise.all([
+        fetchPriceData(symbol),
+        fetchLiquidationData(symbol)
+      ]);
+      
+      const lastPrice = priceData[priceData.length - 1].close;
+      const zones = calculateLiquidationZones(symbol, priceData, liqData);
+      const confidence = calculateConfidenceScore(priceData, liqData);
+      
+      // Calcul des distances (toujours positives)
+      const distanceShort = Math.abs(((zones.short - lastPrice) / lastPrice) * 100);
+      const distanceLong = Math.abs(((lastPrice - zones.long) / lastPrice) * 100);
 
-      nextButtons.forEach(btn => {
-        btn.addEventListener("click", function() {
-          if (currentGroupIndex < symbolGroups.length - 1) {
-            currentGroupIndex++;
-            document.getElementById("symbolGroupSelect").value = currentGroupIndex;
-            document.getElementById("symbolGroupSelectBottom").value = currentGroupIndex;
-            loadCurrentGroup();
-          }
-        });
-      });
+      // Filtrage basé sur les paramètres
+      if (distanceShort < SETTINGS.MAX_DISTANCE && confidence.short * 5 >= SETTINGS.MIN_CONFIDENCE) {
+        shortAlerts.push(createAlertData(symbol, lastPrice, zones.short, distanceShort, confidence.short, 'short'));
+      }
+
+      if (distanceLong < SETTINGS.MAX_DISTANCE && confidence.long * 5 >= SETTINGS.MIN_CONFIDENCE) {
+        longAlerts.push(createAlertData(symbol, lastPrice, zones.long, distanceLong, confidence.long, 'long'));
+      }
+    } catch (e) {
+      console.warn(`Erreur avec ${symbol}:`, e.message);
     }
+  });
 
-    function loadCurrentGroup() {
-      const chartsContainer = document.getElementById("chartsContainer");
-      chartsContainer.innerHTML = "<p class='loading'>Chargement des graphiques...</p>";
-      
-      if (symbolGroups.length === 0 || currentGroupIndex >= symbolGroups.length) return;
-      
-      const currentGroup = symbolGroups[currentGroupIndex];
-      chartsContainer.innerHTML = "";
-      
-      let index = 0;
-      function loadNextChart() {
-        if (index >= currentGroup.length) return;
-        const symbol = currentGroup[index];
-        
-        if (!activeSymbols.has(symbol)) {
-          index++;
-          return loadNextChart();
-        }
-        
-        createChartElement(symbol);
-        fetchBinanceKlines(symbol, () => {
-          index++;
-          setTimeout(loadNextChart, 50);
-        });
-      }
-      loadNextChart();
+  await Promise.all(tasks);
+  updateAlertDisplays();
+}
+
+function createAlertData(symbol, price, liqPrice, distance, confidence, type) {
+  return {
+    symbol,
+    price: price.toFixed(4),
+    liq: liqPrice.toFixed(4),
+    dist: distance.toFixed(2),
+    confidence,
+    type,
+    realLiq: realLiquidations[symbol]?.[type === 'short' ? 'shorts' : 'longs'] || []
+  };
+}
+
+function updateAlertDisplays() {
+  const shortBox = document.getElementById('shortAlert');
+  const longBox = document.getElementById('longAlert');
+  
+  // Tri par distance (plus proche en premier)
+  shortAlerts.sort((a, b) => a.dist - b.dist);
+  longAlerts.sort((a, b) => a.dist - b.dist);
+
+  // Affichage des shorts
+  if (shortAlerts.length > 0) {
+    shortBox.innerHTML = shortAlerts.map(s => 
+      `📉 ${s.symbol} — Prix: ${s.price}, Liq: ${s.liq} (Distance: +${s.dist}%) ${getConfidenceStars(s.confidence)}
+      ${getRealLiquidationInfo(s.realLiq)}`
+    ).join('\n');
+    shortBox.style.display = 'block';
+  } else {
+    shortBox.style.display = 'none';
+  }
+
+  // Affichage des longs
+  if (longAlerts.length > 0) {
+    longBox.innerHTML = longAlerts.map(s =>
+      `📈 ${s.symbol} — Prix: ${s.price}, Liq: ${s.liq} (Distance: -${s.dist}%) ${getConfidenceStars(s.confidence)}
+      ${getRealLiquidationInfo(s.realLiq)}`
+    ).join('\n');
+    longBox.style.display = 'block';
+  } else {
+    longBox.style.display = 'none';
+  }
+}
+
+function getRealLiquidationInfo(liquidations) {
+  if (liquidations.length === 0) return '';
+  
+  const lastLiq = liquidations[0];
+  const liqCount = liquidations.length;
+  const totalQty = liquidations.reduce((sum, liq) => sum + liq.quantity, 0);
+  
+  return `<div class="real-liquidations">
+    Liquidations récentes: ${liqCount} (Total: ${totalQty.toFixed(2)})
+  </div>`;
+}
+
+async function fetchPriceData(symbol) {
+  const res = await axios.get(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=48`);
+  return res.data.map(d => ({
+    time: new Date(d[0]),
+    open: +d[1], high: +d[2], low: +d[3], close: +d[4],
+    volume: +d[5]
+  }));
+}
+
+async function fetchLiquidationData(symbol) {
+  return realLiquidations[symbol] || { shorts: [], longs: [] };
+}
+
+function calculateLiquidationZones(symbol, priceData, liqData) {
+  // 1. Calcul basé sur les liquidations réelles si disponibles
+  if (liqData.shorts.length > 0 || liqData.longs.length > 0) {
+    const realShort = liqData.shorts.length > 0 ? 
+      weightedAverage(liqData.shorts.map(liq => liq.price)) : null;
+    
+    const realLong = liqData.longs.length > 0 ? 
+      weightedAverage(liqData.longs.map(liq => liq.price)) : null;
+    
+    // 2. Calcul estimé comme fallback
+    const estimated = calculateEstimatedZones(priceData);
+    
+    return {
+      short: realShort || estimated.short,
+      long: realLong || estimated.long,
+      isReal: !!realShort || !!realLong
+    };
+  }
+  
+  // 3. Retourner seulement l'estimation si aucune donnée réelle
+  return calculateEstimatedZones(priceData);
+}
+
+function calculateEstimatedZones(priceData) {
+  const highs = priceData.map(d => d.high);
+  const lows = priceData.map(d => d.low);
+  const closes = priceData.map(d => d.close);
+  
+  // Calcul de la volatilité
+  const volatility = calculateVolatility(closes);
+  
+  // Filtrage des valeurs extrêmes
+  const filteredHighs = filterOutliers(highs);
+  const filteredLows = filterOutliers(lows);
+  
+  // Ajustement dynamique basé sur la volatilité
+  const shortBuffer = SETTINGS.SHORT_BUFFER - (volatility * 0.3);
+  const longBuffer = SETTINGS.LONG_BUFFER + (volatility * 0.3);
+  
+  return {
+    short: weightedAverage(filteredHighs) * shortBuffer,
+    long: weightedAverage(filteredLows) * longBuffer
+  };
+}
+
+function calculateConfidenceScore(priceData, liqData) {
+  // Score basé sur les liquidations réelles
+  if (liqData.shorts.length > 0 || liqData.longs.length > 0) {
+    const recency = calculateRecencyScore(liqData);
+    const quantityScore = Math.min(1, liqData.shorts.concat(liqData.longs).reduce((sum, liq) => sum + liq.quantity, 0) / 1000);
+    
+    return {
+      short: liqData.shorts.length > 0 ? 0.8 + (0.2 * recency) + (0.1 * quantityScore) : 0.5,
+      long: liqData.longs.length > 0 ? 0.8 + (0.2 * recency) + (0.1 * quantityScore) : 0.5
+    };
+  }
+  
+  // Score basé sur l'estimation (volatilité + volume)
+  const volatility = calculateVolatility(priceData.map(d => d.close));
+  const volumeScore = Math.min(1, priceData.reduce((sum, d) => sum + d.volume, 0) / 100000);
+  
+  return {
+    short: Math.min(1, 0.7 - (volatility * 2) + (volumeScore * 0.3)),
+    long: Math.min(1, 0.7 - (volatility * 2) + (volumeScore * 0.3))
+  };
+}
+
+function calculateRecencyScore(liqData) {
+  const now = Date.now();
+  const lastShort = liqData.shorts.length > 0 ? Math.max(...liqData.shorts.map(liq => liq.time.getTime())) : 0;
+  const lastLong = liqData.longs.length > 0 ? Math.max(...liqData.longs.map(liq => liq.time.getTime())) : 0;
+  
+  const shortRecency = lastShort > 0 ? Math.max(0, 1 - (now - lastShort) / (24 * 60 * 60 * 1000)) : 0;
+  const longRecency = lastLong > 0 ? Math.max(0, 1 - (now - lastLong) / (24 * 60 * 60 * 1000)) : 0;
+  
+  return Math.max(shortRecency, longRecency);
+}
+
+function calculateVolatility(prices) {
+  if (prices.length < 2) return 0;
+  
+  const returns = [];
+  for (let i = 1; i < prices.length; i++) {
+    returns.push(Math.log(prices[i] / prices[i-1]));
+  }
+  
+  const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+  const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
+  
+  return Math.sqrt(variance) * Math.sqrt(365); // Volatilité annualisée
+}
+
+function filterOutliers(values) {
+  if (values.length < 3) return values;
+  
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const stdDev = Math.sqrt(values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length);
+  
+  return values.filter(v => Math.abs(v - mean) <= stdDev * 1.5);
+}
+
+function weightedAverage(values, weights) {
+  if (!weights) {
+    weights = [];
+    const totalWeights = values.length * (values.length + 1) / 2;
+    for (let i = 0; i < values.length; i++) {
+      weights.push((i + 1) / totalWeights);
     }
+  }
+  
+  return values.reduce((a, v, i) => a + v * weights[i], 0);
+}
 
-    function createChartElement(symbol) {
-      const chartsContainer = document.getElementById("chartsContainer");
-      
-      const chartDiv = document.createElement("div");
-      chartDiv.className = "chart-container";
-      chartDiv.id = `chart-${symbol}`;
-      
-      const priceChange = priceChangeData[symbol] ? (priceChangeData[symbol].priceChange * 100).toFixed(2) + '%' : 'N/A';
-      const changeColor = priceChangeData[symbol] && priceChangeData[symbol].priceChange >= 0 ? '#4caf50' : '#f44336';
-      
-      chartDiv.innerHTML = `
-        <h3>${symbol} <span style="font-size: 0.8em; color: ${changeColor};">(Var: ${priceChange})</span></h3>
-        <canvas id="chart-canvas-${symbol}"></canvas>
-        <div id="price-info-${symbol}" class="price-info">Chargement...</div>
-        <div id="alert-${symbol}"></div>
-      `;
-      
-      chartsContainer.appendChild(chartDiv);
-    }
+function getConfidenceStars(confidence) {
+  const stars = '★'.repeat(Math.round(confidence * 5));
+  return `[${stars.padEnd(5, '☆')}]`;
+}
 
-    function fetchBinanceKlines(symbol, callback) {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${INTERVAL}&limit=${LIMIT}`;
+function updateSelect() {
+  const select = document.getElementById('cryptoSelect');
+  select.innerHTML = allSymbols.map(s => `<option value="${s}">${s}</option>`).join('');
+}
 
-      axios.get(url)
-        .then(function(response) {
-          if (!activeSymbols.has(symbol)) {
-            const chartDiv = document.getElementById(`chart-${symbol}`);
-            if (chartDiv) chartDiv.remove();
-            if (callback) callback();
-            return;
-          }
+async function loadChart() {
+  const symbol = document.getElementById('cryptoSelect').value;
+  if (!symbol) return;
 
-          const data = response.data.map(candle => ({
-            time: new Date(candle[0]),
-            open: parseFloat(candle[1]),
-            high: parseFloat(candle[2]),
-            low: parseFloat(candle[3]),
-            close: parseFloat(candle[4]),
-          }));
+  document.getElementById('priceInfo').innerHTML = `<div class="loading">Chargement des données pour ${symbol}...</div>`;
 
-          updateChart(symbol, data);
-          if (callback) callback();
-        })
-        .catch(function(error) {
-          console.warn(`Erreur API Binance pour ${symbol}. Bloc supprimé.`);
-          const chartDiv = document.getElementById(`chart-${symbol}`);
-          if (chartDiv) chartDiv.remove();
-          if (callback) callback();
-        });
-    }
+  try {
+    const [priceData, liqData] = await Promise.all([
+      fetchPriceData(symbol),
+      fetchLiquidationData(symbol)
+    ]);
+    
+    const zones = calculateLiquidationZones(symbol, priceData, liqData);
+    updateChart(symbol, priceData, zones);
+    updateInfo(symbol, priceData, zones);
+  } catch (e) {
+    document.getElementById('priceInfo').innerHTML = `<span class="red">Erreur : ${e.message}</span>`;
+  }
+}
 
-    function updateChart(symbol, data) {
-      if (!activeSymbols.has(symbol)) {
-        const chartDiv = document.getElementById(`chart-${symbol}`);
-        if (chartDiv) chartDiv.remove();
-        return;
+function updateChart(symbol, data, zones) {
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  if (priceChart) priceChart.destroy();
+
+  const annotations = {
+    shortLine: {
+      type: 'line',
+      yMin: zones.short,
+      yMax: zones.short,
+      borderColor: '#ff5252',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      label: {
+        content: `Short ~${zones.short.toFixed(2)}`,
+        display: true,
+        backgroundColor: 'rgba(255,82,82,0.7)'
       }
-
-      const last = data[data.length - 1];
-      const prev = data.length > 1 ? data[data.length - 2] : last;
-      const isGreen = last.close > last.open;
-
-      const zoneVendeur = last.close * 1.0015;
-      const zoneAcheteur = last.close * 0.998;
-
-      let buyerAlert = '';
-      if (previousPrices[symbol]) {
-        if (previousPrices[symbol] < zoneAcheteur && last.close >= zoneAcheteur) {
-          buyerAlert = `<div class="alert-buyer" id="buyer-alert-${symbol}">ALERTE: ${symbol} vient de toucher la zone acheteurs depuis le bas!</div>`;
-        }
-      }
-      
-      previousPrices[symbol] = last.close;
-
-      const labels = data.map(d => {
-        const day = d.time.getDate().toString().padStart(2, "0");
-        const month = (d.time.getMonth() + 1).toString().padStart(2, "0");
-        return `${day}/${month}`;
-      });
-
-      const ctx = document.getElementById(`chart-canvas-${symbol}`).getContext("2d");
-
-      if (window[`chart_${symbol}`]) {
-        window[`chart_${symbol}`].destroy();
-      }
-
-      window[`chart_${symbol}`] = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: `${symbol} (1d)`,
-            data: data.map(d => d.close),
-            borderColor: "#4fc3f7",
-            borderWidth: 2,
-            pointBackgroundColor: "#4fc3f7",
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            fill: false,
-            tension: 0.1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-              backgroundColor: '#1f2d3b',
-              titleColor: '#64b5f6',
-              bodyColor: '#e3eaf2',
-              borderColor: '#3d4f62',
-              borderWidth: 1,
-              padding: 12,
-              callbacks: {
-                label: function(context) {
-                  return `${symbol}: ${context.parsed.y.toFixed(6)}`;
-                }
-              }
-            },
-            annotation: {
-              annotations: {
-                zoneVendeur: {
-                  type: 'line',
-                  yMin: zoneVendeur,
-                  yMax: zoneVendeur,
-                  borderColor: '#f44336',
-                  borderWidth: 2,
-                  label: {
-                    content: `Zone Vendeurs (${zoneVendeur.toFixed(6)})`,
-                    enabled: true,
-                    backgroundColor: 'rgba(244, 67, 54, 0.7)',
-                    color: '#fff',
-                    font: { weight: 'bold', size: 12 },
-                    position: 'right'
-                  }
-                },
-                zoneAcheteur: {
-                  type: 'line',
-                  yMin: zoneAcheteur,
-                  yMax: zoneAcheteur,
-                  borderColor: '#4caf50',
-                  borderWidth: 2,
-                  label: {
-                    content: `Zone Acheteurs (${zoneAcheteur.toFixed(6)})`,
-                    enabled: true,
-                    backgroundColor: 'rgba(76, 175, 80, 0.7)',
-                    color: '#fff',
-                    font: { weight: 'bold', size: 12 },
-                    position: 'right'
-                  }
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: {
-                color: 'rgba(61, 79, 98, 0.5)',
-                borderColor: '#3d4f62'
-              },
-              ticks: {
-                color: '#8b9eb0',
-                maxRotation: 45,
-                minRotation: 45
-              }
-            },
-            y: {
-              grid: {
-                color: 'rgba(61, 79, 98, 0.5)',
-                borderColor: '#3d4f62'
-              },
-              ticks: {
-                color: '#8b9eb0',
-                callback: value => parseFloat(value).toFixed(6)
-              }
-            }
-          },
-          interaction: {
-            mode: 'nearest',
-            axis: 'x',
-            intersect: false
-          }
-        },
-        plugins: [Chart.registry.getPlugin('annotation')]
-      });
-
-      let alertMessage = '';
-      if (last.close >= zoneVendeur) {
-        alertMessage = `<div class="alert-warning"> ALERTE: ${symbol} touche ou dépasse la zone vendeurs !</div>`;
-      }
-
-      const priceInfo = document.getElementById(`price-info-${symbol}`);
-      priceInfo.innerHTML = `
-        Dernier prix: <span class="${isGreen ? "green-candle" : "red-candle"}">${last.close.toFixed(6)}</span> |
-        Zone Vendeurs: <span class="red-candle">${zoneVendeur.toFixed(6)}</span> |
-        Zone Acheteurs: <span class="green-candle">${zoneAcheteur.toFixed(6)}</span>
-        ${alertMessage}
-      `;
-
-      const alertDiv = document.getElementById(`alert-${symbol}`);
-      if (buyerAlert) {
-        alertDiv.innerHTML = buyerAlert;
-      } else {
-        alertDiv.innerHTML = '';
+    },
+    longLine: {
+      type: 'line',
+      yMin: zones.long,
+      yMax: zones.long,
+      borderColor: '#4caf50',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      label: {
+        content: `Long ~${zones.long.toFixed(2)}`,
+        display: true,
+        backgroundColor: 'rgba(76,175,80,0.7)'
       }
     }
+  };
 
-    fetchAllFuturesSymbols();
-    setupPaginationButtons();
-  </script>
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(d => d.time.toLocaleTimeString()),
+      datasets: [{
+        label: `${symbol} Prix`,
+        data: data.map(d => d.close),
+        borderColor: '#64b5f6',
+        tension: 0.1,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        annotation: { annotations }
+      },
+      scales: {
+        x: { grid: { color: '#2b3a4a' } },
+        y: { grid: { color: '#2b3a4a' } }
+      }
+    }
+  });
+}
+
+function updateInfo(symbol, data, zones) {
+  const last = data[data.length - 1].close;
+  const distShort = Math.abs(((zones.short - last) / last * 100)).toFixed(2);
+  const distLong = Math.abs(((last - zones.long) / last * 100)).toFixed(2);
+  const confidence = calculateConfidenceScore(data, realLiquidations[symbol] || { shorts: [], longs: [] });
+
+  document.getElementById('priceInfo').innerHTML = `
+    <strong>${symbol}</strong> — Dernier prix: <span class="highlight">${last.toFixed(4)}</span>
+    <div class="accuracy-indicator">Précision: ${getConfidenceStars((confidence.short + confidence.long)/2)} ${zones.isReal ? '(Basé sur données réelles)' : '(Estimation)'}</div><br>
+    <span class="red">📉 Liquidation Short: ${zones.short.toFixed(4)}</span><br>
+    Distance: <span class="red">+${distShort}%</span><br><br>
+    <span class="green">📈 Liquidation Long: ${zones.long.toFixed(4)}</span><br>
+    Distance: <span class="green">-${distLong}%</span>
+  `;
+}
+</script>
 </body>
 </html>
