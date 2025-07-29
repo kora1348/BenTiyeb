@@ -44,7 +44,7 @@ h1 {
 .alert-long {
   border-left-color: #4caf50;
 }
-select {
+select, input {
   width: 100%;
   padding: 12px;
   background: #2b3a4a;
@@ -105,6 +105,7 @@ canvas {
   <select id="cryptoSelect">
     <option value="">Chargement des cryptos...</option>
   </select>
+  <input type="text" id="dateTimeInput" placeholder="Entrez une date et heure (format: JJ/MM/AAAA HH:MM)">
   <div class="chart-container">
     <canvas id="priceChart"></canvas>
   </div>
@@ -120,7 +121,7 @@ let longAlerts = [];
 let realLiquidations = {};
 // Paramètres configurables
 const SETTINGS = {
-  MAX_DISTANCE: 2,  // Changé pour filtrer entre 2% et 2.99%
+  MAX_DISTANCE: 1,  // Filtre pour les distances inférieures à 1%
   MIN_CONFIDENCE: 0, // Désactivé le filtre de confiance
   SHORT_BUFFER: 0.98,
   LONG_BUFFER: 1.02,
@@ -131,10 +132,11 @@ const SETTINGS = {
 document.addEventListener('DOMContentLoaded', () => {
   loadAllSymbols();
   setupEventListeners();
-  setInterval(checkAllLiquidations, 10 * 60 * 1000);
+  setInterval(() => checkAllLiquidations(), 10 * 60 * 1000);
 });
 function setupEventListeners() {
   document.getElementById('cryptoSelect').addEventListener('change', loadChart);
+  document.getElementById('dateTimeInput').addEventListener('change', loadChart);
 }
 async function loadAllSymbols() {
   try {
@@ -189,14 +191,14 @@ function processRealLiquidations(liquidations) {
   });
   return result;
 }
-async function checkAllLiquidations() {
+async function checkAllLiquidations(endTime = null) {
   shortAlerts = [];
   longAlerts = [];
   const toCheck = allSymbols.slice(0, 100); // Limité aux 100 premières pour performance
   const tasks = toCheck.map(async (symbol) => {
     try {
       const [priceData, liqData] = await Promise.all([
-        fetchPriceData(symbol),
+        fetchPriceData(symbol, endTime),
         fetchLiquidationData(symbol)
       ]);
       const lastPrice = priceData[priceData.length - 1].close;
@@ -206,10 +208,10 @@ async function checkAllLiquidations() {
       const distanceShort = Math.abs(((zones.short - lastPrice) / lastPrice) * 100);
       const distanceLong = Math.abs(((lastPrice - zones.long) / lastPrice) * 100);
       // Filtrage basé sur les paramètres
-      if (distanceShort >= 0 && distanceShort < 1) {
+      if (distanceShort >= 0 && distanceShort < SETTINGS.MAX_DISTANCE) {
         shortAlerts.push(createAlertData(symbol, lastPrice, zones.short, distanceShort, confidence.short, 'short'));
       }
-      if (distanceLong >= 0 && distanceLong < 1) {
+      if (distanceLong >= 0 && distanceLong < SETTINGS.MAX_DISTANCE) {
         longAlerts.push(createAlertData(symbol, lastPrice, zones.long, distanceLong, confidence.long, 'long'));
       }
     } catch (e) {
@@ -264,8 +266,12 @@ function getRealLiquidationInfo(liquidations) {
     Liquidations récentes: ${liqCount} (Total: ${totalQty.toFixed(2)})
   </div>`;
 }
-async function fetchPriceData(symbol) {
-  const res = await axios.get(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=48`);
+async function fetchPriceData(symbol, endTime) {
+  let url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=48`;
+  if (endTime) {
+    url += `&endTime=${endTime}`;
+  }
+  const res = await axios.get(url);
   return res.data.map(d => ({
     time: new Date(d[0]),
     open: +d[1], high: +d[2], low: +d[3], close: +d[4],
@@ -368,16 +374,26 @@ function updateSelect() {
 }
 async function loadChart() {
   const symbol = document.getElementById('cryptoSelect').value;
+  const dateTimeInput = document.getElementById('dateTimeInput').value;
+  let endTime = null;
+  if (dateTimeInput) {
+    const [datePart, timePart] = dateTimeInput.split(' ');
+    const [day, month, year] = datePart.split('/').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    const date = new Date(year, month - 1, day, hours, minutes);
+    endTime = date.getTime();
+  }
   if (!symbol) return;
   document.getElementById('priceInfo').innerHTML = `<div class="loading">Chargement des données pour ${symbol}...</div>`;
   try {
     const [priceData, liqData] = await Promise.all([
-      fetchPriceData(symbol),
+      fetchPriceData(symbol, endTime),
       fetchLiquidationData(symbol)
     ]);
     const zones = calculateLiquidationZones(symbol, priceData, liqData);
     updateChart(symbol, priceData, zones);
     updateInfo(symbol, priceData, zones);
+    await checkAllLiquidations(endTime); // Mise à jour des alertes après chargement des données
   } catch (e) {
     document.getElementById('priceInfo').innerHTML = `<span class="red">Erreur : ${e.message}</span>`;
   }
