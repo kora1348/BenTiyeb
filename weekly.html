@@ -16,7 +16,7 @@ body {
   padding: 20px;
 }
 .container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   background: #17212b;
   padding: 20px;
@@ -60,10 +60,11 @@ select {
   border-radius: 10px;
   margin-bottom: 20px;
   border-left: 4px solid #64b5f6;
+  height: 500px;
 }
 canvas {
   width: 100% !important;
-  height: 350px !important;
+  height: 100% !important;
 }
 .price-info {
   background: #252b3b;
@@ -141,16 +142,13 @@ async function loadAllSymbols() {
       axios.get('https://fapi.binance.com/fapi/v1/exchangeInfo'),
       fetchRealLiquidations()
     ]);
-
     allSymbols = exchangeInfo.data.symbols
       .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
       .map(s => s.symbol)
       .sort(); // Tri alphabétique ajouté ici
-
     realLiquidations = processRealLiquidations(liquidations);
     updateSelect();
     await checkAllLiquidations();
-
     // Charger automatiquement le graphique pour la première crypto
     if (allSymbols.length > 0) {
       document.getElementById('cryptoSelect').value = allSymbols[0];
@@ -171,12 +169,10 @@ async function fetchRealLiquidations() {
 }
 function processRealLiquidations(liquidations) {
   const result = {};
-
   liquidations.forEach(liq => {
     if (!result[liq.symbol]) {
       result[liq.symbol] = { shorts: [], longs: [] };
     }
-
     if (liq.side === 'SELL') { // Liquidation short
       result[liq.symbol].shorts.push({
         price: parseFloat(liq.price),
@@ -191,13 +187,11 @@ function processRealLiquidations(liquidations) {
       });
     }
   });
-
   return result;
 }
 async function checkAllLiquidations() {
   shortAlerts = [];
   longAlerts = [];
-
   const toCheck = allSymbols.slice(0, 100); // Limité aux 100 premières pour performance
   const tasks = toCheck.map(async (symbol) => {
     try {
@@ -205,15 +199,12 @@ async function checkAllLiquidations() {
         fetchPriceData(symbol),
         fetchLiquidationData(symbol)
       ]);
-
       const lastPrice = priceData[priceData.length - 1].close;
       const zones = calculateLiquidationZones(symbol, priceData, liqData);
       const confidence = calculateConfidenceScore(priceData, liqData);
-
       // Calcul des distances (toujours positives)
       const distanceShort = Math.abs(((zones.short - lastPrice) / lastPrice) * 100);
       const distanceLong = Math.abs(((lastPrice - zones.long) / lastPrice) * 100);
-
       // Filtrage basé sur les paramètres
       if (distanceShort >= 0 && distanceShort < 1) {
         shortAlerts.push(createAlertData(symbol, lastPrice, zones.short, distanceShort, confidence.short, 'short'));
@@ -242,11 +233,9 @@ function createAlertData(symbol, price, liqPrice, distance, confidence, type) {
 function updateAlertDisplays() {
   const shortBox = document.getElementById('shortAlert');
   const longBox = document.getElementById('longAlert');
-
   // Tri par distance (plus proche en premier)
   shortAlerts.sort((a, b) => a.dist - b.dist);
   longAlerts.sort((a, b) => a.dist - b.dist);
-
   // Affichage des shorts
   if (shortAlerts.length > 0) {
     shortBox.innerHTML = shortAlerts.map(s =>
@@ -256,7 +245,6 @@ function updateAlertDisplays() {
   } else {
     shortBox.style.display = 'none';
   }
-
   // Affichage des longs
   if (longAlerts.length > 0) {
     longBox.innerHTML = longAlerts.map(s =>
@@ -269,11 +257,9 @@ function updateAlertDisplays() {
 }
 function getRealLiquidationInfo(liquidations) {
   if (liquidations.length === 0) return '';
-
   const lastLiq = liquidations[0];
   const liqCount = liquidations.length;
   const totalQty = liquidations.reduce((sum, liq) => sum + liq.quantity, 0);
-
   return `<div class="real-liquidations">
     Liquidations récentes: ${liqCount} (Total: ${totalQty.toFixed(2)})
   </div>`;
@@ -294,20 +280,16 @@ function calculateLiquidationZones(symbol, priceData, liqData) {
   if (liqData.shorts.length > 0 || liqData.longs.length > 0) {
     const realShort = liqData.shorts.length > 0 ?
       weightedAverage(liqData.shorts.map(liq => liq.price)) : null;
-
     const realLong = liqData.longs.length > 0 ?
       weightedAverage(liqData.longs.map(liq => liq.price)) : null;
-
     // 2. Calcul estimé comme fallback
     const estimated = calculateEstimatedZones(priceData);
-
     return {
       short: realShort || estimated.short,
       long: realLong || estimated.long,
       isReal: !!realShort || !!realLong
     };
   }
-
   // 3. Retourner seulement l'estimation si aucune donnée réelle
   return calculateEstimatedZones(priceData);
 }
@@ -315,18 +297,14 @@ function calculateEstimatedZones(priceData) {
   const highs = priceData.map(d => d.high);
   const lows = priceData.map(d => d.low);
   const closes = priceData.map(d => d.close);
-
   // Calcul de la volatilité
   const volatility = calculateVolatility(closes);
-
   // Filtrage des valeurs extrêmes
   const filteredHighs = filterOutliers(highs);
   const filteredLows = filterOutliers(lows);
-
   // Ajustement dynamique basé sur la volatilité
   const shortBuffer = SETTINGS.SHORT_BUFFER - (volatility * 0.3);
   const longBuffer = SETTINGS.LONG_BUFFER + (volatility * 0.3);
-
   return {
     short: weightedAverage(filteredHighs) * shortBuffer,
     long: weightedAverage(filteredLows) * longBuffer
@@ -337,17 +315,14 @@ function calculateConfidenceScore(priceData, liqData) {
   if (liqData.shorts.length > 0 || liqData.longs.length > 0) {
     const recency = calculateRecencyScore(liqData);
     const quantityScore = Math.min(1, liqData.shorts.concat(liqData.longs).reduce((sum, liq) => sum + liq.quantity, 0) / 1000);
-
     return {
       short: liqData.shorts.length > 0 ? 0.8 + (0.2 * recency) + (0.1 * quantityScore) : 0.5,
       long: liqData.longs.length > 0 ? 0.8 + (0.2 * recency) + (0.1 * quantityScore) : 0.5
     };
   }
-
   // Score basé sur l'estimation (volatilité + volume)
   const volatility = calculateVolatility(priceData.map(d => d.close));
   const volumeScore = Math.min(1, priceData.reduce((sum, d) => sum + d.volume, 0) / 100000);
-
   return {
     short: Math.min(1, 0.7 - (volatility * 2) + (volumeScore * 0.3)),
     long: Math.min(1, 0.7 - (volatility * 2) + (volumeScore * 0.3))
@@ -357,31 +332,24 @@ function calculateRecencyScore(liqData) {
   const now = Date.now();
   const lastShort = liqData.shorts.length > 0 ? Math.max(...liqData.shorts.map(liq => liq.time.getTime())) : 0;
   const lastLong = liqData.longs.length > 0 ? Math.max(...liqData.longs.map(liq => liq.time.getTime())) : 0;
-
   const shortRecency = lastShort > 0 ? Math.max(0, 1 - (now - lastShort) / (24 * 60 * 60 * 1000)) : 0;
   const longRecency = lastLong > 0 ? Math.max(0, 1 - (now - lastLong) / (24 * 60 * 60 * 1000)) : 0;
-
   return Math.max(shortRecency, longRecency);
 }
 function calculateVolatility(prices) {
   if (prices.length < 2) return 0;
-
   const returns = [];
   for (let i = 1; i < prices.length; i++) {
     returns.push(Math.log(prices[i] / prices[i-1]));
   }
-
   const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
   const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
-
   return Math.sqrt(variance) * Math.sqrt(365); // Volatilité annualisée
 }
 function filterOutliers(values) {
   if (values.length < 3) return values;
-
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const stdDev = Math.sqrt(values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length);
-
   return values.filter(v => Math.abs(v - mean) <= stdDev * 1.5);
 }
 function weightedAverage(values, weights) {
@@ -392,7 +360,6 @@ function weightedAverage(values, weights) {
       weights.push((i + 1) / totalWeights);
     }
   }
-
   return values.reduce((a, v, i) => a + v * weights[i], 0);
 }
 function updateSelect() {
@@ -408,7 +375,6 @@ async function loadChart() {
       fetchPriceData(symbol),
       fetchLiquidationData(symbol)
     ]);
-
     const zones = calculateLiquidationZones(symbol, priceData, liqData);
     updateChart(symbol, priceData, zones);
     updateInfo(symbol, priceData, zones);
@@ -450,7 +416,7 @@ function updateChart(symbol, data, zones) {
   priceChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: data.map(d => d.time.toLocaleTimeString()),
+      labels: data.map(d => d.time.toLocaleString('fr-BE')),
       datasets: [{
         label: `${symbol} Prix`,
         data: data.map(d => d.close),
@@ -462,12 +428,20 @@ function updateChart(symbol, data, zones) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         annotation: { annotations }
       },
       scales: {
-        x: { grid: { color: '#2b3a4a' } },
+        x: {
+          grid: { color: '#2b3a4a' },
+          ticks: {
+            autoSkip: false,
+            maxRotation: 90,
+            minRotation: 90
+          }
+        },
         y: { grid: { color: '#2b3a4a' } }
       }
     }
