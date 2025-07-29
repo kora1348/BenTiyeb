@@ -119,7 +119,6 @@ canvas {
 <body>
 <div class="container">
   <h1>🔥 Liquidations Binance - Version Ultra-Précise</h1>
-
   <div class="filter-panel">
     <div class="filter-control">
       <label class="filter-label">Distance maximale: <span class="filter-value" id="distanceValue">10%</span></label>
@@ -130,23 +129,18 @@ canvas {
       <input type="range" min="1" max="5" value="3" class="filter-slider" id="confidenceFilter">
     </div>
   </div>
-
   <div id="shortAlert" class="alert-banner alert-short" style="display: none;"></div>
   <div id="longAlert" class="alert-banner alert-long" style="display: none;"></div>
-
   <select id="cryptoSelect">
     <option value="">Chargement des cryptos...</option>
   </select>
-
   <div class="chart-container">
     <canvas id="priceChart"></canvas>
   </div>
-
   <div class="price-info" id="priceInfo">
     Sélectionnez une cryptomonnaie pour voir les données détaillées.
   </div>
 </div>
-
 <script>
 let priceChart = null;
 let allSymbols = [];
@@ -171,11 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('confidenceValue').textContent = SETTINGS.MIN_CONFIDENCE + ' étoiles';
   document.getElementById('distanceFilter').value = SETTINGS.MAX_DISTANCE;
   document.getElementById('confidenceFilter').value = SETTINGS.MIN_CONFIDENCE;
-
   loadAllSymbols();
   setupEventListeners();
   setInterval(checkAllLiquidations, 3 * 60 * 1000);
 });
+
 function setupEventListeners() {
   document.getElementById('cryptoSelect').addEventListener('change', loadChart);
   
@@ -201,11 +195,18 @@ async function loadAllSymbols() {
     
     allSymbols = exchangeInfo.data.symbols
       .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
-      .map(s => s.symbol);
+      .map(s => s.symbol)
+      .sort(); // Tri alphabétique ajouté ici
     
     realLiquidations = processRealLiquidations(liquidations);
     updateSelect();
     await checkAllLiquidations();
+    
+    // Charger automatiquement le graphique pour la première crypto
+    if (allSymbols.length > 0) {
+      document.getElementById('cryptoSelect').value = allSymbols[0];
+      loadChart();
+    }
   } catch (e) {
     console.error("Erreur de chargement:", e);
   }
@@ -252,7 +253,6 @@ async function checkAllLiquidations() {
   longAlerts = [];
   
   const toCheck = allSymbols.slice(0, 100); // Limité aux 100 premières pour performance
-
   const tasks = toCheck.map(async (symbol) => {
     try {
       const [priceData, liqData] = await Promise.all([
@@ -267,12 +267,10 @@ async function checkAllLiquidations() {
       // Calcul des distances (toujours positives)
       const distanceShort = Math.abs(((zones.short - lastPrice) / lastPrice) * 100);
       const distanceLong = Math.abs(((lastPrice - zones.long) / lastPrice) * 100);
-
       // Filtrage basé sur les paramètres
       if (distanceShort < SETTINGS.MAX_DISTANCE && confidence.short * 5 >= SETTINGS.MIN_CONFIDENCE) {
         shortAlerts.push(createAlertData(symbol, lastPrice, zones.short, distanceShort, confidence.short, 'short'));
       }
-
       if (distanceLong < SETTINGS.MAX_DISTANCE && confidence.long * 5 >= SETTINGS.MIN_CONFIDENCE) {
         longAlerts.push(createAlertData(symbol, lastPrice, zones.long, distanceLong, confidence.long, 'long'));
       }
@@ -280,7 +278,6 @@ async function checkAllLiquidations() {
       console.warn(`Erreur avec ${symbol}:`, e.message);
     }
   });
-
   await Promise.all(tasks);
   updateAlertDisplays();
 }
@@ -304,7 +301,6 @@ function updateAlertDisplays() {
   // Tri par distance (plus proche en premier)
   shortAlerts.sort((a, b) => a.dist - b.dist);
   longAlerts.sort((a, b) => a.dist - b.dist);
-
   // Affichage des shorts
   if (shortAlerts.length > 0) {
     shortBox.innerHTML = shortAlerts.map(s => 
@@ -315,7 +311,6 @@ function updateAlertDisplays() {
   } else {
     shortBox.style.display = 'none';
   }
-
   // Affichage des longs
   if (longAlerts.length > 0) {
     longBox.innerHTML = longAlerts.map(s =>
@@ -479,9 +474,7 @@ function updateSelect() {
 async function loadChart() {
   const symbol = document.getElementById('cryptoSelect').value;
   if (!symbol) return;
-
   document.getElementById('priceInfo').innerHTML = `<div class="loading">Chargement des données pour ${symbol}...</div>`;
-
   try {
     const [priceData, liqData] = await Promise.all([
       fetchPriceData(symbol),
@@ -499,7 +492,6 @@ async function loadChart() {
 function updateChart(symbol, data, zones) {
   const ctx = document.getElementById('priceChart').getContext('2d');
   if (priceChart) priceChart.destroy();
-
   const annotations = {
     shortLine: {
       type: 'line',
@@ -528,7 +520,6 @@ function updateChart(symbol, data, zones) {
       }
     }
   };
-
   priceChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -561,7 +552,6 @@ function updateInfo(symbol, data, zones) {
   const distShort = Math.abs(((zones.short - last) / last * 100)).toFixed(2);
   const distLong = Math.abs(((last - zones.long) / last * 100)).toFixed(2);
   const confidence = calculateConfidenceScore(data, realLiquidations[symbol] || { shorts: [], longs: [] });
-
   document.getElementById('priceInfo').innerHTML = `
     <strong>${symbol}</strong> — Dernier prix: <span class="highlight">${last.toFixed(4)}</span>
     <div class="accuracy-indicator">Précision: ${getConfidenceStars((confidence.short + confidence.long)/2)} ${zones.isReal ? '(Basé sur données réelles)' : '(Estimation)'}</div><br>
