@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique des cryptos TRY sur Binance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .controls {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .date-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="date"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #f2a900;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 36px;
+        }
+        button:hover {
+            background-color: #e09b00;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2a900;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .loading {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            padding: 20px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            padding: 20px;
+        }
+        .info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Historique des cryptos avec paire TRY sur Binance</h1>
+    
+    <div class="controls">
+        <div class="date-group">
+            <label for="dateInput">Date :</label>
+            <input type="date" id="dateInput">
+        </div>
+        <button id="loadBtn">Charger les données</button>
+        <button id="todayBtn">Aujourd'hui</button>
+    </div>
+    
+    <div id="loading" class="loading">Sélectionnez une date et cliquez sur "Charger les données"</div>
+    <div id="error" class="error" style="display: none;"></div>
+    
+    <table id="cryptoTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Crypto</th>
+                <th>Prix à la date</th>
+                <th>Variation 24h</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="cryptoTableBody">
+            <!-- Les données seront insérées ici par JavaScript -->
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableBody = document.getElementById('cryptoTableBody');
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const cryptoTable = document.getElementById('cryptoTable');
+            const dateInput = document.getElementById('dateInput');
+            const loadBtn = document.getElementById('loadBtn');
+            const todayBtn = document.getElementById('todayBtn');
+            
+            // Liste des paires TRY disponibles
+            const TRY_PAIRS = [
+                'BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'SOL', 'ADA', 'DOGE', 
+                'DOT', 'MATIC', 'AVAX', 'LINK', 'ATOM', 'UNI', 'ETC'
+            ].map(crypto => crypto + 'TRY');
+            
+            // Configurer la date d'aujourd'hui par défaut
+            setToday();
+            
+            // Bouton "Aujourd'hui"
+            todayBtn.addEventListener('click', function() {
+                setToday();
+                loadData();
+            });
+            
+            // Bouton de chargement
+            loadBtn.addEventListener('click', loadData);
+            
+            function setToday() {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${year}-${month}-${day}`;
+            }
+            
+            function loadData() {
+                errorDiv.style.display = 'none';
+                cryptoTable.style.display = 'none';
+                tableBody.innerHTML = '';
+                loadingDiv.style.display = 'block';
+                loadingDiv.textContent = 'Chargement des données...';
+                
+                const selectedDate = new Date(dateInput.value);
+                if (isNaN(selectedDate.getTime())) {
+                    showError('Veuillez sélectionner une date valide');
+                    return;
+                }
+                
+                const now = new Date();
+                if (selectedDate > now) {
+                    showError('Vous ne pouvez pas sélectionner une date future');
+                    return;
+                }
+                
+                // Calculer les timestamps pour l'intervalle de 24h
+                const endTime = selectedDate.getTime();
+                const startTime = endTime - 24 * 60 * 60 * 1000;
+                
+                // Pour chaque paire, récupérer les données historiques
+                const promises = TRY_PAIRS.map(symbol => 
+                    fetchHistoricalData(symbol, startTime, endTime)
+                );
+                
+                Promise.all(promises)
+                    .then(results => {
+                        const validResults = results.filter(r => r !== null);
+                        if (validResults.length === 0) {
+                            showError('Aucune donnée disponible pour cette date');
+                            return;
+                        }
+                        
+                        processResults(validResults, selectedDate);
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showError('Erreur lors du chargement des données: ' + error.message);
+                    });
+            }
+            
+            function fetchHistoricalData(symbol, startTime, endTime) {
+                // Récupérer les klines (données de bougies) pour la période
+                const interval = '1d'; // 1 jour
+                const limit = 2; // On a besoin de 2 points (début et fin de période)
+                
+                const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`;
+                
+                return fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Erreur réseau');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.length < 2) return null; // Pas assez de données
+                        
+                        // Format des klines: [0:Open time, 1:Open, 2:High, 3:Low, 4:Close, ...]
+                        const startPrice = parseFloat(data[0][4]); // Close price du premier jour
+                        const endPrice = parseFloat(data[1][4]); // Close price du jour sélectionné
+                        
+                        const changePercent = ((endPrice - startPrice) / startPrice) * 100;
+                        
+                        return {
+                            symbol: symbol.replace('TRY', ''),
+                            price: endPrice,
+                            change: changePercent
+                        };
+                    })
+                    .catch(error => {
+                        console.error(`Erreur pour ${symbol}:`, error);
+                        return null;
+                    });
+            }
+            
+            function processResults(results, date) {
+                // Trier par volume (exemple simplifié)
+                results.sort((a, b) => b.change - a.change);
+                
+                results.forEach((crypto, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Numéro
+                    const indexCell = document.createElement('td');
+                    indexCell.textContent = index + 1;
+                    
+                    // Symbole
+                    const symbolCell = document.createElement('td');
+                    symbolCell.textContent = crypto.symbol;
+                    
+                    // Prix
+                    const priceCell = document.createElement('td');
+                    priceCell.textContent = crypto.price.toFixed(4);
+                    
+                    // Variation
+                    const changeCell = document.createElement('td');
+                    changeCell.textContent = crypto.change.toFixed(2) + '%';
+                    changeCell.classList.add(crypto.change >= 0 ? 'positive' : 'negative');
+                    
+                    // Date
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = formatFrenchDate(date);
+                    
+                    row.append(indexCell, symbolCell, priceCell, changeCell, dateCell);
+                    tableBody.appendChild(row);
+                });
+                
+                loadingDiv.style.display = 'none';
+                cryptoTable.style.display = 'table';
+            }
+            
+            function formatFrenchDate(date) {
+                return date.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            }
+            
+            function showError(message) {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
