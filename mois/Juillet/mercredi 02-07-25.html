@@ -100,8 +100,8 @@
             <tr>
                 <th>#</th>
                 <th>Crypto</th>
-                <th>Lundi</th>
                 <th>Mardi</th>
+                <th>Mercredi</th>
             </tr>
         </thead>
         <tbody id="cryptoTableBody">
@@ -124,12 +124,12 @@
             const symboleATrouverSpan = document.getElementById('symboleATrouver');
 
             // Symbole à trouver
-            const symboleATrouver = '+';
+            const symboleATrouver = '-';
             symboleATrouverSpan.textContent = symboleATrouver;
 
             // Dates à utiliser
-            const date1 = new Date('2025-07-01');
-            const date2 = new Date('2025-07-02');
+            const date1 = new Date('2025-07-02');
+            const date2 = new Date('2025-07-03');
             const date1Timestamp = date1.getTime();
             const date2Timestamp = date2.getTime();
 
