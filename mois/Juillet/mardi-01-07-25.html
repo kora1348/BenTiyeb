@@ -1,224 +1,151 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cryptos TRY sur Binance</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .notification {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 5px solid #ffeeba;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2a900;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .positive {
-            color: green;
-        }
-        .negative {
-            color: red;
-        }
-        .loading {
-            text-align: center;
-            font-style: italic;
-            color: #666;
-            padding: 20px;
-        }
-        .last-update {
-            text-align: right;
-            font-size: 0.8em;
-            color: #666;
-            margin-top: 10px;
-        }
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            margin-top: 0;
-        }
-        .crypto-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .crypto-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cryptos TRY sur Binance</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    h1 { text-align: center; color: #333; }
+    .notification {
+      background-color: #fff3cd; color: #856404; padding: 15px;
+      border-radius: 5px; margin-bottom: 20px; border-left: 5px solid #ffeeba;
+    }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 20px; }
+    th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #f2a900; color: white; }
+    tr:hover { background-color: #f5f5f5; }
+    .positive { color: green; }
+    .negative { color: red; }
+    .loading { text-align: center; font-style: italic; color: #666; padding: 20px; }
+    .last-update { text-align: right; font-size: 0.8em; color: #666; margin-top: 10px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .crypto-list { list-style: none; padding: 0; }
+    .crypto-list li { padding: 8px 0; border-bottom: 1px solid #eee; }
+  </style>
 </head>
 <body>
-    <h1>Cryptos avec paire TRY sur Binance</h1>
 
-    <div class="notification">
-        <strong>Information importante :</strong> Cette interface affiche les données pour les dates du <span id="date1"></span> et <span id="date2"></span>.
-    </div>
+<h1>Cryptos avec paire TRY sur Binance</h1>
 
-    <div class="card" id="cryptoCard" style="display: none;">
-        <h2>Cryptos avec symbole correspondant: <span id="symboleATrouver"></span></h2>
-        <ul class="crypto-list" id="cryptoList">
-            <!-- Les cryptos seront listées ici -->
-        </ul>
-    </div>
+<div class="notification">
+  <strong>Information importante :</strong> Cette interface affiche les données pour les dates du <span id="date1"></span> et <span id="date2"></span>.
+</div>
 
-    <div id="loading" class="loading">Chargement des données en cours...</div>
+<div class="card" id="cryptoCard" style="display: none;">
+  <h2>Cryptos avec symbole correspondant: <span id="symboleATrouver"></span></h2>
+  <ul class="crypto-list" id="cryptoList"></ul>
+</div>
 
-    <table id="cryptoTable" style="display: none;">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Crypto</th>
-                <th>Lundi</th>
-                <th>Mardi</th>
-            </tr>
-        </thead>
-        <tbody id="cryptoTableBody">
-            <!-- Les données seront insérées ici par JavaScript -->
-        </tbody>
-    </table>
+<div id="loading" class="loading">Chargement des données en cours...</div>
 
-    <div id="lastUpdate" class="last-update"></div>
+<table id="cryptoTable" style="display: none;">
+  <thead>
+    <tr><th>#</th><th>Crypto</th><th>Lundi</th><th>Mardi</th></tr>
+  </thead>
+  <tbody id="cryptoTableBody"></tbody>
+</table>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tableBody = document.getElementById('cryptoTableBody');
-            const loadingDiv = document.getElementById('loading');
-            const cryptoTable = document.getElementById('cryptoTable');
-            const lastUpdateDiv = document.getElementById('lastUpdate');
-            const cryptoCard = document.getElementById('cryptoCard');
-            const cryptoList = document.getElementById('cryptoList');
-            const date1Span = document.getElementById('date1');
-            const date2Span = document.getElementById('date2');
-            const symboleATrouverSpan = document.getElementById('symboleATrouver');
+<div id="lastUpdate" class="last-update"></div>
 
-            // Symbole à trouver
-            const symboleATrouver = '+';
-            symboleATrouverSpan.textContent = symboleATrouver;
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  const tableBody = document.getElementById('cryptoTableBody');
+  const loadingDiv = document.getElementById('loading');
+  const cryptoTable = document.getElementById('cryptoTable');
+  const lastUpdateDiv = document.getElementById('lastUpdate');
+  const cryptoCard = document.getElementById('cryptoCard');
+  const cryptoList = document.getElementById('cryptoList');
+  const date1Span = document.getElementById('date1');
+  const date2Span = document.getElementById('date2');
+  const symboleATrouverSpan = document.getElementById('symboleATrouver');
 
-            // Dates à utiliser
-            const date1 = new Date('2025-07-01');
-            const date2 = new Date('2025-07-02');
+  const symboleATrouver = '+'; // ou '-'
+  const date1 = new Date('2025-07-01');
+  const date2 = new Date('2025-07-02');
 
-            // Afficher les dates
-            date1Span.textContent = date1.toLocaleDateString('fr-FR');
-            date2Span.textContent = date2.toLocaleDateString('fr-FR');
+  date1Span.textContent = date1.toLocaleDateString('fr-FR');
+  date2Span.textContent = date2.toLocaleDateString('fr-FR');
+  symboleATrouverSpan.textContent = symboleATrouver;
 
-            // Charger les données immédiatement
-            loadData();
+  async function getVariation(symbol, date) {
+    const start = new Date(date);
+    start.setUTCHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setUTCDate(start.getUTCDate() + 1);
 
-            // Recharger toutes les 5 minutes
-            setInterval(loadData, 5 * 60 * 1000);
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${start.getTime()}&endTime=${end.getTime()}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
 
-            function loadData() {
-                loadingDiv.style.display = 'block';
-                cryptoTable.style.display = 'none';
-                cryptoCard.style.display = 'none';
-                tableBody.innerHTML = '';
-                cryptoList.innerHTML = '';
+    const open = parseFloat(data[0][1]);
+    const close = parseFloat(data[0][4]);
+    return ((close - open) / open) * 100;
+  }
 
-                fetch('https://api.binance.com/api/v3/ticker/24hr')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Erreur réseau');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        processData(data);
-                        lastUpdateDiv.textContent = 'Dernière mise à jour: ' + new Date().toLocaleString('fr-FR');
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        loadingDiv.textContent = 'Erreur de chargement: ' + error.message;
-                    });
-            }
+  async function loadData() {
+    loadingDiv.style.display = 'block';
+    cryptoTable.style.display = 'none';
+    cryptoCard.style.display = 'none';
+    tableBody.innerHTML = '';
+    cryptoList.innerHTML = '';
 
-            function processData(data) {
-                // Filtrer uniquement les paires TRY
-                const tryPairs = data.filter(pair => pair.symbol.endsWith('TRY'));
+    try {
+      const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+      const data = await res.json();
+      const tryPairs = data.filter(pair => pair.symbol.endsWith('TRY'));
 
-                if (tryPairs.length === 0) {
-                    loadingDiv.textContent = 'Aucune paire TRY trouvée';
-                    return;
-                }
+      const results = await Promise.allSettled(tryPairs.map(async pair => {
+        const symbol = pair.symbol;
+        const lundi = await getVariation(symbol, date1);
+        const mardi = await getVariation(symbol, date2);
+        return { symbol, lundi, mardi };
+      }));
 
-                // Trier par volume (descendant)
-                tryPairs.sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
+      let index = 1;
+      results.forEach(result => {
+        if (result.status !== 'fulfilled') return;
+        const { symbol, lundi, mardi } = result.value;
+        if (lundi === null || mardi === null) return;
 
-                // Afficher les données
-                tryPairs.forEach((pair, index) => {
-                    const row = document.createElement('tr');
+        const row = document.createElement('tr');
 
-                    // Numéro
-                    const indexCell = document.createElement('td');
-                    indexCell.textContent = index + 1;
+        const indexCell = document.createElement('td');
+        indexCell.textContent = index++;
 
-                    // Symbole crypto
-                    const symbolCell = document.createElement('td');
-                    symbolCell.textContent = pair.symbol.replace('TRY', '');
+        const symbolCell = document.createElement('td');
+        symbolCell.textContent = symbol.replace('TRY', '');
 
-                    // Variation pour Lundi
-                    const changeCellLundi = document.createElement('td');
-                    const change = parseFloat(pair.priceChangePercent);
-                    const changeSymbol = change >= 0 ? '+' : '-';
-                    changeCellLundi.textContent = changeSymbol;
-                    changeCellLundi.classList.add(change >= 0 ? 'positive' : 'negative');
+        const cellLundi = document.createElement('td');
+        cellLundi.textContent = (lundi >= 0 ? '+' : '') + lundi.toFixed(2) + '%';
+        cellLundi.classList.add(lundi >= 0 ? 'positive' : 'negative');
 
-                    // Variation pour Mardi
-                    const changeCellMardi = document.createElement('td');
-                    changeCellMardi.textContent = changeSymbol;
-                    changeCellMardi.classList.add(change >= 0 ? 'positive' : 'negative');
+        const cellMardi = document.createElement('td');
+        cellMardi.textContent = (mardi >= 0 ? '+' : '') + mardi.toFixed(2) + '%';
+        cellMardi.classList.add(mardi >= 0 ? 'positive' : 'negative');
 
-                    row.append(indexCell, symbolCell, changeCellLundi, changeCellMardi);
-                    tableBody.appendChild(row);
+        row.append(indexCell, symbolCell, cellLundi, cellMardi);
+        tableBody.appendChild(row);
 
-                    // Ajouter à la carte si le symbole correspond
-                    if (changeSymbol === symboleATrouver) {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = pair.symbol.replace('TRY', '');
-                        cryptoList.appendChild(listItem);
-                    }
-                });
+        if ((lundi >= 0 ? '+' : '-') === symboleATrouver || (mardi >= 0 ? '+' : '-') === symboleATrouver) {
+          const item = document.createElement('li');
+          item.textContent = symbol.replace('TRY', '');
+          cryptoList.appendChild(item);
+        }
+      });
 
-                loadingDiv.style.display = 'none';
-                cryptoTable.style.display = 'table';
-                if (cryptoList.children.length > 0) {
-                    cryptoCard.style.display = 'block';
-                }
-            }
-        });
-    </script>
+      loadingDiv.style.display = 'none';
+      cryptoTable.style.display = 'table';
+      if (cryptoList.children.length > 0) cryptoCard.style.display = 'block';
+      lastUpdateDiv.textContent = 'Dernière mise à jour : ' + new Date().toLocaleString('fr-FR');
+    } catch (err) {
+      loadingDiv.textContent = 'Erreur : ' + err.message;
+    }
+  }
+
+  await loadData();
+});
+</script>
 </body>
 </html>
