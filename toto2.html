@@ -100,6 +100,27 @@
             line-height: 20px;
             color: white;
         }
+        .stats-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            min-width: 150px;
+        }
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -120,6 +141,22 @@
     
     <div id="loading" class="loading">Sélectionnez une date et cliquez sur "Charger les données"</div>
     <div id="error" class="error" style="display: none;"></div>
+    
+    <!-- Nouvelle carte de statistiques -->
+    <div id="statsCard" class="stats-card" style="display: none;">
+        <div class="stat-item">
+            <div>Cryptos affichées</div>
+            <div id="cryptoCount" class="stat-value">0</div>
+        </div>
+        <div class="stat-item">
+            <div>Somme des variations</div>
+            <div id="totalVariation" class="stat-value">0%</div>
+        </div>
+        <div class="stat-item">
+            <div>Moyenne des variations</div>
+            <div id="averageVariation" class="stat-value">0%</div>
+        </div>
+    </div>
     
     <table id="cryptoTable" style="display: none;">
         <thead>
@@ -147,6 +184,10 @@
             const todayBtn = document.getElementById('todayBtn');
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
+            const statsCard = document.getElementById('statsCard');
+            const cryptoCountElement = document.getElementById('cryptoCount');
+            const totalVariationElement = document.getElementById('totalVariation');
+            const averageVariationElement = document.getElementById('averageVariation');
             
             // Variable pour stocker toutes les paires TRY
             let ALL_TRY_PAIRS = [];
@@ -200,6 +241,7 @@
                 
                 errorDiv.style.display = 'none';
                 cryptoTable.style.display = 'none';
+                statsCard.style.display = 'none';
                 tableBody.innerHTML = '';
                 loadingDiv.style.display = 'block';
                 loadingDiv.textContent = 'Préparation du chargement...';
@@ -289,6 +331,19 @@
                 // Trier par variation (peut être changé pour volume ou autre)
                 results.sort((a, b) => b.change - a.change);
                 
+                // Calculer les statistiques
+                const totalVariation = results.reduce((sum, crypto) => sum + crypto.change, 0);
+                const averageVariation = totalVariation / results.length;
+                
+                // Mettre à jour la carte de stats
+                cryptoCountElement.textContent = results.length;
+                totalVariationElement.textContent = totalVariation.toFixed(2) + '%';
+                averageVariationElement.textContent = averageVariation.toFixed(2) + '%';
+                
+                // Appliquer la couleur en fonction de la valeur
+                applyVariationColor(totalVariationElement, totalVariation);
+                applyVariationColor(averageVariationElement, averageVariation);
+                
                 // Afficher les résultats
                 results.forEach((crypto, index) => {
                     const row = document.createElement('tr');
@@ -315,7 +370,18 @@
                 
                 loadingDiv.style.display = 'none';
                 progressContainer.style.display = 'none';
+                statsCard.style.display = 'flex';
                 cryptoTable.style.display = 'table';
+            }
+            
+            function applyVariationColor(element, value) {
+                if (value > 0) {
+                    element.style.color = 'green';
+                } else if (value < 0) {
+                    element.style.color = 'red';
+                } else {
+                    element.style.color = 'black';
+                }
             }
             
             function fetchHistoricalData(symbol, startTime, endTime) {
@@ -363,6 +429,7 @@
             function showError(message) {
                 loadingDiv.style.display = 'none';
                 progressContainer.style.display = 'none';
+                statsCard.style.display = 'none';
                 errorDiv.textContent = message;
                 errorDiv.style.display = 'block';
             }
