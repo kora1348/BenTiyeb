@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto TRY - Variations 1d</title>
+  <title>Crypto TRY - Variation journalière par date</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     h1, h2 { text-align: center; }
@@ -22,13 +22,22 @@
     th {
       background-color: #f2f2f2;
     }
+    #cryptoTable {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Cryptomonnaies en TRY - Variations (1d)</h1>
+  <h1>Cryptomonnaies en TRY - Variation (1d) par date</h1>
 
-  <div class="section" id="loading">Chargement des données...</div>
+  <div class="section">
+    <label for="dateInput">Choisis une date :</label>
+    <input type="date" id="dateInput">
+    <button onclick="loadData()">Charger les données</button>
+  </div>
 
+  <div class="section" id="selectedDate"></div>
+  <div class="section" id="loading">En attente d'une date...</div>
   <div class="section" id="lowestVariations"></div>
   <div class="section" id="highestVariations"></div>
 
@@ -42,9 +51,7 @@
           <th>Variation (1d)</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- Les données seront insérées ici -->
-      </tbody>
+      <tbody id="cryptoTableBody"></tbody>
     </table>
   </div>
 
@@ -63,39 +70,51 @@
         );
     }
 
-    async function getDailyVariation(symbol) {
+    async function getKlineAtDate(symbol, timestamp) {
+      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${timestamp}&limit=1`;
       try {
-        const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=2`;
         const response = await fetch(url);
         const data = await response.json();
-        if (data.length < 2) return null;
+        if (!data || data.length === 0) return null;
 
         const open = parseFloat(data[0][1]);
-        const close = parseFloat(data[1][4]);
+        const close = parseFloat(data[0][4]);
         const variation = ((close - open) / open) * 100;
-
         return { symbol, variation: variation.toFixed(2) };
       } catch (err) {
-        console.error(`Erreur pour ${symbol}:`, err);
+        console.error(`Erreur pour ${symbol} :`, err);
         return null;
       }
     }
 
-    async function main() {
-      const loadingDiv = document.getElementById('loading');
-      loadingDiv.textContent = 'Chargement en cours...';
+    function getTimestampFromDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      return date.getTime();
+    }
+
+    async function loadData() {
+      const dateInput = document.getElementById('dateInput').value;
+      const loading = document.getElementById('loading');
+      const table = document.getElementById('cryptoTable');
+      if (!dateInput) {
+        alert("Merci de sélectionner une date.");
+        return;
+      }
+
+      const timestamp = getTimestampFromDate(dateInput);
+      loading.textContent = "Chargement des données pour le " + new Date(timestamp).toLocaleDateString('fr-FR');
 
       const trySymbols = await getTrySymbols();
-      const limitedSymbols = trySymbols.slice(0, 50); // tu peux augmenter, mais attention à la vitesse
+      const limitedSymbols = trySymbols.slice(0, 50); // limiter pour la vitesse
 
       const variations = await Promise.all(
-        limitedSymbols.map(symbol => getDailyVariation(symbol))
+        limitedSymbols.map(symbol => getKlineAtDate(symbol, timestamp))
       );
 
       const validData = variations.filter(v => v !== null);
 
-      // Afficher tableau complet
-      const tbody = document.querySelector('#cryptoTable tbody');
+      // Affichage du tableau complet
+      const tbody = document.getElementById('cryptoTableBody');
       tbody.innerHTML = '';
       validData.sort((a, b) => a.symbol.localeCompare(b.symbol));
       validData.forEach((crypto, index) => {
@@ -107,30 +126,30 @@
         `;
         tbody.appendChild(row);
       });
+      table.style.display = 'table';
 
-      // Trier pour top 7
+      // Affichage top/bas 7
       validData.sort((a, b) => a.variation - b.variation);
       const lowest7 = validData.slice(0, 7);
       const highest7 = validData.slice(-7).reverse();
 
       document.getElementById('lowestVariations').innerHTML = `
-        <h2>7 cryptos TRY les plus basses (variation 1d)</h2>
+        <h2>7 cryptos TRY les plus basses</h2>
         <ul>
           ${lowest7.map(c => `<li>${c.symbol.replace('TRY', '')}: <span class="variation">${c.variation}%</span></li>`).join('')}
         </ul>
       `;
 
       document.getElementById('highestVariations').innerHTML = `
-        <h2>7 cryptos TRY les plus hautes (variation 1d)</h2>
+        <h2>7 cryptos TRY les plus hautes</h2>
         <ul>
           ${highest7.map(c => `<li>${c.symbol.replace('TRY', '')}: <span class="variation">${c.variation}%</span></li>`).join('')}
         </ul>
       `;
 
-      loadingDiv.style.display = 'none';
+      document.getElementById('selectedDate').innerHTML = `Date sélectionnée : <strong>${new Date(timestamp).toLocaleDateString('fr-FR')}</strong>`;
+      loading.textContent = "";
     }
-
-    main();
   </script>
 </body>
 </html>
