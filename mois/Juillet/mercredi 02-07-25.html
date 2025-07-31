@@ -87,7 +87,7 @@
     </div>
 
     <div class="card" id="cryptoCard" style="display: none;">
-        <h2>Cryptos avec variation positive les deux jours: <span id="symboleATrouver"></span></h2>
+        <h2>Cryptos avec symbole identique aux deux jours: <span id="symboleATrouver"></span></h2>
         <ul class="crypto-list" id="cryptoList">
             <!-- Les cryptos seront listées ici -->
         </ul>
@@ -100,8 +100,8 @@
             <tr>
                 <th>#</th>
                 <th>Crypto</th>
+                <th>Lundi</th>
                 <th>Mardi</th>
-                <th>Mercredi</th>
             </tr>
         </thead>
         <tbody id="cryptoTableBody">
@@ -242,8 +242,8 @@
                     row.append(indexCell, symbolCell, changeCellLundi, changeCellMardi);
                     tableBody.appendChild(row);
                     
-                    // Ajouter à la carte si variation positive les deux jours
-                    if (changeSymbol1 === '+' && changeSymbol2 === '+') {
+                    // Ajouter à la carte si les deux symboles correspondent exactement à symboleATrouver
+                    if (changeSymbol1 === symboleATrouver && changeSymbol2 === symboleATrouver) {
                         const listItem = document.createElement('li');
                         listItem.textContent = pairData.symbol.replace('TRY', '');
                         cryptoList.appendChild(listItem);
