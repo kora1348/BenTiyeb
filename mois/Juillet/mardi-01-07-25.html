@@ -100,7 +100,8 @@
             <tr>
                 <th>#</th>
                 <th>Crypto</th>
-                <th>Lundi | Mardi</th>
+                <th>Lundi</th>
+                <th>Mardi</th>
             </tr>
         </thead>
         <tbody id="cryptoTableBody">
@@ -129,8 +130,8 @@
             // Charger les données immédiatement
             loadData();
 
-            // Recharger toutes les 5 minutes
-            setInterval(loadData, 5 * 60 * 1000);
+            // Recharger toutes les 500 minutes
+            setInterval(loadData, 500 * 60 * 1000);
 
             function loadData() {
                 loadingDiv.style.display = 'block';
@@ -180,14 +181,19 @@
                     const symbolCell = document.createElement('td');
                     symbolCell.textContent = pair.symbol.replace('TRY', '');
 
-                    // Variation
-                    const changeCell = document.createElement('td');
+                    // Variation pour Lundi
+                    const changeCellLundi = document.createElement('td');
                     const change = parseFloat(pair.priceChangePercent);
                     const changeSymbol = change >= 0 ? '+' : '-';
-                    changeCell.textContent = `${changeSymbol} | ${changeSymbol}`;
-                    changeCell.classList.add(change >= 0 ? 'positive' : 'negative');
+                    changeCellLundi.textContent = changeSymbol;
+                    changeCellLundi.classList.add(change >= 0 ? 'positive' : 'negative');
 
-                    row.append(indexCell, symbolCell, changeCell);
+                    // Variation pour Mardi
+                    const changeCellMardi = document.createElement('td');
+                    changeCellMardi.textContent = changeSymbol;
+                    changeCellMardi.classList.add(change >= 0 ? 'positive' : 'negative');
+
+                    row.append(indexCell, symbolCell, changeCellLundi, changeCellMardi);
                     tableBody.appendChild(row);
 
                     // Ajouter à la carte si le symbole correspond
