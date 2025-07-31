@@ -105,10 +105,9 @@
       loading.textContent = "Chargement des données pour le " + new Date(timestamp).toLocaleDateString('fr-FR');
 
       const trySymbols = await getTrySymbols();
-      const limitedSymbols = trySymbols.slice(0, 50); // limiter pour la vitesse
 
       const variations = await Promise.all(
-        limitedSymbols.map(symbol => getKlineAtDate(symbol, timestamp))
+        trySymbols.map(symbol => getKlineAtDate(symbol, timestamp))
       );
 
       const validData = variations.filter(v => v !== null);
