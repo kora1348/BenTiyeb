@@ -1,177 +1,128 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cryptos TRY - Hausses & Baisses</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f0f0f0;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    .section {
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .variation {
-      font-weight: bold;
-    }
-    .positive {
-      color: green;
-    }
-    .negative {
-      color: red;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    input[type="date"], button {
-      padding: 8px;
-      margin: 5px 0;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    li {
-      padding: 5px 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptos avec paire TRY - Binance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2a900;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .loading {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-  <h1>Cryptos TRY - Hausses & Baisses</h1>
-  <div class="section">
-    <label for="dateInput">Sélectionnez une date :</label>
-    <input type="date" id="dateInput">
-    <button onclick="loadData()">Charger</button>
-  </div>
-  <div class="section" id="selectedDate"></div>
-  <div class="section" id="loading">En attente d'une date...</div>
-  <div class="section">
-    <h2>7 Cryptos TRY les plus en hausse</h2>
-    <ul id="highestVariations"></ul>
-  </div>
-  <div class="section">
-    <h2>7 Cryptos TRY les plus en baisse</h2>
-    <ul id="lowestVariations"></ul>
-  </div>
-  <div class="section">
-    <h2>Toutes les cryptos avec paire TRY</h2>
+    <h1>Cryptos avec paire TRY sur Binance</h1>
+    <div id="loading" class="loading">Chargement des données...</div>
     <table id="cryptoTable">
-      <thead>
-        <tr>
-          <th>Crypto</th>
-          <th>Variation (%)</th>
-        </tr>
-      </thead>
-      <tbody id="cryptoTableBody"></tbody>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Crypto</th>
+                <th>Taux de variation (24h)</th>
+            </tr>
+        </thead>
+        <tbody id="cryptoTableBody">
+            <!-- Les données seront insérées ici par JavaScript -->
+        </tbody>
     </table>
-  </div>
-  <script>
-    // Le reste de votre code JavaScript reste inchangé
-    async function getTrySymbols() {
-      const response = await fetch('https://api.binance.com/api/v3/ticker/price');
-      const data = await response.json();
-      return data
-        .map(t => t.symbol)
-        .filter(s =>
-          s.endsWith('TRY') &&
-          !s.includes('UP') &&
-          !s.includes('DOWN') &&
-          !s.includes('BULL') &&
-          !s.includes('BEAR')
-        );
-    }
-    async function getKlineAtDate(symbol, timestamp) {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${timestamp}&limit=1`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (!data || data.length === 0) return null;
-        const open = parseFloat(data[0][1]);
-        const close = parseFloat(data[0][4]);
-        const variation = ((close - open) / open) * 100;
-        return { symbol, variation: variation.toFixed(2) };
-      } catch (err) {
-        console.error(`Erreur pour ${symbol} :`, err);
-        return null;
-      }
-    }
-    function getTimestampFromDate(dateStr) {
-      const date = new Date(dateStr + 'T00:00:00');
-      return date.getTime();
-    }
-    async function loadData() {
-      const dateInput = document.getElementById('dateInput').value;
-      const loading = document.getElementById('loading');
-      const table = document.getElementById('cryptoTable');
-      if (!dateInput) {
-        alert("Merci de sélectionner une date.");
-        return;
-      }
-      const timestamp = getTimestampFromDate(dateInput);
-      loading.textContent = "Chargement des données pour le " + new Date(timestamp).toLocaleDateString('fr-FR');
-      const trySymbols = await getTrySymbols();
-      const variations = await Promise.all(
-        trySymbols.map(symbol => getKlineAtDate(symbol, timestamp))
-      );
-      const validData = variations.filter(v => v !== null);
-      // Affichage du tableau complet
-      const tbody = document.getElementById('cryptoTableBody');
-      tbody.innerHTML = '';
-      validData.sort((a, b) => a.symbol.localeCompare(b.symbol));
-      validData.forEach((crypto) => {
-        const row = document.createElement('tr');
-        const variationClass = parseFloat(crypto.variation) >= 0 ? 'positive' : 'negative';
-        row.innerHTML = `
-          <td>${crypto.symbol}</td>
-          <td class="${variationClass}">${crypto.variation}%</td>
-        `;
-        tbody.appendChild(row);
-      });
-      table.style.display = 'table';
-      // Affichage top/bas 7
-      validData.sort((a, b) => a.variation - b.variation);
-      const lowest7 = validData.slice(0, 7);
-      const highest7 = validData.slice(-7).reverse();
-      document.getElementById('lowestVariations').innerHTML = `
-        ${lowest7.map(c => `<li>${c.symbol.replace('TRY', '')}: <span class="variation negative">${c.variation}%</span></li>`).join('')}
-      `;
-      document.getElementById('highestVariations').innerHTML = `
-        ${highest7.map(c => `<li>${c.symbol.replace('TRY', '')}: <span class="variation positive">${c.variation}%</span></li>`).join('')}
-      `;
-      document.getElementById('selectedDate').innerHTML = `Date et Heure sélectionnées : <strong>${new Date(timestamp).toLocaleString('fr-FR')}</strong>`;
-      loading.textContent = "";
-    }
-  </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableBody = document.getElementById('cryptoTableBody');
+            const loadingDiv = document.getElementById('loading');
+            const cryptoTable = document.getElementById('cryptoTable');
+            
+            // Masquer le tableau pendant le chargement
+            cryptoTable.style.display = 'none';
+            
+            // Récupérer les données depuis l'API Binance
+            fetch('https://api.binance.com/api/v3/ticker/24hr')
+                .then(response => response.json())
+                .then(data => {
+                    // Filtrer les paires qui se terminent par TRY
+                    const tryPairs = data.filter(pair => pair.symbol.endsWith('TRY'));
+                    
+                    // Trier par volume (facultatif)
+                    tryPairs.sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
+                    
+                    // Afficher les données dans le tableau
+                    tryPairs.forEach((pair, index) => {
+                        const row = document.createElement('tr');
+                        
+                        // Numéro de ligne
+                        const indexCell = document.createElement('td');
+                        indexCell.textContent = index + 1;
+                        
+                        // Symbole (nom de la crypto)
+                        const symbolCell = document.createElement('td');
+                        symbolCell.textContent = pair.symbol.replace('TRY', '');
+                        
+                        // Variation 24h
+                        const changeCell = document.createElement('td');
+                        const priceChangePercent = parseFloat(pair.priceChangePercent);
+                        changeCell.textContent = priceChangePercent.toFixed(2) + '%';
+                        
+                        // Appliquer une classe CSS en fonction si la variation est positive ou négative
+                        if (priceChangePercent >= 0) {
+                            changeCell.classList.add('positive');
+                        } else {
+                            changeCell.classList.add('negative');
+                        }
+                        
+                        // Ajouter les cellules à la ligne
+                        row.appendChild(indexCell);
+                        row.appendChild(symbolCell);
+                        row.appendChild(changeCell);
+                        
+                        // Ajouter la ligne au tableau
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Masquer le message de chargement et afficher le tableau
+                    loadingDiv.style.display = 'none';
+                    cryptoTable.style.display = 'table';
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des données:', error);
+                    loadingDiv.textContent = 'Erreur lors du chargement des données. Veuillez réessayer.';
+                });
+        });
+    </script>
 </body>
 </html>
