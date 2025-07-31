@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historique des cryptos TRY sur Binance</title>
+    <title>Historique complet des cryptos TRY sur Binance</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -86,15 +86,24 @@
             text-align: center;
             padding: 20px;
         }
-        .info {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #f2a900;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <h1>Historique des cryptos avec paire TRY sur Binance</h1>
+    <h1>Historique complet des cryptos TRY sur Binance</h1>
     
     <div class="controls">
         <div class="date-group">
@@ -103,6 +112,10 @@
         </div>
         <button id="loadBtn">Charger les données</button>
         <button id="todayBtn">Aujourd'hui</button>
+    </div>
+    
+    <div id="progressContainer" class="progress-container" style="display: none;">
+        <div id="progressBar" class="progress-bar" style="width: 0%">0%</div>
     </div>
     
     <div id="loading" class="loading">Sélectionnez une date et cliquez sur "Charger les données"</div>
@@ -132,12 +145,11 @@
             const dateInput = document.getElementById('dateInput');
             const loadBtn = document.getElementById('loadBtn');
             const todayBtn = document.getElementById('todayBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
             
-            // Liste des paires TRY disponibles
-            const TRY_PAIRS = [
-                'BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'SOL', 'ADA', 'DOGE', 
-                'DOT', 'MATIC', 'AVAX', 'LINK', 'ATOM', 'UNI', 'ETC'
-            ].map(crypto => crypto + 'TRY');
+            // Variable pour stocker toutes les paires TRY
+            let ALL_TRY_PAIRS = [];
             
             // Configurer la date d'aujourd'hui par défaut
             setToday();
@@ -151,6 +163,9 @@
             // Bouton de chargement
             loadBtn.addEventListener('click', loadData);
             
+            // D'abord récupérer toutes les paires TRY disponibles
+            fetchAllTryPairs();
+            
             function setToday() {
                 const today = new Date();
                 const year = today.getFullYear();
@@ -159,22 +174,50 @@
                 dateInput.value = `${year}-${month}-${day}`;
             }
             
+            function fetchAllTryPairs() {
+                loadingDiv.textContent = 'Récupération de la liste des cryptos TRY...';
+                
+                fetch('https://api.binance.com/api/v3/exchangeInfo')
+                    .then(response => response.json())
+                    .then(data => {
+                        ALL_TRY_PAIRS = data.symbols
+                            .filter(symbol => symbol.symbol.endsWith('TRY'))
+                            .map(symbol => symbol.symbol);
+                        
+                        loadingDiv.textContent = `Prêt - ${ALL_TRY_PAIRS.length} paires TRY trouvées. Sélectionnez une date.`;
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showError('Erreur lors de la récupération des paires TRY: ' + error.message);
+                    });
+            }
+            
             function loadData() {
+                if (ALL_TRY_PAIRS.length === 0) {
+                    showError('Liste des cryptos non chargée. Veuillez réessayer.');
+                    return;
+                }
+                
                 errorDiv.style.display = 'none';
                 cryptoTable.style.display = 'none';
                 tableBody.innerHTML = '';
                 loadingDiv.style.display = 'block';
-                loadingDiv.textContent = 'Chargement des données...';
+                loadingDiv.textContent = 'Préparation du chargement...';
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
                 
                 const selectedDate = new Date(dateInput.value);
                 if (isNaN(selectedDate.getTime())) {
                     showError('Veuillez sélectionner une date valide');
+                    progressContainer.style.display = 'none';
                     return;
                 }
                 
                 const now = new Date();
                 if (selectedDate > now) {
                     showError('Vous ne pouvez pas sélectionner une date future');
+                    progressContainer.style.display = 'none';
                     return;
                 }
                 
@@ -182,31 +225,102 @@
                 const endTime = selectedDate.getTime();
                 const startTime = endTime - 24 * 60 * 60 * 1000;
                 
-                // Pour chaque paire, récupérer les données historiques
-                const promises = TRY_PAIRS.map(symbol => 
-                    fetchHistoricalData(symbol, startTime, endTime)
-                );
+                loadingDiv.textContent = `Chargement des données pour ${ALL_TRY_PAIRS.length} cryptos...`;
                 
-                Promise.all(promises)
-                    .then(results => {
-                        const validResults = results.filter(r => r !== null);
-                        if (validResults.length === 0) {
-                            showError('Aucune donnée disponible pour cette date');
-                            return;
-                        }
-                        
-                        processResults(validResults, selectedDate);
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        showError('Erreur lors du chargement des données: ' + error.message);
-                    });
+                // Traitement par lots pour éviter les problèmes de performance
+                processInBatches(ALL_TRY_PAIRS, startTime, endTime, selectedDate);
+            }
+            
+            function processInBatches(allPairs, startTime, endTime, date) {
+                const BATCH_SIZE = 20; // Traiter 20 cryptos à la fois
+                const totalBatches = Math.ceil(allPairs.length / BATCH_SIZE);
+                let currentBatch = 0;
+                let allResults = [];
+                
+                function processNextBatch() {
+                    const startIdx = currentBatch * BATCH_SIZE;
+                    const endIdx = Math.min(startIdx + BATCH_SIZE, allPairs.length);
+                    const batchPairs = allPairs.slice(startIdx, endIdx);
+                    
+                    loadingDiv.textContent = `Chargement des cryptos ${startIdx+1}-${endIdx} sur ${allPairs.length}...`;
+                    progressBar.style.width = `${(currentBatch / totalBatches * 100)}%`;
+                    progressBar.textContent = `${Math.round(currentBatch / totalBatches * 100)}%`;
+                    
+                    const promises = batchPairs.map(symbol => 
+                        fetchHistoricalData(symbol, startTime, endTime)
+                    );
+                    
+                    Promise.all(promises)
+                        .then(batchResults => {
+                            const validResults = batchResults.filter(r => r !== null);
+                            allResults = allResults.concat(validResults);
+                            
+                            currentBatch++;
+                            if (currentBatch < totalBatches) {
+                                setTimeout(processNextBatch, 500); // Petit délai entre les lots
+                            } else {
+                                finishProcessing(allResults, date);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur dans le lot:', error);
+                            currentBatch++;
+                            if (currentBatch < totalBatches) {
+                                setTimeout(processNextBatch, 500);
+                            } else {
+                                finishProcessing(allResults, date);
+                            }
+                        });
+                }
+                
+                processNextBatch();
+            }
+            
+            function finishProcessing(results, date) {
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+                
+                if (results.length === 0) {
+                    showError('Aucune donnée disponible pour cette date');
+                    progressContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Trier par variation (peut être changé pour volume ou autre)
+                results.sort((a, b) => b.change - a.change);
+                
+                // Afficher les résultats
+                results.forEach((crypto, index) => {
+                    const row = document.createElement('tr');
+                    
+                    const indexCell = document.createElement('td');
+                    indexCell.textContent = index + 1;
+                    
+                    const symbolCell = document.createElement('td');
+                    symbolCell.textContent = crypto.symbol;
+                    
+                    const priceCell = document.createElement('td');
+                    priceCell.textContent = crypto.price.toFixed(8).replace(/\.?0+$/, '');
+                    
+                    const changeCell = document.createElement('td');
+                    changeCell.textContent = crypto.change.toFixed(2) + '%';
+                    changeCell.classList.add(crypto.change >= 0 ? 'positive' : 'negative');
+                    
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = formatFrenchDate(date);
+                    
+                    row.append(indexCell, symbolCell, priceCell, changeCell, dateCell);
+                    tableBody.appendChild(row);
+                });
+                
+                loadingDiv.style.display = 'none';
+                progressContainer.style.display = 'none';
+                cryptoTable.style.display = 'table';
             }
             
             function fetchHistoricalData(symbol, startTime, endTime) {
-                // Récupérer les klines (données de bougies) pour la période
-                const interval = '1d'; // 1 jour
-                const limit = 2; // On a besoin de 2 points (début et fin de période)
+                const interval = '1d';
+                const limit = 2;
                 
                 const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`;
                 
@@ -216,11 +330,13 @@
                         return response.json();
                     })
                     .then(data => {
-                        if (data.length < 2) return null; // Pas assez de données
+                        if (data.length < 2) return null;
                         
-                        // Format des klines: [0:Open time, 1:Open, 2:High, 3:Low, 4:Close, ...]
-                        const startPrice = parseFloat(data[0][4]); // Close price du premier jour
-                        const endPrice = parseFloat(data[1][4]); // Close price du jour sélectionné
+                        const startPrice = parseFloat(data[0][4]);
+                        const endPrice = parseFloat(data[1][4]);
+                        
+                        // Vérifier les prix valides
+                        if (startPrice <= 0 || endPrice <= 0) return null;
                         
                         const changePercent = ((endPrice - startPrice) / startPrice) * 100;
                         
@@ -236,42 +352,6 @@
                     });
             }
             
-            function processResults(results, date) {
-                // Trier par volume (exemple simplifié)
-                results.sort((a, b) => b.change - a.change);
-                
-                results.forEach((crypto, index) => {
-                    const row = document.createElement('tr');
-                    
-                    // Numéro
-                    const indexCell = document.createElement('td');
-                    indexCell.textContent = index + 1;
-                    
-                    // Symbole
-                    const symbolCell = document.createElement('td');
-                    symbolCell.textContent = crypto.symbol;
-                    
-                    // Prix
-                    const priceCell = document.createElement('td');
-                    priceCell.textContent = crypto.price.toFixed(4);
-                    
-                    // Variation
-                    const changeCell = document.createElement('td');
-                    changeCell.textContent = crypto.change.toFixed(2) + '%';
-                    changeCell.classList.add(crypto.change >= 0 ? 'positive' : 'negative');
-                    
-                    // Date
-                    const dateCell = document.createElement('td');
-                    dateCell.textContent = formatFrenchDate(date);
-                    
-                    row.append(indexCell, symbolCell, priceCell, changeCell, dateCell);
-                    tableBody.appendChild(row);
-                });
-                
-                loadingDiv.style.display = 'none';
-                cryptoTable.style.display = 'table';
-            }
-            
             function formatFrenchDate(date) {
                 return date.toLocaleDateString('fr-FR', {
                     day: '2-digit',
@@ -282,6 +362,7 @@
             
             function showError(message) {
                 loadingDiv.style.display = 'none';
+                progressContainer.style.display = 'none';
                 errorDiv.textContent = message;
                 errorDiv.style.display = 'block';
             }
