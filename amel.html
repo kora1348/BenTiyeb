@@ -119,16 +119,14 @@ let allSymbols = [];
 let shortAlerts = [];
 let longAlerts = [];
 let realLiquidations = {};
-// Paramètres configurables
 const SETTINGS = {
-  MAX_DISTANCE: 1,  // Filtre pour les distances inférieures à 1%
-  MIN_CONFIDENCE: 0, // Désactivé le filtre de confiance
+  MAX_DISTANCE: 1,
+  MIN_CONFIDENCE: 0,
   SHORT_BUFFER: 0.98,
   LONG_BUFFER: 1.02,
   VOLATILITY_WINDOW: 14,
   USE_SMOOTHING: true
 };
-// Chargement initial
 document.addEventListener('DOMContentLoaded', () => {
   loadAllSymbols();
   setupEventListeners();
@@ -147,11 +145,10 @@ async function loadAllSymbols() {
     allSymbols = exchangeInfo.data.symbols
       .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT')
       .map(s => s.symbol)
-      .sort(); // Tri alphabétique ajouté ici
+      .sort();
     realLiquidations = processRealLiquidations(liquidations);
     updateSelect();
     await checkAllLiquidations();
-    // Charger automatiquement le graphique pour la première crypto
     if (allSymbols.length > 0) {
       document.getElementById('cryptoSelect').value = allSymbols[0];
       loadChart();
@@ -175,13 +172,13 @@ function processRealLiquidations(liquidations) {
     if (!result[liq.symbol]) {
       result[liq.symbol] = { shorts: [], longs: [] };
     }
-    if (liq.side === 'SELL') { // Liquidation short
+    if (liq.side === 'SELL') {
       result[liq.symbol].shorts.push({
         price: parseFloat(liq.price),
         time: new Date(liq.time),
         quantity: parseFloat(liq.executedQty)
       });
-    } else { // Liquidation long
+    } else {
       result[liq.symbol].longs.push({
         price: parseFloat(liq.price),
         time: new Date(liq.time),
@@ -194,7 +191,7 @@ function processRealLiquidations(liquidations) {
 async function checkAllLiquidations(endTime = null) {
   shortAlerts = [];
   longAlerts = [];
-  const toCheck = allSymbols.slice(0, 100); // Limité aux 100 premières pour performance
+  const toCheck = allSymbols.slice(0, 100);
   const tasks = toCheck.map(async (symbol) => {
     try {
       const [priceData, liqData] = await Promise.all([
@@ -204,10 +201,8 @@ async function checkAllLiquidations(endTime = null) {
       const lastPrice = priceData[priceData.length - 1].close;
       const zones = calculateLiquidationZones(symbol, priceData, liqData);
       const confidence = calculateConfidenceScore(priceData, liqData);
-      // Calcul des distances (toujours positives)
       const distanceShort = Math.abs(((zones.short - lastPrice) / lastPrice) * 100);
       const distanceLong = Math.abs(((lastPrice - zones.long) / lastPrice) * 100);
-      // Filtrage basé sur les paramètres
       if (distanceShort >= 0 && distanceShort < SETTINGS.MAX_DISTANCE) {
         shortAlerts.push(createAlertData(symbol, lastPrice, zones.short, distanceShort, confidence.short, 'short'));
       }
@@ -235,10 +230,8 @@ function createAlertData(symbol, price, liqPrice, distance, confidence, type) {
 function updateAlertDisplays() {
   const shortBox = document.getElementById('shortAlert');
   const longBox = document.getElementById('longAlert');
-  // Tri par distance (plus proche en premier)
   shortAlerts.sort((a, b) => a.dist - b.dist);
   longAlerts.sort((a, b) => a.dist - b.dist);
-  // Affichage des shorts
   if (shortAlerts.length > 0) {
     shortBox.innerHTML = shortAlerts.map(s =>
       `📉 ${s.symbol} — Prix: ${s.price}, Liq: ${s.liq} (Distance: +${s.dist}%)`
@@ -247,7 +240,6 @@ function updateAlertDisplays() {
   } else {
     shortBox.style.display = 'none';
   }
-  // Affichage des longs
   if (longAlerts.length > 0) {
     longBox.innerHTML = longAlerts.map(s =>
       `📈 ${s.symbol} — Prix: ${s.price}, Liq: ${s.liq} (Distance: -${s.dist}%)`
@@ -257,17 +249,8 @@ function updateAlertDisplays() {
     longBox.style.display = 'none';
   }
 }
-function getRealLiquidationInfo(liquidations) {
-  if (liquidations.length === 0) return '';
-  const lastLiq = liquidations[0];
-  const liqCount = liquidations.length;
-  const totalQty = liquidations.reduce((sum, liq) => sum + liq.quantity, 0);
-  return `<div class="real-liquidations">
-    Liquidations récentes: ${liqCount} (Total: ${totalQty.toFixed(2)})
-  </div>`;
-}
 async function fetchPriceData(symbol, endTime) {
-  let url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=720`; // 30 jours de données
+  let url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=720`;
   if (endTime) {
     url += `&endTime=${endTime}`;
   }
@@ -282,13 +265,11 @@ async function fetchLiquidationData(symbol) {
   return realLiquidations[symbol] || { shorts: [], longs: [] };
 }
 function calculateLiquidationZones(symbol, priceData, liqData) {
-  // 1. Calcul basé sur les liquidations réelles si disponibles
   if (liqData.shorts.length > 0 || liqData.longs.length > 0) {
     const realShort = liqData.shorts.length > 0 ?
       weightedAverage(liqData.shorts.map(liq => liq.price)) : null;
     const realLong = liqData.longs.length > 0 ?
       weightedAverage(liqData.longs.map(liq => liq.price)) : null;
-    // 2. Calcul estimé comme fallback
     const estimated = calculateEstimatedZones(priceData);
     return {
       short: realShort || estimated.short,
@@ -296,19 +277,15 @@ function calculateLiquidationZones(symbol, priceData, liqData) {
       isReal: !!realShort || !!realLong
     };
   }
-  // 3. Retourner seulement l'estimation si aucune donnée réelle
   return calculateEstimatedZones(priceData);
 }
 function calculateEstimatedZones(priceData) {
   const highs = priceData.map(d => d.high);
   const lows = priceData.map(d => d.low);
   const closes = priceData.map(d => d.close);
-  // Calcul de la volatilité
   const volatility = calculateVolatility(closes);
-  // Filtrage des valeurs extrêmes
   const filteredHighs = filterOutliers(highs);
   const filteredLows = filterOutliers(lows);
-  // Ajustement dynamique basé sur la volatilité
   const shortBuffer = SETTINGS.SHORT_BUFFER - (volatility * 0.3);
   const longBuffer = SETTINGS.LONG_BUFFER + (volatility * 0.3);
   return {
@@ -317,7 +294,6 @@ function calculateEstimatedZones(priceData) {
   };
 }
 function calculateConfidenceScore(priceData, liqData) {
-  // Score basé sur les liquidations réelles
   if (liqData.shorts.length > 0 || liqData.longs.length > 0) {
     const recency = calculateRecencyScore(liqData);
     const quantityScore = Math.min(1, liqData.shorts.concat(liqData.longs).reduce((sum, liq) => sum + liq.quantity, 0) / 1000);
@@ -326,7 +302,6 @@ function calculateConfidenceScore(priceData, liqData) {
       long: liqData.longs.length > 0 ? 0.8 + (0.2 * recency) + (0.1 * quantityScore) : 0.5
     };
   }
-  // Score basé sur l'estimation (volatilité + volume)
   const volatility = calculateVolatility(priceData.map(d => d.close));
   const volumeScore = Math.min(1, priceData.reduce((sum, d) => sum + d.volume, 0) / 100000);
   return {
@@ -350,7 +325,7 @@ function calculateVolatility(prices) {
   }
   const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
   const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
-  return Math.sqrt(variance) * Math.sqrt(365); // Volatilité annualisée
+  return Math.sqrt(variance) * Math.sqrt(365);
 }
 function filterOutliers(values) {
   if (values.length < 3) return values;
@@ -393,7 +368,7 @@ async function loadChart() {
     const zones = calculateLiquidationZones(symbol, priceData, liqData);
     updateChart(symbol, priceData, zones);
     updateInfo(symbol, priceData, zones);
-    await checkAllLiquidations(endTime); // Mise à jour des alertes après chargement des données
+    await checkAllLiquidations(endTime);
   } catch (e) {
     document.getElementById('priceInfo').innerHTML = `<span class="red">Erreur : ${e.message}</span>`;
   }

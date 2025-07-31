@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cryptomonnaies Binance en TRY</title>
+<style>
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #f2f2f2;
+}
+</style>
+</head>
+<body>
+<h1>Liste des Cryptomonnaies en TRY</h1>
+<div id="averageChange">Calcul en cours...</div>
+<div id="lowestVariations">Calcul en cours...</div>
+<div id="highestVariations">Calcul en cours...</div>
+<table id="cryptoTable">
+<thead>
+<tr>
+    <th>N°</th>
+    <th>Crypto</th>
+    <th>Taux de variation (24h)</th>
+</tr>
+</thead>
+<tbody>
+<!-- Les données seront insérées ici -->
+</tbody>
+</table>
+<script>
+async function fetchCryptoData() {
+    try {
+        const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const data = await response.json();
+        displayCryptoData(data);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données:', error);
+    }
+}
+
+function displayCryptoData(cryptos) {
+    const tableBody = document.querySelector('#cryptoTable tbody');
+    tableBody.innerHTML = '';
+    let totalChange = 0;
+    let count = 0;
+    let cryptoData = [];
+
+    cryptos
+        .filter(crypto => crypto.symbol.endsWith('TRY') && !crypto.symbol.endsWith('DOWNTRY') && !crypto.symbol.endsWith('UPTRY') && !crypto.symbol.endsWith('BEARTRY') && !crypto.symbol.endsWith('BULLTRY'))
+        .forEach((crypto, index) => {
+            const change = parseFloat(crypto.priceChangePercent);
+            totalChange += change;
+            count++;
+            cryptoData.push({ symbol: crypto.symbol, change: change });
+        });
+
+    // Trier les cryptomonnaies par symbole
+    cryptoData.sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+    cryptoData.forEach((crypto, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${crypto.symbol}</td>
+            <td>${crypto.change.toFixed(2)}%</td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    const averageChange = totalChange / count;
+    document.getElementById('averageChange').innerHTML =
+        `Somme totale des variations: ${totalChange.toFixed(2)}%<br>Moyenne des variations: ${averageChange.toFixed(2)}%`;
+
+    // Trier les cryptomonnaies par taux de variation
+    cryptoData.sort((a, b) => a.change - b.change);
+
+    // Afficher les 7 cryptomonnaies avec les taux de variation les plus bas
+    const lowestVariations = cryptoData.slice(0, 7).map(crypto => `${crypto.symbol}: ${crypto.change.toFixed(2)}%`).join('<br>');
+    document.getElementById('lowestVariations').innerHTML = `7 cryptos les plus bas:<br>${lowestVariations}`;
+
+    // Afficher les 7 cryptomonnaies avec les taux de variation les plus élevés
+    const highestVariations = cryptoData.slice(-7).map(crypto => `${crypto.symbol}: ${crypto.change.toFixed(2)}%`).join('<br>');
+    document.getElementById('highestVariations').innerHTML = `7 cryptos les plus hauts:<br>${highestVariations}`;
+}
+
+// Mettre à jour les données toutes les minutes
+fetchCryptoData();
+setInterval(fetchCryptoData, 6000000);
+</script>
+</body>
+</html>
