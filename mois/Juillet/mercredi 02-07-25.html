@@ -96,12 +96,11 @@
     <div id="loading" class="loading">Chargement des données en cours...</div>
 
     <table id="cryptoTable" style="display: none;">
-        <thead>
+        <thead id="cryptoTableHead">
             <tr>
                 <th>#</th>
                 <th>Crypto</th>
-                <th>Lundi</th>
-                <th>Mardi</th>
+                <!-- Les en-têtes de date seront insérés ici par JavaScript -->
             </tr>
         </thead>
         <tbody id="cryptoTableBody">
@@ -113,6 +112,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const tableHead = document.getElementById('cryptoTableHead');
             const tableBody = document.getElementById('cryptoTableBody');
             const loadingDiv = document.getElementById('loading');
             const cryptoTable = document.getElementById('cryptoTable');
@@ -136,6 +136,33 @@
             // Afficher les dates
             date1Span.textContent = date1.toLocaleDateString('fr-FR');
             date2Span.textContent = date2.toLocaleDateString('fr-FR');
+
+            // Fonction pour obtenir le nom du jour en français
+            function getFrenchDayName(date) {
+                const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+                return days[date.getDay()];
+            }
+
+            // Mettre à jour les en-têtes du tableau avec les noms des jours
+            function updateTableHeaders() {
+                const headerRow = tableHead.querySelector('tr');
+                // Supprimer les anciens en-têtes de date s'ils existent
+                while (headerRow.children.length > 2) {
+                    headerRow.removeChild(headerRow.lastChild);
+                }
+                
+                // Ajouter les nouveaux en-têtes
+                const th1 = document.createElement('th');
+                th1.textContent = getFrenchDayName(date1);
+                headerRow.appendChild(th1);
+                
+                const th2 = document.createElement('th');
+                th2.textContent = getFrenchDayName(date2);
+                headerRow.appendChild(th2);
+            }
+
+            // Appeler la fonction pour mettre à jour les en-têtes
+            updateTableHeaders();
 
             // Charger les données immédiatement
             loadData();
@@ -202,7 +229,7 @@
 
                 // Trier par volume (approximatif - en utilisant le volume du dernier jour)
                 allData.sort((a, b) => {
-                    const volA = parseFloat(b.kline2[5]); // volume du mardi
+                    const volA = parseFloat(b.kline2[5]);
                     const volB = parseFloat(a.kline2[5]);
                     return volA - volB;
                 });
@@ -219,27 +246,27 @@
                     const symbolCell = document.createElement('td');
                     symbolCell.textContent = pairData.symbol.replace('TRY', '');
                     
-                    // Variation pour Lundi (date1)
-                    const changeCellLundi = document.createElement('td');
+                    // Variation pour Date1
+                    const changeCellDate1 = document.createElement('td');
                     const kline1 = pairData.kline1;
                     const open1 = parseFloat(kline1[1]);
                     const close1 = parseFloat(kline1[4]);
                     const change1 = close1 - open1;
                     const changeSymbol1 = change1 >= 0 ? '+' : '-';
-                    changeCellLundi.textContent = changeSymbol1;
-                    changeCellLundi.classList.add(change1 >= 0 ? 'positive' : 'negative');
+                    changeCellDate1.textContent = changeSymbol1;
+                    changeCellDate1.classList.add(change1 >= 0 ? 'positive' : 'negative');
                     
-                    // Variation pour Mardi (date2)
-                    const changeCellMardi = document.createElement('td');
+                    // Variation pour Date2
+                    const changeCellDate2 = document.createElement('td');
                     const kline2 = pairData.kline2;
                     const open2 = parseFloat(kline2[1]);
                     const close2 = parseFloat(kline2[4]);
                     const change2 = close2 - open2;
                     const changeSymbol2 = change2 >= 0 ? '+' : '-';
-                    changeCellMardi.textContent = changeSymbol2;
-                    changeCellMardi.classList.add(change2 >= 0 ? 'positive' : 'negative');
+                    changeCellDate2.textContent = changeSymbol2;
+                    changeCellDate2.classList.add(change2 >= 0 ? 'positive' : 'negative');
                     
-                    row.append(indexCell, symbolCell, changeCellLundi, changeCellMardi);
+                    row.append(indexCell, symbolCell, changeCellDate1, changeCellDate2);
                     tableBody.appendChild(row);
                     
                     // Ajouter à la carte si les deux symboles correspondent exactement à symboleATrouver
