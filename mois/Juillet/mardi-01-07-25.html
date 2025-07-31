@@ -83,11 +83,11 @@
     <h1>Cryptos avec paire TRY sur Binance</h1>
 
     <div class="notification">
-        <strong>Information importante :</strong> Cette interface affiche les données pour les dates du 01/07/2025 et 02/07/2025.
+        <strong>Information importante :</strong> Cette interface affiche les données pour les dates du <span id="date1"></span> et <span id="date2"></span>.
     </div>
 
     <div class="card" id="cryptoCard" style="display: none;">
-        <h2>Cryptos avec symbole correspondant</h2>
+        <h2>Cryptos avec symbole correspondant: <span id="symboleATrouver"></span></h2>
         <ul class="crypto-list" id="cryptoList">
             <!-- Les cryptos seront listées ici -->
         </ul>
@@ -119,19 +119,27 @@
             const lastUpdateDiv = document.getElementById('lastUpdate');
             const cryptoCard = document.getElementById('cryptoCard');
             const cryptoList = document.getElementById('cryptoList');
+            const date1Span = document.getElementById('date1');
+            const date2Span = document.getElementById('date2');
+            const symboleATrouverSpan = document.getElementById('symboleATrouver');
 
             // Symbole à trouver
             const symboleATrouver = '+';
+            symboleATrouverSpan.textContent = symboleATrouver;
 
             // Dates à utiliser
             const date1 = new Date('2025-07-01');
             const date2 = new Date('2025-07-02');
 
+            // Afficher les dates
+            date1Span.textContent = date1.toLocaleDateString('fr-FR');
+            date2Span.textContent = date2.toLocaleDateString('fr-FR');
+
             // Charger les données immédiatement
             loadData();
 
-            // Recharger toutes les 500 minutes
-            setInterval(loadData, 500 * 60 * 1000);
+            // Recharger toutes les 5 minutes
+            setInterval(loadData, 5 * 60 * 1000);
 
             function loadData() {
                 loadingDiv.style.display = 'block';
