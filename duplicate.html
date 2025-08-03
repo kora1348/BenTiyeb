@@ -22,24 +22,24 @@
 
         // Fonction pour trouver les doublons apparaissant dans au moins trois listes
         function trouverDoublons(...listes) {
-            const elementsCompte = {};
+            const elementsListes = {};
             const doublons = [];
 
-            // Compter les occurrences de chaque élément dans les listes
-            listes.forEach(liste => {
+            // Enregistrer les listes où chaque élément apparaît
+            listes.forEach((liste, index) => {
                 liste.forEach(element => {
-                    if (elementsCompte[element]) {
-                        elementsCompte[element]++;
+                    if (elementsListes[element]) {
+                        elementsListes[element].push(`Liste ${index + 1}`);
                     } else {
-                        elementsCompte[element] = 1;
+                        elementsListes[element] = [`Liste ${index + 1}`];
                     }
                 });
             });
 
             // Vérifier les éléments qui apparaissent dans au moins trois listes
-            for (const element in elementsCompte) {
-                if (elementsCompte[element] >= 3) {
-                    doublons.push(element);
+            for (const element in elementsListes) {
+                if (elementsListes[element].length >= 3) {
+                    doublons.push(`${element} (${elementsListes[element].join(", ")})`);
                 }
             }
 
