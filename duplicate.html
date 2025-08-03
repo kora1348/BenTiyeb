@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détection de doublons</title>
+</head>
+<body>
+    <h1>Détection de doublons dans les listes</h1>
+    <button onclick="trouverEtAfficherDoublons()">Trouver les doublons</button>
+    <p id="resultat"></p>
+
+    <script>
+        // Définir les listes
+        const liste1 = ["BONK", "ACA", "MBOX", "VIC", "D", "C", "TLM", "COS", "TREE", "DENT", "ERA", "JASMY", "LA", "TRU", "VANRY", "BEL", "OGN", "USTC", "STO", "TRX", "XRP", "USUAL", "TNSR", "ETHFI", "A", "SANTOS", "RAD", "LAZIO", "HYPER", "SUN", "ALGO", "PORTO", "CATI", "HIVE", "ONT", "EDU", "GAS", "CITY", "POLYX", "BAR", "OP", "CELO", "NIL", "API3", "POL", "LUMIA", "CRV", "CYBER", "ALICE", "ATM", "OG", "PHB", "YGG", "ACE", "NTRN", "APT", "HIGH", "UNI", "NEO", "BNB", "ETC", "BCH"];
+
+        const liste2 = ["BTTC", "BONK", "TURBO", "SPELL", "HMSTR", "1MBABYDOGE", "SKL", "DENT", "NOT", "C", "USDT", "BIO", "BEAMX", "TREE", "GUN", "USTC", "ACT", "ERA", "HAEDAL", "ANIME", "OM", "CETUS", "USDC", "AIXBT", "D", "XRP", "RSR", "ALGO", "FIDA", "LA", "TRX", "W", "STO", "THE", "ZK", "SXT", "RARE", "WIF", "IOTA", "ANKR", "BABY", "GRT", "AI", "LUNA", "MINA", "MOVE", "ENJ", "FDUSD", "ORCA", "ADA", "BLUR", "WLD", "POLYX", "LISTA", "SUI", "OP", "BERA", "COW", "LAYER", "IO", "SHELL", "LDO", "CRV", "ONDO", "ONT", "PHA", "BANANA", "OG", "NTRN", "AVAX", "ZRO", "STX", "A", "APT", "RENDER", "UNI", "LPT", "AUCTION", "NEAR", "FIL", "CELO", "RAY", "VANA", "PENDLE", "INJ", "MOVR", "LINK", "SOL", "AR", "NEO", "GAS", "TRB", "COMP", "ENS", "ETH", "LTC", "KSM", "AAVE", "TAO", "PAXG", "BTC"];
+
+        const liste3 = ["PEPE", "BTTC", "1000SATS", "LUNC", "DOGS", "HOT", "HMSTR", "SPELL", "PENGU", "BOME", "MEME", "COS", "1MBABYDOGE", "ANIME", "SPK", "NOT", "DENT", "JASMY", "USTC", "AMP", "BEAMX", "SLP", "ACT", "1000CAT", "FIDA", "GALA", "C", "VTHO", "TREE", "BLUR", "PNUT", "ENA", "TLM", "SLF", "BABY", "MUBARAK", "ARPA", "XVG", "ACA", "RDNT", "CHZ", "RESOLV", "USUAL", "RVN", "XAI", "MAV", "BMT", "SOPH", "MOVE", "ALT", "PIXEL", "PORTAL", "ROSE", "PEOPLE", "HUMA", "HOME", "G", "D", "BIO", "VANRY", "VET", "COTI", "UMA", "SAHARA", "LUNA", "API3", "RARE", "AIXBT", "HAEDAL", "W", "NFP", "XRP", "MBOX", "ARB", "ZK", "HBAR", "WIF", "KERNEL", "ANKR", "RAD", "TRU", "CETUS", "AEVO", "ETHFI", "SOLV", "MINA", "CATI", "SAGA", "STRK", "FET", "ADA", "BAKE", "ID", "ENJ", "ARKM", "LA", "SXT", "XLM", "ZIL", "PARTI", "LUMIA", "WLD", "SUN", "HYPER", "GMT", "ALGO", "NEWT", "S", "TIA", "TNSR", "PYTH", "ARK", "SEI", "STRAX", "STO", "JUP", "BEL", "APE", "ERA", "LAYER", "LDO", "ONT", "IO", "SAND", "SHELL", "VIC", "SIGN", "MANTA", "PHA", "OP", "WCT", "TRUMP", "NIL", "LISTA", "SUI", "MANA", "SXP", "POL", "AXL", "BERA", "ALPINE", "BAR", "ONDO", "COW", "ME", "ZRO", "KAITO", "POLYX", "SANTOS", "ORCA", "ALICE", "NTRN", "JTO", "NXPC", "OMNI", "RAY", "VIRTUAL", "RED", "AVAX", "LAZIO", "CAKE", "DYDX", "RONIN", "SNX", "RENDER", "STORJ", "STX", "VANA", "NEAR", "JUV", "DOT", "THETA", "YGG", "CITY", "FIL", "PORTO", "ATM", "INJ", "UNI", "TON", "HIVE", "BANANA", "OG", "LPT", "ORDI", "ASR", "SOL", "LINK", "ICP", "ATOM", "MOVR", "AXS", "TRB", "AUCTION", "METIS", "ETH", "EGLD", "KSM", "COMP", "BNB", "MKR"];
+
+        const liste4 = ["1000CAT", "HOME", "TREE", "LISTA", "ATM", "CFX", "OP", "BAR", "ASR", "SUN", "JUV", "CITY", "PSG", "MOVR", "AUCTION", "RAY"];
+
+        // Fonction pour trouver les doublons apparaissant dans au moins trois listes
+        function trouverDoublons(...listes) {
+            const elementsCompte = {};
+            const doublons = [];
+
+            // Compter les occurrences de chaque élément dans les listes
+            listes.forEach(liste => {
+                liste.forEach(element => {
+                    if (elementsCompte[element]) {
+                        elementsCompte[element]++;
+                    } else {
+                        elementsCompte[element] = 1;
+                    }
+                });
+            });
+
+            // Vérifier les éléments qui apparaissent dans au moins trois listes
+            for (const element in elementsCompte) {
+                if (elementsCompte[element] >= 3) {
+                    doublons.push(element);
+                }
+            }
+
+            return doublons;
+        }
+
+        // Fonction pour trouver et afficher les doublons
+        function trouverEtAfficherDoublons() {
+            const doublons = trouverDoublons(liste1, liste2, liste3, liste4);
+            const resultatElement = document.getElementById("resultat");
+            if (doublons.length > 0) {
+                resultatElement.innerText = "Doublons trouvés dans au moins trois listes :\n" + doublons.join("\n");
+            } else {
+                resultatElement.innerText = "Aucun doublon trouvé dans au moins trois listes.";
+            }
+        }
+    </script>
+</body>
+</html>
