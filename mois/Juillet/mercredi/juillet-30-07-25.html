@@ -78,13 +78,68 @@
             padding: 4px 0;
             break-inside: avoid;
         }
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #f2a900;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        .controls {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #f2a900;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 36px;
+        }
+        button:hover {
+            background-color: #e09b00;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>Cryptos avec paire TRY sur Binance</h1>
+    
+    <div class="controls">
+        <button id="refreshBtn">Actualiser les données</button>
+    </div>
+    
     <div class="notification">
         <strong>Information importante :</strong> Cette interface affiche les données pour les dates du <span id="date1"></span> et <span id="date2"></span>.
     </div>
+
+    <div id="progressContainer" class="progress-container" style="display: none;">
+        <div id="progressBar" class="progress-bar" style="width: 0%">0%</div>
+    </div>
+    
+    <div id="error" class="error"></div>
+    <div id="loading" class="loading">Chargement des données en cours...</div>
 
     <div class="card" id="cryptoCard" style="display: none;">
         <h2>Cryptos avec symbole identique aux deux jours: <span id="symboleATrouver"></span></h2>
@@ -92,8 +147,6 @@
             <!-- Les cryptos seront listées ici -->
         </ul>
     </div>
-
-    <div id="loading" class="loading">Chargement des données en cours...</div>
 
     <table id="cryptoTable" style="display: none;">
         <thead id="cryptoTableHead">
@@ -122,20 +175,27 @@
             const date1Span = document.getElementById('date1');
             const date2Span = document.getElementById('date2');
             const symboleATrouverSpan = document.getElementById('symboleATrouver');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const errorDiv = document.getElementById('error');
+            const refreshBtn = document.getElementById('refreshBtn');
 
             // Symbole à trouver
             const symboleATrouver = '-';
             symboleATrouverSpan.textContent = symboleATrouver;
 
             // Dates à utiliser
-            const date1 = new Date('2025-07-02');
-            const date2 = new Date('2025-07-03');
+            const date1 = new Date('2025-07-29');
+            const date2 = new Date('2025-07-30');
             const date1Timestamp = date1.getTime();
             const date2Timestamp = date2.getTime();
 
             // Afficher les dates
             date1Span.textContent = date1.toLocaleDateString('fr-FR');
             date2Span.textContent = date2.toLocaleDateString('fr-FR');
+
+            // Bouton d'actualisation
+            refreshBtn.addEventListener('click', loadData);
 
             // Fonction pour obtenir le nom du jour en français
             function getFrenchDayName(date) {
@@ -169,13 +229,18 @@
 
             async function loadData() {
                 loadingDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
                 cryptoTable.style.display = 'none';
                 cryptoCard.style.display = 'none';
                 tableBody.innerHTML = '';
                 cryptoList.innerHTML = '';
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
 
                 try {
                     // 1. Récupérer toutes les paires TRY
+                    loadingDiv.textContent = 'Récupération de la liste des cryptos...';
                     const startTime = Date.now();
                     const exchangeInfoResponse = await fetch('https://api.binance.com/api/v3/exchangeInfo');
                     if (!exchangeInfoResponse.ok) throw new Error('Erreur réseau');
@@ -186,56 +251,82 @@
                         .map(symbol => symbol.symbol);
                     
                     if (tryPairs.length === 0) {
-                        loadingDiv.textContent = 'Aucune paire TRY trouvée';
+                        showError('Aucune paire TRY trouvée');
                         return;
                     }
 
-                    // 2. Récupérer les données Kline pour toutes les paires en parallèle
-                    const allRequests = tryPairs.map(symbol => {
-                        const url1 = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${date1Timestamp}&limit=1`;
-                        const url2 = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${date2Timestamp}&limit=1`;
-                        
-                        return Promise.all([
-                            fetch(url1).then(res => res.ok ? res.json() : []),
-                            fetch(url2).then(res => res.ok ? res.json() : [])
-                        ]).then(([data1, data2]) => {
-                            return {
-                                symbol: symbol,
-                                kline1: data1.length > 0 ? data1[0] : null,
-                                kline2: data2.length > 0 ? data2[0] : null
-                            };
-                        });
-                    });
-
-                    const allData = await Promise.all(allRequests);
-                    const validData = allData.filter(item => item.kline1 && item.kline2);
+                    loadingDiv.textContent = `Préparation du chargement pour ${tryPairs.length} cryptos...`;
                     
-                    // 3. Afficher les résultats
-                    processData(validData);
-                    lastUpdateDiv.textContent = `Dernière mise à jour: ${new Date().toLocaleString('fr-FR')} (${validData.length} paires valides)`;
-                    console.log(`Chargement terminé en ${(Date.now() - startTime)/1000} secondes`);
-
+                    // 2. Récupérer les données Kline par lots
+                    const BATCH_SIZE = 20;
+                    const totalBatches = Math.ceil(tryPairs.length / BATCH_SIZE);
+                    let currentBatch = 0;
+                    let allData = [];
+                    
+                    async function processBatch() {
+                        const startIdx = currentBatch * BATCH_SIZE;
+                        const endIdx = Math.min(startIdx + BATCH_SIZE, tryPairs.length);
+                        const batchPairs = tryPairs.slice(startIdx, endIdx);
+                        
+                        loadingDiv.textContent = `Chargement des cryptos ${startIdx+1}-${endIdx} sur ${tryPairs.length}...`;
+                        progressBar.style.width = `${(currentBatch / totalBatches * 100)}%`;
+                        progressBar.textContent = `${Math.round(currentBatch / totalBatches * 100)}%`;
+                        
+                        const batchPromises = batchPairs.map(symbol => {
+                            const url1 = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${date1Timestamp}&limit=1`;
+                            const url2 = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${date2Timestamp}&limit=1`;
+                            
+                            return Promise.all([
+                                fetch(url1).then(res => res.ok ? res.json() : []),
+                                fetch(url2).then(res => res.ok ? res.json() : [])
+                            ]).then(([data1, data2]) => {
+                                return {
+                                    symbol: symbol,
+                                    kline1: data1.length > 0 ? data1[0] : null,
+                                    kline2: data2.length > 0 ? data2[0] : null
+                                };
+                            });
+                        });
+                        
+                        const batchResults = await Promise.all(batchPromises);
+                        allData = allData.concat(batchResults);
+                        
+                        currentBatch++;
+                        if (currentBatch < totalBatches) {
+                            setTimeout(processBatch, 300); // Petit délai entre les lots
+                        } else {
+                            finishProcessing(allData);
+                        }
+                    }
+                    
+                    await processBatch();
+                    
                 } catch (error) {
                     console.error('Erreur:', error);
-                    loadingDiv.textContent = 'Erreur de chargement: ' + error.message;
+                    showError('Erreur de chargement: ' + error.message);
                 }
             }
 
-            function processData(allData) {
-                if (allData.length === 0) {
-                    loadingDiv.textContent = 'Aucune donnée valide trouvée';
+            function finishProcessing(allData) {
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+                
+                const validData = allData.filter(item => item.kline1 && item.kline2);
+                
+                if (validData.length === 0) {
+                    showError('Aucune donnée valide trouvée');
                     return;
                 }
 
                 // Trier par volume (approximatif - en utilisant le volume du dernier jour)
-                allData.sort((a, b) => {
+                validData.sort((a, b) => {
                     const volA = parseFloat(b.kline2[5]);
                     const volB = parseFloat(a.kline2[5]);
                     return volA - volB;
                 });
 
                 // Afficher les données
-                allData.forEach((pairData, index) => {
+                validData.forEach((pairData, index) => {
                     const row = document.createElement('tr');
                     
                     // Numéro
@@ -278,11 +369,20 @@
                 });
 
                 loadingDiv.style.display = 'none';
+                progressContainer.style.display = 'none';
                 cryptoTable.style.display = 'table';
+                lastUpdateDiv.textContent = `Dernière mise à jour: ${new Date().toLocaleString('fr-FR')} (${validData.length} paires valides)`;
                 
                 if (cryptoList.children.length > 0) {
                     cryptoCard.style.display = 'block';
                 }
+            }
+            
+            function showError(message) {
+                loadingDiv.style.display = 'none';
+                progressContainer.style.display = 'none';
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
             }
         });
     </script>

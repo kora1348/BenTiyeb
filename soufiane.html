@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Historique listing des cryptos Binance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #loading {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 40px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            display: none;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2a900;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .positive { color: green; }
+        .negative { color: red; }
+    </style>
+</head>
+<body>
+<h1>Historique des cryptos listées sur Binance</h1>
+<div id="loading">Chargement des données en cours...</div>
+<table id="cryptoTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Crypto</th>
+            <th>Prix actuel</th>
+            <th>Prix le plus haut sur Binance</th>
+            <th>Pourcentage</th>
+        </tr>
+    </thead>
+    <tbody id="cryptoTableBody">
+        <!-- Données insérées par JS -->
+    </tbody>
+</table>
+
+<script>
+    async function fetchAllSymbols() {
+        const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+        const data = await res.json();
+        return data.symbols.filter(s => s.status === 'TRADING' && s.quoteAsset === 'USDT');
+    }
+
+    async function fetchCurrentPrice(symbol) {
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
+        const data = await res.json();
+        return parseFloat(data.price);
+    }
+
+    async function fetchMaxHigh(symbol) {
+        const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1w&limit=1000`;
+        const res = await fetch(url);
+        const data = await res.json();
+        let max = 0;
+        for (const candle of data) {
+            const high = parseFloat(candle[2]);
+            if (high > max) max = high;
+        }
+        return max;
+    }
+
+    async function loadCryptos() {
+        const table = document.getElementById('cryptoTable');
+        const body = document.getElementById('cryptoTableBody');
+        const loading = document.getElementById('loading');
+
+        const symbols = await fetchAllSymbols();
+
+        const dataPromises = symbols.map(async (symbolObj, index) => {
+            const baseAsset = symbolObj.baseAsset;
+            const symbol = symbolObj.symbol;
+
+            try {
+                const [currentPrice, maxHigh] = await Promise.all([
+                    fetchCurrentPrice(symbol),
+                    fetchMaxHigh(symbol)
+                ]);
+
+                const percent = ((maxHigh - currentPrice) / currentPrice) * 100;
+
+                return {
+                    id: index + 1,
+                    baseAsset,
+                    currentPrice,
+                    maxHigh,
+                    percent
+                };
+            } catch {
+                return null;
+            }
+        });
+
+        const allData = await Promise.all(dataPromises);
+
+        allData
+            .filter(item => item !== null)
+            .forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.baseAsset}</td>
+                    <td>${item.currentPrice.toFixed(8)}</td>
+                    <td>${item.maxHigh.toFixed(8)}</td>
+                    <td class="${item.percent >= 0 ? 'positive' : 'negative'}">${item.percent.toFixed(2)}%</td>
+                `;
+                body.appendChild(tr);
+            });
+
+        loading.style.display = 'none';
+        table.style.display = 'table';
+    }
+
+    loadCryptos();
+</script>
+</body>
+</html>
