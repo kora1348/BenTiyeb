@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Analyse journalière Binance - Timeframe 1m</title>
+<title>Analyse journalière Binance - Timeframe 1h (02h00 → 01h59)</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; }
 table { border-collapse: collapse; width: 100%; margin-top: 20px; }
@@ -42,7 +42,7 @@ th { background-color: #eee; }
 </head>
 <body>
 
-<h2>Alertes : Cryptos - Analyse journalière 1m</h2>
+<h2>Alertes : Cryptos - Analyse journalière 1h (02h00 → 01h59)</h2>
 
 <div id="progressContainer">
     <div id="progressBar">0%</div>
@@ -61,7 +61,7 @@ th { background-color: #eee; }
 <thead>
 <tr>
     <th>Crypto</th>
-    <th>Bougie daily</th>
+    <th>Période</th>
     <th>Total variations positives (%)</th>
     <th>Total variations négatives (%)</th>
 </tr>
@@ -70,10 +70,15 @@ th { background-color: #eee; }
 </table>
 
 <script>
-function getTodayStartTimestamp() {
+// Définir la période : 02h00 aujourd'hui -> 01h59 demain
+function getPeriodTimestamps() {
     const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    return now.getTime();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0); // 02h00 aujourd'hui
+    const end = new Date(start.getTime() + (24 * 60 * 60 * 1000) - 60 * 1000); // 23h59 après +22h = 01h59 demain
+    return {
+        startTime: start.getTime(),
+        endTime: end.getTime()
+    };
 }
 
 async function fetchUsdtSymbols() {
@@ -84,10 +89,8 @@ async function fetchUsdtSymbols() {
         .map(s => s.symbol);
 }
 
-async function fetchOneMinuteKlines(symbol) {
-    const startTime = getTodayStartTimestamp();
-    const endTime = Date.now();
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&startTime=${startTime}&endTime=${endTime}`;
+async function fetchOneHourKlines(symbol, startTime, endTime) {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&startTime=${startTime}&endTime=${endTime}`;
     const resp = await fetch(url);
     return resp.json();
 }
@@ -111,13 +114,14 @@ async function main() {
     let alertsRed = [];
 
     try {
+        const { startTime, endTime } = getPeriodTimestamps();
         const symbols = await fetchUsdtSymbols();
         const total = symbols.length;
         let processed = 0;
 
         for (const symbol of symbols) {
             try {
-                const klines = await fetchOneMinuteKlines(symbol);
+                const klines = await fetchOneHourKlines(symbol, startTime, endTime);
                 if (klines.length === 0) continue;
 
                 let totalPositive = 0;
@@ -136,7 +140,7 @@ async function main() {
                 if (totalNegative <= -10 && totalNegative >= -19) {
                     alertsGreen.push({ symbol, date: new Date().toISOString().slice(0,10), variation: totalNegative.toFixed(2) });
                 }
-                if (totalPositive >= 50) {
+                if (totalPositive >= 20) {
                     alertsRed.push({ symbol, date: new Date().toISOString().slice(0,10), variation: totalPositive.toFixed(2) });
                 }
 
@@ -144,7 +148,7 @@ async function main() {
                 tbody.insertAdjacentHTML('beforeend', `
                     <tr>
                         <td>${symbol}</td>
-                        <td>${new Date().toISOString().slice(0,10)}</td>
+                        <td>02:00 → 01:59</td>
                         <td>${totalPositive.toFixed(2)}%</td>
                         <td>${totalNegative.toFixed(2)}%</td>
                     </tr>
