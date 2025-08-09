@@ -46,10 +46,10 @@ th { background-color: #eee; }
 
 <div id="alertsContainer">
   <div id="alertGreen">
-    <h3>Variations entre -78% et -70% (Vert)</h3>
+    <h3>Variations entre -70% et -78% (Vert)</h3>
   </div>
   <div id="alertRed">
-    <h3>Variations ≥ 10% (Rouge)</h3>
+    <h3>Variations ≥ 10000% (Rouge)</h3>
   </div>
 </div>
 
@@ -76,7 +76,6 @@ async function fetchUsdtSymbols() {
 }
 
 async function fetchDailyKlines(symbol) {
-  // Données journalières depuis janvier 2025
   const startTime = new Date("2025-01-01T00:00:00Z").getTime();
   const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${startTime}&limit=1000`;
   const resp = await fetch(url);
@@ -96,11 +95,12 @@ async function main() {
   const alertRedDiv = document.getElementById('alertRed');
   const tbody = document.getElementById('cryptoTableBody');
   tbody.innerHTML = '';
-  alertGreenDiv.innerHTML = '<h3>Variations entre -78% et -70% (Vert)</h3>';
-  alertRedDiv.innerHTML = '<h3>Variations ≥ 10% (Rouge)</h3>';
+  alertGreenDiv.innerHTML = '<h3>Variations entre -70% et -78% (Vert)</h3>';
+  alertRedDiv.innerHTML = '<h3>Variations ≥ 10000% (Rouge)</h3>';
 
   let alertsGreen = [];
   let alertsRed = [];
+  let rowsData = []; // Tableau pour stocker toutes les lignes avant tri
 
   try {
     const symbols = await fetchUsdtSymbols();
@@ -110,18 +110,14 @@ async function main() {
     for (const symbol of symbols) {
       try {
         const klines = await fetchDailyKlines(symbol);
-
         if (klines.length < 2) {
           processed++;
           updateProgress(processed, total);
           continue;
         }
 
-        // Premier prix de 2025
         const firstClose = parseFloat(klines[0][4]);
-        // Dernier prix dispo
         const lastClose = parseFloat(klines[klines.length - 1][4]);
-
         if (!firstClose || !lastClose) {
           processed++;
           updateProgress(processed, total);
@@ -133,20 +129,24 @@ async function main() {
         if (variation >= -78 && variation <= -70) {
           alertsGreen.push({ symbol, variation: variation.toFixed(2) });
         }
-        if (variation >= 10) {
+        if (variation >= 10000) {
           alertsRed.push({ symbol, variation: variation.toFixed(2) });
         }
 
         const color = (variation >= -78 && variation <= -70) ? 'green' :
-                      (variation >= 10 ? 'red' : '');
-        tbody.insertAdjacentHTML('beforeend', `
-          <tr>
-            <td>${symbol}</td>
-            <td style="color:${color}">${variation.toFixed(2)}%</td>
-            <td>${firstClose.toFixed(2)}</td>
-            <td>${lastClose.toFixed(2)}</td>
-          </tr>
-        `);
+                      (variation >= 10000 ? 'red' : '');
+
+        rowsData.push({
+          symbol,
+          html: `
+            <tr>
+              <td>${symbol}</td>
+              <td style="color:${color}">${variation.toFixed(2)}%</td>
+              <td>${firstClose.toFixed(2)}</td>
+              <td>${lastClose.toFixed(2)}</td>
+            </tr>
+          `
+        });
 
       } catch (e) {
         console.error(e.message);
@@ -156,8 +156,14 @@ async function main() {
       updateProgress(processed, total);
     }
 
-    // Affichage alertes vertes
+    // Tri alphabétique par symbole
+    rowsData.sort((a, b) => a.symbol.localeCompare(b.symbol));
+    rowsData.forEach(row => tbody.insertAdjacentHTML('beforeend', row.html));
+
+    // Tri et affichage alertes
     alertsGreen.sort((a,b) => a.symbol.localeCompare(b.symbol));
+    alertsRed.sort((a,b) => a.symbol.localeCompare(b.symbol));
+
     if (alertsGreen.length > 0) {
       alertsGreen.forEach(a => {
         alertGreenDiv.insertAdjacentHTML('beforeend', `<div>${a.symbol} : ${a.variation}%</div>`);
@@ -166,8 +172,6 @@ async function main() {
       alertGreenDiv.insertAdjacentHTML('beforeend', '<div>Aucune variation détectée.</div>');
     }
 
-    // Affichage alertes rouges
-    alertsRed.sort((a,b) => a.symbol.localeCompare(b.symbol));
     if (alertsRed.length > 0) {
       alertsRed.forEach(a => {
         alertRedDiv.insertAdjacentHTML('beforeend', `<div>${a.symbol} : ${a.variation}%</div>`);
