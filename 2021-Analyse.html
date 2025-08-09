@@ -40,7 +40,7 @@ th { background-color: #eee; }
   <div id="progressBar">0%</div>
 </div>
 <div id="cryptoCard">
-  <h3>Cryptos avec maximum 5 mois en négatif :</h3>
+  <h3>Moyenne</h3>
   <div id="cryptoCardContent"></div>
 </div>
 <table>
@@ -139,15 +139,13 @@ async function main() {
         }
 
         const monthlyVariations = calculateMonthlyVariations(klines);
-        const negativeMonths = monthlyVariations.filter(variation => variation !== null && variation < 0).length;
-
-        if (negativeMonths <= 5) {
-          cryptoCardData.push({ symbol, negativeMonths });
-        }
-
         const validVariations = monthlyVariations.filter(variation => variation !== null);
         const totalVariation = validVariations.reduce((sum, variation) => sum + variation, 0);
         const averageVariation = validVariations.length > 0 ? totalVariation / validVariations.length : 0;
+
+        if (averageVariation >= 70 && averageVariation < 80) {
+          cryptoCardData.push({ symbol, averageVariation });
+        }
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -170,7 +168,7 @@ async function main() {
 
     cryptoCardData.sort((a, b) => a.symbol.localeCompare(b.symbol));
     cryptoCardData.forEach(data => {
-      cryptoCardContent.innerHTML += `${data.symbol} x${data.negativeMonths}<br>`;
+      cryptoCardContent.innerHTML += `${data.symbol} : ${data.averageVariation.toFixed(2)}%<br>`;
     });
 
     rowsData.sort((a, b) => a.innerText.localeCompare(b.innerText));
