@@ -42,18 +42,14 @@ th { background-color: #eee; }
 </style>
 </head>
 <body>
-
 <h2>Variations mensuelles (Janvier, Avril, Juillet, Octobre 2022)</h2>
-
 <div id="progressContainer">
     <div id="progressBar">0%</div>
 </div>
-
 <div class="card">
     <h3>📈 Cryptos positives sur les 4 mois consécutifs</h3>
     <div id="positiveCryptos">Chargement...</div>
 </div>
-
 <table>
 <thead>
 <tr>
@@ -64,16 +60,7 @@ th { background-color: #eee; }
 </thead>
 <tbody id="cryptoTableBody"></tbody>
 </table>
-
 <script>
-// Liste précise des cryptos à traiter
-const targetCryptos = [
-  "ACMUSDT","AGLDUSDT","ASRUSDT","ASTRUSDT","ATMUSDT","AVAUSDT","BARUSDT","BNBUSDT",
-  "CHZUSDT","DEXEUSDT","DOGEUSDT","DYDXUSDT","EURUSDT","FORTHUSDT","ICPUSDT","ICXUSDT",
-  "JUVUSDT","MBLUSDT","PAXGUSDT","POLYXUSDT","PONDUSDT","QIUSDT","SANTOSUSDT","SCUSDT",
-  "SOLUSDT","STEEMUSDT","STGUSDT","TRXUSDT","XVSUSDT"
-];
-
 // Mois ciblés
 const monthsToShow = [0, 3, 6, 9]; // Janvier, Avril, Juillet, Octobre
 
@@ -96,13 +83,16 @@ async function main() {
     tbody.innerHTML = '';
     positiveDiv.innerHTML = 'Chargement...';
 
+    // Récupérer la liste des symboles depuis Binance
+    const symbolsResponse = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+    const symbolsData = await symbolsResponse.json();
+    const symbols = symbolsData.symbols.map(s => s.symbol).filter(s => s.endsWith('USDT'));
+
     let processed = 0;
     let positiveList = [];
+    let allData = [];
 
-    // Tri alphabétique de la liste donnée
-    targetCryptos.sort();
-
-    for (const symbol of targetCryptos) {
+    for (const symbol of symbols) {
         try {
             const klines = await fetchMonthlyKlines(symbol);
             let positiveCount = 0;
@@ -117,37 +107,47 @@ async function main() {
 
                 if (year === 2022 && monthsToShow.includes(month)) {
                     const variation = ((parseFloat(curr[4]) - parseFloat(prev[4])) / parseFloat(prev[4])) * 100;
-
                     if (variation > 0) positiveCount++;
                     totalVariation += variation;
 
                     const moisNom = date.toLocaleString('fr-FR', { month: 'long' });
-                    tbody.insertAdjacentHTML('beforeend', `
-                        <tr>
-                            <td>${symbol}</td>
-                            <td>${moisNom} ${year}</td>
-                            <td style="color:${variation >= 0 ? 'green' : 'red'}">${variation.toFixed(2)}%</td>
-                        </tr>
-                    `);
+                    allData.push({
+                        symbol,
+                        moisNom,
+                        year,
+                        variation
+                    });
                 }
             }
 
             if (positiveCount === 4) {
-                // Ajoute crypto + total variation arrondi à 2 décimales
                 positiveList.push({symbol, totalVariation: totalVariation.toFixed(2)});
             }
-
         } catch (e) {
-            tbody.insertAdjacentHTML('beforeend', `<tr><td>${symbol}</td><td colspan="2" style="color:red;">Erreur: ${e.message}</td></tr>`);
+            console.error(`Erreur pour ${symbol}:`, e.message);
         }
+
         processed++;
-        updateProgress(processed, targetCryptos.length);
+        updateProgress(processed, symbols.length);
     }
 
-    // Affichage ligne par ligne avec total variation
+    // Trier les données par symbole
+    allData.sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+    // Insérer les données triées dans le tableau
+    allData.forEach(data => {
+        tbody.insertAdjacentHTML('beforeend', `
+            <tr>
+                <td>${data.symbol}</td>
+                <td>${data.moisNom} ${data.year}</td>
+                <td style="color:${data.variation >= 0 ? 'green' : 'red'}">${data.variation.toFixed(2)}%</td>
+            </tr>
+        `);
+    });
+
     if (positiveList.length > 0) {
         positiveDiv.innerHTML = positiveList
-          .map(p => `<div>${p.symbol} - ${p.totalVariation}%</div>`)
+          .map(p => `<div>${p.symbol} : ${p.totalVariation}%</div>`)
           .join('');
     } else {
         positiveDiv.innerHTML = "<div>Aucune crypto positive sur les 4 mois.</div>";
@@ -156,6 +156,5 @@ async function main() {
 
 main();
 </script>
-
 </body>
 </html>

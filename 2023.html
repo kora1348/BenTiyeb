@@ -90,6 +90,7 @@ async function main() {
 
     let processed = 0;
     let positiveList = [];
+    let allData = [];
 
     for (const symbol of symbols) {
         try {
@@ -110,13 +111,12 @@ async function main() {
                     totalVariation += variation;
 
                     const moisNom = date.toLocaleString('fr-FR', { month: 'long' });
-                    tbody.insertAdjacentHTML('beforeend', `
-                        <tr>
-                            <td>${symbol}</td>
-                            <td>${moisNom} ${year}</td>
-                            <td style="color:${variation >= 0 ? 'green' : 'red'}">${variation.toFixed(2)}%</td>
-                        </tr>
-                    `);
+                    allData.push({
+                        symbol,
+                        moisNom,
+                        year,
+                        variation
+                    });
                 }
             }
 
@@ -124,12 +124,26 @@ async function main() {
                 positiveList.push({symbol, totalVariation: totalVariation.toFixed(2)});
             }
         } catch (e) {
-            tbody.insertAdjacentHTML('beforeend', `<tr><td>${symbol}</td><td colspan="2" style="color:red;">Erreur: ${e.message}</td></tr>`);
+            console.error(`Erreur pour ${symbol}:`, e.message);
         }
 
         processed++;
         updateProgress(processed, symbols.length);
     }
+
+    // Trier les données par symbole
+    allData.sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+    // Insérer les données triées dans le tableau
+    allData.forEach(data => {
+        tbody.insertAdjacentHTML('beforeend', `
+            <tr>
+                <td>${data.symbol}</td>
+                <td>${data.moisNom} ${data.year}</td>
+                <td style="color:${data.variation >= 0 ? 'green' : 'red'}">${data.variation.toFixed(2)}%</td>
+            </tr>
+        `);
+    });
 
     if (positiveList.length > 0) {
         positiveDiv.innerHTML = positiveList
