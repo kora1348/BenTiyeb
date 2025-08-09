@@ -47,8 +47,8 @@ th { background-color: #eee; }
     <div id="progressBar">0%</div>
 </div>
 <div class="card">
-    <h3>📈 Cryptos positives sur les 4 mois consécutifs</h3>
-    <div id="positiveCryptos">Chargement...</div>
+    <h3>📉 Cryptos négatives sur les 4 mois consécutifs</h3>
+    <div id="negativeCryptos">Chargement...</div>
 </div>
 <table>
 <thead>
@@ -63,53 +63,44 @@ th { background-color: #eee; }
 <script>
 // Mois ciblés
 const monthsToShow = [0, 3, 6, 9]; // Janvier, Avril, Juillet, Octobre
-
 async function fetchMonthlyKlines(symbol) {
     const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1M&limit=1000`;
     const resp = await fetch(url);
     return resp.json();
 }
-
 function updateProgress(current, total) {
     const progressBar = document.getElementById('progressBar');
     const percent = Math.round((current / total) * 100);
     progressBar.style.width = percent + '%';
     progressBar.textContent = percent + '%';
 }
-
 async function main() {
     const tbody = document.getElementById('cryptoTableBody');
-    const positiveDiv = document.getElementById('positiveCryptos');
+    const negativeDiv = document.getElementById('negativeCryptos');
     tbody.innerHTML = '';
-    positiveDiv.innerHTML = 'Chargement...';
-
+    negativeDiv.innerHTML = 'Chargement...';
     // Récupérer la liste des symboles depuis Binance
     const symbolsResponse = await fetch('https://api.binance.com/api/v3/exchangeInfo');
     const symbolsData = await symbolsResponse.json();
     const symbols = symbolsData.symbols.map(s => s.symbol).filter(s => s.endsWith('USDT'));
-
     let processed = 0;
-    let positiveList = [];
+    let negativeList = [];
     let allData = [];
-
     for (const symbol of symbols) {
         try {
             const klines = await fetchMonthlyKlines(symbol);
-            let positiveCount = 0;
+            let negativeCount = 0;
             let totalVariation = 0;
-
             for (let i = 1; i < klines.length; i++) {
                 const prev = klines[i - 1];
                 const curr = klines[i];
                 const date = new Date(curr[0]);
                 const year = date.getFullYear();
                 const month = date.getMonth();
-
                 if (year === 2022 && monthsToShow.includes(month)) {
                     const variation = ((parseFloat(curr[4]) - parseFloat(prev[4])) / parseFloat(prev[4])) * 100;
-                    if (variation > 0) positiveCount++;
+                    if (variation < 0) negativeCount++;
                     totalVariation += variation;
-
                     const moisNom = date.toLocaleString('fr-FR', { month: 'long' });
                     allData.push({
                         symbol,
@@ -119,21 +110,17 @@ async function main() {
                     });
                 }
             }
-
-            if (positiveCount === 4) {
-                positiveList.push({symbol, totalVariation: totalVariation.toFixed(2)});
+            if (negativeCount === 4) {
+                negativeList.push({symbol, totalVariation: totalVariation.toFixed(2)});
             }
         } catch (e) {
             console.error(`Erreur pour ${symbol}:`, e.message);
         }
-
         processed++;
         updateProgress(processed, symbols.length);
     }
-
     // Trier les données par symbole
     allData.sort((a, b) => a.symbol.localeCompare(b.symbol));
-
     // Insérer les données triées dans le tableau
     allData.forEach(data => {
         tbody.insertAdjacentHTML('beforeend', `
@@ -144,16 +131,14 @@ async function main() {
             </tr>
         `);
     });
-
-    if (positiveList.length > 0) {
-        positiveDiv.innerHTML = positiveList
-          .map(p => `<div>${p.symbol} : ${p.totalVariation}%</div>`)
+    if (negativeList.length > 0) {
+        negativeDiv.innerHTML = negativeList
+          .map(n => `<div>${n.symbol} : ${n.totalVariation}%</div>`)
           .join('');
     } else {
-        positiveDiv.innerHTML = "<div>Aucune crypto positive sur les 4 mois.</div>";
+        negativeDiv.innerHTML = "<div>Aucune crypto négative sur les 4 mois.</div>";
     }
 }
-
 main();
 </script>
 </body>
