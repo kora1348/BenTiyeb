@@ -66,14 +66,16 @@ th { background-color: #eee; }
 </table>
 
 <script>
-async function fetchUsdtSymbols() {
-    const resp = await fetch('https://api.binance.com/api/v3/exchangeInfo');
-    const data = await resp.json();
-    return data.symbols
-        .filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT') && s.isSpotTradingAllowed)
-        .map(s => s.symbol)
-        .sort(); // tri alphabétique
-}
+// Liste précise des cryptos à traiter
+const targetCryptos = [
+  "ACMUSDT","AGLDUSDT","ASRUSDT","ASTRUSDT","ATMUSDT","AVAUSDT","BARUSDT","BNBUSDT",
+  "CHZUSDT","DEXEUSDT","DOGEUSDT","DYDXUSDT","EURUSDT","FORTHUSDT","ICPUSDT","ICXUSDT",
+  "JUVUSDT","MBLUSDT","PAXGUSDT","POLYXUSDT","PONDUSDT","QIUSDT","SANTOSUSDT","SCUSDT",
+  "SOLUSDT","STEEMUSDT","STGUSDT","TRXUSDT","XVSUSDT"
+];
+
+// Mois ciblés
+const monthsToShow = [0, 3, 6, 9]; // Janvier, Avril, Juillet, Octobre
 
 async function fetchMonthlyKlines(symbol) {
     const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1M&limit=1000`;
@@ -94,15 +96,17 @@ async function main() {
     tbody.innerHTML = '';
     positiveDiv.innerHTML = 'Chargement...';
 
-    const monthsToShow = [0, 3, 6, 9]; // Janvier, Avril, Juillet, Octobre
-    const totalSymbols = (await fetchUsdtSymbols());
     let processed = 0;
     let positiveList = [];
 
-    for (const symbol of totalSymbols) {
+    // Tri alphabétique de la liste donnée
+    targetCryptos.sort();
+
+    for (const symbol of targetCryptos) {
         try {
             const klines = await fetchMonthlyKlines(symbol);
             let positiveCount = 0;
+            let totalVariation = 0;
 
             for (let i = 1; i < klines.length; i++) {
                 const prev = klines[i - 1];
@@ -113,7 +117,9 @@ async function main() {
 
                 if (year === 2023 && monthsToShow.includes(month)) {
                     const variation = ((parseFloat(curr[4]) - parseFloat(prev[4])) / parseFloat(prev[4])) * 100;
+
                     if (variation > 0) positiveCount++;
+                    totalVariation += variation;
 
                     const moisNom = date.toLocaleString('fr-FR', { month: 'long' });
                     tbody.insertAdjacentHTML('beforeend', `
@@ -127,19 +133,22 @@ async function main() {
             }
 
             if (positiveCount === 4) {
-                positiveList.push(symbol);
+                // Ajoute crypto + total variation arrondi à 2 décimales
+                positiveList.push({symbol, totalVariation: totalVariation.toFixed(2)});
             }
 
         } catch (e) {
             tbody.insertAdjacentHTML('beforeend', `<tr><td>${symbol}</td><td colspan="2" style="color:red;">Erreur: ${e.message}</td></tr>`);
         }
         processed++;
-        updateProgress(processed, totalSymbols.length);
+        updateProgress(processed, targetCryptos.length);
     }
 
-    // Affichage ligne par ligne
+    // Affichage ligne par ligne avec total variation
     if (positiveList.length > 0) {
-        positiveDiv.innerHTML = positiveList.map(sym => `<div>${sym}</div>`).join('');
+        positiveDiv.innerHTML = positiveList
+          .map(p => `<div>${p.symbol} - ${p.totalVariation}%</div>`)
+          .join('');
     } else {
         positiveDiv.innerHTML = "<div>Aucune crypto positive sur les 4 mois.</div>";
     }
