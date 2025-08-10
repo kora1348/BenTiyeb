@@ -9,57 +9,57 @@ table { border-collapse: collapse; width: 100%; margin-top: 20px; }
 th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
 th { background-color: #eee; }
 #progressContainer {
-    width: 100%;
-    background-color: #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 10px;
+width: 100%;
+background-color: #ddd;
+border-radius: 8px;
+overflow: hidden;
+margin-bottom: 10px;
 }
 #progressBar {
-    height: 20px;
-    width: 0%;
-    background-color: #4caf50;
-    text-align: center;
-    color: white;
-    font-size: 12px;
-    line-height: 20px;
-    transition: width 0.3s ease;
+height: 20px;
+width: 0%;
+background-color: #4caf50;
+text-align: center;
+color: white;
+font-size: 12px;
+line-height: 20px;
+transition: width 0.3s ease;
 }
 #alertGreen div { color: green; margin-bottom: 4px; }
 #alertRed div { color: red; margin-bottom: 4px; }
 #alertsContainer { display: flex; gap: 40px; margin-top: 20px; }
 #alertGreen, #alertRed { flex: 1; }
 #alertGreen h3, #alertRed h3 {
-    margin-bottom: 8px;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 4px;
+margin-bottom: 8px;
+border-bottom: 1px solid #ccc;
+padding-bottom: 4px;
 }
 </style>
 </head>
 <body>
 
-<h2>Alertes : Cryptos avec variation sur 6 ans</h2>
+<h2>Alertes : Cryptos avec variation annuelle</h2>
 
 <div id="progressContainer">
-    <div id="progressBar">0%</div>
+<div id="progressBar">0%</div>
 </div>
 
 <div id="alertsContainer">
-    <div id="alertGreen">
-        <h3>Variations entre -70% et -78% (Vert)</h3>
-    </div>
-    <div id="alertRed">
-        <h3>Variations ≥ 10000% (Rouge)</h3>
-    </div>
+<div id="alertGreen">
+<h3>Variations entre -70% et -78% (Vert)</h3>
+</div>
+<div id="alertRed">
+<h3>Variations ≥ 10000% (Rouge)</h3>
+</div>
 </div>
 
 <table>
 <thead>
 <tr>
-    <th>Crypto</th>
-    <th>Années comparées</th>
-    <th>Taux de variation sur 6 ans (%)</th>
-    <th>Clôture décembre (année d’arrivée)</th>
+<th>Crypto</th>
+<th>Année</th>
+<th>Taux de variation annuelle (%)</th>
+<th>Clôture décembre</th>
 </tr>
 </thead>
 <tbody id="cryptoTableBody"></tbody>
@@ -107,7 +107,9 @@ async function main() {
     try {
         let symbols = await fetchUsdtSymbols();
 
+        // 🔹 TRI ALPHABÉTIQUE
         symbols.sort();
+
         const total = symbols.length;
         let processed = 0;
 
@@ -131,31 +133,29 @@ async function main() {
                 }
 
                 const years = Object.keys(closeDecByYear).map(y => parseInt(y)).sort((a,b) => a-b);
+                for (let i = 1; i < years.length; i++) {
+                    const year = years[i];
+                    const prevYear = years[i - 1];
+                    const closeCurrent = closeDecByYear[year];
+                    const closePrev = closeDecByYear[prevYear];
+                    if (!closeCurrent || !closePrev) continue;
 
-                // 🔹 Calcul sur 6 ans
-                for (let i = 6; i < years.length; i++) {
-                    const startYear = years[i - 6];
-                    const endYear = years[i];
-                    const closeStart = closeDecByYear[startYear];
-                    const closeEnd = closeDecByYear[endYear];
-                    if (!closeStart || !closeEnd) continue;
-
-                    const variation = ((closeEnd - closeStart) / closeStart) * 100;
+                    const variation = ((closeCurrent - closePrev) / closePrev) * 100;
 
                     if (variation >= -78 && variation <= -70) {
-                        alertsGreen.push({ symbol, period: `${startYear} → ${endYear}`, variation: variation.toFixed(2) });
+                        alertsGreen.push({ symbol, year, variation: variation.toFixed(2) });
                     }
                     if (variation >= 10000) {
-                        alertsRed.push({ symbol, period: `${startYear} → ${endYear}`, variation: variation.toFixed(2) });
+                        alertsRed.push({ symbol, year, variation: variation.toFixed(2) });
                     }
 
                     const color = (variation >= -78 && variation <= -70) ? 'green' : (variation >= 10000 ? 'red' : '');
                     tbody.insertAdjacentHTML('beforeend', `
                         <tr>
                             <td>${symbol}</td>
-                            <td>${startYear} → ${endYear}</td>
+                            <td>${year}</td>
                             <td style="color:${color}">${variation.toFixed(2)}%</td>
-                            <td>${closeEnd.toFixed(3)}</td>
+                            <td>${closeCurrent.toFixed(2)}</td>
                         </tr>
                     `);
                 }
@@ -167,22 +167,24 @@ async function main() {
             updateProgress(processed, total);
         }
 
-        alertsGreen.sort((a,b) => a.period.localeCompare(b.period));
+        alertsGreen.sort((a,b) => a.year - b.year);
+        alertGreenDiv.innerHTML = '<h3>Variations entre -70% et -78% (Vert)</h3>';
         if (alertsGreen.length > 0) {
             alertsGreen.forEach(a => {
-                alertGreenDiv.insertAdjacentHTML('beforeend', `<div>${a.symbol} : ${a.variation}% (${a.period})</div>`);
+                alertGreenDiv.insertAdjacentHTML('beforeend', `<div>${a.symbol} : ${a.variation}% en ${a.year}</div>`);
             });
         } else {
-            alertGreenDiv.insertAdjacentHTML('beforeend', '<div>Aucune variation sur 6 ans entre -70% et -78% détectée.</div>');
+            alertGreenDiv.insertAdjacentHTML('beforeend', '<div>Aucune variation annuelle entre -70% et -78% détectée.</div>');
         }
 
-        alertsRed.sort((a,b) => a.period.localeCompare(b.period));
+        alertsRed.sort((a,b) => a.year - b.year);
+        alertRedDiv.innerHTML = '<h3>Variations ≥ 10000% (Rouge)</h3>';
         if (alertsRed.length > 0) {
             alertsRed.forEach(a => {
-                alertRedDiv.insertAdjacentHTML('beforeend', `<div>${a.symbol} : ${a.variation}% (${a.period})</div>`);
+                alertRedDiv.insertAdjacentHTML('beforeend', `<div>${a.symbol} : ${a.variation}% en ${a.year}</div>`);
             });
         } else {
-            alertRedDiv.insertAdjacentHTML('beforeend', '<div>Aucune variation sur 6 ans ≥ 10000% détectée.</div>');
+            alertRedDiv.insertAdjacentHTML('beforeend', '<div>Aucune variation annuelle ≥ 10000% détectée.</div>');
         }
 
     } catch (e) {
