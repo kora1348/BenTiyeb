@@ -50,7 +50,7 @@ th { background-color: #eee; }
 
 <div id="alertsContainer">
     <div id="alertGreen">
-        <h3>Variations entre -10% et -19% (Vert)</h3>
+        <h3>Variations <= 20% (Vert)</h3>
     </div>
     <div id="alertRed">
         <h3>Variations ≥ 20% (Rouge)</h3>
@@ -107,7 +107,7 @@ async function main() {
     const alertRedDiv = document.getElementById('alertRed');
     const tbody = document.getElementById('cryptoTableBody');
     tbody.innerHTML = '';
-    alertGreenDiv.innerHTML = '<h3>Variations entre -10% et -19% (Vert)</h3>';
+    alertGreenDiv.innerHTML = '<h3>Variations <= 20% (Vert)</h3>';
     alertRedDiv.innerHTML = '<h3>Variations ≥ 20% (Rouge)</h3>';
 
     let alertsGreen = [];
@@ -137,7 +137,7 @@ async function main() {
                 }
 
                 // Alertes
-                if (totalNegative <= -10 && totalNegative >= -19) {
+                if (totalNegative <= -20) {
                     alertsGreen.push({ symbol, date: new Date().toISOString().slice(0,10), variation: totalNegative.toFixed(2) });
                 }
                 if (totalPositive >= 20) {
