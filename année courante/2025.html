@@ -35,13 +35,40 @@
         .negative {
             color: red;
         }
+        .card {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .card-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .month-card {
+            padding: 10px;
+            border-radius: 4px;
+            min-width: 120px;
+        }
     </style>
 </head>
 <body>
     <h1>Variation mensuelle des cryptos (Binance)</h1>
     <p>Données dynamiques avec API Binance - Taux de variation (%) par mois</p>
+
+        <div class="card" style="margin-bottom: 10px;">
+        <div class="card-title">Somme des variations mensuelles</div>
+        <div class="card-content" id="monthlySumCards"></div>
+    </div>
+
     <div id="loading">Chargement des données...</div>
-    <table id="cryptoTable">
+    <table id="cryptoTable card mt-3">
         <thead>
             <tr id="headerRow">
                 <th>Crypto</th>
@@ -50,10 +77,12 @@
         <tbody id="tableBody"></tbody>
     </table>
 
+
+
     <script>
         const cryptoList = [
             "1000SATSUSDT", "ACEUSDT", "NFPUSDT", "OSMOUSDT",
-            "BNBUSDT", "BTCUSDT", "SUPERUSDT", "WBTCUSDT",
+            "BNBUSDT",  "SUPERUSDT",
             "CHRUSDT", "CVCUSDT", "DATAUSDT", "PERPUSDT",
             "COTIUSDT", "NEOUSDT", "PEOPLEUSDT", "POWRUSDT",
             "COMPUSDT", "POLYXUSDT", "ROSEUSDT", "SCUSDT",
@@ -93,7 +122,7 @@
 
                     if (openTime.getFullYear() === 2025) {
                         allMonths.add(monthYear);
-                        return { monthYear, variation };
+                        return { monthYear, variation: parseFloat(variation) };
                     }
                     return null;
                 }).filter(Boolean);
@@ -106,6 +135,7 @@
         async function buildTable() {
             const loadingElement = document.getElementById("loading");
             const tableBody = document.getElementById("tableBody");
+            const monthlySumCards = document.getElementById("monthlySumCards");
 
             try {
                 loadingElement.textContent = "Chargement des données...";
@@ -128,6 +158,8 @@
                     headerRow.appendChild(th);
                 });
 
+                const monthlySums = {};
+
                 uniqueCryptos.forEach(crypto => {
                     const tr = document.createElement("tr");
                     const tdName = document.createElement("td");
@@ -139,7 +171,12 @@
                         const moisData = results[crypto].find(d => d.monthYear === month);
                         if (moisData) {
                             td.textContent = `${moisData.variation}%`;
-                            td.className = parseFloat(moisData.variation) >= 0 ? 'positive' : 'negative';
+                            td.className = moisData.variation >= 0 ? 'positive' : 'negative';
+
+                            if (!monthlySums[month]) {
+                                monthlySums[month] = 0;
+                            }
+                            monthlySums[month] += moisData.variation;
                         } else {
                             td.textContent = "-";
                         }
@@ -148,6 +185,15 @@
 
                     tableBody.appendChild(tr);
                 });
+
+                for (const month in monthlySums) {
+                    const sum = monthlySums[month];
+                    const monthCard = document.createElement("div");
+                    monthCard.className = `month-card ${sum >= 0 ? 'positive' : 'negative'}`;
+                    monthCard.textContent = `${month}: ${sum.toFixed(2)}%`;
+                    monthlySumCards.appendChild(monthCard);
+                }
+
             } catch (error) {
                 console.error("Erreur lors de la construction du tableau:", error);
                 loadingElement.textContent = "Erreur lors du chargement des données.";
