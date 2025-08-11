@@ -74,17 +74,13 @@ text-overflow: ellipsis;
 </style>
 </head>
 <body>
-
 <h2>Variation sur les 2 dernières années disponibles</h2>
-
 <div id="progressContainer">
 <div id="progressBar">0%</div>
 </div>
-
 <div class="cardsContainer" id="cardsContainer">
 <!-- Card spéciale en haut sera insérée ici -->
 </div>
-
 <table>
 <thead>
 <tr>
@@ -96,11 +92,9 @@ text-overflow: ellipsis;
 </thead>
 <tbody id="cryptoTableBody"></tbody>
 </table>
-
 <script>
 // Génère automatiquement les ranges pour -10/-18 à -490/-498 verts et 10/18 à 490/498 rouges
 const variationRanges = [];
-
 // Fonction pour ajouter tranches en pas de 10, largeur 8, ex: -10/-18, -20/-28, ...
 function addRanges(minStart, maxStart, step, count, color, negative = false) {
 for(let i=0; i<count; i++) {
@@ -109,22 +103,16 @@ const max = negative ? -(maxStart + i*step) : (maxStart + i*step);
 variationRanges.push({ min, max, color });
 }
 }
-
 // Ajouter les verts négatifs -10/-18 à -490/-498
 addRanges(10, 18, 10, 49, "green", true);
-
 // Ajouter les rouges positifs 10/18 à 490/498
 addRanges(10, 18, 10, 49, "red", false);
-
 // Condition spéciale exacte 10000% en rouge
 variationRanges.push({ exact: 10000, color: "red" });
-
 let alerts = {};
-
 function capitalize(str) {
 return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
 // Crée toutes les cartes sauf la spéciale
 function createCards() {
 const container = document.getElementById("cardsContainer");
@@ -143,30 +131,32 @@ card.innerHTML = `<h3>${title}</h3>`;
 container.appendChild(card);
 });
 }
-
 // Crée la carte spéciale bleue en haut avec tranches ayant exactement 4 cryptos
 function createSpecialCard(rangesWith4Cryptos) {
 const container = document.getElementById("cardsContainer");
 const card = document.createElement("div");
 card.className = "card blue";
 card.id = "card_special";
-
 let content = '<h3>Tranches avec exactement 4 cryptos</h3>';
 if (rangesWith4Cryptos.length === 0) {
 content += '<div class="item">Aucune tranche avec exactement 4 cryptos.</div>';
 } else {
 rangesWith4Cryptos.forEach(range => {
+const key = range.exact != null
+? `exact_${range.exact}`
+: `range_${range.min}_${range.max}`;
 const title = range.exact != null
 ? `Variations = ${range.exact}% (${capitalize(range.color)})`
 : `Variations entre ${range.min}% et ${range.max}% (${capitalize(range.color)})`;
 content += `<div class="item">${title}</div>`;
+alerts[key].forEach(crypto => {
+content += `<div class="item">${crypto.symbol} : ${crypto.variation.toFixed(2)}% (${crypto.from} → ${crypto.to})</div>`;
+});
 });
 }
-
 card.innerHTML = content;
 container.prepend(card); // Ajout en premier dans container
 }
-
 async function fetchUsdtSymbols() {
 const resp = await fetch('https://api.binance.com/api/v3/exchangeInfo');
 const data = await resp.json();
@@ -174,25 +164,21 @@ return data.symbols
 .filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT') && s.isSpotTradingAllowed)
 .map(s => s.symbol);
 }
-
 async function fetchMonthlyKlines(symbol) {
 const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1M&limit=1000`;
 const resp = await fetch(url);
 return resp.json();
 }
-
 function updateProgress(current, total) {
 const progressBar = document.getElementById('progressBar');
 const percent = Math.round((current / total) * 100);
 progressBar.style.width = percent + '%';
 progressBar.textContent = percent + '%';
 }
-
 function fmtPrice(p) {
 if (p == null || !isFinite(p)) return '-';
 return parseFloat(p.toFixed(8)).toString();
 }
-
 function matchRange(variation) {
 for (const range of variationRanges) {
 if (range.exact != null) {
@@ -207,7 +193,6 @@ if (variation >= range.min && variation <= range.max) return range;
 }
 return null;
 }
-
 async function main() {
 createCards();
 const tbody = document.getElementById('cryptoTableBody');
@@ -215,7 +200,6 @@ let symbols = await fetchUsdtSymbols();
 symbols.sort();
 const total = symbols.length;
 let processed = 0;
-
 for (const symbol of symbols) {
 try {
 const klines = await fetchMonthlyKlines(symbol);
@@ -233,18 +217,15 @@ processed++;
 updateProgress(processed, total);
 continue;
 }
-
 const yearPrev = years[years.length - 2];
 const yearCurrent = years[years.length - 1];
 const closePrev = closeDecByYear[yearPrev];
 const closeCurrent = closeDecByYear[yearCurrent];
-
 if (!closePrev || !closeCurrent) {
 processed++;
 updateProgress(processed, total);
 continue;
 }
-
 const variation = ((closeCurrent - closePrev) / closePrev) * 100;
 const variationFixed = variation.toFixed(2);
 const range = matchRange(variation);
@@ -256,7 +237,6 @@ const key = range.exact != null
 : `range_${range.min}_${range.max}`;
 alerts[key].push({ symbol, from: yearPrev, to: yearCurrent, variation });
 }
-
 tbody.insertAdjacentHTML('beforeend', `
 <tr>
 <td>${symbol}</td>
@@ -271,7 +251,6 @@ tbody.insertAdjacentHTML('beforeend', `<tr><td>${symbol}</td><td colspan="3" sty
 processed++;
 updateProgress(processed, total);
 }
-
 // Création de la carte spéciale avant les autres
 // On filtre les tranches avec exactement 4 cryptos
 const rangesWith4Cryptos = [];
@@ -289,12 +268,11 @@ const max = Number(parts[2]);
 r = variationRanges.find(v => v.min === min && v.max === max);
 }
 if (r) {
-rangesWith4Cryptos.push(r);
+rangesWith4Cryptos.push({...r, cryptos: alerts[key]});
 }
 }
 }
 createSpecialCard(rangesWith4Cryptos);
-
 // Remplissage des cartes + compteur en bas
 for (const key in alerts) {
 const card = document.getElementById(`card_${key}`);
@@ -309,9 +287,7 @@ card.insertAdjacentHTML('beforeend', `<div class="count">Il y a ${alerts[key].le
 }
 }
 }
-
 main();
 </script>
-
 </body>
 </html>
