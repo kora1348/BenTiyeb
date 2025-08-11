@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Variation mensuelle cryptos Binance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Variation mensuelle des cryptos (Binance)</h1>
+    <p>Données dynamiques avec API Binance - Taux de variation (%) par mois</p>
+    <div id="loading">Chargement des données...</div>
+    <table id="cryptoTable">
+        <thead>
+            <tr id="headerRow">
+                <th>Crypto</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        const cryptoList = [
+            "1000SATSUSDT", "ACEUSDT", "NFPUSDT", "OSMOUSDT",
+            "BNBUSDT", "BTCUSDT", "SUPERUSDT", "WBTCUSDT",
+            "CHRUSDT", "CVCUSDT", "DATAUSDT", "PERPUSDT",
+            "COTIUSDT", "NEOUSDT", "PEOPLEUSDT", "POWRUSDT",
+            "COMPUSDT", "POLYXUSDT", "ROSEUSDT", "SCUSDT",
+            "CTKUSDT", "EURUSDT", "LTCUSDT", "ZECUSDT",
+            "BNTUSDT", "FLMUSDT", "GRTUSDT", "ONTUSDT",
+            "KSMUSDT", "SUSHIUSDT", "SXPUSDT",
+            "EGLDUSDT", "PAXGUSDT", "QTUMUSDT",
+            "ENJUSDT", "RVNUSDT", "STORJUSDT", "WINUSDT",
+            "MDTUSDT", "MKRUSDT", "UNIUSDT"
+        ];
+
+        const uniqueCryptos = [...new Set(cryptoList)].sort();
+
+        const moisFrancais = [
+            "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+        ];
+
+        let allMonths = new Set();
+
+        async function fetchMonthlyData(symbol) {
+            try {
+                const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1M`;
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.map(candle => {
+                    const openTime = new Date(candle[0]);
+                    const open = parseFloat(candle[1]);
+                    const close = parseFloat(candle[4]);
+                    const variation = ((close - open) / open * 100).toFixed(2);
+                    const monthYear = `${moisFrancais[openTime.getMonth()]} ${openTime.getFullYear()}`;
+
+                    if (openTime.getFullYear() === 2025) {
+                        allMonths.add(monthYear);
+                        return { monthYear, variation };
+                    }
+                    return null;
+                }).filter(Boolean);
+            } catch (error) {
+                console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
+                return [];
+            }
+        }
+
+        async function buildTable() {
+            const loadingElement = document.getElementById("loading");
+            const tableBody = document.getElementById("tableBody");
+
+            try {
+                loadingElement.textContent = "Chargement des données...";
+
+                const results = {};
+                await Promise.all(uniqueCryptos.map(async (crypto) => {
+                    results[crypto] = await fetchMonthlyData(crypto);
+                }));
+
+                const sortedMonths = Array.from(allMonths).sort((a, b) => {
+                    const [moisA] = a.split(" ");
+                    const [moisB] = b.split(" ");
+                    return moisFrancais.indexOf(moisA) - moisFrancais.indexOf(moisB);
+                });
+
+                const headerRow = document.getElementById("headerRow");
+                sortedMonths.forEach(m => {
+                    const th = document.createElement("th");
+                    th.textContent = m;
+                    headerRow.appendChild(th);
+                });
+
+                uniqueCryptos.forEach(crypto => {
+                    const tr = document.createElement("tr");
+                    const tdName = document.createElement("td");
+                    tdName.textContent = crypto;
+                    tr.appendChild(tdName);
+
+                    sortedMonths.forEach(month => {
+                        const td = document.createElement("td");
+                        const moisData = results[crypto].find(d => d.monthYear === month);
+                        if (moisData) {
+                            td.textContent = `${moisData.variation}%`;
+                            td.className = parseFloat(moisData.variation) >= 0 ? 'positive' : 'negative';
+                        } else {
+                            td.textContent = "-";
+                        }
+                        tr.appendChild(td);
+                    });
+
+                    tableBody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Erreur lors de la construction du tableau:", error);
+                loadingElement.textContent = "Erreur lors du chargement des données.";
+            } finally {
+                loadingElement.style.display = "none";
+            }
+        }
+
+        buildTable();
+    </script>
+</body>
+</html>
