@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Historique Binance - Variation sur 4 dernières années</title>
+<title>Historique Binance - Variation sur 5 dernières années</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; }
 table { border-collapse: collapse; width: 100%; margin-top: 20px; }
@@ -74,7 +74,7 @@ text-overflow: ellipsis;
 </style>
 </head>
 <body>
-<h2>Variation sur les 4 dernières années disponibles</h2>
+<h2>Variation sur les 5 dernières années disponibles</h2>
 <div id="progressContainer">
 <div id="progressBar">0%</div>
 </div>
@@ -206,13 +206,13 @@ closeDecByYear[date.getFullYear()] = parseFloat(close);
 }
 }
 const years = Object.keys(closeDecByYear).map(Number).sort((a,b)=>a-b);
-if (years.length < 4) { // minimum 4 années
+if (years.length < 5) { // minimum 4 années
 processed++;
 updateProgress(processed, total);
 continue;
 }
 // On prend les 4 dernières années
-const yearStart = years[years.length - 4];
+const yearStart = years[years.length - 5];
 const yearEnd = years[years.length - 1];
 const closeStart = closeDecByYear[yearStart];
 const closeEnd = closeDecByYear[yearEnd];
