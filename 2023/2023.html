@@ -59,7 +59,7 @@
     </style>
 </head>
 <body>
-    <h1>Variation mensuelle des cryptos (Binance)</h1>
+    <h1>Variation mensuelle des cryptos (Binance) - 2023</h1>
     <p>Données dynamiques avec API Binance - Taux de variation (%) par mois</p>
 
         <div class="card" style="margin-bottom: 10px;">
@@ -81,15 +81,36 @@
 
     <script>
         const cryptoList = [
-    "ALCXUSDT", "GNOUSDT", "HBARUSDT", "ILVUSDT",
-    "BCHUSDT", "DYDXUSDT", "LINKUSDT", "YGGUSDT",
-    "MOVRUSDT", "OPUSDT", "ROSEUSDT", "RUNEUSDT",
-    "ACMUSDT", "CHZUSDT", "ENSUSDT", "TWTUSDT",
-    "AXSUSDT", "LUNAUSDT", "SANDUSDT", "SOLUSDT",
-    "IOSTUSDT", "NKNUSDT", "RLCUSDT", "XTZUSDT",
-    "DUSKUSDT", "MTLUSDT", "NEOUSDT", "ONTUSDT",
-    "ARPAUSDT", "DOGEUSDT", "HBARUSDT", "ZECUSDT"
+    "AAVEUSDT",
+    "AVAUSDT",
+    "AXSUSDT",
+    "BNTUSDT",
+    "BNBUSDT",
+    "BTCUSDT",
+    "CHZUSDT",
+    "CTKUSDT",
+    "DOTUSDT",
+    "DUSKUSDT",
+    "ENJUSDT",
+    "ETCUSDT",
+    "ETHUSDT",
+    "FILUSDT",
+    "FLMUSDT",
+    "LTCUSDT",
+    "LUNAUSDT",
+    "MTLUSDT",
+    "NMRUSDT",
+    "ONEUSDT",
+    "RSRUSDT",
+    "SANDUSDT",
+    "SKLUSDT",
+    "SOLUSDT",
+    "STXUSDT",
+    "THETAUSDT",
+    "TRXUSDT",
+    "YFIUSDT"
 ];
+
 
         const uniqueCryptos = [...new Set(cryptoList)].sort();
 
@@ -117,7 +138,7 @@
                     const variation = ((close - open) / open * 100).toFixed(2);
                     const monthYear = `${moisFrancais[openTime.getMonth()]} ${openTime.getFullYear()}`;
 
-                    if (openTime.getFullYear() === 2024) {
+                    if (openTime.getFullYear() === 2023) {
                         allMonths.add(monthYear);
                         return { monthYear, variation: parseFloat(variation) };
                     }
