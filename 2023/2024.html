@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Variation mensuelle cryptos Binance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .card {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .card-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .month-card {
+            padding: 10px;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Variation mensuelle des cryptos (Binance)</h1>
+    <p>Données dynamiques avec API Binance - Taux de variation (%) par mois</p>
+
+        <div class="card" style="margin-bottom: 10px;">
+        <div class="card-title">Somme des variations mensuelles</div>
+        <div class="card-content" id="monthlySumCards"></div>
+    </div>
+
+    <div id="loading">Chargement des données...</div>
+    <table id="cryptoTable card mt-3">
+        <thead>
+            <tr id="headerRow">
+                <th>Crypto</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+
+
+    <script>
+        const cryptoList = [
+    "ALCXUSDT", "GNOUSDT", "HBARUSDT", "ILVUSDT",
+    "BCHUSDT", "DYDXUSDT", "LINKUSDT", "YGGUSDT",
+    "MOVRUSDT", "OPUSDT", "ROSEUSDT", "RUNEUSDT",
+    "ACMUSDT", "CHZUSDT", "ENSUSDT", "TWTUSDT",
+    "AXSUSDT", "LUNAUSDT", "SANDUSDT", "SOLUSDT",
+    "IOSTUSDT", "NKNUSDT", "RLCUSDT", "XTZUSDT",
+    "DUSKUSDT", "MTLUSDT", "NEOUSDT", "ONTUSDT",
+    "ARPAUSDT", "DOGEUSDT", "HBARUSDT", "ZECUSDT"
+];
+
+        const uniqueCryptos = [...new Set(cryptoList)].sort();
+
+        const moisFrancais = [
+            "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+        ];
+
+        let allMonths = new Set();
+
+        async function fetchMonthlyData(symbol) {
+            try {
+                const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1M`;
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.map(candle => {
+                    const openTime = new Date(candle[0]);
+                    const open = parseFloat(candle[1]);
+                    const close = parseFloat(candle[4]);
+                    const variation = ((close - open) / open * 100).toFixed(2);
+                    const monthYear = `${moisFrancais[openTime.getMonth()]} ${openTime.getFullYear()}`;
+
+                    if (openTime.getFullYear() === 2024) {
+                        allMonths.add(monthYear);
+                        return { monthYear, variation: parseFloat(variation) };
+                    }
+                    return null;
+                }).filter(Boolean);
+            } catch (error) {
+                console.error(`Erreur lors de la récupération des données pour ${symbol}:`, error);
+                return [];
+            }
+        }
+
+        async function buildTable() {
+            const loadingElement = document.getElementById("loading");
+            const tableBody = document.getElementById("tableBody");
+            const monthlySumCards = document.getElementById("monthlySumCards");
+
+            try {
+                loadingElement.textContent = "Chargement des données...";
+
+                const results = {};
+                await Promise.all(uniqueCryptos.map(async (crypto) => {
+                    results[crypto] = await fetchMonthlyData(crypto);
+                }));
+
+                const sortedMonths = Array.from(allMonths).sort((a, b) => {
+                    const [moisA] = a.split(" ");
+                    const [moisB] = b.split(" ");
+                    return moisFrancais.indexOf(moisA) - moisFrancais.indexOf(moisB);
+                });
+
+                const headerRow = document.getElementById("headerRow");
+                sortedMonths.forEach(m => {
+                    const th = document.createElement("th");
+                    th.textContent = m;
+                    headerRow.appendChild(th);
+                });
+
+                const monthlySums = {};
+
+                uniqueCryptos.forEach(crypto => {
+                    const tr = document.createElement("tr");
+                    const tdName = document.createElement("td");
+                    tdName.textContent = crypto;
+                    tr.appendChild(tdName);
+
+                    sortedMonths.forEach(month => {
+                        const td = document.createElement("td");
+                        const moisData = results[crypto].find(d => d.monthYear === month);
+                        if (moisData) {
+                            td.textContent = `${moisData.variation}%`;
+                            td.className = moisData.variation >= 0 ? 'positive' : 'negative';
+
+                            if (!monthlySums[month]) {
+                                monthlySums[month] = 0;
+                            }
+                            monthlySums[month] += moisData.variation;
+                        } else {
+                            td.textContent = "-";
+                        }
+                        tr.appendChild(td);
+                    });
+
+                    tableBody.appendChild(tr);
+                });
+
+                for (const month in monthlySums) {
+                    const sum = monthlySums[month];
+                    const monthCard = document.createElement("div");
+                    monthCard.className = `month-card ${sum >= 0 ? 'positive' : 'negative'}`;
+                    monthCard.textContent = `${month}: ${sum.toFixed(2)}%`;
+                    monthlySumCards.appendChild(monthCard);
+                }
+
+            } catch (error) {
+                console.error("Erreur lors de la construction du tableau:", error);
+                loadingElement.textContent = "Erreur lors du chargement des données.";
+            } finally {
+                loadingElement.style.display = "none";
+            }
+        }
+
+        buildTable();
+    </script>
+</body>
+</html>
