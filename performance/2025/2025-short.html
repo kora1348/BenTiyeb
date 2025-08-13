@@ -77,7 +77,7 @@ font-weight: bold;
 </style>
 </head>
 <body>
-<h1>Variation mensuelle des cryptos (Binance) - 2025</h1>
+<h1>Variation mensuelle des cryptos (Binance) - 2025 (short)</h1>
 <p>Données dynamiques avec API Binance - Taux de variation (%) par mois</p>
 
 <!-- Somme des variations mensuelles -->
@@ -109,19 +109,21 @@ font-weight: bold;
 </table>
 
 <script>
-const cryptoList = [
-"1000SATSUSDT", "ACEUSDT", "NFPUSDT", "OSMOUSDT",
-"BNBUSDT", "SUPERUSDT",
-"CHRUSDT", "CVCUSDT", "DATAUSDT", "PERPUSDT",
-"COTIUSDT", "NEOUSDT", "PEOPLEUSDT", "POWRUSDT",
-"COMPUSDT", "POLYXUSDT", "ROSEUSDT", "SCUSDT",
-"CTKUSDT", "EURUSDT", "LTCUSDT", "ZECUSDT",
-"BNTUSDT", "FLMUSDT", "GRTUSDT", "ONTUSDT",
-"KSMUSDT", "SUSHIUSDT", "SXPUSDT",
-"EGLDUSDT", "PAXGUSDT", "QTUMUSDT",
-"ENJUSDT", "RVNUSDT", "STORJUSDT", "WINUSDT",
-"MDTUSDT", "MKRUSDT", "UNIUSDT"
+const cryptoList = [/*
+  "OMUSDT",*/
+  "STRAXUSDT",
+  /*
+  "PEPEUSDT",
+  "SUIUSDT",
+  "FLOKIUSDT",
+  "JASMYUSDT",
+  "RSRUSDT",
+  "PENDLEUSDT",
+  "DEXEUSDT",
+  "RAYUSDT",
+  "PEOPLEUSDT"*/
 ];
+
 const uniqueCryptos = [...new Set(cryptoList)].sort();
 const moisFrancais = [
 "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
