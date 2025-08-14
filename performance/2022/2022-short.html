@@ -74,6 +74,13 @@ background-color: #4CAF50;
 color: white;
 font-weight: bold;
 }
+.total-card {
+font-weight: bold;
+margin-top: 10px;
+padding: 8px;
+border-radius: 4px;
+background: #f0f0f0;
+}
 </style>
 </head>
 <body>
@@ -84,18 +91,21 @@ font-weight: bold;
 <div class="card" style="margin-bottom: 10px;">
 <div class="card-title">Somme des variations mensuelles</div>
 <div class="card-content" id="monthlySumCards"></div>
+<div id="monthlySumTotal" class="total-card"></div>
 </div>
 
 <!-- Somme des mèches plus haut variations mensuelles -->
 <div class="card" style="margin-bottom: 10px;">
 <div class="card-title">Somme des mèches plus haut variations mensuelles</div>
 <div class="card-content" id="highWickSumCards"></div>
+<div id="highWickSumTotal" class="total-card"></div>
 </div>
 
 <!-- Somme des mèches plus bas variations mensuelles -->
 <div class="card" style="margin-bottom: 10px;">
 <div class="card-title">Somme des mèches plus bas variations mensuelles</div>
 <div class="card-content" id="lowWickSumCards"></div>
+<div id="lowWickSumTotal" class="total-card"></div>
 </div>
 
 <div id="loading">Chargement des données...</div>
@@ -160,6 +170,9 @@ const tableBody = document.getElementById("tableBody");
 const monthlySumCards = document.getElementById("monthlySumCards");
 const highWickSumCards = document.getElementById("highWickSumCards");
 const lowWickSumCards = document.getElementById("lowWickSumCards");
+const monthlySumTotal = document.getElementById("monthlySumTotal");
+const highWickSumTotal = document.getElementById("highWickSumTotal");
+const lowWickSumTotal = document.getElementById("lowWickSumTotal");
 
 try {
 loadingElement.textContent = "Chargement des données...";
@@ -250,9 +263,15 @@ tr.appendChild(tdMin);
 tableBody.appendChild(tr);
 });
 
+// Variables pour les totaux globaux
+let globalMonthlySum = 0;
+let globalHighWickSum = 0;
+let globalLowWickSum = 0;
+
 // Afficher les sommes mensuelles (variations)
 for (const month in monthlySums) {
 const sum = monthlySums[month];
+globalMonthlySum += sum;
 const monthCard = document.createElement("div");
 monthCard.className = `month-card ${sum >= 0 ? 'positive' : 'negative'}`;
 monthCard.textContent = `${month}: ${sum.toFixed(2)}%`;
@@ -262,6 +281,7 @@ monthlySumCards.appendChild(monthCard);
 // Afficher les sommes mensuelles (mèches plus haut)
 for (const month in monthlyHighWickSums) {
 const sum = monthlyHighWickSums[month];
+globalHighWickSum += sum;
 const monthCard = document.createElement("div");
 monthCard.className = `month-card ${sum >= 0 ? 'positive' : 'negative'}`;
 monthCard.textContent = `${month}: ${sum.toFixed(2)}%`;
@@ -271,11 +291,22 @@ highWickSumCards.appendChild(monthCard);
 // Afficher les sommes mensuelles (mèches plus bas)
 for (const month in monthlyLowWickSums) {
 const sum = monthlyLowWickSums[month];
+globalLowWickSum += sum;
 const monthCard = document.createElement("div");
 monthCard.className = `month-card ${sum >= 0 ? 'positive' : 'negative'}`;
 monthCard.textContent = `${month}: ${sum.toFixed(2)}%`;
 lowWickSumCards.appendChild(monthCard);
 }
+
+// Afficher les totaux globaux
+monthlySumTotal.textContent = `Total: ${globalMonthlySum.toFixed(2)}%`;
+monthlySumTotal.className = `total-card ${globalMonthlySum >= 0 ? 'positive' : 'negative'}`;
+
+highWickSumTotal.textContent = `Total: ${globalHighWickSum.toFixed(2)}%`;
+highWickSumTotal.className = `total-card ${globalHighWickSum >= 0 ? 'positive' : 'negative'}`;
+
+lowWickSumTotal.textContent = `Total: ${globalLowWickSum.toFixed(2)}%`;
+lowWickSumTotal.className = `total-card ${globalLowWickSum >= 0 ? 'positive' : 'negative'}`;
 
 } catch (error) {
 console.error("Erreur lors de la construction du tableau:", error);
