@@ -34,7 +34,7 @@
     .btn:active{transform:translateY(1px)}
     .card{
       background:linear-gradient(180deg,#0e1527, #0c1223);
-      border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden
+      border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px
     }
     .card-head{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1f2937}
     .stats{display:flex;gap:12px;flex-wrap:wrap}
@@ -60,6 +60,11 @@
     .pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
     .muted{color:var(--muted)}
     .sticky-foot{position:sticky;bottom:0;background:#0c1325;border-top:1px solid #1f2937;padding:8px 12px;font-size:12px;color:#93a0b2}
+    .month-card{display:none;background:linear-gradient(180deg,#0e1527, #0c1223);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px}
+    .month-card.active{display:block}
+    .month-card-head{padding:12px 14px;border-bottom:1px solid #1f2937}
+    .month-symbols{display:grid;grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));gap:8px;padding:12px 14px}
+    .month-symbol{background:#0f172a;border:1px solid #27324b;border-radius:8px;padding:8px;text-align:center;font-family:monospace}
   </style>
 </head>
 <body>
@@ -69,11 +74,26 @@
     <div class="toolbar">
       <input id="search" class="input" placeholder="Rechercher (ID ou symbole)..." />
       <button id="refresh" class="btn">Rafraîchir</button>
+      <button id="filter-month" class="btn">Filtre Mois</button>
       <label class="btn" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
         <input id="auto" type="checkbox" style="accent-color:#3b82f6"> Auto-refresh (10 min)
       </label>
     </div>
   </header>
+
+  <!-- Carte des cryptos listées ce mois -->
+  <div id="month-card" class="month-card">
+    <div class="month-card-head">
+      <div class="stats">
+        <div class="chip">Nouveautés <span id="month-name">—</span> <span id="month-year">2025</span></div>
+        <div class="chip"><span id="month-count">0</span> listées</div>
+      </div>
+    </div>
+    <div class="month-symbols" id="month-symbols">
+      <!-- Les symboles seront ajoutés ici -->
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-head">
       <div class="stats">
@@ -103,19 +123,26 @@
     </div>
   </div>
 </div>
+
 <script>
 (() => {
-  const API = "https://fapi.binance.com"; // API Futures
+  const API = "https://fapi.binance.com";
   const YEAR = 2025;
   const start2025 = Date.UTC(2025,0,1);
   const start2026 = Date.UTC(2026,0,1);
-  const monthsFR = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
+  const monthsFR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
   const $body = document.getElementById('body');
   const $count = document.getElementById('count');
   const $bar = document.getElementById('bar');
   const $search = document.getElementById('search');
   const $refresh = document.getElementById('refresh');
   const $auto = document.getElementById('auto');
+  const $filterMonth = document.getElementById('filter-month');
+  const $monthCard = document.getElementById('month-card');
+  const $monthName = document.getElementById('month-name');
+  const $monthYear = document.getElementById('month-year');
+  const $monthCount = document.getElementById('month-count');
+  const $monthSymbols = document.getElementById('month-symbols');
   let masterRows = [];
   let timer = null;
 
@@ -224,6 +251,22 @@
     $body.innerHTML = html;
   }
 
+  function filterByCurrentMonth() {
+    const now = new Date();
+    const currentMonth = now.getMonth(); // 0-11
+    const currentYear = now.getFullYear();
+    const monthListed = masterRows.filter(r => {
+      const listedDate = new Date(r.listedAt);
+      return listedDate.getMonth() === currentMonth && listedDate.getFullYear() === YEAR;
+    });
+
+    $monthName.textContent = monthsFR[currentMonth];
+    $monthYear.textContent = currentYear;
+    $monthCount.textContent = monthListed.length;
+    $monthSymbols.innerHTML = monthListed.map(r => `<div class="month-symbol">${r.symbol}</div>`).join("");
+    $monthCard.classList.add("active");
+  }
+
   async function loadAll(){
     masterRows = [];
     $body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
@@ -269,6 +312,7 @@
       clearInterval(timer); timer = null;
     }
   });
+  $filterMonth.addEventListener('click', filterByCurrentMonth);
 
   loadAll();
 })();
