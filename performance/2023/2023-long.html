@@ -84,7 +84,7 @@ background: #f0f0f0;
 </style>
 </head>
 <body>
-<h1>Variation mensuelle des cryptos (Binance) - 2022 (short)</h1>
+<h1>Variation mensuelle des cryptos (Binance) - 2023 (long)</h1>
 <p>Données dynamiques avec API Binance - Taux de variation (%) par mois</p>
 
 <!-- Somme des variations mensuelles -->
@@ -120,18 +120,11 @@ background: #f0f0f0;
 
 <script>
 const cryptoList = [
-    "SUNUSDT",
-    "ICPUSDT",
-    "SLPUSDT",
-    "DODOUSDT",
-    "CFXUSDT",
-    "PUNDIXUSDT",
-    "BARUSDT",
-    "LAZIOUSDT",
-    "FORTHUSDT",
-    "BAKEUSDT"
+    "TWTUSDT",
+    "GMTUSDT",
+    "PHBUSDT",
+    "SANTOSUSDT"
 ];
-
 
 const uniqueCryptos = [...new Set(cryptoList)].sort();
 const moisFrancais = [
@@ -158,7 +151,7 @@ const variation = ((close - open) / open * 100).toFixed(2);
 const highVariation = ((high - open) / open * 100).toFixed(2);
 const lowVariation = ((low - open) / open * 100).toFixed(2);
 const monthYear = `${moisFrancais[openTime.getMonth()]} ${openTime.getFullYear()}`;
-if (openTime.getFullYear() === 2022) {
+if (openTime.getFullYear() === 2023) {
 allMonths.add(monthYear);
 return {
 monthYear,
