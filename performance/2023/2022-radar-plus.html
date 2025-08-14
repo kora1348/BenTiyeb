@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Crypto les plus performantes en 2022 — Binance (HTML/JS)</title>
+<style>
+:root {
+--bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22d3ee;
+--danger:#ef4444; --ok:#10b981; --warn:#f59e0b;
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif}
+.container{max-width:1100px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 20px rgba(0,0,0,.35)}
+.header{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #1f2937}
+.title{font-weight:700;font-size:18px}
+.muted{color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{background:#0b7285;color:white;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.secondary{background:#334155}
+.btn.warn{background:var(--warn);color:#0b0f19}
+.statbar{display:flex;gap:16px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid #1f2937}
+.chip{background:#0b1220;border:1px solid #1f2937;border-radius:999px;padding:6px 10px;font-size:12px}
+.progress{height:10px;background:#0b1220;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);width:0%}
+table{width:100%;border-collapse:collapse}
+thead th{position:sticky;top:0;background:#0b1220;border-bottom:1px solid #1f2937;padding:10px;text-align:left;font-size:12px;color:var(--muted)}
+tbody td{border-bottom:1px solid #1f2937;padding:10px;font-size:14px}
+.neg{color:var(--danger);font-weight:700}
+.pos{color:var(--ok);font-weight:700}
+.grid{display:grid;grid-template-columns:1fr;gap:16px;padding:16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width: 720px){.two{grid-template-columns:1fr}}
+.small{font-size:12px}
+.pill{padding:2px 8px;border-radius:999px;border:1px solid #1f2937;background:#0b1220;color:#cbd5e1}
+.footer{padding:12px 20px;color:var(--muted);font-size:12px}
+.note{padding:12px 16px;background:#0b1220;border:1px dashed #1f2937;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+<div class="header">
+<div>
+<div class="title">Crypto les <span class="muted">plus</span> performantes en <span id="yearLabel">2022</span> — <span class="muted">Binance Spot (plus)</span></div>
+<div class="muted small">Méthode : ((Dernière clôture 2022 - Première clôture 2022) / Première) × 100</div>
+</div>
+<div class="controls">
+<label class="pill">Quote
+<select id="quote" style="background:transparent;border:0;color:#fff;outline:none">
+<option value="USDT" selected>USDT</option>
+<option value="BUSD">BUSD (legacy)</option>
+<option value="FDUSD">FDUSD</option>
+<option value="TUSD">TUSD</option>
+<option value="USDC">USDC</option>
+</select>
+</label>
+<label class="pill">Top
+<select id="topN" style="background:transparent;border:0;color:#fff;outline:none">
+<option>10</option>
+<option selected>20</option>
+<option>50</option>
+<option>100</option>
+</select>
+</label>
+<button id="startBtn" class="btn">Scanner 2022</button>
+<button id="stopBtn" class="btn secondary" disabled>Stop</button>
+<button id="exportBtn" class="btn warn" disabled>Exporter CSV</button>
+</div>
+</div>
+
+<div class="statbar">
+<div class="chip">Symboles: <span id="totalSyms">0</span></div>
+<div class="chip">Traités: <span id="doneSyms">0</span></div>
+<div class="chip">Échecs: <span id="failSyms">0</span></div>
+<div class="chip">Concurrence: <span id="conc">5</span></div>
+<div class="chip">Fenêtre: 01/01/2022 ? 31/12/2022</div>
+<div class="progress" style="flex:1"><div id="pbar"></div></div>
+</div>
+
+<div class="grid two">
+<div class="note">
+<b>Filtres appliqués :</b>
+<ul>
+<li>Marché spot uniquement, statut <code>TRADING</code></li>
+<li>Quote sélectionnée (par défaut <code>USDT</code>)</li>
+<li>Exclusion des tokens à effet de levier <code>UP/DOWN</code>, indices <code>DEFI/INDEX</code> et stablecoins évidents</li>
+</ul>
+</div>
+<div class="note">
+<b>Remarques :</b>
+<ul>
+<li>Si un actif a été listé en 2022, la performance utilise sa <i>première</i> clôture de 2022 comme base.</li>
+<li>Données via <code>GET /api/v3/exchangeInfo</code> et <code>GET /api/v3/klines</code> (intervalle 1d).</li>
+<li>Respect limite de débit par lot avec une concurrence modérée.</li>
+</ul>
+</div>
+</div>
+
+<div style="max-height:60vh;overflow:auto">
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Symbole</th>
+<th>Première clôture 2022</th>
+<th>Dernière clôture 2022</th>
+<th>Perf 2022</th>
+<th>Jours valides</th>
+<th>Erreurs</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div class="footer">
+Fait pour être copié-collé tel quel. Aucune dépendance externe. API publique Binance (pas de clé nécessaire).
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+const API = 'https://api.binance.com';
+const year = 2022;
+const startTime = Date.UTC(year,0,1,0,0,0); // 1 Jan 2022 UTC
+const endTime = Date.UTC(year,11,31,23,59,59); // 31 Dec 2022 UTC
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const exportBtn= document.getElementById('exportBtn');
+const tbody = document.getElementById('tbody');
+const quoteSel = document.getElementById('quote');
+const topNSel = document.getElementById('topN');
+const totalSyms= document.getElementById('totalSyms');
+const doneSyms = document.getElementById('doneSyms');
+const failSyms = document.getElementById('failSyms');
+const pbar = document.getElementById('pbar');
+const concLbl = document.getElementById('conc');
+
+let controller = null; // pour stop
+let results = []; // {symbol, firstClose, lastClose, perfPct, days, error}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function format(n, d=8){
+if(n == null || isNaN(n)) return '-';
+const s = Number(n);
+if (s === 0) return '0';
+// format compact: <= 1 ? plus de décimales, sinon 2-4 décimales
+let decimals = s < 1 ? Math.min(8, d) : (s < 100 ? 4 : 2);
+return s.toLocaleString(undefined,{minimumFractionDigits:0, maximumFractionDigits:decimals});
+}
+
+function formatPct(p){
+if(p == null || !isFinite(p)) return '-';
+const cls = p < 0 ? 'neg' : 'pos';
+const sign = p > 0 ? '+' : '';
+return `<span class="${cls}">${sign}${p.toFixed(2)}%</span>`;
+}
+
+function updateProgress(done, total){
+doneSyms.textContent = done;
+pbar.style.width = total ? Math.round((done/total)*100)+"%" : '0%';
+}
+
+function rowHTML(idx, r){
+return `<tr>
+<td class="muted small">${idx}</td>
+<td><b>${r.symbol}</b></td>
+<td>${format(r.firstClose)}</td>
+<td>${format(r.lastClose)}</td>
+<td>${formatPct(r.perfPct)}</td>
+<td class="small">${r.days ?? '-'}</td>
+<td class="small">${r.error ? `<span class="neg">${r.error}</span>` : ''}</td>
+</tr>`;
+}
+
+function renderTable(){
+const topN = Number(topNSel.value);
+const sorted = results
+.filter(r=>isFinite(r.perfPct))
+.sort((a,b)=>b.perfPct - a.perfPct) // meilleures (plus positives) en premier
+.slice(0, topN);
+tbody.innerHTML = sorted.map((r,i)=>rowHTML(i+1, r)).join('');
+exportBtn.disabled = sorted.length === 0;
+}
+
+function exportCSV(){
+const lines = [
+['rank','symbol','first_close_2022','last_close_2022','perf_pct','days'].join(',')
+];
+const sorted = results
+.filter(r=>isFinite(r.perfPct))
+.sort((a,b)=>b.perfPct - a.perfPct);
+sorted.forEach((r,i)=>{
+lines.push([i+1,r.symbol,r.firstClose,r.lastClose,r.perfPct.toFixed(6),r.days].join(','));
+});
+const blob = new Blob([lines.join('\n')],{type:'text/csv'});
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url; a.download = `binance_meilleures_${year}_${quoteSel.value}.csv`;
+document.body.appendChild(a); a.click(); a.remove();
+URL.revokeObjectURL(url);
+}
+
+function filterSymbols(all, quote){
+const ban = new Set(['USDT','BUSD','FDUSD','TUSD','USDC','EUR','TRY','BRL','BIDR']);
+return all
+.filter(s => s.status === 'TRADING')
+.filter(s => s.quoteAsset === quote)
+.filter(s => !/UPUSDT$|DOWNUSDT$|BEARUSDT$|BULLUSDT$/.test(s.symbol))
+.filter(s => !/(INDEX|DEFI)/.test(s.symbol))
+.filter(s => !ban.has(s.baseAsset));
+}
+
+async function fetchJSON(url, signal){
+const r = await fetch(url, {signal});
+if(!r.ok) throw new Error(`${r.status}`);
+return r.json();
+}
+
+async function getTradableSymbols(quote, signal){
+const info = await fetchJSON(`${API}/api/v3/exchangeInfo`, signal);
+return filterSymbols(info.symbols, quote).map(s=>s.symbol);
+}
+
+// Récupère la 1ère et la dernière clôture de 2022 via /klines (1d)
+async function getYearCloses(symbol, signal){
+// Utilise uiKlines (plus léger) si disponible sur ce déploiement public
+const ep = `${API}/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${startTime}&endTime=${endTime}`;
+const data = await fetchJSON(ep, signal);
+if(!Array.isArray(data) || data.length === 0) return { first: null, last: null, days: 0 };
+const first = parseFloat(data[0][4]); // close
+const last = parseFloat(data[data.length-1][4]);
+return { first, last, days: data.length };
+}
+
+async function scan(){
+const quote = quoteSel.value;
+results = [];
+tbody.innerHTML = '';
+doneSyms.textContent = '0';
+failSyms.textContent = '0';
+pbar.style.width = '0%';
+
+startBtn.disabled = true; stopBtn.disabled = false; exportBtn.disabled = true;
+controller = new AbortController();
+const { signal } = controller;
+
+try{
+const symbols = await getTradableSymbols(quote, signal);
+totalSyms.textContent = symbols.length.toString();
+
+// Concurrence modérée
+const concurrency = 5; concLbl.textContent = String(concurrency);
+let inFlight = 0, idx = 0, done = 0, fails = 0;
+
+await new Promise((resolve, reject)=>{
+const next = async () => {
+if(signal.aborted) return reject(new Error('aborted'));
+if(idx >= symbols.length && inFlight === 0) return resolve();
+while(inFlight < concurrency && idx < symbols.length){
+const sym = symbols[idx++];
+inFlight++;
+(async () => {
+try{
+const {first, last, days} = await getYearCloses(sym, signal);
+let perfPct = null;
+if(first && last && isFinite(first) && isFinite(last) && first > 0){
+perfPct = ((last - first) / first) * 100;
+}
+results.push({symbol: sym, firstClose:first, lastClose:last, perfPct, days});
+}catch(e){
+fails++; failSyms.textContent = String(fails);
+results.push({symbol: sym, firstClose:null, lastClose:null, perfPct:NaN, days:0, error: e.message});
+}finally{
+inFlight--; done++; updateProgress(done, symbols.length);
+if(done % 5 === 0) renderTable(); // rafraîchit partiellement
+// petite respiration pour la limite de débit globale
+await sleep(120);
+next();
+}
+})();
+}
+};
+next();
+});
+
+// rendu final
+renderTable();
+}catch(err){
+if(err.name !== 'AbortError'){
+alert('Erreur: ' + err.message);
+}
+}finally{
+startBtn.disabled = false; stopBtn.disabled = true; exportBtn.disabled = results.some(r=>isFinite(r.perfPct));
+controller = null;
+}
+}
+
+startBtn.addEventListener('click', scan);
+stopBtn.addEventListener('click', ()=>{ if(controller){ controller.abort(); stopBtn.disabled = true; }});
+exportBtn.addEventListener('click', exportCSV);
+})();
+</script>
+</body>
+</html>

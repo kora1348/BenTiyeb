@@ -61,7 +61,7 @@ background-color: #e6ffe6;
 font-weight: bold;
 }
 .min-column {
-background-color: #ffebeb; /* Fond rouge clair */
+background-color: #ffebeb;
 font-weight: bold;
 }
 .max-column-header {
@@ -77,7 +77,7 @@ font-weight: bold;
 </style>
 </head>
 <body>
-<h1>Variation mensuelle des cryptos (Binance) - 2025 (short)</h1>
+<h1>Variation mensuelle des cryptos (Binance) - 2022 (short)</h1>
 <p>Données dynamiques avec API Binance - Taux de variation (%) par mois</p>
 
 <!-- Somme des variations mensuelles -->
@@ -92,7 +92,7 @@ font-weight: bold;
 <div class="card-content" id="highWickSumCards"></div>
 </div>
 
-<!-- NOUVELLE CARD : Somme des mèches plus bas variations mensuelles -->
+<!-- Somme des mèches plus bas variations mensuelles -->
 <div class="card" style="margin-bottom: 10px;">
 <div class="card-title">Somme des mèches plus bas variations mensuelles</div>
 <div class="card-content" id="lowWickSumCards"></div>
@@ -109,27 +109,9 @@ font-weight: bold;
 </table>
 
 <script>
-const cryptoList = [/*
-    "STRAXUSDT", */
-    "OMUSDT",/*
-    "LUNAUSDT",/*
-    "SUNUSDT",
-    "CRVUSDT",*/
-  /*
-,
-  
-  /*
-  "PEPEUSDT",
-  "SUIUSDT",
-  "FLOKIUSDT",
-  "JASMYUSDT",
-  "RSRUSDT",
-  "PENDLEUSDT",
-  "DEXEUSDT",
-  "RAYUSDT",
-  "PEOPLEUSDT"*/
+const cryptoList = [
+"SANDUSDT"
 ];
-
 const uniqueCryptos = [...new Set(cryptoList)].sort();
 const moisFrancais = [
 "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -155,7 +137,7 @@ const variation = ((close - open) / open * 100).toFixed(2);
 const highVariation = ((high - open) / open * 100).toFixed(2);
 const lowVariation = ((low - open) / open * 100).toFixed(2);
 const monthYear = `${moisFrancais[openTime.getMonth()]} ${openTime.getFullYear()}`;
-if (openTime.getFullYear() === 2025) {
+if (openTime.getFullYear() === 2022) {
 allMonths.add(monthYear);
 return {
 monthYear,
@@ -259,7 +241,7 @@ tr.appendChild(tdMax);
 const tdMin = document.createElement("td");
 if (moisData) {
 tdMin.textContent = `${moisData.lowVariation}%`;
-tdMin.className = "min-column negative"; // Fond rouge clair + texte rouge
+tdMin.className = "min-column negative";
 } else {
 tdMin.textContent = "-";
 }
