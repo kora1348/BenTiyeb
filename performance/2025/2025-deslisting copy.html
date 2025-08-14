@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binance Delisting Alert</title>
+<style>
+    :root {
+        --danger: #f6465d;
+        --warning: #f0b90b;
+        --safe: #0ecb81;
+    }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f8fa;
+        color: #1e2022;
+    }
+    h1 {
+        color: #f0b90b;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+    }
+    .control-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    label {
+        font-weight: 600;
+        font-size: 14px;
+    }
+    input, select, button {
+        padding: 10px 15px;
+        border: 1px solid #e0e3eb;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    button {
+        background-color: #f0b90b;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+    }
+    button:hover {
+        background-color: #e6a800;
+        transform: translateY(-1px);
+    }
+    #date-filter {
+        background-color: white;
+        border: 1px solid #e0e3eb;
+    }
+    .alert-card {
+        background-color: #fff8e6;
+        border-left: 4px solid var(--warning);
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .alert-card.danger {
+        background-color: #ffebee;
+        border-left-color: var(--danger);
+    }
+    .alert-icon {
+        font-size: 24px;
+    }
+    #market-data {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        font-weight: 600;
+        text-align: left;
+        padding: 15px;
+        border-bottom: 2px solid #e0e3eb;
+    }
+    td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e0e3eb;
+    }
+    tr:hover {
+        background-color: #f9f9f9;
+    }
+    .volume-warning {
+        color: var(--warning);
+        font-weight: 600;
+    }
+    .volume-danger {
+        color: var(--danger);
+        font-weight: 700;
+    }
+    .last-update {
+        text-align: right;
+        font-size: 13px;
+        color: #7b7b7b;
+        padding: 12px 15px;
+        background: #f8f9fa;
+    }
+    .loading, .no-results {
+        text-align: center;
+        padding: 30px;
+        color: #7b7b7b;
+    }
+    .no-results {
+        font-style: italic;
+    }
+</style>
+</head>
+<body>
+<h1>🚨 Binance Delisting Alert</h1>
+<div id="alerts-container"></div>
+
+<div class="controls">
+    <div class="control-group">
+        <label for="symbol-filter">Filtrer :</label>
+        <input type="text" id="symbol-filter" placeholder="Symbole (ex: BTC)">
+    </div>
+    <div class="control-group">
+        <label for="date-filter">Date :</label>
+        <input type="date" id="date-filter">
+        <button id="apply-date">Appliquer</button>
+    </div>
+    <button id="refresh-btn">🔄 Actualiser</button>
+</div>
+
+<div id="market-data">
+    <table>
+        <thead>
+            <tr>
+                <th>Symbole</th>
+                <th>Prix Ouverture</th>
+                <th>Prix Clôture</th>
+                <th>Variation %</th>
+                <th>Volume (USDT)</th>
+            </tr>
+        </thead>
+        <tbody id="data-table">
+            <tr><td colspan="5" class="loading">Chargement des données...</td></tr>
+        </tbody>
+    </table>
+    <div class="last-update">Dernière mise à jour: <span id="update-time">-</span></div>
+</div>
+
+<script>
+const API_URL = "https://api.binance.com/api/v3";
+const DANGER_VOLUME = 100000;
+const WARNING_VOLUME = 500000;
+
+let allSymbols = [];
+let currentFilter = "";
+let currentDateFilter = "";
+
+const dataTable = document.getElementById("data-table");
+const alertsContainer = document.getElementById("alerts-container");
+
+document.addEventListener("DOMContentLoaded", async () => {
+    document.getElementById("date-filter").valueAsDate = new Date();
+    allSymbols = await getUSDTTradingPairs();
+    await loadData();
+    setupEvents();
+});
+
+function setupEvents() {
+    document.getElementById("symbol-filter").addEventListener("input", e => {
+        currentFilter = e.target.value.toUpperCase();
+        loadData();
+    });
+    document.getElementById("apply-date").addEventListener("click", async () => {
+        currentDateFilter = document.getElementById("date-filter").value;
+        await loadData();
+    });
+    document.getElementById("refresh-btn").addEventListener("click", loadData);
+}
+
+async function getUSDTTradingPairs() {
+    const res = await fetch(`${API_URL}/exchangeInfo`);
+    const json = await res.json();
+    return json.symbols
+        .filter(s => s.status === "TRADING" && s.symbol.endsWith("USDT"))
+        .map(s => s.symbol);
+}
+
+async function loadData() {
+    if (!currentDateFilter) currentDateFilter = document.getElementById("date-filter").value;
+    dataTable.innerHTML = `<tr><td colspan="5" class="loading">Chargement des données...</td></tr>`;
+    alertsContainer.innerHTML = "";
+
+    const date = new Date(currentDateFilter);
+    const startTime = date.setHours(0, 0, 0, 0);
+    const endTime = startTime + 24 * 60 * 60 * 1000;
+
+    let danger = [];
+    let warning = [];
+    let results = [];
+
+    for (let symbol of allSymbols) {
+        try {
+            const url = `${API_URL}/klines?symbol=${symbol}&interval=1d&startTime=${startTime}&endTime=${endTime}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (!data.length) continue;
+            const [openTime, open, high, low, close, volume] = data[0];
+            const volQuote = parseFloat(volume) * parseFloat(close);
+            const changePct = ((parseFloat(close) - parseFloat(open)) / parseFloat(open)) * 100;
+
+            if (volQuote < DANGER_VOLUME) danger.push(symbol);
+            else if (volQuote < WARNING_VOLUME) warning.push(symbol);
+
+            if (currentFilter && !symbol.includes(currentFilter)) continue;
+
+            results.push({
+                symbol,
+                open: parseFloat(open),
+                close: parseFloat(close),
+                change: changePct,
+                volume: volQuote
+            });
+        } catch (e) {
+            console.error(symbol, e);
+        }
+    }
+
+    results.sort((a, b) => a.volume - b.volume);
+
+    if (!results.length) {
+        dataTable.innerHTML = `<tr><td colspan="5" class="no-results">Aucun résultat trouvé</td></tr>`;
+    } else {
+        dataTable.innerHTML = results.map(item => `
+            <tr>
+                <td><strong>${item.symbol}</strong></td>
+                <td>${item.open.toFixed(4)}</td>
+                <td>${item.close.toFixed(4)}</td>
+                <td style="color:${item.change >= 0 ? 'green' : 'red'}">${item.change.toFixed(2)}%</td>
+                <td class="${item.volume < DANGER_VOLUME ? 'volume-danger' : item.volume < WARNING_VOLUME ? 'volume-warning' : ''}">
+                    ${item.volume.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    showAlerts(danger, warning);
+    document.getElementById("update-time").textContent = new Date().toLocaleString("fr-FR");
+}
+
+function showAlerts(dangerSymbols, warningSymbols) {
+    if (dangerSymbols.length) {
+        alertsContainer.innerHTML += `
+            <div class="alert-card danger">
+                <div class="alert-icon">⚠️</div>
+                <div><strong>DANGER IMMÉDIAT</strong> - Volume < ${DANGER_VOLUME.toLocaleString()} USD : <strong>${dangerSymbols.join(", ")}</strong></div>
+            </div>
+        `;
+    }
+    if (warningSymbols.length) {
+        alertsContainer.innerHTML += `
+            <div class="alert-card">
+                <div class="alert-icon">⚠️</div>
+                <div><strong>RISQUE ÉLEVÉ</strong> - Volume < ${WARNING_VOLUME.toLocaleString()} USD : <strong>${warningSymbols.join(", ")}</strong></div>
+            </div>
+        `;
+    }
+}
+</script>
+</body>
+</html>

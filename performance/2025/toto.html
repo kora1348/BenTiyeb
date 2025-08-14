@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Futures USDT Listés en 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b0f1a;
+      --card:#11182a;
+      --muted:#6b7280;
+      --text:#e5e7eb;
+      --accent:#3b82f6;
+      --pos:#16a34a22;
+      --neg:#dc262622;
+      --neu:#37415166;
+      --ring:#3b82f688;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .wrap{max-width:1300px;margin:28px auto;padding:0 16px}
+    header{
+      display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px
+    }
+    .title{font-size:20px;font-weight:700;letter-spacing:.2px;display:flex;gap:10px;align-items:center}
+    .badge{font-size:12px;background:#1f2937;color:#cbd5e1;padding:3px 8px;border-radius:999px;border:1px solid #334155}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .input, .btn{
+      border:1px solid #1f2937;background:#0f172a;color:var(--text);padding:10px 12px;border-radius:12px;outline:none
+    }
+    .input{min-width:220px}
+    .btn{cursor:pointer;transition:transform .06s ease, box-shadow .12s ease;border-color:#23304b}
+    .btn:hover{box-shadow:0 0 0 3px var(--ring)}
+    .btn:active{transform:translateY(1px)}
+    .card{
+      background:linear-gradient(180deg,#0e1527, #0c1223);
+      border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px
+    }
+    .card-head{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1f2937}
+    .stats{display:flex;gap:12px;flex-wrap:wrap}
+    .chip{border:1px solid #27324b;background:#0f172a;border-radius:999px;padding:6px 10px;font-size:12px;color:#cbd5e1}
+    .progress{height:6px;background:#111827;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
+    .progress>div{height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);width:0%}
+    .table-wrap{max-height:70vh;overflow:auto}
+    table{border-collapse:separate;border-spacing:0;width:100%;min-width:1000px}
+    thead th{
+      position:sticky;top:0;background:#0c1325;border-bottom:1px solid #1f2937;padding:10px 8px;font-weight:600;text-align:left
+    }
+    tbody td{border-bottom:1px solid #111827;padding:8px 8px;vertical-align:middle}
+    tbody tr:nth-child(2n){background:#0a1221}
+    tbody tr:hover{background:#0b1530}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .sym{display:flex;align-items:center;gap:8px}
+    .pill{font-size:11px;border:1px solid #263149;background:#0d152b;color:#cbd5e1;padding:2px 6px;border-radius:7px}
+    .pct{
+      padding:4px 8px;border-radius:9px;display:inline-block;text-align:right;min-width:72px;font-variant-numeric:tabular-nums
+    }
+    .pct.pos{background:var(--pos);border:1px solid #14532d;color:#a7f3d0}
+    .pct.neg{background:var(--neg);border:1px solid #7f1d1d;color:#fecaca}
+    .pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
+    .muted{color:var(--muted)}
+    .sticky-foot{position:sticky;bottom:0;background:#0c1325;border-top:1px solid #1f2937;padding:8px 12px;font-size:12px;color:#93a0b2}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">Futures USDT Listés en 2025 <span class="badge">PERPETUAL</span></div>
+    <div class="toolbar">
+      <input id="search" class="input" placeholder="Rechercher (ID ou symbole)..." />
+      <button id="refresh" class="btn">Rafraîchir</button>
+      <label class="btn" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+        <input id="auto" type="checkbox" style="accent-color:#3b82f6"> Auto-refresh (10 min)
+      </label>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="stats">
+        <div class="chip">Période: Jan 2025 → Déc 2025</div>
+        <div class="chip">Source: Binance Futures</div>
+        <div class="chip"><span id="count">0</span> futures listés en 2025</div>
+      </div>
+      <div class="progress" style="width:260px"><div id="bar"></div></div>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl">
+        <thead>
+        <tr>
+          <th style="min-width:130px">ID</th>
+          <th style="min-width:150px">Symbole</th>
+          <th style="min-width:120px">Listé le</th>
+          <th>Jan</th><th>Fév</th><th>Mar</th><th>Avr</th><th>Mai</th><th>Juin</th><th>Juil</th><th>Août</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Déc</th>
+        </tr>
+        </thead>
+        <tbody id="body">
+          <tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="sticky-foot"><td colspan="15">Conseil : clic sur « Rafraîchir » pour recharger. La table est triée alphabétiquement par ID.</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const search = document.getElementById('search');
+    const refresh = document.getElementById('refresh');
+    const auto = document.getElementById('auto');
+    const count = document.getElementById('count');
+    const bar = document.getElementById('bar');
+    const body = document.getElementById('body');
+    
+    let allSymbols = [];
+    let refreshInterval;
+    
+    // Fonction pour formater la date
+    const formatDate = (date) => {
+      return new Date(date).toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    };
+    
+    // Fonction pour calculer le pourcentage de variation
+    const calculateChange = (open, close) => {
+      if (!open || !close) return { value: 0, class: 'neu' };
+      const change = ((close - open) / open) * 100;
+      return {
+        value: change,
+        class: change > 0 ? 'pos' : change < 0 ? 'neg' : 'neu'
+      };
+    };
+    
+    // Fonction pour formater le pourcentage
+    const formatPct = (value) => {
+      return value > 0 
+        ? `+${value.toFixed(2)}%` 
+        : value < 0 
+          ? `${value.toFixed(2)}%` 
+          : '0.00%';
+    };
+    
+    // Récupérer les données des futures depuis l'API Binance
+    const fetchFuturesData = async () => {
+      try {
+        body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
+        
+        // Récupérer tous les symboles futures USDT
+        const exchangeInfo = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+        const exchangeData = await exchangeInfo.json();
+        
+        // Filtrer les futures USDT listés en 2025
+        const futures2025 = exchangeData.symbols
+          .filter(s => 
+            s.quoteAsset === 'USDT' && 
+            s.contractType === 'PERPETUAL' &&
+            new Date(s.onboardDate) >= new Date('2025-01-01') &&
+            new Date(s.onboardDate) <= new Date('2025-12-31')
+          )
+          .map(s => ({
+            symbol: s.symbol,
+            id: s.symbol.replace('USDT', ''),
+            listedDate: s.onboardDate
+          }));
+        
+        allSymbols = futures2025.sort((a, b) => a.id.localeCompare(b.id));
+        count.textContent = allSymbols.length;
+        bar.style.width = '100%';
+        
+        if (allSymbols.length === 0) {
+          body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Aucun future USDT listé en 2025 trouvé</td></tr>`;
+          return;
+        }
+        
+        // Récupérer les données de prix pour chaque mois
+        const monthlyData = await Promise.all(allSymbols.map(async (future) => {
+          const monthlyChanges = {};
+          
+          // Pour chaque mois de 2025
+          const months = [
+            '01', '02', '03', '04', '05', '06', 
+            '07', '08', '09', '10', '11', '12'
+          ];
+          
+          for (const month of months) {
+            const startTime = new Date(`2025-${month}-01T00:00:00Z`).getTime();
+            let endTime = new Date(`2025-${month}-01T00:00:00Z`);
+            endTime.setMonth(endTime.getMonth() + 1);
+            endTime = endTime.getTime();
+            
+            // Vérifier si le future était déjà listé ce mois-ci
+            const listedDate = new Date(future.listedDate).getTime();
+            if (listedDate > endTime) {
+              monthlyChanges[month] = null;
+              continue;
+            }
+            
+            // Récupérer les candles pour le mois
+            try {
+              const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${future.symbol}&interval=1d&startTime=${startTime}&endTime=${endTime}&limit=1000`);
+              const klinesData = await klines.json();
+              
+              if (klinesData.length > 0) {
+                const firstDay = klinesData.find(k => new Date(k[0]).getMonth() === new Date(startTime).getMonth());
+                const lastDay = [...klinesData].reverse().find(k => new Date(k[0]).getMonth() === new Date(startTime).getMonth());
+                
+                if (firstDay && lastDay) {
+                  const open = parseFloat(firstDay[1]);
+                  const close = parseFloat(lastDay[4]);
+                  monthlyChanges[month] = calculateChange(open, close);
+                } else {
+                  monthlyChanges[month] = null;
+                }
+              } else {
+                monthlyChanges[month] = null;
+              }
+            } catch (e) {
+              console.error(`Erreur pour ${future.symbol} mois ${month}:`, e);
+              monthlyChanges[month] = null;
+            }
+          }
+          
+          return {
+            ...future,
+            monthlyChanges
+          };
+        }));
+        
+        // Afficher les données dans le tableau
+        renderTable(monthlyData);
+      } catch (error) {
+        console.error('Erreur:', error);
+        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:18px;color:#ef4444">Erreur lors du chargement des données. Réessayez plus tard.</td></tr>`;
+      }
+    };
+    
+    // Fonction pour afficher les données dans le tableau
+    const renderTable = (data) => {
+      if (data.length === 0) {
+        body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Aucune donnée disponible</td></tr>`;
+        return;
+      }
+      
+      body.innerHTML = data.map(future => {
+        const months = [];
+        for (let i = 1; i <= 12; i++) {
+          const month = i.toString().padStart(2, '0');
+          const change = future.monthlyChanges[month];
+          
+          months.push(`
+            <td class="mono">
+              ${change 
+                ? `<span class="pct ${change.class}">${formatPct(change.value)}</span>` 
+                : '<span class="muted">-</span>'}
+            </td>
+          `);
+        }
+        
+        return `
+          <tr>
+            <td class="mono">${future.id}</td>
+            <td class="sym">
+              <span>${future.symbol}</span>
+              <span class="pill">FUTURES</span>
+            </td>
+            <td class="mono">${formatDate(future.listedDate)}</td>
+            ${months.join('')}
+          </tr>
+        `;
+      }).join('');
+    };
+    
+    // Fonction de recherche
+    const handleSearch = () => {
+      const term = search.value.toLowerCase();
+      const rows = body.querySelectorAll('tr');
+      
+      rows.forEach(row => {
+        const id = row.querySelector('td:first-child').textContent.toLowerCase();
+        const symbol = row.querySelector('td:nth-child(2) span:first-child').textContent.toLowerCase();
+        const shouldShow = id.includes(term) || symbol.includes(term);
+        row.style.display = shouldShow ? '' : 'none';
+      });
+    };
+    
+    // Événements
+    search.addEventListener('input', handleSearch);
+    refresh.addEventListener('click', fetchFuturesData);
+    auto.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        refreshInterval = setInterval(fetchFuturesData, 10 * 60 * 1000); // 10 minutes
+      } else {
+        clearInterval(refreshInterval);
+      }
+    });
+    
+    // Chargement initial
+    await fetchFuturesData();
+  });
+</script>
+
+</body>
+</html>
