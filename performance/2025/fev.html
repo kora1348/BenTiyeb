@@ -38,7 +38,6 @@ tbody tr:hover{background:#0b1530}
 .pct.neg{background:var(--neg);border:1px solid #7f1d1d;color:#fecaca}
 .pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
 .muted{color:var(--muted)}
-.sticky-foot{position:sticky;bottom:0;background:#0c1325;border-top:1px solid #1f2937;padding:8px 12px;font-size:12px;color:#93a0b2}
 .summary {padding:10px;border-top:1px solid #1f2937;background:#0c1325;font-size:13px;display:flex;gap:20px;flex-wrap:wrap;}
 </style>
 </head>
@@ -80,9 +79,9 @@ tbody tr:hover{background:#0b1530}
 </table>
 </div>
 <div class="summary">
-<div id="sum-pct">Somme variations : —</div>
-<div id="sum-high">Somme mèches hautes : —</div>
-<div id="sum-low">Somme mèches basses : —</div>
+<div id="sum-pct"></div>
+<div id="sum-high"></div>
+<div id="sum-low"></div>
 </div>
 </div>
 </div>
@@ -185,9 +184,9 @@ function updateSummary(rows){
   const sumPct  = rows.reduce((acc,r) => acc + (r.febPct  ?? 0), 0);
   const sumHigh = rows.reduce((acc,r) => acc + (r.febHigh ?? 0), 0);
   const sumLow  = rows.reduce((acc,r) => acc + (r.febLow  ?? 0), 0);
-  $sumPct.textContent  = `Somme variations : ${sumPct.toFixed(2)}%`;
-  $sumHigh.textContent = `Somme mèches hautes : ${sumHigh.toFixed(2)}%`;
-  $sumLow.textContent  = `Somme mèches basses : ${sumLow.toFixed(2)}%`;
+  $sumPct.innerHTML  = `Somme variations : <span class="${clsPct(sumPct)}">${pctTxt(sumPct)}</span>`;
+  $sumHigh.innerHTML = `Somme mèches hautes : <span class="${clsPct(sumHigh)}">${pctTxt(sumHigh)}</span>`;
+  $sumLow.innerHTML  = `Somme mèches basses : <span class="${clsPct(sumLow)}">${pctTxt(sumLow)}</span>`;
 }
 
 function renderTable(rows){
