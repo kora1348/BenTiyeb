@@ -5,6 +5,7 @@
 <title>Listings 2025 (Futures USDT) – Variation février</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
+/* Styles identiques à ton code */
 :root{ --bg:#0b0f1a; --card:#11182a; --muted:#6b7280; --text:#e5e7eb; --accent:#3b82f6; --pos:#16a34a22; --neg:#dc262622; --neu:#37415166; --ring:#3b82f688; }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
@@ -39,6 +40,7 @@ tbody tr:hover{background:#0b1530}
 .pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
 .muted{color:var(--muted)}
 .sticky-foot{position:sticky;bottom:0;background:#0c1325;border-top:1px solid #1f2937;padding:8px 12px;font-size:12px;color:#93a0b2}
+.summary {padding:10px;border-top:1px solid #1f2937;background:#0c1325;font-size:13px;display:flex;gap:20px;flex-wrap:wrap;}
 </style>
 </head>
 <body>
@@ -66,9 +68,9 @@ tbody tr:hover{background:#0b1530}
 <table id="tbl">
 <thead>
 <tr>
-<th style="min-width:130px">ID</th>
-<th style="min-width:150px">Symbole</th>
-<th style="min-width:120px">Listé le</th>
+<th>ID</th>
+<th>Symbole</th>
+<th>Listé le</th>
 <th>Fév</th>
 <th>Fév – Plus haut</th>
 <th>Fév – Plus bas</th>
@@ -77,10 +79,12 @@ tbody tr:hover{background:#0b1530}
 <tbody id="body">
 <tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
 </tbody>
-<tfoot>
-<tr class="sticky-foot"><td colspan="6">Conseil : clic sur « Rafraîchir » pour recharger. La table est triée alphabétiquement par ID.</td></tr>
-</tfoot>
 </table>
+</div>
+<div class="summary">
+<div id="sum-pct">Somme variations : —</div>
+<div id="sum-high">Somme mèches hautes : —</div>
+<div id="sum-low">Somme mèches basses : —</div>
 </div>
 </div>
 </div>
@@ -96,6 +100,9 @@ const $bar = document.getElementById('bar');
 const $search = document.getElementById('search');
 const $refresh = document.getElementById('refresh');
 const $auto = document.getElementById('auto');
+const $sumPct = document.getElementById('sum-pct');
+const $sumHigh = document.getElementById('sum-high');
+const $sumLow = document.getElementById('sum-low');
 let masterRows = [];
 let timer = null;
 
@@ -177,6 +184,15 @@ async function fetchFebData(symbol){
   return { febPct, febHigh, febLow };
 }
 
+function updateSummary(rows){
+  const sumPct  = rows.reduce((acc,r) => acc + (r.febPct  ?? 0), 0);
+  const sumHigh = rows.reduce((acc,r) => acc + (r.febHigh ?? 0), 0);
+  const sumLow  = rows.reduce((acc,r) => acc + (r.febLow  ?? 0), 0);
+  $sumPct.textContent  = `Somme variations : ${sumPct.toFixed(2)}%`;
+  $sumHigh.textContent = `Somme mèches hautes : ${sumHigh.toFixed(2)}%`;
+  $sumLow.textContent  = `Somme mèches basses : ${sumLow.toFixed(2)}%`;
+}
+
 function renderTable(rows){
   const q = $search.value.trim().toUpperCase();
   const view = q ? rows.filter(r => r.id.includes(q) || r.symbol.includes(q)) : rows;
@@ -197,6 +213,7 @@ function renderTable(rows){
     }
   }
   $body.innerHTML = html;
+  updateSummary(view);
 }
 
 async function loadAll(){
