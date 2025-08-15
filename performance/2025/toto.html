@@ -1,308 +1,518 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Futures USDT Listés en 2025</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --bg:#0b0f1a;
-      --card:#11182a;
-      --muted:#6b7280;
-      --text:#e5e7eb;
-      --accent:#3b82f6;
-      --pos:#16a34a22;
-      --neg:#dc262622;
-      --neu:#37415166;
-      --ring:#3b82f688;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .wrap{max-width:1300px;margin:28px auto;padding:0 16px}
-    header{
-      display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px
-    }
-    .title{font-size:20px;font-weight:700;letter-spacing:.2px;display:flex;gap:10px;align-items:center}
-    .badge{font-size:12px;background:#1f2937;color:#cbd5e1;padding:3px 8px;border-radius:999px;border:1px solid #334155}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
-    .input, .btn{
-      border:1px solid #1f2937;background:#0f172a;color:var(--text);padding:10px 12px;border-radius:12px;outline:none
-    }
-    .input{min-width:220px}
-    .btn{cursor:pointer;transition:transform .06s ease, box-shadow .12s ease;border-color:#23304b}
-    .btn:hover{box-shadow:0 0 0 3px var(--ring)}
-    .btn:active{transform:translateY(1px)}
-    .card{
-      background:linear-gradient(180deg,#0e1527, #0c1223);
-      border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px
-    }
-    .card-head{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1f2937}
-    .stats{display:flex;gap:12px;flex-wrap:wrap}
-    .chip{border:1px solid #27324b;background:#0f172a;border-radius:999px;padding:6px 10px;font-size:12px;color:#cbd5e1}
-    .progress{height:6px;background:#111827;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
-    .progress>div{height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);width:0%}
-    .table-wrap{max-height:70vh;overflow:auto}
-    table{border-collapse:separate;border-spacing:0;width:100%;min-width:1000px}
-    thead th{
-      position:sticky;top:0;background:#0c1325;border-bottom:1px solid #1f2937;padding:10px 8px;font-weight:600;text-align:left
-    }
-    tbody td{border-bottom:1px solid #111827;padding:8px 8px;vertical-align:middle}
-    tbody tr:nth-child(2n){background:#0a1221}
-    tbody tr:hover{background:#0b1530}
-    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
-    .sym{display:flex;align-items:center;gap:8px}
-    .pill{font-size:11px;border:1px solid #263149;background:#0d152b;color:#cbd5e1;padding:2px 6px;border-radius:7px}
-    .pct{
-      padding:4px 8px;border-radius:9px;display:inline-block;text-align:right;min-width:72px;font-variant-numeric:tabular-nums
-    }
-    .pct.pos{background:var(--pos);border:1px solid #14532d;color:#a7f3d0}
-    .pct.neg{background:var(--neg);border:1px solid #7f1d1d;color:#fecaca}
-    .pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
-    .muted{color:var(--muted)}
-    .sticky-foot{position:sticky;bottom:0;background:#0c1325;border-top:1px solid #1f2937;padding:8px 12px;font-size:12px;color:#93a0b2}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Crypto Binance 2025 (USDT)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .loading-container {
+            text-align: center;
+            padding: 40px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 50px auto;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 30px;
+            background-color: #f0b90b;
+            width: 0%;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .loading-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #f0b90b;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #search {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #f0b90b;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #d8a600;
+        }
+        .chart-container {
+            margin-top: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="title">Futures USDT Listés en 2025 <span class="badge">PERPETUAL</span></div>
-    <div class="toolbar">
-      <input id="search" class="input" placeholder="Rechercher (ID ou symbole)..." />
-      <button id="refresh" class="btn">Rafraîchir</button>
-      <label class="btn" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
-        <input id="auto" type="checkbox" style="accent-color:#3b82f6"> Auto-refresh (10 min)
-      </label>
+    <h1>Performance Cryptomonnaies Binance 2025 (USDT)</h1>
+    
+    <div class="controls">
+        <input type="text" id="search" placeholder="Rechercher par symbole ou nom...">
+        <button onclick="filterTable()">Rechercher</button>
+        <button onclick="resetFilters()">Réinitialiser</button>
+        <span style="float: right;">
+            <button onclick="exportToCSV()">Exporter en CSV</button>
+        </span>
     </div>
-  </header>
+    
+    <div id="loading" class="loading-container">
+        <div class="spinner"></div>
+        <div class="loading-text">Chargement des données en cours...</div>
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar">0%</div>
+        </div>
+        <div id="statusText">Initialisation...</div>
+        <div id="errorText" class="error"></div>
+    </div>
+    
+    <div id="tableContainer" style="display: none;">
+        <table id="cryptoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Symbole</th>
+                    <th>Nom</th>
+                    <th>Janv 2025</th>
+                    <th>Fév 2025</th>
+                    <th>Mars 2025</th>
+                    <th>Avr 2025</th>
+                    <th>Mai 2025</th>
+                    <th>Juin 2025</th>
+                    <th>Juil 2025</th>
+                    <th>Août 2025</th>
+                    <th>Sept 2025</th>
+                    <th>Oct 2025</th>
+                    <th>Nov 2025</th>
+                    <th>Déc 2025</th>
+                    <th>YTD</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Données seront insérées ici -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="performanceChart"></canvas>
+    </div>
 
-  <div class="card">
-    <div class="card-head">
-      <div class="stats">
-        <div class="chip">Période: Jan 2025 → Déc 2025</div>
-        <div class="chip">Source: Binance Futures</div>
-        <div class="chip"><span id="count">0</span> futures listés en 2025</div>
-      </div>
-      <div class="progress" style="width:260px"><div id="bar"></div></div>
-    </div>
-    <div class="table-wrap">
-      <table id="tbl">
-        <thead>
-        <tr>
-          <th style="min-width:130px">ID</th>
-          <th style="min-width:150px">Symbole</th>
-          <th style="min-width:120px">Listé le</th>
-          <th>Jan</th><th>Fév</th><th>Mar</th><th>Avr</th><th>Mai</th><th>Juin</th><th>Juil</th><th>Août</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Déc</th>
-        </tr>
-        </thead>
-        <tbody id="body">
-          <tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
-        </tbody>
-        <tfoot>
-          <tr class="sticky-foot"><td colspan="15">Conseil : clic sur « Rafraîchir » pour recharger. La table est triée alphabétiquement par ID.</td></tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
-</div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    const search = document.getElementById('search');
-    const refresh = document.getElementById('refresh');
-    const auto = document.getElementById('auto');
-    const count = document.getElementById('count');
-    const bar = document.getElementById('bar');
-    const body = document.getElementById('body');
-    
-    let allSymbols = [];
-    let refreshInterval;
-    
-    // Fonction pour formater la date
-    const formatDate = (date) => {
-      return new Date(date).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    };
-    
-    // Fonction pour calculer le pourcentage de variation
-    const calculateChange = (open, close) => {
-      if (!open || !close) return { value: 0, class: 'neu' };
-      const change = ((close - open) / open) * 100;
-      return {
-        value: change,
-        class: change > 0 ? 'pos' : change < 0 ? 'neg' : 'neu'
-      };
-    };
-    
-    // Fonction pour formater le pourcentage
-    const formatPct = (value) => {
-      return value > 0 
-        ? `+${value.toFixed(2)}%` 
-        : value < 0 
-          ? `${value.toFixed(2)}%` 
-          : '0.00%';
-    };
-    
-    // Récupérer les données des futures depuis l'API Binance
-    const fetchFuturesData = async () => {
-      try {
-        body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
+    <script>
+        // Variables globales
+        let allCryptos = [];
+        const months = [
+            'janv', 'fév', 'mars', 'avr', 'mai', 'juin', 
+            'juil', 'août', 'sept', 'oct', 'nov', 'déc'
+        ];
         
-        // Récupérer tous les symboles futures USDT
-        const exchangeInfo = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
-        const exchangeData = await exchangeInfo.json();
+        // Endpoints API Binance
+        const API_BASE = 'https://api.binance.com/api/v3';
+        const SYMBOLS_ENDPOINT = `${API_BASE}/exchangeInfo`;
+        const KLINES_ENDPOINT = `${API_BASE}/klines`;
         
-        // Filtrer les futures USDT listés en 2025
-        const futures2025 = exchangeData.symbols
-          .filter(s => 
-            s.quoteAsset === 'USDT' && 
-            s.contractType === 'PERPETUAL' &&
-            new Date(s.onboardDate) >= new Date('2025-01-01') &&
-            new Date(s.onboardDate) <= new Date('2025-12-31')
-          )
-          .map(s => ({
-            symbol: s.symbol,
-            id: s.symbol.replace('USDT', ''),
-            listedDate: s.onboardDate
-          }));
-        
-        allSymbols = futures2025.sort((a, b) => a.id.localeCompare(b.id));
-        count.textContent = allSymbols.length;
-        bar.style.width = '100%';
-        
-        if (allSymbols.length === 0) {
-          body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Aucun future USDT listé en 2025 trouvé</td></tr>`;
-          return;
-        }
-        
-        // Récupérer les données de prix pour chaque mois
-        const monthlyData = await Promise.all(allSymbols.map(async (future) => {
-          const monthlyChanges = {};
-          
-          // Pour chaque mois de 2025
-          const months = [
-            '01', '02', '03', '04', '05', '06', 
-            '07', '08', '09', '10', '11', '12'
-          ];
-          
-          for (const month of months) {
-            const startTime = new Date(`2025-${month}-01T00:00:00Z`).getTime();
-            let endTime = new Date(`2025-${month}-01T00:00:00Z`);
-            endTime.setMonth(endTime.getMonth() + 1);
-            endTime = endTime.getTime();
-            
-            // Vérifier si le future était déjà listé ce mois-ci
-            const listedDate = new Date(future.listedDate).getTime();
-            if (listedDate > endTime) {
-              monthlyChanges[month] = null;
-              continue;
-            }
-            
-            // Récupérer les candles pour le mois
+        // Initialisation de la page
+        document.addEventListener('DOMContentLoaded', async function() {
             try {
-              const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${future.symbol}&interval=1d&startTime=${startTime}&endTime=${endTime}&limit=1000`);
-              const klinesData = await klines.json();
-              
-              if (klinesData.length > 0) {
-                const firstDay = klinesData.find(k => new Date(k[0]).getMonth() === new Date(startTime).getMonth());
-                const lastDay = [...klinesData].reverse().find(k => new Date(k[0]).getMonth() === new Date(startTime).getMonth());
-                
-                if (firstDay && lastDay) {
-                  const open = parseFloat(firstDay[1]);
-                  const close = parseFloat(lastDay[4]);
-                  monthlyChanges[month] = calculateChange(open, close);
-                } else {
-                  monthlyChanges[month] = null;
-                }
-              } else {
-                monthlyChanges[month] = null;
-              }
-            } catch (e) {
-              console.error(`Erreur pour ${future.symbol} mois ${month}:`, e);
-              monthlyChanges[month] = null;
+                await loadData();
+                setupChart();
+            } catch (error) {
+                showError("Une erreur s'est produite : " + error.message);
             }
-          }
-          
-          return {
-            ...future,
-            monthlyChanges
-          };
-        }));
+        });
         
-        // Afficher les données dans le tableau
-        renderTable(monthlyData);
-      } catch (error) {
-        console.error('Erreur:', error);
-        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:18px;color:#ef4444">Erreur lors du chargement des données. Réessayez plus tard.</td></tr>`;
-      }
-    };
-    
-    // Fonction pour afficher les données dans le tableau
-    const renderTable = (data) => {
-      if (data.length === 0) {
-        body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Aucune donnée disponible</td></tr>`;
-        return;
-      }
-      
-      body.innerHTML = data.map(future => {
-        const months = [];
-        for (let i = 1; i <= 12; i++) {
-          const month = i.toString().padStart(2, '0');
-          const change = future.monthlyChanges[month];
-          
-          months.push(`
-            <td class="mono">
-              ${change 
-                ? `<span class="pct ${change.class}">${formatPct(change.value)}</span>` 
-                : '<span class="muted">-</span>'}
-            </td>
-          `);
+        // Afficher une erreur
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('statusText').textContent = "Échec du chargement";
+            document.getElementById('progressBar').style.backgroundColor = "#ff6b6b";
         }
         
-        return `
-          <tr>
-            <td class="mono">${future.id}</td>
-            <td class="sym">
-              <span>${future.symbol}</span>
-              <span class="pill">FUTURES</span>
-            </td>
-            <td class="mono">${formatDate(future.listedDate)}</td>
-            ${months.join('')}
-          </tr>
-        `;
-      }).join('');
-    };
-    
-    // Fonction de recherche
-    const handleSearch = () => {
-      const term = search.value.toLowerCase();
-      const rows = body.querySelectorAll('tr');
-      
-      rows.forEach(row => {
-        const id = row.querySelector('td:first-child').textContent.toLowerCase();
-        const symbol = row.querySelector('td:nth-child(2) span:first-child').textContent.toLowerCase();
-        const shouldShow = id.includes(term) || symbol.includes(term);
-        row.style.display = shouldShow ? '' : 'none';
-      });
-    };
-    
-    // Événements
-    search.addEventListener('input', handleSearch);
-    refresh.addEventListener('click', fetchFuturesData);
-    auto.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        refreshInterval = setInterval(fetchFuturesData, 10 * 60 * 1000); // 10 minutes
-      } else {
-        clearInterval(refreshInterval);
-      }
-    });
-    
-    // Chargement initial
-    await fetchFuturesData();
-  });
-</script>
-
+        // Mise à jour de la progression
+        function updateProgress(percentage, message) {
+            const progressBar = document.getElementById('progressBar');
+            const statusText = document.getElementById('statusText');
+            
+            progressBar.style.width = `${percentage}%`;
+            progressBar.textContent = `${percentage}%`;
+            statusText.textContent = message;
+            
+            if (percentage === 100) {
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('tableContainer').style.display = 'block';
+                }, 500);
+            }
+        }
+        
+        // Chargement des données
+        async function loadData() {
+            updateProgress(5, "Connexion à l'API Binance...");
+            
+            // Récupération des paires de trading
+            updateProgress(10, "Récupération de la liste des cryptomonnaies...");
+            const response = await fetch(SYMBOLS_ENDPOINT);
+            if (!response.ok) throw new Error("Échec de la requête API");
+            
+            const data = await response.json();
+            
+            // Filtrage strict des paires USDT seulement
+            updateProgress(20, "Filtrage des paires USDT...");
+            const usdtPairs = data.symbols.filter(s => 
+                s.quoteAsset === 'USDT' && 
+                s.status === 'TRADING' &&
+                !s.symbol.includes('UP') && 
+                !s.symbol.includes('DOWN') &&
+                !s.symbol.includes('BUSD') && // Exclure les paires BUSD
+                !s.symbol.endsWith('USD') &&  // Exclure autres paires USD
+                s.symbol.endsWith('USDT')     // Uniquement USDT
+            );
+            
+            // Limiter à 50 paires pour les tests (à supprimer en production)
+            // usdtPairs = usdtPairs.slice(0, 50);
+            
+            const totalCryptos = usdtPairs.length;
+            if (totalCryptos === 0) throw new Error("Aucune paire USDT trouvée");
+            
+            updateProgress(25, `Traitement de ${totalCryptos} paires USDT...`);
+            
+            // Traitement par lots pour éviter les blocages
+            const batchSize = 10;
+            let processed = 0;
+            
+            for (let i = 0; i < usdtPairs.length; i += batchSize) {
+                const batch = usdtPairs.slice(i, i + batchSize);
+                
+                // Traitement du lot actuel
+                const batchPromises = batch.map(async (pair, index) => {
+                    const symbol = pair.baseAsset;
+                    const id = pair.symbol;
+                    
+                    try {
+                        const monthlyData = await getMonthlyPerformance(id);
+                        processed++;
+                        
+                        updateProgress(
+                            25 + Math.floor((processed / totalCryptos) * 70),
+                            `Analyse des données (${processed}/${totalCryptos})...`
+                        );
+                        
+                        return {
+                            id,
+                            symbol,
+                            name: symbol,
+                            ...monthlyData
+                        };
+                    } catch (error) {
+                        console.error(`Erreur sur ${symbol}:`, error);
+                        processed++;
+                        return null;
+                    }
+                });
+                
+                // Attente du lot actuel
+                const batchResults = await Promise.all(batchPromises);
+                
+                // Ajout des résultats valides
+                batchResults.forEach(result => {
+                    if (result) allCryptos.push(result);
+                });
+                
+                // Pause courte entre les lots
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // Tri alphabétique
+            updateProgress(95, "Tri des données...");
+            allCryptos.sort((a, b) => a.symbol.localeCompare(b.symbol));
+            
+            // Affichage du tableau
+            updateProgress(100, "Préparation de l'affichage...");
+            renderTable(allCryptos);
+        }
+        
+        // Récupération des performances mensuelles
+        async function getMonthlyPerformance(symbol) {
+            const monthlyData = {};
+            const year = 2025;
+            let ytdPerformance = 1;
+            
+            for (let month = 0; month < 12; month++) {
+                const startDate = new Date(year, month, 1);
+                const endDate = new Date(year, month + 1, 0);
+                
+                const startTime = startDate.getTime();
+                const endTime = endDate.getTime();
+                
+                try {
+                    const klines = await fetchKlines(symbol, '1M', startTime, endTime);
+                    
+                    if (klines.length > 0) {
+                        const openPrice = parseFloat(klines[0][1]);
+                        const closePrice = parseFloat(klines[klines.length - 1][4]);
+                        
+                        const monthlyPerformance = ((closePrice - openPrice) / openPrice) * 100;
+                        monthlyData[months[month]] = monthlyPerformance;
+                        
+                        ytdPerformance *= (1 + monthlyPerformance / 100);
+                    } else {
+                        monthlyData[months[month]] = null;
+                    }
+                } catch (error) {
+                    console.error(`Erreur sur ${symbol} pour ${months[month]}:`, error);
+                    monthlyData[months[month]] = null;
+                }
+            }
+            
+            monthlyData.ytd = (ytdPerformance - 1) * 100;
+            
+            return monthlyData;
+        }
+        
+        // Récupération des klines avec gestion des erreurs
+        async function fetchKlines(symbol, interval, startTime, endTime) {
+            const url = `${KLINES_ENDPOINT}?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Statut ${response.status} pour ${symbol}`);
+            return await response.json();
+        }
+        
+        // Affichage du tableau
+        function renderTable(cryptos) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            cryptos.forEach(crypto => {
+                const row = document.createElement('tr');
+                
+                // Informations de base
+                row.innerHTML = `
+                    <td>${crypto.id}</td>
+                    <td>${crypto.symbol}</td>
+                    <td>${crypto.name}</td>
+                `;
+                
+                // Performances mensuelles
+                months.forEach(month => {
+                    const perf = crypto[month];
+                    row.innerHTML += `<td class="${getPerformanceClass(perf)}">${formatPerformance(perf)}</td>`;
+                });
+                
+                // Performance YTD
+                row.innerHTML += `<td class="${getPerformanceClass(crypto.ytd)}">${formatPerformance(crypto.ytd)}</td>`;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Formatage des performances
+        function formatPerformance(perf) {
+            if (perf === null || perf === undefined) return 'N/A';
+            return `${perf.toFixed(2)}%`;
+        }
+        
+        // Classe CSS selon la performance
+        function getPerformanceClass(perf) {
+            if (perf === null || perf === undefined) return '';
+            return perf >= 0 ? 'positive' : 'negative';
+        }
+        
+        // Filtrage du tableau
+        function filterTable() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            
+            const filteredCryptos = allCryptos.filter(crypto => 
+                crypto.symbol.toLowerCase().includes(searchTerm) || 
+                crypto.name.toLowerCase().includes(searchTerm) ||
+                crypto.id.toLowerCase().includes(searchTerm)
+            );
+            
+            renderTable(filteredCryptos);
+        }
+        
+        // Réinitialisation des filtres
+        function resetFilters() {
+            document.getElementById('search').value = '';
+            renderTable(allCryptos);
+        }
+        
+        // Export CSV
+        function exportToCSV() {
+            let csv = 'ID,Symbole,Nom,' + months.join(',') + ',YTD\n';
+            
+            allCryptos.forEach(crypto => {
+                csv += `"${crypto.id}","${crypto.symbol}","${crypto.name}",`;
+                
+                months.forEach(month => {
+                    const perf = crypto[month];
+                    csv += `"${perf !== null ? perf.toFixed(2) + '%' : 'N/A'}",`;
+                });
+                
+                csv += `"${crypto.ytd.toFixed(2)}%"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'performance_crypto_binance_2025.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Configuration du graphique
+        function setupChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            const topCryptos = [...allCryptos]
+                .filter(crypto => crypto.ytd !== null)
+                .sort((a, b) => (b.ytd || 0) - (a.ytd || 0))
+                .slice(0, 10);
+            
+            const datasets = topCryptos.map(crypto => {
+                const color = getRandomColor();
+                return {
+                    label: crypto.symbol,
+                    data: months.map(month => crypto[month] || 0),
+                    borderWidth: 2,
+                    borderColor: color,
+                    backgroundColor: color + '40',
+                    fill: false,
+                    tension: 0.1
+                };
+            });
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months.map(m => m + ' 2025'),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Top 10 Cryptomonnaies (USDT) - Performance Mensuelle 2025',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Performance (%)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Génération de couleur aléatoire
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    </script>
 </body>
 </html>
