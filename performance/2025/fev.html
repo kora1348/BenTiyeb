@@ -5,7 +5,6 @@
 <title>Listings 2025 (Futures USDT) – Variation février</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-/* Styles identiques à ton code */
 :root{ --bg:#0b0f1a; --card:#11182a; --muted:#6b7280; --text:#e5e7eb; --accent:#3b82f6; --pos:#16a34a22; --neg:#dc262622; --neu:#37415166; --ring:#3b82f688; }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
@@ -48,7 +47,7 @@ tbody tr:hover{background:#0b1530}
 <header>
 <div class="title">Listings 2025 — Futures <span class="badge">USDT</span></div>
 <div class="toolbar">
-<input id="search" class="input" placeholder="Rechercher (ID ou symbole)..." />
+<input id="search" class="input" placeholder="Rechercher un symbole..." />
 <button id="refresh" class="btn">Rafraîchir</button>
 <label class="btn" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
 <input id="auto" type="checkbox" style="accent-color:#3b82f6"> Auto-refresh (10 min)
@@ -68,7 +67,6 @@ tbody tr:hover{background:#0b1530}
 <table id="tbl">
 <thead>
 <tr>
-<th>ID</th>
 <th>Symbole</th>
 <th>Listé le</th>
 <th>Fév</th>
@@ -77,7 +75,7 @@ tbody tr:hover{background:#0b1530}
 </tr>
 </thead>
 <tbody id="body">
-<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
+<tr><td colspan="5" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
 </tbody>
 </table>
 </div>
@@ -138,7 +136,6 @@ async function fetchUSDTListings2025(){
     s.status === "TRADING" &&
     s.contractType === "PERPETUAL" &&
     s.quoteAsset === "USDT" &&
-    s.symbol.endsWith("USDT") &&
     allowedSymbols.includes(s.symbol)
   );
   const BATCH = 10;
@@ -152,7 +149,7 @@ async function fetchUSDTListings2025(){
         if (!earliest || earliest.length===0) return;
         const firstOpen = earliest[0][0];
         if (firstOpen >= start2025 && firstOpen < start2026){
-          kept.push({ id: s.baseAsset, symbol: s.symbol, listedAt: firstOpen });
+          kept.push({ symbol: s.symbol, listedAt: firstOpen });
         }
       }catch(e){}finally{ done++; }
     });
@@ -160,7 +157,7 @@ async function fetchUSDTListings2025(){
     $bar.style.width = Math.min(100, Math.round((done/usdtFutures.length)*100)) + "%";
     await sleep(120);
   }
-  kept.sort((a,b)=> a.id.localeCompare(b.id));
+  kept.sort((a,b)=> a.symbol.localeCompare(b.symbol));
   return kept;
 }
 
@@ -195,16 +192,15 @@ function updateSummary(rows){
 
 function renderTable(rows){
   const q = $search.value.trim().toUpperCase();
-  const view = q ? rows.filter(r => r.id.includes(q) || r.symbol.includes(q)) : rows;
+  const view = q ? rows.filter(r => r.symbol.includes(q)) : rows;
   $count.textContent = rows.length.toString();
   let html = "";
   if (view.length === 0){
-    html = `<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
+    html = `<tr><td colspan="5" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
   } else {
     for (const r of view){
       html += `<tr>
-        <td class="mono"><div class="sym"><span>${r.id}</span><span class="pill">USDT</span></div></td>
-        <td class="mono">${r.symbol}</td>
+        <td class="mono"><div class="sym"><span>${r.symbol}</span></div></td>
         <td class="mono muted">${fmtDateUTC(r.listedAt)}</td>
         <td><span class="${clsPct(r.febPct)}">${pctTxt(r.febPct)}</span></td>
         <td><span class="${clsPct(r.febHigh)}">${pctTxt(r.febHigh)}</span></td>
@@ -218,7 +214,7 @@ function renderTable(rows){
 
 async function loadAll(){
   masterRows = [];
-  $body.innerHTML = `<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
+  $body.innerHTML = `<tr><td colspan="5" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
   $bar.style.width = "0%";
   try{
     const listed = await fetchUSDTListings2025();
@@ -239,14 +235,14 @@ async function loadAll(){
       rows.push(...partial);
       const progress = 50 + Math.round((done/listed.length)*50);
       $bar.style.width = progress + "%";
-      renderTable(rows.sort((a,b)=> a.id.localeCompare(b.id)));
+      renderTable(rows.sort((a,b)=> a.symbol.localeCompare(b.symbol)));
       await sleep(80);
     }
-    masterRows = rows.sort((a,b)=> a.id.localeCompare(b.id));
+    masterRows = rows.sort((a,b)=> a.symbol.localeCompare(b.symbol));
     renderTable(masterRows);
     $bar.style.width = "100%";
   }catch(e){
-    $body.innerHTML = `<tr><td colspan="6" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
+    $body.innerHTML = `<tr><td colspan="5" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
   }
 }
 
