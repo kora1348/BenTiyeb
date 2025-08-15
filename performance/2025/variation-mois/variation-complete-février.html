@@ -161,9 +161,9 @@ async function fetchUSDTListings2025(){
   return kept;
 }
 
-async function fetchFebData(symbol){
+async function fetchmonthData(symbol){
   const ks = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=${start2025}&endTime=${start2026}`);
-  let febPct = null, febHigh = null, febLow = null;
+  let monthPct = null, monthHigh = null, monthLow = null;
   for (const k of ks){
     const d = new Date(k[0]);
     // Le mois // 
@@ -173,19 +173,19 @@ async function fetchFebData(symbol){
       const low  = parseFloat(k[3]);
       const close = parseFloat(k[4]);
       if (isFinite(open) && open > 0){
-        febPct  = ((close - open) / open) * 100;
-        febHigh = ((high - open) / open) * 100;
-        febLow  = ((low - open) / open) * 100;
+        monthPct  = ((close - open) / open) * 100;
+        monthHigh = ((high - open) / open) * 100;
+        monthLow  = ((low - open) / open) * 100;
       }
     }
   }
-  return { febPct, febHigh, febLow };
+  return { monthPct, monthHigh, monthLow };
 }
 
 function updateSummary(rows){
-  const sumPct  = rows.reduce((acc,r) => acc + (r.febPct  ?? 0), 0);
-  const sumHigh = rows.reduce((acc,r) => acc + (r.febHigh ?? 0), 0);
-  const sumLow  = rows.reduce((acc,r) => acc + (r.febLow  ?? 0), 0);
+  const sumPct  = rows.reduce((acc,r) => acc + (r.monthPct  ?? 0), 0);
+  const sumHigh = rows.reduce((acc,r) => acc + (r.monthHigh ?? 0), 0);
+  const sumLow  = rows.reduce((acc,r) => acc + (r.monthLow  ?? 0), 0);
   $sumPct.innerHTML  = `Somme variations : <span class="${clsPct(sumPct)}">${pctTxt(sumPct)}</span>`;
   $sumHigh.innerHTML = `Somme mèches hautes : <span class="${clsPct(sumHigh)}">${pctTxt(sumHigh)}</span>`;
   $sumLow.innerHTML  = `Somme mèches basses : <span class="${clsPct(sumLow)}">${pctTxt(sumLow)}</span>`;
@@ -203,9 +203,9 @@ function renderTable(rows){
       html += `<tr>
         <td class="mono"><div class="sym"><span>${r.symbol}</span></div></td>
         <td class="mono muted">${fmtDateUTC(r.listedAt)}</td>
-        <td><span class="${clsPct(r.febPct)}">${pctTxt(r.febPct)}</span></td>
-        <td><span class="${clsPct(r.febHigh)}">${pctTxt(r.febHigh)}</span></td>
-        <td><span class="${clsPct(r.febLow)}">${pctTxt(r.febLow)}</span></td>
+        <td><span class="${clsPct(r.monthPct)}">${pctTxt(r.monthPct)}</span></td>
+        <td><span class="${clsPct(r.monthHigh)}">${pctTxt(r.monthHigh)}</span></td>
+        <td><span class="${clsPct(r.monthLow)}">${pctTxt(r.monthLow)}</span></td>
       </tr>`;
     }
   }
@@ -226,10 +226,10 @@ async function loadAll(){
       const slice = listed.slice(i,i+BATCH);
       const batch = slice.map(async it => {
         try{
-          const { febPct, febHigh, febLow } = await fetchFebData(it.symbol);
-          return {...it, febPct, febHigh, febLow};
+          const { monthPct, monthHigh, monthLow } = await fetchmonthData(it.symbol);
+          return {...it, monthPct, monthHigh, monthLow};
         }catch(e){
-          return {...it, febPct: null, febHigh: null, febLow: null};
+          return {...it, monthPct: null, monthHigh: null, monthLow: null};
         }finally{ done++; }
       });
       const partial = await Promise.all(batch);
