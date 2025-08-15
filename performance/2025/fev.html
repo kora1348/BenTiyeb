@@ -5,7 +5,6 @@
 <title>Listings 2025 (Futures USDT) – Variation février</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-/* même CSS que ton code original */
 :root{ --bg:#0b0f1a; --card:#11182a; --muted:#6b7280; --text:#e5e7eb; --accent:#3b82f6; --pos:#16a34a22; --neg:#dc262622; --neu:#37415166; --ring:#3b82f688; }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
@@ -71,13 +70,15 @@ tbody tr:hover{background:#0b1530}
 <th style="min-width:150px">Symbole</th>
 <th style="min-width:120px">Listé le</th>
 <th>Fév</th>
+<th>Fév – Plus haut</th>
+<th>Fév – Plus bas</th>
 </tr>
 </thead>
 <tbody id="body">
-<tr><td colspan="4" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
+<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
 </tbody>
 <tfoot>
-<tr class="sticky-foot"><td colspan="4">Conseil : clic sur « Rafraîchir » pour recharger. La table est triée alphabétiquement par ID.</td></tr>
+<tr class="sticky-foot"><td colspan="6">Conseil : clic sur « Rafraîchir » pour recharger. La table est triée alphabétiquement par ID.</td></tr>
 </tfoot>
 </table>
 </div>
@@ -98,7 +99,6 @@ const $auto = document.getElementById('auto');
 let masterRows = [];
 let timer = null;
 
-// Liste des cryptos autorisées
 const allowedSymbols = [
 "AI16ZUSDT","ALCHUSDT","ANIMEUSDT","ARCUSDT","AVAAIUSDT","BIOUSDT","COOKIEUSDT","DUSDT",
 "GRIFFAINUSDT","MELANIAUSDT","PIPPINUSDT","PROMUSDT","SUSDT","SOLVUSDT","SONICUSDT",
@@ -157,20 +157,24 @@ async function fetchUSDTListings2025(){
   return kept;
 }
 
-async function fetchFebPct(symbol){
+async function fetchFebData(symbol){
   const ks = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=${start2025}&endTime=${start2026}`);
-  let febPct = null;
+  let febPct = null, febHigh = null, febLow = null;
   for (const k of ks){
     const d = new Date(k[0]);
     if (d.getUTCFullYear() === YEAR && d.getUTCMonth() === 1){
       const open = parseFloat(k[1]);
+      const high = parseFloat(k[2]);
+      const low  = parseFloat(k[3]);
       const close = parseFloat(k[4]);
-      if (isFinite(open) && open > 0 && isFinite(close)){
-        febPct = ((close - open) / open) * 100;
+      if (isFinite(open) && open > 0){
+        febPct  = ((close - open) / open) * 100;
+        febHigh = ((high - open) / open) * 100;
+        febLow  = ((low - open) / open) * 100;
       }
     }
   }
-  return febPct;
+  return { febPct, febHigh, febLow };
 }
 
 function renderTable(rows){
@@ -179,14 +183,16 @@ function renderTable(rows){
   $count.textContent = rows.length.toString();
   let html = "";
   if (view.length === 0){
-    html = `<tr><td colspan="4" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
+    html = `<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
   } else {
     for (const r of view){
       html += `<tr>
         <td class="mono"><div class="sym"><span>${r.id}</span><span class="pill">USDT</span></div></td>
         <td class="mono">${r.symbol}</td>
         <td class="mono muted">${fmtDateUTC(r.listedAt)}</td>
-        <td><span class="${clsPct(r.feb)}">${pctTxt(r.feb)}</span></td>
+        <td><span class="${clsPct(r.febPct)}">${pctTxt(r.febPct)}</span></td>
+        <td><span class="${clsPct(r.febHigh)}">${pctTxt(r.febHigh)}</span></td>
+        <td><span class="${clsPct(r.febLow)}">${pctTxt(r.febLow)}</span></td>
       </tr>`;
     }
   }
@@ -195,7 +201,7 @@ function renderTable(rows){
 
 async function loadAll(){
   masterRows = [];
-  $body.innerHTML = `<tr><td colspan="4" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
+  $body.innerHTML = `<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
   $bar.style.width = "0%";
   try{
     const listed = await fetchUSDTListings2025();
@@ -206,10 +212,10 @@ async function loadAll(){
       const slice = listed.slice(i,i+BATCH);
       const batch = slice.map(async it => {
         try{
-          const feb = await fetchFebPct(it.symbol);
-          return {...it, feb};
+          const { febPct, febHigh, febLow } = await fetchFebData(it.symbol);
+          return {...it, febPct, febHigh, febLow};
         }catch(e){
-          return {...it, feb: null};
+          return {...it, febPct: null, febHigh: null, febLow: null};
         }finally{ done++; }
       });
       const partial = await Promise.all(batch);
@@ -223,7 +229,7 @@ async function loadAll(){
     renderTable(masterRows);
     $bar.style.width = "100%";
   }catch(e){
-    $body.innerHTML = `<tr><td colspan="4" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
+    $body.innerHTML = `<tr><td colspan="6" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
   }
 }
 
