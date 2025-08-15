@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Listings 2025 (Futures USDT) – Variation Févrierrier</title>
+<title>Listings 2025 (Futures USDT) – Variation Février</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
 :root{ --bg:#0b0f1a; --card:#11182a; --muted:#6b7280; --text:#e5e7eb; --accent:#3b82f6; --pos:#16a34a22; --neg:#dc262622; --neu:#37415166; --ring:#3b82f688; }
@@ -56,7 +56,7 @@ tbody tr:hover{background:#0b1530}
 <div class="card">
 <div class="card-head">
 <div class="stats">
-<div class="chip">Période: Févrierrier 2025</div>
+<div class="chip">Période: Février 2025</div>
 <div class="chip">Source: Binance Futures</div>
 <div class="chip"><span id="count">0</span> listées en 2025</div>
 </div>
@@ -166,6 +166,7 @@ async function fetchFebData(symbol){
   let febPct = null, febHigh = null, febLow = null;
   for (const k of ks){
     const d = new Date(k[0]);
+    // Le mois // 
     if (d.getUTCFullYear() === YEAR && d.getUTCMonth() === 1){
       const open = parseFloat(k[1]);
       const high = parseFloat(k[2]);
