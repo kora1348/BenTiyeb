@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Listings 2024 (Futures USDT) – Variation mensuelle</title>
+  <title>Listings 2025 (Futures USDT) – Variation février</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -19,9 +19,7 @@
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
     .wrap{max-width:1300px;margin:28px auto;padding:0 16px}
-    header{
-      display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px
-    }
+    header{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px}
     .title{font-size:20px;font-weight:700;letter-spacing:.2px;display:flex;gap:10px;align-items:center}
     .badge{font-size:12px;background:#1f2937;color:#cbd5e1;padding:3px 8px;border-radius:999px;border:1px solid #334155}
     .toolbar{display:flex;gap:10px;flex-wrap:wrap}
@@ -42,7 +40,7 @@
     .progress{height:6px;background:#111827;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
     .progress>div{height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);width:0%}
     .table-wrap{max-height:70vh;overflow:auto}
-    table{border-collapse:separate;border-spacing:0;width:100%;min-width:1000px}
+    table{border-collapse:separate;border-spacing:0;width:100%;min-width:500px}
     thead th{
       position:sticky;top:0;background:#0c1325;border-bottom:1px solid #1f2937;padding:10px 8px;font-weight:600;text-align:left
     }
@@ -52,85 +50,50 @@
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
     .sym{display:flex;align-items:center;gap:8px}
     .pill{font-size:11px;border:1px solid #263149;background:#0d152b;color:#cbd5e1;padding:2px 6px;border-radius:7px}
-    .pct{
-      padding:4px 8px;border-radius:9px;display:inline-block;text-align:right;min-width:72px;font-variant-numeric:tabular-nums
-    }
+    .pct{padding:4px 8px;border-radius:9px;display:inline-block;text-align:right;min-width:72px;font-variant-numeric:tabular-nums}
     .pct.pos{background:var(--pos);border:1px solid #14532d;color:#a7f3d0}
     .pct.neg{background:var(--neg);border:1px solid #7f1d1d;color:#fecaca}
     .pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
     .muted{color:var(--muted)}
     .sticky-foot{position:sticky;bottom:0;background:#0c1325;border-top:1px solid #1f2937;padding:8px 12px;font-size:12px;color:#93a0b2}
-    .month-card{display:none;background:linear-gradient(180deg,#0e1527, #0c1223);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px}
-    .month-card.active{display:block}
-    .month-card-head{padding:12px 14px;border-bottom:1px solid #1f2937}
-    .month-symbols{display:grid;grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));gap:8px;padding:12px 14px}
-    .month-symbol{background:#0f172a;border:1px solid #27324b;border-radius:8px;padding:8px;text-align:center;font-family:monospace}
-    select{padding:10px 12px;min-width:180px}
   </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="title">Listings 2024 — Futures <span class="badge">USDT</span></div>
+    <div class="title">Listings 2025 — Futures <span class="badge">USDT</span></div>
     <div class="toolbar">
       <input id="search" class="input" placeholder="Rechercher (ID ou symbole)..." />
-      <select id="month-select">
-        <option value="-1">Filtre Mois</option>
-        <option value="0">Janvier</option>
-        <option value="1">Février</option>
-        <option value="2">Mars</option>
-        <option value="3">Avril</option>
-        <option value="4">Mai</option>
-        <option value="5">Juin</option>
-        <option value="6">Juillet</option>
-        <option value="7">Août</option>
-        <option value="8">Septembre</option>
-        <option value="9">Octobre</option>
-        <option value="10">Novembre</option>
-        <option value="11">Décembre</option>
-      </select>
       <button id="refresh" class="btn">Rafraîchir</button>
       <label class="btn" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
         <input id="auto" type="checkbox" style="accent-color:#3b82f6"> Auto-refresh (10 min)
       </label>
     </div>
   </header>
-  <!-- Carte des cryptos listées ce mois -->
-  <div id="month-card" class="month-card">
-    <div class="month-card-head">
-      <div class="stats">
-        <div class="chip">Nouveautés <span id="month-name">—</span> <span id="month-year">2024</span></div>
-        <div class="chip"><span id="month-count">0</span> listées</div>
-      </div>
-    </div>
-    <div class="month-symbols" id="month-symbols">
-      <!-- Les symboles seront ajoutés ici -->
-    </div>
-  </div>
   <div class="card">
     <div class="card-head">
       <div class="stats">
-        <div class="chip">Période: Jan 2024 → Déc 2024 (1M)</div>
+        <div class="chip">Période: Février 2025</div>
         <div class="chip">Source: Binance Futures</div>
-        <div class="chip"><span id="count">0</span> listées en 2024</div>
+        <div class="chip"><span id="count">0</span> listées en 2025</div>
       </div>
       <div class="progress" style="width:260px"><div id="bar"></div></div>
     </div>
     <div class="table-wrap">
       <table id="tbl">
         <thead>
-        <tr>
-          <th style="min-width:130px">ID</th>
-          <th style="min-width:150px">Symbole</th>
-          <th style="min-width:120px">Listé le</th>
-          <th>Jan</th><th>Fév</th><th>Mar</th><th>Avr</th><th>Mai</th><th>Juin</th><th>Juil</th><th>Août</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Déc</th>
-        </tr>
+          <tr>
+            <th style="min-width:130px">ID</th>
+            <th style="min-width:150px">Symbole</th>
+            <th style="min-width:120px">Listé le</th>
+            <th>Fév</th>
+          </tr>
         </thead>
         <tbody id="body">
-          <tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
+          <tr><td colspan="4" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
         </tbody>
         <tfoot>
-          <tr class="sticky-foot"><td colspan="15">Conseil : clic sur « Rafraîchir » pour recharger. La table est triée alphabétiquement par ID.</td></tr>
+          <tr class="sticky-foot"><td colspan="4">Conseil : clic sur « Rafraîchir » pour recharger. La table est triée alphabétiquement par ID.</td></tr>
         </tfoot>
       </table>
     </div>
@@ -139,24 +102,18 @@
 <script>
 (() => {
   const API = "https://fapi.binance.com";
-  const YEAR = 2024;
-  const start2024 = Date.UTC(2024,0,1);
+  const YEAR = 2025;
   const start2025 = Date.UTC(2025,0,1);
-  const monthsFR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  const start2026 = Date.UTC(2026,0,1);
   const $body = document.getElementById('body');
   const $count = document.getElementById('count');
   const $bar = document.getElementById('bar');
   const $search = document.getElementById('search');
   const $refresh = document.getElementById('refresh');
   const $auto = document.getElementById('auto');
-  const $monthSelect = document.getElementById('month-select');
-  const $monthCard = document.getElementById('month-card');
-  const $monthName = document.getElementById('month-name');
-  const $monthYear = document.getElementById('month-year');
-  const $monthCount = document.getElementById('month-count');
-  const $monthSymbols = document.getElementById('month-symbols');
   let masterRows = [];
   let timer = null;
+
   function fmtDateUTC(ts){
     const d = new Date(ts);
     return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,'0')+"-"+String(d.getUTCDate()).padStart(2,'0');
@@ -176,7 +133,8 @@
     if(!r.ok) throw new Error("HTTP "+r.status);
     return r.json();
   }
-  async function fetchUSDTListings2024(){
+
+  async function fetchUSDTListings2025(){
     const ex = await jget(API + "/fapi/v1/exchangeInfo");
     let usdtFutures = ex.symbols.filter(s =>
       s.status === "TRADING" &&
@@ -194,18 +152,14 @@
           const earliest = await jget(API + `/fapi/v1/klines?symbol=${s.symbol}&interval=1M&startTime=0&limit=1`);
           if (!earliest || earliest.length===0) return;
           const firstOpen = earliest[0][0];
-          if (firstOpen >= start2024 && firstOpen < start2025){
+          if (firstOpen >= start2025 && firstOpen < start2026){
             kept.push({
               id: s.baseAsset,
               symbol: s.symbol,
               listedAt: firstOpen
             });
           }
-        }catch(e){
-          // ignore erreurs ponctuelles
-        }finally{
-          done++;
-        }
+        }catch(e){}finally{ done++; }
       });
       await Promise.all(batch);
       $bar.style.width = Math.min(100, Math.round((done/usdtFutures.length)*100)) + "%";
@@ -214,66 +168,50 @@
     kept.sort((a,b)=> a.id.localeCompare(b.id));
     return kept;
   }
-  async function fetchMonthlyPctForSymbol(symbol){
-    const ks = await jget(API + `/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=${start2024}&endTime=${start2025}`);
-    const arr = Array(12).fill(null);
+
+  async function fetchFebPct(symbol){
+    const ks = await jget(API + `/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=${start2025}&endTime=${start2026}`);
+    let febPct = null;
     for (const k of ks){
-      const openTime = k[0];
-      const d = new Date(openTime);
-      const y = d.getUTCFullYear();
-      if (y !== YEAR) continue;
-      const m = d.getUTCMonth();
-      const open = parseFloat(k[1]);
-      const close = parseFloat(k[4]);
-      if (isFinite(open) && open>0 && isFinite(close)){
-        const pct = ((close - open) / open) * 100;
-        arr[m] = pct;
+      const d = new Date(k[0]);
+      // Février //
+      if (d.getUTCFullYear() === YEAR && d.getUTCMonth() === 1){
+        const open = parseFloat(k[1]);
+        const close = parseFloat(k[4]);
+        if (isFinite(open) && open > 0 && isFinite(close)){
+          febPct = ((close - open) / open) * 100;
+        }
       }
     }
-    return arr;
+    return febPct;
   }
+
   function renderTable(rows){
     const q = $search.value.trim().toUpperCase();
-    const view = q
-      ? rows.filter(r => r.id.includes(q) || r.symbol.includes(q))
-      : rows;
+    const view = q ? rows.filter(r => r.id.includes(q) || r.symbol.includes(q)) : rows;
     $count.textContent = rows.length.toString();
     let html = "";
     if (view.length === 0){
-      html = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
+      html = `<tr><td colspan="4" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
     } else {
       for (const r of view){
         html += `<tr>
           <td class="mono"><div class="sym"><span>${r.id}</span><span class="pill">USDT</span></div></td>
           <td class="mono">${r.symbol}</td>
           <td class="mono muted">${fmtDateUTC(r.listedAt)}</td>
-          ${r.pcts.map(v => `<td><span class="${clsPct(v)}">${pctTxt(v)}</span></td>`).join("")}
+          <td><span class="${clsPct(r.feb)}">${pctTxt(r.feb)}</span></td>
         </tr>`;
       }
     }
     $body.innerHTML = html;
   }
-  function filterByMonth(month) {
-    if (month === -1) {
-      $monthCard.classList.remove("active");
-      return;
-    }
-    const monthListed = masterRows.filter(r => {
-      const listedDate = new Date(r.listedAt);
-      return listedDate.getMonth() === month && listedDate.getFullYear() === YEAR;
-    });
-    $monthName.textContent = monthsFR[month];
-    $monthYear.textContent = YEAR;
-    $monthCount.textContent = monthListed.length;
-    $monthSymbols.innerHTML = monthListed.map(r => `<div class="month-symbol">${r.symbol}</div>`).join("");
-    $monthCard.classList.add("active");
-  }
+
   async function loadAll(){
     masterRows = [];
-    $body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
+    $body.innerHTML = `<tr><td colspan="4" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
     $bar.style.width = "0%";
     try{
-      const listed = await fetchUSDTListings2024();
+      const listed = await fetchUSDTListings2025();
       const BATCH = 10;
       let done = 0;
       let rows = [];
@@ -281,13 +219,11 @@
         const slice = listed.slice(i,i+BATCH);
         const batch = slice.map(async it => {
           try{
-            const pcts = await fetchMonthlyPctForSymbol(it.symbol);
-            return {...it, pcts};
+            const feb = await fetchFebPct(it.symbol);
+            return {...it, feb};
           }catch(e){
-            return {...it, pcts: Array(12).fill(null)};
-          }finally{
-            done++;
-          }
+            return {...it, feb: null};
+          }finally{ done++; }
         });
         const partial = await Promise.all(batch);
         rows.push(...partial);
@@ -300,19 +236,17 @@
       renderTable(masterRows);
       $bar.style.width = "100%";
     }catch(e){
-      $body.innerHTML = `<tr><td colspan="15" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
+      $body.innerHTML = `<tr><td colspan="4" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
     }
   }
+
   $refresh.addEventListener('click', loadAll);
   $search.addEventListener('input', () => renderTable(masterRows));
   $auto.addEventListener('change', () => {
-    if ($auto.checked){
-      timer = setInterval(loadAll, 10*60*1000);
-    }else{
-      clearInterval(timer); timer = null;
-    }
+    if ($auto.checked){ timer = setInterval(loadAll, 10*60*1000); }
+    else{ clearInterval(timer); timer = null; }
   });
-  $monthSelect.addEventListener('change', () => filterByMonth(parseInt($monthSelect.value)));
+
   loadAll();
 })();
 </script>
