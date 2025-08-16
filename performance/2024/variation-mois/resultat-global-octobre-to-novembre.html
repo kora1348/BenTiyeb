@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Trading 2024 (Futures USDT) – Variation Octobre</title>
+<title>Novembre 2024 (Futures USDT) – Résultat Global Novembre</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
 :root{ --bg:#0b0f1a; --card:#11182a; --muted:#6b7280; --text:#e5e7eb; --accent:#3b82f6; --pos:#16a34a22; --neg:#dc262622; --neu:#37415166; --ring:#3b82f688; }
@@ -44,7 +44,7 @@ tbody tr:hover{background:#0b1530}
 <body>
 <div class="wrap">
 <header>
-<div class="title">Trading pour le mois de Octobre 2024 — Futures <span class="badge">USDT</span></div>
+<div class="title">Analyse pour le mois de Novembre 2024 — Futures <span class="badge">USDT</span></div>
 <div class="toolbar">
 <input id="search" class="input" placeholder="Rechercher un symbole..." />
 <button id="refresh" class="btn">Rafraîchir</button>
@@ -56,7 +56,7 @@ tbody tr:hover{background:#0b1530}
 <div class="card">
 <div class="card-head">
 <div class="stats">
-<div class="chip">Période: Octobre 2024</div>
+<div class="chip">Période: Novembre 2024</div>
 <div class="chip">Source: Binance Futures</div>
 <div class="chip"><span id="count">0</span> listées en 2024</div>
 </div>
@@ -73,9 +73,9 @@ tbody tr:hover{background:#0b1530}
 <tr>
 <th>Symbole</th>
 <th>Listé le</th>
-<th>Octobre</th>
-<th>Octobre – Plus haut</th>
-<th>Octobre – Plus bas</th>
+<th>Novembre</th>
+<th>Novembre – Plus haut</th>
+<th>Novembre – Plus bas</th>
 </tr>
 </thead>
 <tbody id="body">
@@ -105,8 +105,12 @@ let masterRows = [];
 let timer = null;
 
 const allowedSymbols = [
-    "1MBABYDOGEUSDT", "BSWUSDT", "CATIUSDT", "COSUSDT", "FIDAUSDT",
+    "1000CATUSDT", "DIAUSDT", "EIGENUSDT", "GOATUSDT", "MOODENGUSDT",
+    "SAFEUSDT", "SANTOSUSDT", "SCRUSDT"
 ];
+
+
+
 
 function fmtDateUTC(ts){
   const d = new Date(ts);
@@ -165,7 +169,7 @@ async function fetchmonthData(symbol){
   for (const k of ks){
     const d = new Date(k[0]);
     // Le mois // 
-    if (d.getUTCFullYear() === YEAR && d.getUTCMonth() === 9){
+    if (d.getUTCFullYear() === YEAR && d.getUTCMonth() === 10){
       const open = parseFloat(k[1]);
       const high = parseFloat(k[2]);
       const low  = parseFloat(k[3]);
