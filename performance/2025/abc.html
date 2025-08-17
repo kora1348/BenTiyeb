@@ -19,7 +19,11 @@
       --neg-text: #fecaca;
       --neu-text: #e5e7eb;
     }
-    * { box-sizing: border-box; }
+
+    * {
+      box-sizing: border-box;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -27,11 +31,13 @@
       color: var(--text);
       font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
     }
+
     .wrap {
       max-width: 1600px;
       margin: 28px auto;
       padding: 0 16px;
     }
+
     header {
       display: flex;
       gap: 14px;
@@ -39,6 +45,7 @@
       justify-content: space-between;
       margin-bottom: 14px;
     }
+
     .title {
       font-size: 20px;
       font-weight: 700;
@@ -47,6 +54,7 @@
       gap: 10px;
       align-items: center;
     }
+
     .badge {
       font-size: 12px;
       background: #1f2937;
@@ -55,11 +63,13 @@
       border-radius: 999px;
       border: 1px solid #334155;
     }
+
     .toolbar {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
     }
+
     .input, .btn, select {
       border: 1px solid #1f2937;
       background: #0f172a;
@@ -68,20 +78,25 @@
       border-radius: 12px;
       outline: none;
     }
+
     .input {
       min-width: 220px;
     }
+
     .btn {
       cursor: pointer;
       transition: transform .06s ease, box-shadow .12s ease;
       border-color: #23304b;
     }
+
     .btn:hover {
       box-shadow: 0 0 0 3px var(--ring);
     }
+
     .btn:active {
       transform: translateY(1px);
     }
+
     .card {
       background: linear-gradient(180deg, #0e1527, #0c1223);
       border: 1px solid #1f2937;
@@ -92,6 +107,7 @@
       width: 100%;
       overflow-x: auto;
     }
+
     .card-head {
       display: flex;
       gap: 10px;
@@ -100,11 +116,13 @@
       padding: 12px 14px;
       border-bottom: 1px solid #1f2937;
     }
+
     .stats {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
     }
+
     .chip {
       border: 1px solid #27324b;
       background: #0f172a;
@@ -113,31 +131,39 @@
       font-size: 12px;
       color: #cbd5e1;
     }
+
     .sum-stats {
       display: flex;
       gap: 16px;
       font-size: 13px;
       color: #cbd5e1;
     }
+
     .sum-stat {
       display: flex;
       align-items: center;
       gap: 4px;
     }
+
     .sum-stat-value {
       font-weight: 500;
       font-variant-numeric: tabular-nums;
       padding: 2px 6px;
       border-radius: 6px;
     }
-    .sum-stat.pos {
-      color: var(--pos-text);
+
+    .sum-stat-value.pos {
       background: var(--pos);
+      border: 1px solid #14532d;
+      color: var(--pos-text);
     }
-    .sum-stat.neg {
-      color: var(--neg-text);
+
+    .sum-stat-value.neg {
       background: var(--neg);
+      border: 1px solid #7f1d1d;
+      color: var(--neg-text);
     }
+
     .progress {
       height: 6px;
       background: #111827;
@@ -145,22 +171,26 @@
       border-radius: 999px;
       overflow: hidden;
     }
+
     .progress > div {
       height: 100%;
       background: linear-gradient(90deg, #3b82f6, #06b6d4);
       width: 0%;
     }
+
     .table-wrap {
       max-height: 70vh;
       overflow: auto;
       min-width: 100%;
     }
+
     table {
       border-collapse: separate;
       border-spacing: 0;
       width: 100%;
       min-width: 6000px;
     }
+
     thead th {
       position: sticky;
       top: 0;
@@ -171,6 +201,7 @@
       text-align: center;
       min-width: 100px;
     }
+
     tbody td {
       border-bottom: 1px solid #111827;
       padding: 8px 8px;
@@ -178,20 +209,25 @@
       text-align: center;
       min-width: 100px;
     }
+
     tbody tr:nth-child(2n) {
       background: #0a1221;
     }
+
     tbody tr:hover {
       background: #0b1530;
     }
+
     .mono {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
+
     .sym {
       display: flex;
       align-items: center;
       gap: 8px;
     }
+
     .pill {
       font-size: 11px;
       border: 1px solid #263149;
@@ -200,6 +236,7 @@
       padding: 2px 6px;
       border-radius: 7px;
     }
+
     .pct {
       padding: 4px 8px;
       border-radius: 9px;
@@ -209,24 +246,29 @@
       font-variant-numeric: tabular-nums;
       font-weight: 500;
     }
+
     .pct.pos {
       background: var(--pos);
       border: 1px solid #14532d;
       color: var(--pos-text);
     }
+
     .pct.neg {
       background: var(--neg);
       border: 1px solid #7f1d1d;
       color: var(--neg-text);
     }
+
     .pct.neu {
       background: var(--neu);
       border: 1px solid #374151;
       color: var(--neu-text);
     }
+
     .muted {
       color: var(--muted);
     }
+
     .sticky-foot {
       position: sticky;
       bottom: 0;
@@ -247,6 +289,7 @@
         <button id="refresh" class="btn">Rafraîchir</button>
       </div>
     </header>
+
     <div class="card">
       <div class="card-head">
         <div class="stats">
@@ -270,6 +313,7 @@
         </div>
         <div class="progress" style="width: 260px;"><div id="bar"></div></div>
       </div>
+
       <div class="table-wrap">
         <table id="tbl">
           <thead>
@@ -336,10 +380,12 @@
       </div>
     </div>
   </div>
+
   <script>
     (() => {
       const API = "https://fapi.binance.com";
       const YEAR = 2025;
+
       const $body = document.getElementById('body');
       const $count = document.getElementById('count');
       const $bar = document.getElementById('bar');
@@ -351,17 +397,24 @@
 
       // Liste des cryptos demandées
       const symbols = [
-        "BANANAUSDT", "BRETTUSDT", "CHESSUSDT", "DOGSUSDT", "GUSDT", "MBOXUSDT", "POPCATUSDT", "RAREUSDT", "SUNUSDT", "SYNUSDT",
-        "SYSUSDT", "VOXELUSDT", "ENAUSDT", "OMNIUSDT", "REZUSDT", "SAGAUSDT", "TAOUSDT", "TNSRUSDT", "WUSDT", "DYMUSDT",
-        "GLMUSDT", "OMUSDT", "PIXELUSDT", "PORTALUSDT", "RONINUSDT", "STRKUSDT", "ZETAUSDT", "AIUSDT", "ALTUSDT", "JUPUSDT",
-        "LSKUSDT", "MANTAUSDT", "ONDOUSDT", "WIFUSDT", "XAIUSDT", "RENDERUSDT", "IOUSDT", "LISTAUSDT", "MEWUSDT", "ZKUSDT",
-        "ZROUSDT", "BBUSDT", "NOTUSDT", "TURBOUSDT", "AEVOUSDT", "AXLUSDT", "BOMEUSDT", "ETHFIUSDT", "METISUSDT", "MYROUSDT",
-        "TONUSDT", "VANRYUSDT", "1000000MOGUSDT", "1000CHEEMSUSDT", "1000WHYUSDT", "1000XUSDT", "ACTUSDT", "AKTUSDT", "BANUSDT",
-        "CETUSUSDT", "CHILLGUYUSDT", "COWUSDT", "DEGENUSDT", "DRIFTUSDT", "GRASSUSDT", "HIPPOUSDT", "MORPHOUSDT", "PNUTUSDT",
-        "PONKEUSDT", "SCRTUSDT", "SLERFUSDT", "SWELLUSDT", "THEUSDT", "1000CATUSDT", "DIAUSDT", "EIGENUSDT", "GOATUSDT",
-        "MOODENGUSDT", "SAFEUSDT", "SANTOSUSDT", "SCRUSDT", "1MBABYDOGEUSDT", "BSWUSDT", "CATIUSDT", "COSUSDT", "FIDAUSDT",
-        "FIOUSDT", "FLUXUSDT", "GHSTUSDT", "HMSTRUSDT", "KDAUSDT", "NEIROUSDT", "POLUSDT", "QUICKUSDT", "REIUSDT", "RPLUSDT",
-        "UXLINKUSDT"
+        "BANANAUSDT", "BRETTUSDT", "CHESSUSDT", "DOGSUSDT", "GUSDT", "MBOXUSDT",
+        "POPCATUSDT", "RAREUSDT", "SUNUSDT", "SYNUSDT", "SYSUSDT", "VOXELUSDT",
+        "ENAUSDT", "OMNIUSDT", "REZUSDT", "SAGAUSDT", "TAOUSDT", "TNSRUSDT",
+        "WUSDT", "DYMUSDT", "GLMUSDT", "OMUSDT", "PIXELUSDT", "PORTALUSDT",
+        "RONINUSDT", "STRKUSDT", "ZETAUSDT", "AIUSDT", "ALTUSDT", "JUPUSDT",
+        "LSKUSDT", "MANTAUSDT", "ONDOUSDT", "WIFUSDT", "XAIUSDT", "RENDERUSDT",
+        "IOUSDT", "LISTAUSDT", "MEWUSDT", "ZKUSDT", "ZROUSDT", "BBUSDT",
+        "NOTUSDT", "TURBOUSDT", "AEVOUSDT", "AXLUSDT", "BOMEUSDT", "ETHFIUSDT",
+        "METISUSDT", "MYROUSDT", "TONUSDT", "VANRYUSDT", "1000000MOGUSDT",
+        "1000CHEEMSUSDT", "1000WHYUSDT", "1000XUSDT", "ACTUSDT", "AKTUSDT",
+        "BANUSDT", "CETUSUSDT", "CHILLGUYUSDT", "COWUSDT", "DEGENUSDT",
+        "DRIFTUSDT", "GRASSUSDT", "HIPPOUSDT", "MORPHOUSDT", "PNUTUSDT",
+        "PONKEUSDT", "SCRTUSDT", "SLERFUSDT", "SWELLUSDT", "THEUSDT",
+        "1000CATUSDT", "DIAUSDT", "EIGENUSDT", "GOATUSDT", "MOODENGUSDT",
+        "SAFEUSDT", "SANTOSUSDT", "SCRUSDT", "1MBABYDOGEUSDT", "BSWUSDT",
+        "CATIUSDT", "COSUSDT", "FIDAUSDT", "FIOUSDT", "FLUXUSDT", "GHSTUSDT",
+        "HMSTRUSDT", "KDAUSDT", "NEIROUSDT", "POLUSDT", "QUICKUSDT", "REIUSDT",
+        "RPLUSDT", "UXLINKUSDT"
       ];
 
       // Fonctions utilitaires
@@ -369,15 +422,18 @@
         const d = new Date(ts);
         return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, '0') + "-" + String(d.getUTCDate()).padStart(2, '0');
       }
+
       function clsPct(v) {
         if (v === null) return "pct neu";
         if (v > 0) return "pct pos";
         if (v < 0) return "pct neg";
         return "pct neu";
       }
+
       function pctTxt(v) {
         return v === null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
       }
+
       async function jget(url) {
         const r = await fetch(url);
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -411,15 +467,12 @@
           if (isFinite(high) && high > monthlyData[m].high) {
             monthlyData[m].high = high;
           }
-
           if (isFinite(low) && low < monthlyData[m].low) {
             monthlyData[m].low = low;
           }
-
           if (monthlyData[m].open === null && isFinite(open)) {
             monthlyData[m].open = open;
           }
-
           if (isFinite(close)) {
             monthlyData[m].close = close;
           }
@@ -433,11 +486,9 @@
           if (monthlyData[m].open !== null && monthlyData[m].close !== null) {
             pcts[m] = ((monthlyData[m].close - monthlyData[m].open) / monthlyData[m].open) * 100;
           }
-
           if (monthlyData[m].open !== null && monthlyData[m].high !== -Infinity) {
             highs[m] = ((monthlyData[m].high - monthlyData[m].open) / monthlyData[m].open) * 100;
           }
-
           if (monthlyData[m].open !== null && monthlyData[m].low !== Infinity) {
             lows[m] = ((monthlyData[m].low - monthlyData[m].open) / monthlyData[m].open) * 100;
           }
@@ -465,6 +516,7 @@
           }
         }
 
+        // Stylisation des sommes avec couleurs rouge/vert
         $sumPct.textContent = (sumPct >= 0 ? "+" : "") + sumPct.toFixed(2) + "%";
         $sumPct.className = `sum-stat-value ${sumPct >= 0 ? 'pos' : 'neg'}`;
 
@@ -478,16 +530,17 @@
       function renderTable(rows) {
         const q = $search.value.trim().toUpperCase();
         const view = q ? rows.filter(r => r.symbol.includes(q)) : rows;
+
         $count.textContent = rows.length;
+
         let html = "";
         if (view.length === 0) {
           html = `<tr><td colspan="39" class="muted" style="text-align: center; padding: 18px;">Aucun résultat</td></tr>`;
         } else {
           for (const r of view) {
-            let rowHtml = `
-              <td class="mono" style="text-align: left;"><div class="sym"><span>${r.symbol}</span></div></td>
-              <td class="mono muted" style="text-align: left;">${fmtDateUTC(r.listedAt)}</td>
-            `;
+            let rowHtml = `<td class="mono" style="text-align: left;"><div class="sym"><span>${r.symbol}</span></div></td>
+                           <td class="mono muted" style="text-align: left;">${fmtDateUTC(r.listedAt)}</td>`;
+
             for (let m = 0; m < 12; m++) {
               const pct = r.pcts[m];
               const high = r.highs[m];
@@ -497,27 +550,39 @@
               rowHtml += `<td><span class="${clsPct(high)}">${pctTxt(high)}</span></td>`;
               rowHtml += `<td><span class="${clsPct(low)}">${pctTxt(low)}</span></td>`;
             }
+
             html += `<tr>${rowHtml}</tr>`;
           }
         }
+
         $body.innerHTML = html;
         updateSumStats(view);
       }
 
       let masterRows = [];
+
       async function loadAll() {
         $body.innerHTML = `<tr><td colspan="39" class="muted" style="text-align: center; padding: 18px;">Chargement…</td></tr>`;
         $bar.style.width = "0%";
+
         try {
           const BATCH = 5;
           let done = 0;
+
           for (let i = 0; i < symbols.length; i += BATCH) {
             const slice = symbols.slice(i, i + BATCH);
             const batch = slice.map(async symbol => {
               try {
                 const { pcts, highs, lows } = await fetchMonthlyHighLowForSymbol(symbol);
                 const id = symbol.replace("USDT", "");
-                return { id, symbol, listedAt: Date.UTC(YEAR, 0, 1), pcts, highs, lows };
+                return {
+                  id,
+                  symbol,
+                  listedAt: Date.UTC(YEAR, 0, 1),
+                  pcts,
+                  highs,
+                  lows
+                };
               } catch (e) {
                 console.error(`Error fetching data for ${symbol}:`, e);
                 return {
@@ -533,12 +598,15 @@
                 $bar.style.width = Math.min(100, Math.round((done / symbols.length) * 100)) + "%";
               }
             });
+
             const rows = await Promise.all(batch);
             masterRows.push(...rows);
             await new Promise(r => setTimeout(r, 100));
           }
+
           masterRows.sort((a, b) => a.symbol.localeCompare(b.symbol));
           renderTable(masterRows);
+
         } catch (e) {
           console.error("Error loading data:", e);
           $body.innerHTML = `<tr><td colspan="39" style="color: #fecaca; background: #7f1d1d22; border: 1px solid #7f1d1d; padding: 14px; border-radius: 12px;">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
@@ -547,6 +615,7 @@
 
       $refresh.addEventListener('click', loadAll);
       $search.addEventListener('input', () => renderTable(masterRows));
+
       loadAll();
     })();
   </script>
