@@ -109,12 +109,16 @@
     }
 
     .card-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .card-head-top {
       display: flex;
       gap: 10px;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 14px;
-      border-bottom: 1px solid #1f2937;
+      margin-bottom: 12px;
     }
 
     .stats {
@@ -292,26 +296,28 @@
 
     <div class="card">
       <div class="card-head">
-        <div class="stats">
-          <div class="chip">Période: Jan 2025 → Août 2025 (1M)</div>
-          <div class="chip">Source: Binance Futures</div>
-          <div class="chip"><span id="count">0</span> listées en 2025</div>
-          <div class="sum-stats">
-            <div class="sum-stat">
-              <span>Somme variations:</span>
-              <span id="sum-pct" class="sum-stat-value"></span>
-            </div>
-            <div class="sum-stat">
-              <span>Somme mèches hautes:</span>
-              <span id="sum-high" class="sum-stat-value"></span>
-            </div>
-            <div class="sum-stat">
-              <span>Somme mèches basses:</span>
-              <span id="sum-low" class="sum-stat-value"></span>
-            </div>
+        <div class="card-head-top">
+          <div class="stats">
+            <div class="chip">Période: Jan 2025 → Août 2025 (1M)</div>
+            <div class="chip">Source: Binance Futures</div>
+            <div class="chip"><span id="count">0</span> listées en 2025</div>
+          </div>
+          <div class="progress" style="width: 260px;"><div id="bar"></div></div>
+        </div>
+        <div class="sum-stats">
+          <div class="sum-stat">
+            <span>Somme variations:</span>
+            <span id="sum-pct" class="sum-stat-value"></span>
+          </div>
+          <div class="sum-stat">
+            <span>Somme mèches hautes:</span>
+            <span id="sum-high" class="sum-stat-value"></span>
+          </div>
+          <div class="sum-stat">
+            <span>Somme mèches basses:</span>
+            <span id="sum-low" class="sum-stat-value"></span>
           </div>
         </div>
-        <div class="progress" style="width: 260px;"><div id="bar"></div></div>
       </div>
 
       <div class="table-wrap">
