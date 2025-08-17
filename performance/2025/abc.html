@@ -5,261 +5,564 @@
   <title>Listings 2025 (Futures USDT) – Variation mensuelle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root{--bg:#0b0f1a;--card:#11182a;--muted:#6b7280;--text:#e5e7eb;--accent:#3b82f6;--pos:#16a34a22;--neg:#dc262622;--neu:#37415166;--ring:#3b82f688;}
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .wrap{max-width:1300px;margin:28px auto;padding:0 16px}
-    header{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px}
-    .title{font-size:20px;font-weight:700;letter-spacing:.2px;display:flex;gap:10px;align-items:center}
-    .badge{font-size:12px;background:#1f2937;color:#cbd5e1;padding:3px 8px;border-radius:999px;border:1px solid #334155}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
-    .input, .btn, select{border:1px solid #1f2937;background:#0f172a;color:var(--text);padding:10px 12px;border-radius:12px;outline:none}
-    .input{min-width:220px}
-    .btn{cursor:pointer;transition:transform .06s ease, box-shadow .12s ease;border-color:#23304b}
-    .btn:hover{box-shadow:0 0 0 3px var(--ring)}
-    .btn:active{transform:translateY(1px)}
-    .card{background:linear-gradient(180deg,#0e1527, #0c1223);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px}
-    .card-head{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1f2937}
-    .stats{display:flex;gap:12px;flex-wrap:wrap}
-    .chip{border:1px solid #27324b;background:#0f172a;border-radius:999px;padding:6px 10px;font-size:12px;color:#cbd5e1}
-    .progress{height:6px;background:#111827;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
-    .progress>div{height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);width:0%}
-    .table-wrap{max-height:70vh;overflow:auto}
-    table{border-collapse:separate;border-spacing:0;width:100%;min-width:1000px}
-    thead th{position:sticky;top:0;background:#0c1325;border-bottom:1px solid #1f2937;padding:10px 8px;font-weight:600;text-align:left}
-    tbody td{border-bottom:1px solid #111827;padding:8px 8px;vertical-align:middle}
-    tbody tr:nth-child(2n){background:#0a1221}
-    tbody tr:hover{background:#0b1530}
-    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
-    .sym{display:flex;align-items:center;gap:8px}
-    .pill{font-size:11px;border:1px solid #263149;background:#0d152b;color:#cbd5e1;padding:2px 6px;border-radius:7px}
-    .pct{padding:4px 8px;border-radius:9px;display:inline-block;text-align:right;min-width:72px;font-variant-numeric:tabular-nums}
-    .pct.pos{background:var(--pos);border:1px solid #14532d;color:#a7f3d0}
-    .pct.neg{background:var(--neg);border:1px solid #7f1d1d;color:#fecaca}
-    .pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
-    .muted{color:var(--muted)}
-    .sticky-foot{position:sticky;bottom:0;background:#0c1325;border-top:1px solid #1f2937;padding:8px 12px;font-size:12px;color:#93a0b2}
-    .month-card{display:none;background:linear-gradient(180deg,#0e1527, #0c1223);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px}
-    .month-card.active{display:block}
-    .month-card-head{padding:12px 14px;border-bottom:1px solid #1f2937}
-    .month-symbols{display:grid;grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));gap:8px;padding:12px 14px}
-    .month-symbol{background:#0f172a;border:1px solid #27324b;border-radius:8px;padding:8px;text-align:center;font-family:monospace}
-    select{padding:10px 12px;min-width:180px}
+    :root {
+      --bg: #0b0f1a;
+      --card: #11182a;
+      --muted: #6b7280;
+      --text: #e5e7eb;
+      --accent: #3b82f6;
+      --pos: #16a34a22;
+      --neg: #dc262622;
+      --neu: #37415166;
+      --ring: #3b82f688;
+      --pos-text: #a7f3d0;
+      --neg-text: #fecaca;
+      --neu-text: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #0b0f1a, #0a1020 30%, #0b0f1a);
+      color: var(--text);
+      font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
+    }
+    .wrap {
+      max-width: 1600px;
+      margin: 28px auto;
+      padding: 0 16px;
+    }
+    header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .badge {
+      font-size: 12px;
+      background: #1f2937;
+      color: #cbd5e1;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .input, .btn, select {
+      border: 1px solid #1f2937;
+      background: #0f172a;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      outline: none;
+    }
+    .input {
+      min-width: 220px;
+    }
+    .btn {
+      cursor: pointer;
+      transition: transform .06s ease, box-shadow .12s ease;
+      border-color: #23304b;
+    }
+    .btn:hover {
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+    .btn:active {
+      transform: translateY(1px);
+    }
+    .card {
+      background: linear-gradient(180deg, #0e1527, #0c1223);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px #0006;
+      overflow: hidden;
+      margin-bottom: 16px;
+      width: 100%;
+      overflow-x: auto;
+    }
+    .card-head {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid #1f2937;
+    }
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      border: 1px solid #27324b;
+      background: #0f172a;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+    .progress {
+      height: 6px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress > div {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #06b6d4);
+      width: 0%;
+    }
+    .table-wrap {
+      max-height: 70vh;
+      overflow: auto;
+      min-width: 100%;
+    }
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      min-width: 6000px;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #0c1325;
+      border-bottom: 1px solid #1f2937;
+      padding: 10px 8px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 100px;
+    }
+    tbody td {
+      border-bottom: 1px solid #111827;
+      padding: 8px 8px;
+      vertical-align: middle;
+      text-align: center;
+      min-width: 100px;
+    }
+    tbody tr:nth-child(2n) {
+      background: #0a1221;
+    }
+    tbody tr:hover {
+      background: #0b1530;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .sym {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill {
+      font-size: 11px;
+      border: 1px solid #263149;
+      background: #0d152b;
+      color: #cbd5e1;
+      padding: 2px 6px;
+      border-radius: 7px;
+    }
+    .pct {
+      padding: 4px 8px;
+      border-radius: 9px;
+      display: inline-block;
+      text-align: right;
+      min-width: 72px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+    .pct.pos {
+      background: var(--pos);
+      border: 1px solid #14532d;
+      color: var(--pos-text);
+    }
+    .pct.neg {
+      background: var(--neg);
+      border: 1px solid #7f1d1d;
+      color: var(--neg-text);
+    }
+    .pct.neu {
+      background: var(--neu);
+      border: 1px solid #374151;
+      color: var(--neu-text);
+    }
+    .muted {
+      color: var(--muted);
+    }
+    .sticky-foot {
+      position: sticky;
+      bottom: 0;
+      background: #0c1325;
+      border-top: 1px solid #1f2937;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #93a0b2;
+    }
+    .month-card {
+      display: none;
+      background: linear-gradient(180deg, #0e1527, #0c1223);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px #0006;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .month-card.active {
+      display: block;
+    }
+    .month-card-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #1f2937;
+    }
+    .month-symbols {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      padding: 12px 14px;
+    }
+    .month-symbol {
+      background: #0f172a;
+      border: 1px solid #27324b;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      font-family: monospace;
+    }
+    select {
+      padding: 10px 12px;
+      min-width: 180px;
+    }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="title">Listings 2025 — Futures <span class="badge">USDT</span></div>
-    <div class="toolbar">
-      <input id="search" class="input" placeholder="Rechercher (ID ou symbole)..." />
-      <select id="month-select">
-        <option value="-1">Filtre Mois</option>
-        <option value="0">Janvier</option>
-        <option value="1">Février</option>
-        <option value="2">Mars</option>
-        <option value="3">Avril</option>
-        <option value="4">Mai</option>
-        <option value="5">Juin</option>
-        <option value="6">Juillet</option>
-        <option value="7">Août</option>
-        <option value="8">Septembre</option>
-        <option value="9">Octobre</option>
-        <option value="10">Novembre</option>
-        <option value="11">Décembre</option>
-      </select>
-      <button id="refresh" class="btn">Rafraîchir</button>
+  <div class="wrap">
+    <header>
+      <div class="title">Listings 2025 — Futures <span class="badge">USDT</span></div>
+      <div class="toolbar">
+        <input id="search" class="input" placeholder="Rechercher (symbole)..." />
+        <select id="month-select">
+          <option value="-1">Filtre Mois</option>
+          <option value="0">Janvier</option>
+          <option value="1">Février</option>
+          <option value="2">Mars</option>
+          <option value="3">Avril</option>
+          <option value="4">Mai</option>
+          <option value="5">Juin</option>
+          <option value="6">Juillet</option>
+          <option value="7">Août</option>
+          <option value="8">Septembre</option>
+          <option value="9">Octobre</option>
+          <option value="10">Novembre</option>
+          <option value="11">Décembre</option>
+        </select>
+        <button id="refresh" class="btn">Rafraîchir</button>
+      </div>
+    </header>
+    <div id="month-card" class="month-card">
+      <div class="month-card-head">
+        <div class="stats">
+          <div class="chip">Nouveautés <span id="month-name">—</span> <span id="month-year">2025</span></div>
+          <div class="chip"><span id="month-count">0</span> listées</div>
+        </div>
+      </div>
+      <div class="month-symbols" id="month-symbols"></div>
     </div>
-  </header>
-  <div id="month-card" class="month-card">
-    <div class="month-card-head">
-      <div class="stats">
-        <div class="chip">Nouveautés <span id="month-name">—</span> <span id="month-year">2025</span></div>
-        <div class="chip"><span id="month-count">0</span> listées</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="stats">
+          <div class="chip">Période: Jan 2025 → Août 2025 (1M)</div>
+          <div class="chip">Source: Binance Futures</div>
+          <div class="chip"><span id="count">0</span> listées en 2025</div>
+        </div>
+        <div class="progress" style="width: 260px;"><div id="bar"></div></div>
+      </div>
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th style="min-width: 150px; text-align: left;">Symbole</th>
+              <th style="min-width: 120px; text-align: left;">Listé le</th>
+              <!-- Janvier -->
+              <th>Janvier</th>
+              <th>Janvier – Plus haut</th>
+              <th>Janvier – Plus bas</th>
+              <!-- Février -->
+              <th>Février</th>
+              <th>Février – Plus haut</th>
+              <th>Février – Plus bas</th>
+              <!-- Mars -->
+              <th>Mars</th>
+              <th>Mars – Plus haut</th>
+              <th>Mars – Plus bas</th>
+              <!-- Avril -->
+              <th>Avril</th>
+              <th>Avril – Plus haut</th>
+              <th>Avril – Plus bas</th>
+              <!-- Mai -->
+              <th>Mai</th>
+              <th>Mai – Plus haut</th>
+              <th>Mai – Plus bas</th>
+              <!-- Juin -->
+              <th>Juin</th>
+              <th>Juin – Plus haut</th>
+              <th>Juin – Plus bas</th>
+              <!-- Juillet -->
+              <th>Juillet</th>
+              <th>Juillet – Plus haut</th>
+              <th>Juillet – Plus bas</th>
+              <!-- Août -->
+              <th>Août</th>
+              <th>Août – Plus haut</th>
+              <th>Août – Plus bas</th>
+              <!-- Septembre -->
+              <th>Septembre</th>
+              <th>Septembre – Plus haut</th>
+              <th>Septembre – Plus bas</th>
+              <!-- Octobre -->
+              <th>Octobre</th>
+              <th>Octobre – Plus haut</th>
+              <th>Octobre – Plus bas</th>
+              <!-- Novembre -->
+              <th>Novembre</th>
+              <th>Novembre – Plus haut</th>
+              <th>Novembre – Plus bas</th>
+              <!-- Décembre -->
+              <th>Décembre</th>
+              <th>Décembre – Plus haut</th>
+              <th>Décembre – Plus bas</th>
+            </tr>
+          </thead>
+          <tbody id="body">
+            <tr><td colspan="39" class="muted" style="text-align: center; padding: 18px;">Chargement…</td></tr>
+          </tbody>
+          <tfoot>
+            <tr class="sticky-foot"><td colspan="39">Conseil : clic sur « Rafraîchir » pour recharger.</td></tr>
+          </tfoot>
+        </table>
       </div>
     </div>
-    <div class="month-symbols" id="month-symbols"></div>
   </div>
-  <div class="card">
-    <div class="card-head">
-      <div class="stats">
-        <div class="chip">Période: Jan 2025 → Août 2025 (1M)</div>
-        <div class="chip">Source: Binance Futures</div>
-        <div class="chip"><span id="count">0</span> listées en 2025</div>
-      </div>
-      <div class="progress" style="width:260px"><div id="bar"></div></div>
-    </div>
-    <div class="table-wrap">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th style="min-width:130px">ID</th>
-            <th style="min-width:150px">Symbole</th>
-            <th style="min-width:120px">Listé le</th>
-            <th>Jan</th><th>Fév</th><th>Mar</th><th>Avr</th><th>Mai</th><th>Juin</th><th>Juil</th><th>Août</th>
-            <th>Sep</th><th>Oct</th><th>Nov</th><th>Déc</th>
-          </tr>
-        </thead>
-        <tbody id="body">
-          <tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
-        </tbody>
-        <tfoot>
-          <tr class="sticky-foot"><td colspan="15">Conseil : clic sur « Rafraîchir » pour recharger.</td></tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
-</div>
-<script>
-(() => {
-  const API = "https://fapi.binance.com";
-  const YEAR = 2025;
-  const monthsFR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-  const $body = document.getElementById('body');
-  const $count = document.getElementById('count');
-  const $bar = document.getElementById('bar');
-  const $search = document.getElementById('search');
-  const $refresh = document.getElementById('refresh');
-  const $monthSelect = document.getElementById('month-select');
-  const $monthCard = document.getElementById('month-card');
-  const $monthName = document.getElementById('month-name');
-  const $monthYear = document.getElementById('month-year');
-  const $monthCount = document.getElementById('month-count');
-  const $monthSymbols = document.getElementById('month-symbols');
+  <script>
+    (() => {
+      const API = "https://fapi.binance.com";
+      const YEAR = 2025;
+      const monthsFR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+      const $body = document.getElementById('body');
+      const $count = document.getElementById('count');
+      const $bar = document.getElementById('bar');
+      const $search = document.getElementById('search');
+      const $refresh = document.getElementById('refresh');
+      const $monthSelect = document.getElementById('month-select');
+      const $monthCard = document.getElementById('month-card');
+      const $monthName = document.getElementById('month-name');
+      const $monthYear = document.getElementById('month-year');
+      const $monthCount = document.getElementById('month-count');
+      const $monthSymbols = document.getElementById('month-symbols');
 
-  // Liste des cryptos demandées
-  const symbols = [
-    "BANANAUSDT", "BRETTUSDT", "CHESSUSDT", "DOGSUSDT", "GUSDT", "MBOXUSDT", "POPCATUSDT", "RAREUSDT", "SUNUSDT", "SYNUSDT",
-    "SYSUSDT", "VOXELUSDT", "ENAUSDT", "OMNIUSDT", "REZUSDT", "SAGAUSDT", "TAOUSDT", "TNSRUSDT", "WUSDT", "DYMUSDT",
-    "GLMUSDT", "OMUSDT", "PIXELUSDT", "PORTALUSDT", "RONINUSDT", "STRKUSDT", "ZETAUSDT", "AIUSDT", "ALTUSDT", "JUPUSDT",
-    "LSKUSDT", "MANTAUSDT", "ONDOUSDT", "WIFUSDT", "XAIUSDT", "RENDERUSDT", "IOUSDT", "LISTAUSDT", "MEWUSDT", "ZKUSDT",
-    "ZROUSDT", "BBUSDT", "NOTUSDT", "TURBOUSDT", "AEVOUSDT", "AXLUSDT", "BOMEUSDT", "ETHFIUSDT", "METISUSDT", "MYROUSDT",
-    "TONUSDT", "VANRYUSDT", "1000000MOGUSDT", "1000CHEEMSUSDT", "1000WHYUSDT", "1000XUSDT", "ACTUSDT", "AKTUSDT", "BANUSDT",
-    "CETUSUSDT", "CHILLGUYUSDT", "COWUSDT", "DEGENUSDT", "DRIFTUSDT", "GRASSUSDT", "HIPPOUSDT", "MORPHOUSDT", "PNUTUSDT",
-    "PONKEUSDT", "SCRTUSDT", "SLERFUSDT", "SWELLUSDT", "THEUSDT", "1000CATUSDT", "DIAUSDT", "EIGENUSDT", "GOATUSDT",
-    "MOODENGUSDT", "SAFEUSDT", "SANTOSUSDT", "SCRUSDT", "1MBABYDOGEUSDT", "BSWUSDT", "CATIUSDT", "COSUSDT", "FIDAUSDT",
-    "FIOUSDT", "FLUXUSDT", "GHSTUSDT", "HMSTRUSDT", "KDAUSDT", "NEIROUSDT", "POLUSDT", "QUICKUSDT", "REIUSDT", "RPLUSDT",
-    "UXLINKUSDT"
-  ];
+      // Liste des cryptos demandées
+      const symbols = [
+        "BANANAUSDT", "BRETTUSDT", "CHESSUSDT", "DOGSUSDT", "GUSDT", "MBOXUSDT", "POPCATUSDT", "RAREUSDT", "SUNUSDT", "SYNUSDT",
+        "SYSUSDT", "VOXELUSDT", "ENAUSDT", "OMNIUSDT", "REZUSDT", "SAGAUSDT", "TAOUSDT", "TNSRUSDT", "WUSDT", "DYMUSDT",
+        "GLMUSDT", "OMUSDT", "PIXELUSDT", "PORTALUSDT", "RONINUSDT", "STRKUSDT", "ZETAUSDT", "AIUSDT", "ALTUSDT", "JUPUSDT",
+        "LSKUSDT", "MANTAUSDT", "ONDOUSDT", "WIFUSDT", "XAIUSDT", "RENDERUSDT", "IOUSDT", "LISTAUSDT", "MEWUSDT", "ZKUSDT",
+        "ZROUSDT", "BBUSDT", "NOTUSDT", "TURBOUSDT", "AEVOUSDT", "AXLUSDT", "BOMEUSDT", "ETHFIUSDT", "METISUSDT", "MYROUSDT",
+        "TONUSDT", "VANRYUSDT", "1000000MOGUSDT", "1000CHEEMSUSDT", "1000WHYUSDT", "1000XUSDT", "ACTUSDT", "AKTUSDT", "BANUSDT",
+        "CETUSUSDT", "CHILLGUYUSDT", "COWUSDT", "DEGENUSDT", "DRIFTUSDT", "GRASSUSDT", "HIPPOUSDT", "MORPHOUSDT", "PNUTUSDT",
+        "PONKEUSDT", "SCRTUSDT", "SLERFUSDT", "SWELLUSDT", "THEUSDT", "1000CATUSDT", "DIAUSDT", "EIGENUSDT", "GOATUSDT",
+        "MOODENGUSDT", "SAFEUSDT", "SANTOSUSDT", "SCRUSDT", "1MBABYDOGEUSDT", "BSWUSDT", "CATIUSDT", "COSUSDT", "FIDAUSDT",
+        "FIOUSDT", "FLUXUSDT", "GHSTUSDT", "HMSTRUSDT", "KDAUSDT", "NEIROUSDT", "POLUSDT", "QUICKUSDT", "REIUSDT", "RPLUSDT",
+        "UXLINKUSDT"
+      ];
 
-  // Fonctions utilitaires
-  function fmtDateUTC(ts) {
-    const d = new Date(ts);
-    return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, '0') + "-" + String(d.getUTCDate()).padStart(2, '0');
-  }
-
-  function clsPct(v) {
-    if (v === null) return "pct neu";
-    if (v > 0) return "pct pos";
-    if (v < 0) return "pct neg";
-    return "pct neu";
-  }
-
-  function pctTxt(v) {
-    return v === null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
-  }
-
-  async function jget(url) {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    return r.json();
-  }
-
-  async function fetchMonthlyPctForSymbol(symbol) {
-    const now = Date.now();
-    const startOfYear = Date.UTC(YEAR, 0, 1);
-    const ks = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=${startOfYear}&endTime=${now}`);
-    const arr = Array(12).fill(null);
-    for (const k of ks) {
-      const openTime = k[0];
-      const d = new Date(openTime);
-      const y = d.getUTCFullYear();
-      if (y !== YEAR) continue;
-      const m = d.getUTCMonth();
-      const open = parseFloat(k[1]);
-      const close = parseFloat(k[4]);
-      if (isFinite(open) && open > 0 && isFinite(close)) {
-        const pct = ((close - open) / open) * 100;
-        arr[m] = pct;
+      // Fonctions utilitaires
+      function fmtDateUTC(ts) {
+        const d = new Date(ts);
+        return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, '0') + "-" + String(d.getUTCDate()).padStart(2, '0');
       }
-    }
-    return arr;
-  }
-
-  function renderTable(rows) {
-    const q = $search.value.trim().toUpperCase();
-    const view = q ? rows.filter(r => r.id.includes(q) || r.symbol.includes(q)) : rows;
-    $count.textContent = rows.length;
-    let html = "";
-    if (view.length === 0) {
-      html = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
-    } else {
-      for (const r of view) {
-        html += `<tr>
-          <td class="mono"><div class="sym"><span>${r.id}</span><span class="pill">USDT</span></div></td>
-          <td class="mono">${r.symbol}</td>
-          <td class="mono muted">${fmtDateUTC(r.listedAt)}</td>
-          ${r.pcts.map(v => `<td><span class="${clsPct(v)}">${pctTxt(v)}</span></td>`).join("")}
-        </tr>`;
+      function clsPct(v) {
+        if (v === null) return "pct neu";
+        if (v > 0) return "pct pos";
+        if (v < 0) return "pct neg";
+        return "pct neu";
       }
-    }
-    $body.innerHTML = html;
-  }
-
-  function filterByMonth(month) {
-    if (month === -1) {
-      $monthCard.classList.remove("active");
-      return;
-    }
-    const monthListed = masterRows.filter(r => {
-      const listedDate = new Date(r.listedAt);
-      return listedDate.getMonth() === month && listedDate.getFullYear() === YEAR;
-    });
-    $monthName.textContent = monthsFR[month];
-    $monthYear.textContent = YEAR;
-    $monthCount.textContent = monthListed.length;
-    $monthSymbols.innerHTML = monthListed.map(r => `<div class="month-symbol">${r.symbol}</div>`).join("");
-    $monthCard.classList.add("active");
-  }
-
-  async function loadAll() {
-    $body.innerHTML = `<tr><td colspan="15" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
-    $bar.style.width = "0%";
-    try {
-      const BATCH = 5;
-      let masterRows = [];
-      let done = 0;
-      for (let i = 0; i < symbols.length; i += BATCH) {
-        const slice = symbols.slice(i, i + BATCH);
-        const batch = slice.map(async symbol => {
-          try {
-            const pcts = await fetchMonthlyPctForSymbol(symbol);
-            const id = symbol.replace("USDT", "");
-            return { id, symbol, listedAt: Date.UTC(YEAR, 0, 1), pcts };
-          } catch (e) {
-            return { id: symbol.replace("USDT", ""), symbol, listedAt: Date.UTC(YEAR, 0, 1), pcts: Array(12).fill(null) };
-          } finally {
-            done++;
-            $bar.style.width = Math.min(100, Math.round((done / symbols.length) * 100)) + "%";
+      function pctTxt(v) {
+        return v === null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+      }
+      async function jget(url) {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }
+      
+      async function fetchMonthlyHighLowForSymbol(symbol) {
+        const now = Date.now();
+        const startOfYear = Date.UTC(YEAR, 0, 1);
+        const ks = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1d&startTime=${startOfYear}&endTime=${now}`);
+        
+        const monthlyData = Array(12).fill().map(() => ({
+          high: -Infinity,
+          low: Infinity,
+          open: null,
+          close: null
+        }));
+        
+        for (const k of ks) {
+          const openTime = k[0];
+          const d = new Date(openTime);
+          const y = d.getUTCFullYear();
+          if (y !== YEAR) continue;
+          
+          const m = d.getUTCMonth();
+          const high = parseFloat(k[2]);
+          const low = parseFloat(k[3]);
+          const open = parseFloat(k[1]);
+          const close = parseFloat(k[4]);
+          
+          if (isFinite(high) && high > monthlyData[m].high) {
+            monthlyData[m].high = high;
           }
-        });
-        const rows = await Promise.all(batch);
-        masterRows.push(...rows);
-        await new Promise(r => setTimeout(r, 100));
+          
+          if (isFinite(low) && low < monthlyData[m].low) {
+            monthlyData[m].low = low;
+          }
+          
+          // Store first open of the month
+          if (monthlyData[m].open === null && isFinite(open)) {
+            monthlyData[m].open = open;
+          }
+          
+          // Store last close of the month
+          if (isFinite(close)) {
+            monthlyData[m].close = close;
+          }
+        }
+        
+        // Calculate percentage changes
+        const pcts = Array(12).fill(null);
+        const highs = Array(12).fill(null);
+        const lows = Array(12).fill(null);
+        
+        for (let m = 0; m < 12; m++) {
+          if (monthlyData[m].open !== null && monthlyData[m].close !== null) {
+            pcts[m] = ((monthlyData[m].close - monthlyData[m].open) / monthlyData[m].open) * 100;
+          }
+          
+          if (monthlyData[m].open !== null && monthlyData[m].high !== -Infinity) {
+            highs[m] = ((monthlyData[m].high - monthlyData[m].open) / monthlyData[m].open) * 100;
+          }
+          
+          if (monthlyData[m].open !== null && monthlyData[m].low !== Infinity) {
+            lows[m] = ((monthlyData[m].low - monthlyData[m].open) / monthlyData[m].open) * 100;
+          }
+        }
+        
+        return { pcts, highs, lows };
       }
-      masterRows.sort((a, b) => a.id.localeCompare(b.id));
-      renderTable(masterRows);
-    } catch (e) {
-      $body.innerHTML = `<tr><td colspan="15" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
-    }
-  }
 
-  $refresh.addEventListener('click', loadAll);
-  $search.addEventListener('input', () => renderTable(masterRows));
-  $monthSelect.addEventListener('change', () => filterByMonth(parseInt($monthSelect.value)));
+      function renderTable(rows) {
+        const q = $search.value.trim().toUpperCase();
+        const view = q ? rows.filter(r => r.symbol.includes(q)) : rows;
+        $count.textContent = rows.length;
+        let html = "";
+        if (view.length === 0) {
+          html = `<tr><td colspan="39" class="muted" style="text-align: center; padding: 18px;">Aucun résultat</td></tr>`;
+        } else {
+          for (const r of view) {
+            let rowHtml = `
+              <td class="mono" style="text-align: left;"><div class="sym"><span>${r.symbol}</span></div></td>
+              <td class="mono muted" style="text-align: left;">${fmtDateUTC(r.listedAt)}</td>
+            `;
+            for (let m = 0; m < 12; m++) {
+              const pct = r.pcts[m];
+              const high = r.highs[m];
+              const low = r.lows[m];
+              
+              rowHtml += `<td><span class="${clsPct(pct)}">${pctTxt(pct)}</span></td>`;
+              rowHtml += `<td><span class="${clsPct(high)}">${pctTxt(high)}</span></td>`;
+              rowHtml += `<td><span class="${clsPct(low)}">${pctTxt(low)}</span></td>`;
+            }
+            html += `<tr>${rowHtml}</tr>`;
+          }
+        }
+        $body.innerHTML = html;
+      }
 
-  loadAll();
-})();
-</script>
+      function filterByMonth(month) {
+        if (month === -1) {
+          $monthCard.classList.remove("active");
+          return;
+        }
+        const monthListed = masterRows.filter(r => {
+          const listedDate = new Date(r.listedAt);
+          return listedDate.getMonth() === month && listedDate.getFullYear() === YEAR;
+        });
+        $monthName.textContent = monthsFR[month];
+        $monthYear.textContent = YEAR;
+        $monthCount.textContent = monthListed.length;
+        $monthSymbols.innerHTML = monthListed.map(r => `<div class="month-symbol">${r.symbol}</div>`).join("");
+        $monthCard.classList.add("active");
+      }
+
+      let masterRows = [];
+
+      async function loadAll() {
+        $body.innerHTML = `<tr><td colspan="39" class="muted" style="text-align: center; padding: 18px;">Chargement…</td></tr>`;
+        $bar.style.width = "0%";
+        try {
+          const BATCH = 5;
+          let done = 0;
+          for (let i = 0; i < symbols.length; i += BATCH) {
+            const slice = symbols.slice(i, i + BATCH);
+            const batch = slice.map(async symbol => {
+              try {
+                const { pcts, highs, lows } = await fetchMonthlyHighLowForSymbol(symbol);
+                const id = symbol.replace("USDT", "");
+                return { id, symbol, listedAt: Date.UTC(YEAR, 0, 1), pcts, highs, lows };
+              } catch (e) {
+                console.error(`Error fetching data for ${symbol}:`, e);
+                return { 
+                  id: symbol.replace("USDT", ""), 
+                  symbol, 
+                  listedAt: Date.UTC(YEAR, 0, 1), 
+                  pcts: Array(12).fill(null),
+                  highs: Array(12).fill(null),
+                  lows: Array(12).fill(null)
+                };
+              } finally {
+                done++;
+                $bar.style.width = Math.min(100, Math.round((done / symbols.length) * 100)) + "%";
+              }
+            });
+            const rows = await Promise.all(batch);
+            masterRows.push(...rows);
+            await new Promise(r => setTimeout(r, 100));
+          }
+          masterRows.sort((a, b) => a.symbol.localeCompare(b.symbol));
+          renderTable(masterRows);
+        } catch (e) {
+          console.error("Error loading data:", e);
+          $body.innerHTML = `<tr><td colspan="39" style="color: #fecaca; background: #7f1d1d22; border: 1px solid #7f1d1d; padding: 14px; border-radius: 12px;">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
+        }
+      }
+
+      $refresh.addEventListener('click', loadAll);
+      $search.addEventListener('input', () => renderTable(masterRows));
+      $monthSelect.addEventListener('change', () => filterByMonth(parseInt($monthSelect.value)));
+      loadAll();
+    })();
+  </script>
 </body>
 </html>
