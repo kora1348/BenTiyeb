@@ -113,6 +113,31 @@
       font-size: 12px;
       color: #cbd5e1;
     }
+    .sum-stats {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .sum-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sum-stat-value {
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .sum-stat.pos {
+      color: var(--pos-text);
+      background: var(--pos);
+    }
+    .sum-stat.neg {
+      color: var(--neg-text);
+      background: var(--neg);
+    }
     .progress {
       height: 6px;
       background: #111827;
@@ -211,40 +236,6 @@
       font-size: 12px;
       color: #93a0b2;
     }
-    .month-card {
-      display: none;
-      background: linear-gradient(180deg, #0e1527, #0c1223);
-      border: 1px solid #1f2937;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px #0006;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-    .month-card.active {
-      display: block;
-    }
-    .month-card-head {
-      padding: 12px 14px;
-      border-bottom: 1px solid #1f2937;
-    }
-    .month-symbols {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 8px;
-      padding: 12px 14px;
-    }
-    .month-symbol {
-      background: #0f172a;
-      border: 1px solid #27324b;
-      border-radius: 8px;
-      padding: 8px;
-      text-align: center;
-      font-family: monospace;
-    }
-    select {
-      padding: 10px 12px;
-      min-width: 180px;
-    }
   </style>
 </head>
 <body>
@@ -253,39 +244,29 @@
       <div class="title">Listings 2025 — Futures <span class="badge">USDT</span></div>
       <div class="toolbar">
         <input id="search" class="input" placeholder="Rechercher (symbole)..." />
-        <select id="month-select">
-          <option value="-1">Filtre Mois</option>
-          <option value="0">Janvier</option>
-          <option value="1">Février</option>
-          <option value="2">Mars</option>
-          <option value="3">Avril</option>
-          <option value="4">Mai</option>
-          <option value="5">Juin</option>
-          <option value="6">Juillet</option>
-          <option value="7">Août</option>
-          <option value="8">Septembre</option>
-          <option value="9">Octobre</option>
-          <option value="10">Novembre</option>
-          <option value="11">Décembre</option>
-        </select>
         <button id="refresh" class="btn">Rafraîchir</button>
       </div>
     </header>
-    <div id="month-card" class="month-card">
-      <div class="month-card-head">
-        <div class="stats">
-          <div class="chip">Nouveautés <span id="month-name">—</span> <span id="month-year">2025</span></div>
-          <div class="chip"><span id="month-count">0</span> listées</div>
-        </div>
-      </div>
-      <div class="month-symbols" id="month-symbols"></div>
-    </div>
     <div class="card">
       <div class="card-head">
         <div class="stats">
           <div class="chip">Période: Jan 2025 → Août 2025 (1M)</div>
           <div class="chip">Source: Binance Futures</div>
           <div class="chip"><span id="count">0</span> listées en 2025</div>
+          <div class="sum-stats">
+            <div class="sum-stat">
+              <span>Somme variations:</span>
+              <span id="sum-pct" class="sum-stat-value"></span>
+            </div>
+            <div class="sum-stat">
+              <span>Somme mèches hautes:</span>
+              <span id="sum-high" class="sum-stat-value"></span>
+            </div>
+            <div class="sum-stat">
+              <span>Somme mèches basses:</span>
+              <span id="sum-low" class="sum-stat-value"></span>
+            </div>
+          </div>
         </div>
         <div class="progress" style="width: 260px;"><div id="bar"></div></div>
       </div>
@@ -359,18 +340,14 @@
     (() => {
       const API = "https://fapi.binance.com";
       const YEAR = 2025;
-      const monthsFR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
       const $body = document.getElementById('body');
       const $count = document.getElementById('count');
       const $bar = document.getElementById('bar');
       const $search = document.getElementById('search');
       const $refresh = document.getElementById('refresh');
-      const $monthSelect = document.getElementById('month-select');
-      const $monthCard = document.getElementById('month-card');
-      const $monthName = document.getElementById('month-name');
-      const $monthYear = document.getElementById('month-year');
-      const $monthCount = document.getElementById('month-count');
-      const $monthSymbols = document.getElementById('month-symbols');
+      const $sumPct = document.getElementById('sum-pct');
+      const $sumHigh = document.getElementById('sum-high');
+      const $sumLow = document.getElementById('sum-low');
 
       // Liste des cryptos demandées
       const symbols = [
@@ -406,70 +383,96 @@
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
       }
-      
+
       async function fetchMonthlyHighLowForSymbol(symbol) {
         const now = Date.now();
         const startOfYear = Date.UTC(YEAR, 0, 1);
         const ks = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1d&startTime=${startOfYear}&endTime=${now}`);
-        
+
         const monthlyData = Array(12).fill().map(() => ({
           high: -Infinity,
           low: Infinity,
           open: null,
           close: null
         }));
-        
+
         for (const k of ks) {
           const openTime = k[0];
           const d = new Date(openTime);
           const y = d.getUTCFullYear();
           if (y !== YEAR) continue;
-          
+
           const m = d.getUTCMonth();
           const high = parseFloat(k[2]);
           const low = parseFloat(k[3]);
           const open = parseFloat(k[1]);
           const close = parseFloat(k[4]);
-          
+
           if (isFinite(high) && high > monthlyData[m].high) {
             monthlyData[m].high = high;
           }
-          
+
           if (isFinite(low) && low < monthlyData[m].low) {
             monthlyData[m].low = low;
           }
-          
-          // Store first open of the month
+
           if (monthlyData[m].open === null && isFinite(open)) {
             monthlyData[m].open = open;
           }
-          
-          // Store last close of the month
+
           if (isFinite(close)) {
             monthlyData[m].close = close;
           }
         }
-        
-        // Calculate percentage changes
+
         const pcts = Array(12).fill(null);
         const highs = Array(12).fill(null);
         const lows = Array(12).fill(null);
-        
+
         for (let m = 0; m < 12; m++) {
           if (monthlyData[m].open !== null && monthlyData[m].close !== null) {
             pcts[m] = ((monthlyData[m].close - monthlyData[m].open) / monthlyData[m].open) * 100;
           }
-          
+
           if (monthlyData[m].open !== null && monthlyData[m].high !== -Infinity) {
             highs[m] = ((monthlyData[m].high - monthlyData[m].open) / monthlyData[m].open) * 100;
           }
-          
+
           if (monthlyData[m].open !== null && monthlyData[m].low !== Infinity) {
             lows[m] = ((monthlyData[m].low - monthlyData[m].open) / monthlyData[m].open) * 100;
           }
         }
-        
+
         return { pcts, highs, lows };
+      }
+
+      function updateSumStats(rows) {
+        let sumPct = 0;
+        let sumHigh = 0;
+        let sumLow = 0;
+
+        for (const row of rows) {
+          for (let m = 0; m < 12; m++) {
+            if (row.pcts[m] !== null) {
+              sumPct += row.pcts[m];
+            }
+            if (row.highs[m] !== null) {
+              sumHigh += row.highs[m];
+            }
+            if (row.lows[m] !== null) {
+              sumLow += row.lows[m];
+            }
+          }
+        }
+
+        $sumPct.textContent = (sumPct >= 0 ? "+" : "") + sumPct.toFixed(2) + "%";
+        $sumPct.className = `sum-stat-value ${sumPct >= 0 ? 'pos' : 'neg'}`;
+
+        $sumHigh.textContent = "+" + sumHigh.toFixed(2) + "%";
+        $sumHigh.className = "sum-stat-value pos";
+
+        $sumLow.textContent = sumLow.toFixed(2) + "%";
+        $sumLow.className = "sum-stat-value neg";
       }
 
       function renderTable(rows) {
@@ -489,7 +492,7 @@
               const pct = r.pcts[m];
               const high = r.highs[m];
               const low = r.lows[m];
-              
+
               rowHtml += `<td><span class="${clsPct(pct)}">${pctTxt(pct)}</span></td>`;
               rowHtml += `<td><span class="${clsPct(high)}">${pctTxt(high)}</span></td>`;
               rowHtml += `<td><span class="${clsPct(low)}">${pctTxt(low)}</span></td>`;
@@ -498,26 +501,10 @@
           }
         }
         $body.innerHTML = html;
-      }
-
-      function filterByMonth(month) {
-        if (month === -1) {
-          $monthCard.classList.remove("active");
-          return;
-        }
-        const monthListed = masterRows.filter(r => {
-          const listedDate = new Date(r.listedAt);
-          return listedDate.getMonth() === month && listedDate.getFullYear() === YEAR;
-        });
-        $monthName.textContent = monthsFR[month];
-        $monthYear.textContent = YEAR;
-        $monthCount.textContent = monthListed.length;
-        $monthSymbols.innerHTML = monthListed.map(r => `<div class="month-symbol">${r.symbol}</div>`).join("");
-        $monthCard.classList.add("active");
+        updateSumStats(view);
       }
 
       let masterRows = [];
-
       async function loadAll() {
         $body.innerHTML = `<tr><td colspan="39" class="muted" style="text-align: center; padding: 18px;">Chargement…</td></tr>`;
         $bar.style.width = "0%";
@@ -533,10 +520,10 @@
                 return { id, symbol, listedAt: Date.UTC(YEAR, 0, 1), pcts, highs, lows };
               } catch (e) {
                 console.error(`Error fetching data for ${symbol}:`, e);
-                return { 
-                  id: symbol.replace("USDT", ""), 
-                  symbol, 
-                  listedAt: Date.UTC(YEAR, 0, 1), 
+                return {
+                  id: symbol.replace("USDT", ""),
+                  symbol,
+                  listedAt: Date.UTC(YEAR, 0, 1),
                   pcts: Array(12).fill(null),
                   highs: Array(12).fill(null),
                   lows: Array(12).fill(null)
@@ -560,7 +547,6 @@
 
       $refresh.addEventListener('click', loadAll);
       $search.addEventListener('input', () => renderTable(masterRows));
-      $monthSelect.addEventListener('change', () => filterByMonth(parseInt($monthSelect.value)));
       loadAll();
     })();
   </script>
