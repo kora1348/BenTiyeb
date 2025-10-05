@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Alertes 1s – Binance Futures (USDT-M, PERP)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --warn:#f59e0b; --text:#e5e7eb; }
+    html,body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui,-apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"; }
+    header { padding:16px 20px; border-bottom:1px solid #1f2937; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    header h1 { font-size:16px; font-weight:600; margin:0 12px 0 0; color:#cbd5e1; }
+    .pill { font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid #2a3a50; background:#0b1220; }
+    .status { margin-left:auto; font-size:13px; color:var(--muted); display:flex; gap:10px; align-items:center; }
+    .dot { width:8px; height:8px; border-radius:999px; background:var(--warn); display:inline-block; }
+    .dot.live { background:#22c55e; }
+    .dot.paused { background:#64748b; }
+
+    .card { background:var(--card); border:1px solid #1f2937; border-radius:14px; margin:16px; padding:12px; }
+    .alerts-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .alerts-header h2 { font-size:14px; margin:0; color:#e2e8f0; }
+    .alerts-actions { margin-left:auto; display:flex; gap:8px; }
+    .alerts-actions button { background:#0b1220; color:#e5e7eb; border:1px solid #243042; padding:8px 10px; border-radius:10px; font-size:14px; cursor:pointer; }
+    .alert-list { display:grid; gap:8px; }
+    .alert-item { display:flex; align-items:center; gap:10px; padding:8px; border:1px solid #243042; border-radius:10px; background:#0b1220; }
+    .tag { font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid #2a3a50; }
+    .tag-long { color:#10b981; border-color:#14532d; background:#052e2b; }
+    .tag-short { color:#ef4444; border-color:#7f1d1d; background:#2a0a0a; }
+    .alert-ts { font-size:12px; color:#94a3b8; min-width:300px; white-space:nowrap; }
+    .alert-sym { font-weight:700; min-width:110px; }
+    .alert-pct { font-weight:700; }
+    footer { padding:10px 16px; color:#94a3b8; font-size:12px; }
+
+    /* Impression: uniquement la carte des alertes */
+    @media print {
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body * { visibility: hidden; }
+      #alertsCard, #alertsCard * { visibility: visible; }
+      #alertsCard { position: absolute; inset: 0; width: 100%; margin: 0 !important; border: none !important; background:#fff !important; color:#000 !important; box-shadow:none !important; }
+      #alertsCard .tag { border-color:#333 !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Alertes 1s — Binance USDT-M PERP</h1>
+    <span class="pill" id="pairCount">Paires: 0</span>
+    <span class="pill" id="tickCount">Ticks: 0</span>
+    <div class="status">
+      <span class="dot paused" id="dot"></span>
+      <span id="statusText">en pause</span>
+      <span class="pill" id="timeNow">—</span>
+    </div>
+  </header>
+
+  <div class="card" id="alertsCard">
+    <div class="alerts-header">
+      <h2>Alertes instantanées (1s) — LONG ≥ +0,70% • SHORT ≤ −0,70%</h2>
+      <span class="pill" id="alertsCount">0 alerte</span>
+      <div class="alerts-actions">
+        <button id="clearAlertsBtn">Effacer</button>
+        <button id="pdfAlertsBtn" title="Télécharger les alertes en PDF">PDF alertes</button>
+      </div>
+    </div>
+    <div class="alert-list" id="alertList"></div>
+  </div>
+
+  <footer>Actif 1 minute aux minutes 05/15/25/35/45/55. Horloge toujours en direct. Warm-up 1s à chaque démarrage.</footer>
+
+<script>
+(() => {
+  // ---------- CONFIG ----------
+  const THRESH_POS = 0.70;       // % LONG
+  const THRESH_NEG = -0.70;      // % SHORT
+  const ALERT_COOLDOWN_SEC = 30; // anti-spam par symbole
+  const FAPI_EXINFO   = "https://fapi.binance.com/fapi/v1/exchangeInfo";
+  const FAPI_MARK_ALL = "https://fapi.binance.com/fapi/v1/premiumIndex";
+  const FAPI_LAST_ALL = "https://fapi.binance.com/fapi/v1/ticker/price";
+
+  // ---------- UI refs ----------
+  const dot        = document.getElementById("dot");
+  const statusText = document.getElementById("statusText");
+  const timeNow    = document.getElementById("timeNow");
+  const tickPill   = document.getElementById("tickCount");
+  const pairPill   = document.getElementById("pairCount");
+  const alertList  = document.getElementById("alertList");
+  const alertsCount= document.getElementById("alertsCount");
+  const clearBtn   = document.getElementById("clearAlertsBtn");
+  const pdfBtn     = document.getElementById("pdfAlertsBtn");
+
+  // ---------- State ----------
+  let timerTick = null;          // cadence 1s pendant la fenêtre active
+  let clockTimer = null;         // horloge toujours active
+  let scheduleTimer = null;      // vérification de la fenêtre
+  let scheduledRunning = false;  // état courant de la fenêtre active
+  let windowStartAt = 0;         // début de la fenêtre courante
+  let symbols = new Set();
+  const prevPrice = new Map();
+  const lastAlertAt = new Map();
+  let tickCount = 0;
+  let alertsEnabled = true;
+
+  // ---------- Helpers ----------
+  function setLive(isLive){
+    dot.classList.toggle("live", isLive);
+    dot.classList.toggle("paused", !isLive);
+    statusText.textContent = isLive ? "en direct (1s)" : "en pause";
+  }
+  function fmtDateFr(d){
+    return d.toLocaleString("fr-FR", {
+      year:"numeric", month:"2-digit", day:"2-digit",
+      hour:"2-digit", minute:"2-digit", second:"2-digit",
+      hour12:false
+    });
+  }
+  function fmtTimeFr(d){
+    return d.toLocaleTimeString("fr-FR", {
+      hour:"2-digit", minute:"2-digit", second:"2-digit",
+      hour12:false
+    });
+  }
+  function updateClock(){
+    timeNow.textContent = fmtDateFr(new Date());
+  }
+  function shouldCooldown(sym){
+    const last=lastAlertAt.get(sym)||0;
+    return (Date.now()-last) < ALERT_COOLDOWN_SEC*1000;
+  }
+
+  // ---------- Roster ----------
+  async function fetchRoster(){
+    const res=await fetch(FAPI_EXINFO,{cache:"no-store"});
+    if(!res.ok) throw new Error("exchangeInfo "+res.status);
+    const data=await res.json();
+    const list=(data.symbols||[])
+      .filter(s=>s.contractType==="PERPETUAL" && s.quoteAsset==="USDT" && s.status==="TRADING")
+      .map(s=>s.symbol).sort();
+    return new Set(list);
+  }
+
+  // ---------- Prices ----------
+  async function fetchMarkAll(){
+    const res=await fetch(FAPI_MARK_ALL,{cache:"no-store"});
+    if(!res.ok) throw new Error("premiumIndex "+res.status);
+    const data=await res.json();
+    const map=new Map();
+    for(const it of data){ if(it.symbol && it.markPrice!==undefined) map.set(it.symbol, Number(it.markPrice)); }
+    return map;
+  }
+  async function fetchLastAll(){
+    const res=await fetch(FAPI_LAST_ALL,{cache:"no-store"});
+    if(!res.ok) throw new Error("ticker/price "+res.status);
+    const data=await res.json();
+    const map=new Map();
+    for(const it of data){ if(it.symbol && it.price!==undefined) map.set(it.symbol, Number(it.price)); }
+    return map;
+  }
+  async function fetchAllPrices(){
+    try{ return await fetchMarkAll(); }
+    catch(e){ console.warn("Mark KO, fallback Last", e); return await fetchLastAll(); }
+  }
+
+  // ---------- Alerts ----------
+  function pushAlertCard(sym, pct){
+    // n'afficher que si la minute se termine par 5 (05,15,25,35,45,55)
+    if ((new Date().getMinutes() % 10) !== 5) return;
+
+    // warm-up 1s après démarrage pour éviter une rafale à :05/15/...
+    if (Date.now() - windowStartAt < 1000) return;
+
+    if(!alertsEnabled) return;
+
+    const base  = new Date();                               // horodatage alerte
+    const entry = new Date(base.getTime() + 10*60*1000);    // +10 min
+    const exit  = new Date(base.getTime() + 70*60*1000);    // +1h10 (entrée + 1h)
+    const dirLong = pct >= THRESH_POS;
+
+    const item = document.createElement("div");
+    item.className = "alert-item";
+
+    const ts = document.createElement("span");
+    ts.className = "alert-ts";
+    ts.textContent = `${fmtDateFr(base)} : Entrée ${fmtTimeFr(entry)} - Sortie ${fmtTimeFr(exit)}`;
+
+    const tag = document.createElement("span");
+    tag.className = "tag " + (dirLong ? "tag-long" : "tag-short");
+    tag.textContent = dirLong ? "LONG" : "SHORT";
+
+    const symEl = document.createElement("span");
+    symEl.className = "alert-sym";
+    symEl.textContent = sym + " PERP";
+
+    const pctEl = document.createElement("span");
+    pctEl.className = "alert-pct";
+    pctEl.textContent = `${pct>=0?"+":""}${pct.toFixed(3)}%`;
+
+    item.append(ts, tag, symEl, pctEl);
+
+    if (alertList.firstChild) alertList.insertBefore(item, alertList.firstChild);
+    else alertList.appendChild(item);
+
+    const n = Math.min((parseInt(alertsCount.textContent, 10) || 0) + 1, 999999);
+    alertsCount.textContent = `${n} ${n>1?"alertes":"alerte"}`;
+    lastAlertAt.set(sym, Date.now());
+  }
+
+  // ---------- Tick 1s (pendant la fenêtre active) ----------
+  async function tick(){
+    try{
+      const priceMap = await fetchAllPrices();
+      for(const sym of symbols){
+        const p = priceMap.get(sym);
+        if(p===undefined) continue;
+        const prev = prevPrice.get(sym);
+        if(prev!==undefined && prev>0){
+          const pct = ((p - prev) / prev) * 100;
+          if ((pct >= THRESH_POS || pct <= THRESH_NEG) && !shouldCooldown(sym)) {
+            pushAlertCard(sym, pct);
+          }
+        }
+        prevPrice.set(sym, p);
+      }
+      tickCount++; tickPill.textContent = `Ticks: ${tickCount}`;
+    } catch(e){
+      console.error("Tick error", e);
+    }
+  }
+
+  function start(){
+    if (timerTick) return;
+    // IMPORTANT: on efface les anciens prix pour repartir propre à chaque fenêtre
+    prevPrice.clear();
+    windowStartAt = Date.now();
+    setLive(true);
+    tick(); // tout de suite
+    timerTick = setInterval(tick, 1000);
+  }
+  function pause(){
+    if (timerTick){ clearInterval(timerTick); timerTick=null; }
+    setLive(false);
+  }
+
+  // ---------- Scheduler: actif 1 min aux minutes finissant par 5 ----------
+  function checkSchedule(){
+    const now = new Date();
+    const active = (now.getMinutes() % 10) === 5; // 05,15,25,35,45,55
+    if (active && !scheduledRunning) { start(); scheduledRunning = true; }
+    else if (!active && scheduledRunning) { pause(); scheduledRunning = false; }
+  }
+
+  // ---------- Actions ----------
+  clearBtn.addEventListener("click", ()=>{
+    alertList.innerHTML=""; alertsCount.textContent="0 alerte";
+  });
+  pdfBtn.addEventListener("click", ()=>{
+    const prevTitle = document.title;
+    const ts = new Date().toISOString().replace(/[:.]/g,"-");
+    document.title = `Alertes_1s_${ts}`;
+    window.print();
+    setTimeout(()=>{ document.title = prevTitle; }, 100);
+  });
+
+  // ---------- Init ----------
+  (async () => {
+    try{
+      symbols = await fetchRoster();
+      pairPill.textContent = `Paires: ${symbols.size}`;
+    }catch(e){
+      console.error("Roster error", e);
+      symbols = new Set();
+      pairPill.textContent = `Paires: 0`;
+    }
+
+    // Horloge toujours active (indépendante du tick)
+    updateClock();
+    clockTimer = setInterval(updateClock, 1000);
+
+    // Scheduler (fenêtre 1 min aux minutes 05/15/25/35/45/55)
+    checkSchedule();
+    scheduleTimer = setInterval(checkSchedule, 500);
+  })();
+})();
+</script>
+</body>
+</html>
