@@ -171,7 +171,7 @@
 
     const base  = new Date();                               // horodatage alerte
     const entry = new Date(base.getTime() + 10*60*1000);    // +10 min
-    const exit  = new Date(base.getTime() + 70*60*1000);    // +1h10 (entrée + 1h)
+    const exit  = new Date(entry.getTime() + 75*60*1000); // Sortie = Entrée + 1h15
     const dirLong = pct >= THRESH_POS;
 
     const item = document.createElement("div");
