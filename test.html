@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Clôture, Spike max & Spike min — 2025 (Binance)</title>
+  <title>Clôture, Spike max & Spike min — 2024 (Binance)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -41,13 +41,13 @@
 <body>
   <header>
     <h1>Clôture (Close vs Open) • Spike max ↑ (High vs Open) • Spike min ↓ (Low vs Open)</h1>
-    <div class="sub">Par jour pour le mois sélectionné en <b>2025</b></div>
+    <div class="sub">Par jour pour le mois sélectionné en <b>2024</b></div>
   </header>
 
   <main>
     <div class="controls">
       <label>
-        <span class="muted">Mois (2025)</span><br>
+        <span class="muted">Mois (2024)</span><br>
         <select id="monthSel"></select>
       </label>
       <label>
@@ -124,11 +124,11 @@
       const names = ['01 Jan','02 Fév','03 Mar','04 Avr','05 Mai','06 Jun','07 Jul','08 Aoû','09 Sep','10 Oct','11 Nov','12 Déc'];
       names.forEach((label, i)=>{
         const opt = document.createElement('option');
-        opt.value = i; opt.textContent = label + ' 2025';
+        opt.value = i; opt.textContent = label + ' 2024';
         monthSel.appendChild(opt);
       });
       const today = new Date();
-      if (today.getUTCFullYear() === 2025) monthSel.value = Math.min(today.getUTCMonth(), 11);
+      if (today.getUTCFullYear() === 2024) monthSel.value = Math.min(today.getUTCMonth(), 11);
       else monthSel.value = 0;
     })();
 
@@ -143,7 +143,7 @@
 
       const sym = symbolSel.value;
       const mIdx = parseInt(monthSel.value,10);
-      const { start, end } = monthRangeUTC(2025, mIdx);
+      const { start, end } = monthRangeUTC(2024, mIdx);
 
       statusEl.textContent = 'Chargement…';
       try{

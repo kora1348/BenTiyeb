@@ -2,387 +2,244 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Suivi levier max — Binance USDT-M PERP</title>
+  <title>Binance Futures — Variations quotidiennes (clôture) — Octobre</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root{
-      --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb;
-      --ok:#10b981; --bad:#ef4444; --warn:#f59e0b; --border:#1f2937;
-    }
+    :root{ --bg:#0f172a; --card:#0b1220; --text:#e5e7eb; --muted:#94a3b8;
+           --ok:#16a34a; --bad:#ef4444; --border:#1f2937; --chip:#111827; }
     html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    header{padding:18px 16px;border-bottom:1px solid var(--border)}
-    h1{margin:0;font-size:20px}
-    .sub{color:var(--muted);font-size:13px;margin-top:4px}
-    main{max-width:1100px;margin:20px auto;padding:0 12px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .row > *{flex:1}
-    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
-    input,select,button{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
-    button{cursor:pointer}
-    .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
-    th,td{border-bottom:1px solid var(--border);padding:10px;text-align:left}
-    th{color:var(--muted);font-weight:600}
-    .tag{font-size:12px;padding:3px 8px;border-radius:999px;display:inline-block}
-    .ok{background:color-mix(in oklab, var(--ok) 20%, transparent);color:var(--ok)}
-    .bad{background:color-mix(in oklab, var(--bad) 20%, transparent);color:var(--bad)}
-    .warn{background:color-mix(in oklab, var(--warn) 20%, transparent);color:var(--warn)}
-    .muted{color:var(--muted)}
-    .pill{font-size:12px;border:1px solid var(--border);padding:4px 8px;border-radius:999px}
-    .red{background:color-mix(in oklab, var(--bad) 15%, transparent)}
-    .green{background:color-mix(in oklab, var(--ok) 15%, transparent)}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media (max-width:800px){ .grid{grid-template-columns:1fr} }
-    .foot{color:var(--muted);font-size:12px;margin-top:8px}
-    .right{float:right}
+    header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    h1{font-size:18px;margin:0}
+    .sub{color:var(--muted);font-size:12px}
+    main{padding:16px;max-width:100%;overflow:auto}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    button{background:#2563eb;color:#fff;border:0;border-radius:10px;padding:8px 12px;cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .badge{background:var(--chip);border:1px solid var(--border);color:var(--muted);padding:4px 8px;border-radius:999px;font-size:12px}
+    table{border-collapse:separate;border-spacing:0;width:max-content;min-width:900px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    th,td{padding:8px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;text-align:center;font-variant-numeric:tabular-nums}
+    th{position:sticky;top:0;background:#0e182c;z-index:1}
+    th:first-child, td:first-child{position:sticky;left:0;background:#0e182c}
+    td:first-child{background:var(--card);font-weight:600;text-align:left}
+    tr:last-child td{border-bottom:0}
+    th:last-child, td:last-child{border-right:0}
+    .pos{color:var(--ok);font-weight:600}
+    .neg{color:var(--bad);font-weight:600}
+    .zero{color:var(--muted)}
+    .spin{width:16px;height:16px;border:3px solid #1f2b43;border-top-color:#6b8afd;border-radius:50%;display:inline-block;animation:spin .8s linear infinite;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px}
   </style>
 </head>
 <body>
-<header>
-  <h1>Suivi de l’effet de levier max — Binance Futures (USDT-M, PERP)</h1>
-  <div class="sub">Détecte les réductions du levier (ex. 100x → 50x). Données stockées en local.</div>
-</header>
-
-<main>
-  <section class="card">
-    <div class="grid">
-      <div>
-        <label>API Key (Futures activé)</label>
-        <input id="apiKey" placeholder="Colle ta clé API" autocomplete="off" />
-      </div>
-      <div>
-        <label>API Secret (jamais partager — reste en local)</label>
-        <input id="apiSecret" placeholder="Colle ton secret" autocomplete="off" />
-      </div>
-
-      <div>
-        <label>Filtre symbole (optionnel, ex: WIFUSDT,XAIUSDT)</label>
-        <input id="symbols" placeholder="laisse vide pour TOUS les USDT-M PERP" />
-      </div>
-      <div>
-        <label>Fréquence d’auto-snapshot</label>
-        <select id="freq">
-          <option value="0">Manuel uniquement</option>
-          <option value="15">Toutes les 15 min</option>
-          <option value="60">Toutes les 60 min</option>
-          <option value="1440">Quotidien</option>
-        </select>
-      </div>
+  <header>
+    <div>
+      <h1>Variations % de clôture — Binance Futures USDT-M (PERP) — Octobre</h1>
+      <div class="sub">Calcul: (Clôture⟂J − Clôture⟂J-1) / Clôture⟂J-1 × 100. Fuseau: UTC (bougies 1d).</div>
     </div>
-
-    <div class="btns">
-      <button id="discover">Découvrir les PERP USDT-M actifs</button>
-      <button id="snapshot">Prendre un snapshot maintenant</button>
-      <button id="exportCsv">Exporter l’historique (CSV)</button>
-      <button id="reset">Réinitialiser (efface l’historique)</button>
-      <span class="pill right" id="info">Prêt.</span>
+    <div class="controls">
+      <button id="startBtn">Démarrer</button>
+      <span class="badge" id="status">Prêt</span>
     </div>
-  </section>
+  </header>
 
-  <section class="card" style="margin-top:14px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div class="sub">Résultats du dernier snapshot</div>
-      <div id="ts" class="muted"></div>
-    </div>
-    <table id="table">
-      <thead>
-        <tr>
-          <th>Symbole</th>
-          <th>Levier max actuel</th>
-          <th>Changement vs dernier</th>
-          <th>Dernier levier</th>
-          <th>Observation</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div class="foot">
-      Astuce : clique “Découvrir” pour inclure automatiquement les nouvelles listings (USDT-M PERP). Les données sont sauvegardées en <code>localStorage</code>.
-    </div>
-  </section>
-</main>
+  <main>
+    <div id="wrap"></div>
+    <div class="hint">Astuce: fais défiler horizontalement pour voir tous les jours (1 → 31). Première colonne = symbole.</div>
+  </main>
 
-<script>
-/** ======= Utils stockage/local ======= */
-const LS_KEY_CONF = 'levConf_v1';
-const LS_KEY_SNAPS = 'levSnaps_v1'; // tableau d’objets {ts, symbol, maxLev}
+  <script>
+    const API = {
+      base: 'https://fapi.binance.com',
+      exchangeInfo: '/fapi/v1/exchangeInfo',
+      klines: '/fapi/v1/klines'
+    };
 
-function loadConf(){
-  try { return JSON.parse(localStorage.getItem(LS_KEY_CONF)) || {}; } catch { return {}; }
-}
-function saveConf(conf){
-  localStorage.setItem(LS_KEY_CONF, JSON.stringify(conf));
-}
-function loadSnaps(){
-  try { return JSON.parse(localStorage.getItem(LS_KEY_SNAPS)) || []; } catch { return []; }
-}
-function saveSnaps(snaps){
-  localStorage.setItem(LS_KEY_SNAPS, JSON.stringify(snaps));
-}
+    // Mois ciblé: OCTOBRE de l'année courante (modifie ici si besoin)
+    const TARGET_YEAR = new Date().getUTCFullYear();   // ex: 2025
+    const TARGET_MONTH = 9; // 0=janvier ... 9=octobre
+    const startUTC = Date.UTC(TARGET_YEAR, TARGET_MONTH, 1, 0, 0, 0);
+    const endUTC   = Date.UTC(TARGET_YEAR, TARGET_MONTH + 1, 0, 23, 59, 59); // dernier jour d'octobre
+    const daysInMonth = new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH + 1, 0)).getUTCDate();
 
-const els = {
-  apiKey: document.getElementById('apiKey'),
-  apiSecret: document.getElementById('apiSecret'),
-  symbols: document.getElementById('symbols'),
-  freq: document.getElementById('freq'),
-  discover: document.getElementById('discover'),
-  snapshot: document.getElementById('snapshot'),
-  exportCsv: document.getElementById('exportCsv'),
-  reset: document.getElementById('reset'),
-  table: document.getElementById('table').querySelector('tbody'),
-  ts: document.getElementById('ts'),
-  info: document.getElementById('info'),
-};
+    const qs = (sel, el=document) => el.querySelector(sel);
+    const statusEl = qs('#status');
+    const wrap = qs('#wrap');
+    const startBtn = qs('#startBtn');
 
-(function init(){
-  const conf = loadConf();
-  if (conf.apiKey) els.apiKey.value = conf.apiKey;
-  if (conf.apiSecret) els.apiSecret.value = conf.apiSecret;
-  if (conf.symbols) els.symbols.value = conf.symbols.join(',');
-  if (conf.freq) els.freq.value = String(conf.freq);
-})();
-
-/** ======= Crypto helpers (HMAC SHA256) ======= */
-async function hmacSHA256(secret, msg){
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw', enc.encode(secret), { name:'HMAC', hash:'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
-  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-/** ======= Binance endpoints ======= */
-const BASE = 'https://fapi.binance.com';
-
-async function exchangeInfo(){
-  const res = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
-  if(!res.ok) throw new Error('exchangeInfo failed: '+res.status);
-  return res.json();
-}
-
-/** Signed request: leverageBracket (USER_DATA) */
-async function leverageBracket(symbol, apiKey, apiSecret){
-  const ts = Date.now();
-  const params = new URLSearchParams({ symbol, timestamp: String(ts) });
-  const sig = await hmacSHA256(apiSecret, params.toString());
-  const url = `${BASE}/fapi/v1/leverageBracket?${params.toString()}&signature=${sig}`;
-  const res = await fetch(url, { headers: { 'X-MBX-APIKEY': apiKey } });
-  if(!res.ok){
-    const t = await res.text();
-    throw new Error(`leverageBracket ${symbol} failed: ${res.status} ${t}`);
-  }
-  const data = await res.json();
-  const obj = Array.isArray(data) ? data.find(x => x.symbol === symbol) : data;
-  if(!obj || !obj.brackets) throw new Error('Réponse inattendue pour '+symbol);
-  const maxLev = Math.max(...obj.brackets.map(b => b.initialLeverage));
-  return { symbol, maxLev, raw: obj };
-}
-
-/** Découvre tous les USDT-M PERP actifs (TRADING) */
-async function discoverPerpUSDT(){
-  const info = await exchangeInfo();
-  const syms = info.symbols
-    .filter(s =>
-      s.contractType === 'PERPETUAL' &&
-      s.quoteAsset === 'USDT' &&
-      s.status === 'TRADING'
-    )
-    .map(s => s.symbol)
-    .sort();
-  return syms;
-}
-
-/** ======= UI actions ======= */
-els.discover.onclick = async () => {
-  try{
-    els.info.textContent = 'Découverte en cours…';
-    const all = await discoverPerpUSDT();
-    const userFilter = els.symbols.value.trim();
-    // Si l’utilisateur a listé des symboles, on restreint à l’intersection
-    const picked = userFilter ? userFilter.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean) : all;
-    if (!userFilter) {
-      els.symbols.value = picked.join(',');
-    } else {
-      // garder l'ordre saisie
-      const set = new Set(all);
-      const filtered = picked.filter(s => set.has(s));
-      els.symbols.value = filtered.join(',');
+    function setStatus(txt) { statusEl.textContent = txt; }
+    function fmtPct(x){
+      if (x === null || Number.isNaN(x)) return '<span class="zero">—</span>';
+      const s = (x >= 0 ? '+' : '') + x.toFixed(2) + '%';
+      const cls = x > 0 ? 'pos' : (x < 0 ? 'neg' : 'zero');
+      return `<span class="${cls}">${s}</span>`;
     }
-    els.info.textContent = `OK — ${els.symbols.value.split(',').filter(Boolean).length} symboles prêts.`;
-    persistConf();
-  }catch(e){
-    console.error(e);
-    els.info.textContent = 'Erreur découverte (voir console)';
-  }
-};
 
-function persistConf(){
-  const conf = {
-    apiKey: els.apiKey.value.trim(),
-    apiSecret: els.apiSecret.value.trim(),
-    symbols: els.symbols.value.trim() ? els.symbols.value.trim().split(',').map(s=>s.trim().toUpperCase()) : null,
-    freq: Number(els.freq.value),
-  };
-  saveConf(conf);
-}
-
-['apiKey','apiSecret','symbols','freq'].forEach(id=>{
-  els[id].addEventListener('change', persistConf);
-});
-
-els.reset.onclick = () => {
-  if (confirm('Effacer l’historique local ?')) {
-    saveSnaps([]);
-    els.info.textContent = 'Historique effacé.';
-    renderLast([]);
-  }
-};
-
-els.exportCsv.onclick = () => {
-  const snaps = loadSnaps();
-  const rows = [['timestamp','iso','symbol','maxLeverage']];
-  for(const s of snaps){
-    rows.push([s.ts, new Date(s.ts).toISOString(), s.symbol, s.maxLev]);
-  }
-  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'leverage-history.csv';
-  a.click();
-};
-
-els.snapshot.onclick = () => snapshotNow();
-
-/** ======= Snapshot core ======= */
-async function snapshotNow(){
-  const apiKey = els.apiKey.value.trim();
-  const apiSecret = els.apiSecret.value.trim();
-  const symbols = (els.symbols.value.trim() ? els.symbols.value.trim().split(',').map(s=>s.trim().toUpperCase()).filter(Boolean) : []);
-  if(!apiKey || !apiSecret){ alert('Ajoute API Key et Secret.'); return; }
-  if(symbols.length===0){ alert('Aucun symbole. Clique “Découvrir” ou saisis-en.'); return; }
-
-  els.info.textContent = 'Snapshot en cours…';
-  const ts = Date.now();
-  const snaps = loadSnaps();
-  const lastBySym = new Map();
-  for(const s of snaps){ if(!lastBySym.has(s.symbol) || s.ts > lastBySym.get(s.symbol).ts) lastBySym.set(s.symbol, s); }
-
-  const out = [];
-  let done = 0;
-  for(const sym of symbols){
-    try{
-      const { maxLev } = await leverageBracket(sym, apiKey, apiSecret);
-      out.push({ ts, symbol: sym, maxLev });
-      done++;
-      els.info.textContent = `Snapshot… ${done}/${symbols.length}`;
-    }catch(e){
-      console.error(e);
-      out.push({ ts, symbol: sym, maxLev: null, error: true });
-    }
-  }
-
-  // Enregistre uniquement les réussites
-  const ok = out.filter(r => r.maxLev !== null);
-  saveSnaps([...snaps, ...ok]);
-
-  els.info.textContent = `Terminé (${ok.length}/${symbols.length}).`;
-  renderLast(ok, lastBySym);
-}
-
-/** ======= Rendu du tableau ======= */
-function renderLast(latest = [], lastBySym = new Map()){
-  const tbody = els.table;
-  tbody.innerHTML = '';
-  if(latest.length === 0){
-    els.ts.textContent = '';
-    return;
-  }
-  const ts = Math.max(...latest.map(x=>x.ts));
-  els.ts.textContent = `Snapshot: ${new Date(ts).toLocaleString()}`;
-
-  // Construire map des derniers historiques (avant snapshot)
-  if(!(lastBySym instanceof Map)){
-    const snaps = loadSnaps();
-    lastBySym = new Map();
-    for(const s of snaps){
-      if(!lastBySym.has(s.symbol) || s.ts > lastBySym.get(s.symbol).ts) lastBySym.set(s.symbol, s);
-    }
-  }
-
-  latest
-    .slice()
-    .sort((a,b)=> a.symbol.localeCompare(b.symbol))
-    .forEach(row=>{
+    function buildTableHeader() {
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
       const tr = document.createElement('tr');
-      const prev = lastBySym.get(row.symbol);
-      const prevLev = (prev && prev.ts < row.ts) ? prev.maxLev : null; // valeur précédente avant ce snapshot
 
-      // Statut
-      let statusEl = '';
-      let obs = '';
-      if(prevLev == null){
-        statusEl = `<span class="tag warn">Nouveau</span>`;
-        obs = 'Premier enregistrement';
-      }else if(row.maxLev == null){
-        statusEl = `<span class="tag warn">Erreur</span>`;
-        obs = 'Échec requête';
-      }else if(row.maxLev < prevLev){
-        statusEl = `<span class="tag bad">Réduction</span>`;
-        obs = `${prevLev}x → ${row.maxLev}x`;
-      }else if(row.maxLev > prevLev){
-        statusEl = `<span class="tag ok">Augmentation</span>`;
-        obs = `${prevLev}x → ${row.maxLev}x`;
-      }else{
-        statusEl = `<span class="tag muted" style="border:1px solid var(--border);">Inchangé</span>`;
-        obs = `${row.maxLev}x`;
+      const thSym = document.createElement('th');
+      thSym.textContent = 'Symbole';
+      tr.appendChild(thSym);
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const th = document.createElement('th');
+        th.textContent = d.toString().padStart(2,'0');
+        tr.appendChild(th);
       }
-
-      // Surlignage si réduction
-      if(prevLev != null && row.maxLev < prevLev){
-        tr.classList.add('red');
-      } else if(prevLev != null && row.maxLev > prevLev){
-        tr.classList.add('green');
-      }
-
-      tr.innerHTML = `
-        <td><strong>${row.symbol}</strong></td>
-        <td>${row.maxLev !== null ? row.maxLev+'x' : '<span class="muted">—</span>'}</td>
-        <td>${statusEl}</td>
-        <td>${prevLev !== null ? prevLev+'x' : '<span class="muted">—</span>'}</td>
-        <td>${obs}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-}
-
-/** ======= Auto-snapshot (optionnel) ======= */
-let autoTimer = null;
-function setupAuto(){
-  if(autoTimer) { clearInterval(autoTimer); autoTimer = null; }
-  const mins = Number(els.freq.value);
-  if(!mins) return;
-  autoTimer = setInterval(snapshotNow, mins*60*1000);
-}
-els.freq.addEventListener('change', setupAuto);
-setupAuto();
-
-// Si on a de l'historique, affiche le dernier état
-(function showLastFromHistory(){
-  const snaps = loadSnaps();
-  if(snaps.length){
-    const ts = Math.max(...snaps.map(s=>s.ts));
-    const latest = snaps.filter(s=>s.ts === ts);
-    const lastBy = new Map();
-    // “Dernier avant ts” pour comparaison visuelle
-    for(const s of snaps.filter(x=>x.ts !== ts)){
-      if(!lastBy.has(s.symbol) || s.ts > lastBy.get(s.symbol).ts) lastBy.set(s.symbol, s);
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      table.appendChild(tbody);
+      return { table, tbody };
     }
-    els.ts.textContent = `Snapshot: ${new Date(ts).toLocaleString()}`;
-    renderLast(latest, lastBy);
-  }
-})();
-</script>
+
+    async function fetchJSON(url){
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+      return r.json();
+    }
+
+    async function getTradablePerpUSDT() {
+      const data = await fetchJSON(API.base + API.exchangeInfo);
+      // Garder: USDT-M, PERPETUAL, TRADING, quote USDT
+      return data.symbols
+        .filter(s =>
+          s.status === 'TRADING' &&
+          s.contractType === 'PERPETUAL' &&
+          s.quoteAsset === 'USDT'
+        )
+        .map(s => s.symbol)
+        .sort();
+    }
+
+    // Récupère les bougies 1d de (sept 30) à fin oct pour calcul de J1 vs J-1
+    async function getDailyCloses(symbol){
+      const startWithPrev = startUTC - 24*60*60*1000; // inclure J-1
+      const url = `${API.base}${API.klines}?symbol=${symbol}&interval=1d&startTime=${startWithPrev}&endTime=${endUTC}`;
+      const raw = await fetchJSON(url);
+      // Kline format: [ openTime, open, high, low, close, ... ]
+      // On garde close et openTime
+      return raw.map(k => ({ t: k[0], c: parseFloat(k[4]) }));
+    }
+
+    function computeMonthCloseToClose(closes){
+      // closes contient J-1 puis J1..J31 (selon dispo)
+      // On produit un array taille daysInMonth rempli de null par défaut
+      const out = Array(daysInMonth).fill(null);
+      // Indexer par jour du mois (UTC)
+      const byDay = new Map();
+      closes.forEach(o => {
+        const d = new Date(o.t);
+        if (d.getUTCMonth() === TARGET_MONTH) {
+          const day = d.getUTCDate(); // 1..31
+          byDay.set(day, o.c);
+        }
+      });
+      // Récupérer le close de la veille (30 septembre)
+      const prevCloseEntry = closes.find(o => {
+        const d = new Date(o.t);
+        return d.getUTCFullYear() === TARGET_YEAR &&
+               d.getUTCMonth() === TARGET_MONTH - 1 &&
+               d.getUTCDate() === new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH, 0)).getUTCDate();
+      });
+      let prevClose = prevCloseEntry ? prevCloseEntry.c : null;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const c = byDay.get(day) ?? null;
+        if (c != null && prevClose != null) {
+          const pct = (c - prevClose) / prevClose * 100;
+          out[day-1] = pct;
+        } else {
+          out[day-1] = null;
+        }
+        if (c != null) prevClose = c; // avancer la référence
+      }
+      return out;
+    }
+
+    // Petite file d'attente avec parallélisme limité pour éviter les limites API
+    async function parallelLimit(items, limit, worker){
+      const results = new Array(items.length);
+      let i = 0;
+      async function next(){
+        const idx = i++;
+        if (idx >= items.length) return;
+        try{
+          results[idx] = await worker(items[idx], idx);
+        }catch(e){
+          results[idx] = { error: e.message };
+        }
+        return next();
+      }
+      const runners = Array(Math.min(limit, items.length)).fill(0).map(next);
+      await Promise.all(runners);
+      return results;
+    }
+
+    async function run(){
+      startBtn.disabled = true;
+      setStatus('Chargement des symboles…');
+      wrap.innerHTML = '';
+
+      try{
+        const symbols = await getTradablePerpUSDT();
+        setStatus(`Symboles PERP USDT actifs: ${symbols.length}`);
+
+        const { table, tbody } = buildTableHeader();
+        wrap.appendChild(table);
+
+        // Insère les lignes vides d'abord
+        const rowMap = new Map();
+        for (const sym of symbols) {
+          const tr = document.createElement('tr');
+          const tdSym = document.createElement('td');
+          tdSym.textContent = sym;
+          tr.appendChild(tdSym);
+          for (let d=0; d<daysInMonth; d++){
+            const td = document.createElement('td');
+            td.textContent = '…';
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+          rowMap.set(sym, tr);
+        }
+
+        // Récupère en parallèle (par paquets)
+        let done = 0;
+        const total = symbols.length;
+        await parallelLimit(symbols, 8, async (sym) => {
+          const closes = await getDailyCloses(sym);
+          const pctArr = computeMonthCloseToClose(closes);
+
+          const tr = rowMap.get(sym);
+          // Remplit les cellules
+          for (let i=0; i<pctArr.length; i++){
+            const td = tr.children[i+1];
+            const v = pctArr[i];
+            td.innerHTML = fmtPct(v);
+          }
+          done++;
+          if (done % 5 === 0) setStatus(`Téléchargé ${done}/${total}`);
+        });
+
+        setStatus('Terminé ✅');
+      }catch(err){
+        console.error(err);
+        setStatus('Erreur: ' + err.message);
+        // Message d’aide
+        const p = document.createElement('p');
+        p.textContent = 'Une erreur est survenue. Vérifie ta connexion Internet et réessaie.';
+        wrap.appendChild(p);
+      }finally{
+        startBtn.disabled = false;
+      }
+    }
+
+    // UI
+    startBtn.addEventListener('click', run);
+  </script>
 </body>
 </html>
