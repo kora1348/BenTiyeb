@@ -24,7 +24,7 @@
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 800px;
+            max-width: 1400px;
             width: 100%;
         }
         h1 {
@@ -46,16 +46,16 @@
             color: white;
         }
         th {
-            padding: 15px;
+            padding: 15px 10px;
             text-align: center;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
         }
         td {
-            padding: 15px;
+            padding: 15px 10px;
             text-align: center;
             border-bottom: 1px solid #eee;
-            font-size: 15px;
+            font-size: 14px;
         }
         tbody tr:last-child td {
             border-bottom: none;
@@ -107,12 +107,52 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        .progress-container {
+            width: 100%;
+            background: #e5e7eb;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .year-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📊 Taux de variation (Bougies Daily)</h1>
+        <div style="text-align: center;">
+            <span class="year-badge">Année 2025</span>
+        </div>
         
+        <div id="progressContainer" style="display: none;">
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar" style="width: 0%;">0%</div>
+            </div>
+        </div>
+
         <div id="content">
             <div class="loading">Chargement des données...</div>
         </div>
@@ -143,34 +183,66 @@
         async function fetchData() {
             const content = document.getElementById('content');
             const btn = document.getElementById('refreshBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
             
             btn.disabled = true;
-            content.innerHTML = '<div class="loading">Chargement des données...</div>';
+            content.innerHTML = '';
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
 
             try {
-                const symbols = ['BTCUSDT', 'ETHUSDT'];
-                const date1 = '2025-02-07';
-                const date2 = '2025-02-14';
+                const symbols = ['BTCUSDT', 'ETHUSDT', 'DOGEUSDT', 'PEPEUSDT', 'XRPUSDT', 'SOLUSDT', 'SHIBAUSDT', 'TRBUSDT'];
+                const dates = [
+                    '2025-02-07',
+                    '2025-02-14',
+                    '2025-03-21',
+                    '2025-04-02',
+                    '2025-07-07',
+                    '2025-07-10',
+                    '2025-09-04',
+                    '2025-09-09',
+                    '2025-09-11',
+                    '2025-10-06',
+                    '2025-10-10',
+                    '2025-11-14'
+                ];
+                
+                const totalRequests = symbols.length * dates.length;
+                let completedRequests = 0;
                 
                 const results = [];
 
                 for (const symbol of symbols) {
-                    const kline1 = await getKline(symbol, date1);
-                    const kline2 = await getKline(symbol, date2);
+                    const variations = [];
                     
-                    if (!kline1 || !kline2) {
-                        throw new Error(`Données manquantes pour ${symbol}`);
+                    for (const date of dates) {
+                        try {
+                            const kline = await getKline(symbol, date);
+                            if (!kline) {
+                                variations.push(null);
+                            } else {
+                                variations.push(calculateDailyVariation(kline));
+                            }
+                        } catch (error) {
+                            console.warn(`Erreur pour ${symbol} le ${date}:`, error);
+                            variations.push(null);
+                        }
+                        
+                        completedRequests++;
+                        const progress = Math.round((completedRequests / totalRequests) * 100);
+                        progressBar.style.width = progress + '%';
+                        progressBar.textContent = progress + '%';
                     }
-
-                    const variation1 = calculateDailyVariation(kline1);
-                    const variation2 = calculateDailyVariation(kline2);
 
                     results.push({
                         symbol: symbol.replace('USDT', ''),
-                        variation1: variation1,
-                        variation2: variation2
+                        variations: variations
                     });
                 }
+
+                progressContainer.style.display = 'none';
 
                 let tableHTML = `
                     <table>
@@ -179,23 +251,35 @@
                                 <th>Symbole</th>
                                 <th>07/02/2025</th>
                                 <th>14/02/2025</th>
+                                <th>21/03/2025</th>
+                                <th>02/04/2025</th>
+                                <th>07/07/2025</th>
+                                <th>10/07/2025</th>
+                                <th>04/09/2025</th>
+                                <th>09/09/2025</th>
+                                <th>11/09/2025</th>
+                                <th>06/10/2025</th>
+                                <th>10/10/2025</th>
+                                <th>14/11/2025</th>
                             </tr>
                         </thead>
                         <tbody>
                 `;
 
                 results.forEach(result => {
-                    const variation1Class = result.variation1 >= 0 ? 'positive' : 'negative';
-                    const variation2Class = result.variation2 >= 0 ? 'positive' : 'negative';
-                    const sign1 = result.variation1 >= 0 ? '+' : '';
-                    const sign2 = result.variation2 >= 0 ? '+' : '';
-                    tableHTML += `
-                        <tr>
-                            <td class="symbol">${result.symbol}</td>
-                            <td class="${variation1Class}">${sign1}${result.variation1.toFixed(2)}%</td>
-                            <td class="${variation2Class}">${sign2}${result.variation2.toFixed(2)}%</td>
-                        </tr>
-                    `;
+                    tableHTML += `<tr><td class="symbol">${result.symbol}</td>`;
+                    
+                    result.variations.forEach(variation => {
+                        if (variation === null) {
+                            tableHTML += `<td style="color: #9ca3af;">N/A</td>`;
+                        } else {
+                            const variationClass = variation >= 0 ? 'positive' : 'negative';
+                            const sign = variation >= 0 ? '+' : '';
+                            tableHTML += `<td class="${variationClass}">${sign}${variation.toFixed(2)}%</td>`;
+                        }
+                    });
+                    
+                    tableHTML += `</tr>`;
                 });
 
                 tableHTML += `
@@ -206,6 +290,7 @@
                 content.innerHTML = tableHTML;
 
             } catch (error) {
+                progressContainer.style.display = 'none';
                 content.innerHTML = `
                     <div class="error">
                         <strong>Erreur:</strong> ${error.message}
