@@ -1,313 +1,181 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taux de variation BTC/ETH</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 1400px;
-            width: 100%;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        th {
-            padding: 15px 10px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        td {
-            padding: 15px 10px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-        .symbol {
-            font-weight: bold;
-            color: #333;
-        }
-        .positive {
-            color: #22c55e;
-            font-weight: bold;
-        }
-        .negative {
-            color: #ef4444;
-            font-weight: bold;
-        }
-        .loading {
-            text-align: center;
-            color: #666;
-            padding: 20px;
-        }
-        .error {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        button:hover {
-            transform: translateY(-2px);
-        }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .progress-container {
-            width: 100%;
-            background: #e5e7eb;
-            border-radius: 10px;
-            height: 30px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-        }
-        .year-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Taux de variation (Daily) — Futures USDT-M</title>
+  <style>
+    /* mêmes styles que ton code… (inchangés) */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+    .container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
+    h1{text-align:center;color:#333;margin-bottom:30px;font-size:28px}
+    table{width:100%;border-collapse:collapse;margin-bottom:20px;background:white;border-radius:10px;overflow:hidden}
+    thead{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}
+    th{padding:15px 10px;text-align:center;font-weight:bold;font-size:14px}
+    td{padding:15px 10px;text-align:center;border-bottom:1px solid #eee;font-size:14px}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover{background:#f8f9fa}
+    .symbol{font-weight:bold;color:#333}
+    .positive{color:#22c55e;font-weight:bold}
+    .negative{color:#ef4444;font-weight:bold}
+    .loading{text-align:center;color:#666;padding:20px}
+    .error{background:#fee;border:1px solid #fcc;color:#c33;padding:15px;border-radius:10px;margin-bottom:20px}
+    button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s}
+    button:hover{transform:translateY(-2px)}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .progress-container{width:100%;background:#e5e7eb;border-radius:10px;height:30px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
+    .progress-bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:10px;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px}
+    .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📊 Taux de variation (Bougies Daily)</h1>
-        <div style="text-align: center;">
-            <span class="year-badge">Année 2025</span>
-        </div>
-        
-        <div id="progressContainer" style="display: none;">
-            <div class="progress-container">
-                <div id="progressBar" class="progress-bar" style="width: 0%;">0%</div>
-            </div>
-        </div>
+  <div class="container">
+    <h1>📊 Taux de variation (Bougies Daily)</h1>
+    <div style="text-align:center;"><span class="year-badge">Année 2025</span></div>
 
-        <div id="content">
-            <div class="loading">Chargement des données...</div>
-        </div>
-
-        <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
+    <div id="progressContainer" style="display:none;">
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar" style="width:0%;">0%</div>
+      </div>
     </div>
 
-    <script>
-        async function getKline(symbol, date) {
-            const startOfDay = new Date(date);
-            startOfDay.setUTCHours(0, 0, 0, 0);
-            const endOfDay = new Date(date);
-            endOfDay.setUTCHours(23, 59, 59, 999);
-            
-            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`Erreur API pour ${symbol}`);
-            const data = await response.json();
-            return data[0];
+    <div id="content"><div class="loading">Chargement des données...</div></div>
+    <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
+  </div>
+
+  <script>
+    // ✅ 1) Utiliser l’API FUTURES (USDT-M)
+    const API = 'https://fapi.binance.com';
+
+    // ✅ 2) Toujours normaliser les symboles en MAJUSCULE
+    const U = s => s.trim().toUpperCase();
+
+    async function getKline(symbol, date) {
+      const startOfDay = new Date(date);     // 'YYYY-MM-DD' -> locale
+      startOfDay.setUTCHours(0,0,0,0);       // on force l’UTC de 00:00
+      const endOfDay = new Date(date);
+      endOfDay.setUTCHours(23,59,59,999);    // jusqu’à 23:59:59 UTC
+
+      const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Erreur API pour ${symbol} (${res.status})`);
+      const data = await res.json();
+      return data[0]; // peut être undefined si pas de donnée ce jour-là
+    }
+
+    function calculateDailyVariation(kline) {
+      const open = parseFloat(kline[1]);
+      const close = parseFloat(kline[4]);
+      return ((close - open) / open) * 100;
+    }
+
+    async function fetchData() {
+      const content = document.getElementById('content');
+      const btn = document.getElementById('refreshBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+
+      btn.disabled = true;
+      content.innerHTML = '';
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressBar.textContent = '0%';
+
+      try {
+        const symbols = [
+          "solusdt", "1000luncusdt",
+          "1000satsusdt"
+        ];
+
+        const dates = [
+          '2025-02-07','2025-02-14','2025-07-07','2025-07-10',
+          '2025-09-09','2025-09-11','2025-10-06','2025-10-10','2025-11-14'
+        ];
+
+        const totalRequests = symbols.length * dates.length;
+        let completedRequests = 0;
+
+        const allPromises = [];
+
+        for (const symbol of symbols) {
+          for (const date of dates) {
+            allPromises.push(
+              getKline(symbol, date)
+                .then(kline => {
+                  completedRequests++;
+                  const progress = Math.round((completedRequests / totalRequests) * 100);
+                  progressBar.style.width = progress + '%';
+                  progressBar.textContent = progress + '%';
+                  return kline ? calculateDailyVariation(kline) : null;
+                })
+                .catch(() => {
+                  completedRequests++;
+                  const progress = Math.round((completedRequests / totalRequests) * 100);
+                  progressBar.style.width = progress + '%';
+                  progressBar.textContent = progress + '%';
+                  return null; // non listé / pas de données / rate-limit
+                })
+            );
+          }
         }
 
-        function calculateDailyVariation(kline) {
-            const open = parseFloat(kline[1]);
-            const close = parseFloat(kline[4]);
-            return ((close - open) / open) * 100;
+        const allVariations = await Promise.all(allPromises);
+
+        // Regrouper par symbole
+        const results = [];
+        for (let i = 0; i < symbols.length; i++) {
+          const variations = allVariations.slice(i * dates.length, (i + 1) * dates.length);
+          results.push({
+            // affichage lisible : on montre le ticker en MAJ
+            symbol: U(symbols[i]),
+            variations
+          });
         }
 
-        async function fetchData() {
-            const content = document.getElementById('content');
-            const btn = document.getElementById('refreshBtn');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            
-            btn.disabled = true;
-            content.innerHTML = '';
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
+        progressContainer.style.display = 'none';
 
-            try {
-                const symbols = [
-                    'SOLUSDT', 
-                    '1000SATSUSDT',
-                ];
-                const dates = [
-                    '2025-02-07',
-                    '2025-02-14',
-                    '2025-07-07',
-                    '2025-07-10',
-                    '2025-09-09',
-                    '2025-09-11',
-                    '2025-10-06',
-                    '2025-10-10',
-                    '2025-11-14'
-                ];
-                
-                const totalRequests = symbols.length * dates.length;
-                let completedRequests = 0;
-                
-                // Créer toutes les promesses en parallèle
-                const allPromises = [];
-                
-                for (const symbol of symbols) {
-                    for (const date of dates) {
-                        allPromises.push(
-                            getKline(symbol, date)
-                                .then(kline => {
-                                    completedRequests++;
-                                    const progress = Math.round((completedRequests / totalRequests) * 100);
-                                    progressBar.style.width = progress + '%';
-                                    progressBar.textContent = progress + '%';
-                                    return kline ? calculateDailyVariation(kline) : null;
-                                })
-                                .catch(error => {
-                                    console.warn(`Erreur pour ${symbol} le ${date}:`, error);
-                                    completedRequests++;
-                                    const progress = Math.round((completedRequests / totalRequests) * 100);
-                                    progressBar.style.width = progress + '%';
-                                    progressBar.textContent = progress + '%';
-                                    return null;
-                                })
-                        );
-                    }
-                }
+        let tableHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Symbole</th>
+                <th>07/02/2025</th><th>14/02/2025</th>
+                <th>07/07/2025</th><th>10/07/2025</th>
+                <th>09/09/2025</th><th>11/09/2025*</th>
+                <th>06/10/2025</th><th>10/10/2025</th>
+                <th>14/11/2025</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
 
-                // Attendre toutes les requêtes
-                const allVariations = await Promise.all(allPromises);
-                
-                // Restructurer les résultats par symbole
-                const results = [];
-                for (let i = 0; i < symbols.length; i++) {
-                    const variations = allVariations.slice(i * dates.length, (i + 1) * dates.length);
-                    results.push({
-                        symbol: symbols[i].replace('USDT', ''),
-                        variations: variations
-                    });
-                }
-
-                progressContainer.style.display = 'none';
-
-                let tableHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Symbole</th>
-                                <th>07/02/2025</th>
-                                <th>14/02/2025</th>
-                                <th>07/07/2025</th>
-                                <th>10/07/2025</th>
-                                <th>09/09/2025</th>
-                                <th>11/09/2025</th>
-                                <th>06/10/2025</th>
-                                <th>10/10/2025</th>
-                                <th>14/11/2025</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                results.forEach(result => {
-                    tableHTML += `<tr><td class="symbol">${result.symbol}</td>`;
-                    
-                    result.variations.forEach(variation => {
-                        if (variation === null) {
-                            tableHTML += `<td style="color: #9ca3af;">N/A</td>`;
-                        } else {
-                            const variationClass = variation >= 0 ? 'positive' : 'negative';
-                            const sign = variation >= 0 ? '+' : '';
-                            tableHTML += `<td class="${variationClass}">${sign}${variation.toFixed(2)}%</td>`;
-                        }
-                    });
-                    
-                    tableHTML += `</tr>`;
-                });
-
-                tableHTML += `
-                        </tbody>
-                    </table>
-                `;
-
-                content.innerHTML = tableHTML;
-
-            } catch (error) {
-                progressContainer.style.display = 'none';
-                content.innerHTML = `
-                    <div class="error">
-                        <strong>Erreur:</strong> ${error.message}
-                    </div>
-                `;
-            } finally {
-                btn.disabled = false;
+        results.forEach(r => {
+          tableHTML += `<tr><td class="symbol">${r.symbol}</td>`;
+          r.variations.forEach(v => {
+            if (v === null || !isFinite(v)) {
+              tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
+            } else {
+              const cls = v >= 0 ? 'positive' : 'negative';
+              const sign = v >= 0 ? '+' : '';
+              tableHTML += `<td class="${cls}">${sign}${v.toFixed(2)}%</td>`;
             }
-        }
+          });
+          tableHTML += `</tr>`;
+        });
 
-        fetchData();
-    </script>
+        tableHTML += `</tbody></table>`;
+        content.innerHTML = tableHTML;
+
+      } catch (err) {
+        progressContainer.style.display = 'none';
+        content.innerHTML = `<div class="error"><strong>Erreur:</strong> ${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    fetchData();
+  </script>
 </body>
 </html>
