@@ -193,15 +193,15 @@
             progressBar.textContent = '0%';
 
             try {
-                const symbols = ['BTCUSDT', 'ETHUSDT', 'DOGEUSDT', 'PEPEUSDT', 'XRPUSDT', 'SOLUSDT', 'SHIBAUSDT', 'TRBUSDT'];
+                const symbols = [
+                    'SOLUSDT', 
+                    '1000SATSUSDT',
+                ];
                 const dates = [
                     '2025-02-07',
                     '2025-02-14',
-                    '2025-03-21',
-                    '2025-04-02',
                     '2025-07-07',
                     '2025-07-10',
-                    '2025-09-04',
                     '2025-09-09',
                     '2025-09-11',
                     '2025-10-06',
@@ -212,32 +212,41 @@
                 const totalRequests = symbols.length * dates.length;
                 let completedRequests = 0;
                 
-                const results = [];
-
+                // Créer toutes les promesses en parallèle
+                const allPromises = [];
+                
                 for (const symbol of symbols) {
-                    const variations = [];
-                    
                     for (const date of dates) {
-                        try {
-                            const kline = await getKline(symbol, date);
-                            if (!kline) {
-                                variations.push(null);
-                            } else {
-                                variations.push(calculateDailyVariation(kline));
-                            }
-                        } catch (error) {
-                            console.warn(`Erreur pour ${symbol} le ${date}:`, error);
-                            variations.push(null);
-                        }
-                        
-                        completedRequests++;
-                        const progress = Math.round((completedRequests / totalRequests) * 100);
-                        progressBar.style.width = progress + '%';
-                        progressBar.textContent = progress + '%';
+                        allPromises.push(
+                            getKline(symbol, date)
+                                .then(kline => {
+                                    completedRequests++;
+                                    const progress = Math.round((completedRequests / totalRequests) * 100);
+                                    progressBar.style.width = progress + '%';
+                                    progressBar.textContent = progress + '%';
+                                    return kline ? calculateDailyVariation(kline) : null;
+                                })
+                                .catch(error => {
+                                    console.warn(`Erreur pour ${symbol} le ${date}:`, error);
+                                    completedRequests++;
+                                    const progress = Math.round((completedRequests / totalRequests) * 100);
+                                    progressBar.style.width = progress + '%';
+                                    progressBar.textContent = progress + '%';
+                                    return null;
+                                })
+                        );
                     }
+                }
 
+                // Attendre toutes les requêtes
+                const allVariations = await Promise.all(allPromises);
+                
+                // Restructurer les résultats par symbole
+                const results = [];
+                for (let i = 0; i < symbols.length; i++) {
+                    const variations = allVariations.slice(i * dates.length, (i + 1) * dates.length);
                     results.push({
-                        symbol: symbol.replace('USDT', ''),
+                        symbol: symbols[i].replace('USDT', ''),
                         variations: variations
                     });
                 }
@@ -251,11 +260,8 @@
                                 <th>Symbole</th>
                                 <th>07/02/2025</th>
                                 <th>14/02/2025</th>
-                                <th>21/03/2025</th>
-                                <th>02/04/2025</th>
                                 <th>07/07/2025</th>
                                 <th>10/07/2025</th>
-                                <th>04/09/2025</th>
                                 <th>09/09/2025</th>
                                 <th>11/09/2025</th>
                                 <th>06/10/2025</th>
