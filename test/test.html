@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taux de variation BTC/ETH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        th {
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .symbol {
+            font-weight: bold;
+            color: #333;
+        }
+        .positive {
+            color: #22c55e;
+            font-weight: bold;
+        }
+        .negative {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Taux de variation (Bougies Daily)</h1>
+        
+        <div id="content">
+            <div class="loading">Chargement des données...</div>
+        </div>
+
+        <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
+    </div>
+
+    <script>
+        async function getKline(symbol, date) {
+            const startOfDay = new Date(date);
+            startOfDay.setUTCHours(0, 0, 0, 0);
+            const endOfDay = new Date(date);
+            endOfDay.setUTCHours(23, 59, 59, 999);
+            
+            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Erreur API pour ${symbol}`);
+            const data = await response.json();
+            return data[0];
+        }
+
+        function calculateDailyVariation(kline) {
+            const open = parseFloat(kline[1]);
+            const close = parseFloat(kline[4]);
+            return ((close - open) / open) * 100;
+        }
+
+        async function fetchData() {
+            const content = document.getElementById('content');
+            const btn = document.getElementById('refreshBtn');
+            
+            btn.disabled = true;
+            content.innerHTML = '<div class="loading">Chargement des données...</div>';
+
+            try {
+                const symbols = ['BTCUSDT', 'ETHUSDT'];
+                const date1 = '2025-02-07';
+                const date2 = '2025-02-14';
+                
+                const results = [];
+
+                for (const symbol of symbols) {
+                    const kline1 = await getKline(symbol, date1);
+                    const kline2 = await getKline(symbol, date2);
+                    
+                    if (!kline1 || !kline2) {
+                        throw new Error(`Données manquantes pour ${symbol}`);
+                    }
+
+                    const variation1 = calculateDailyVariation(kline1);
+                    const variation2 = calculateDailyVariation(kline2);
+
+                    results.push({
+                        symbol: symbol.replace('USDT', ''),
+                        variation1: variation1,
+                        variation2: variation2
+                    });
+                }
+
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbole</th>
+                                <th>07/02/2025</th>
+                                <th>14/02/2025</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                results.forEach(result => {
+                    const variation1Class = result.variation1 >= 0 ? 'positive' : 'negative';
+                    const variation2Class = result.variation2 >= 0 ? 'positive' : 'negative';
+                    const sign1 = result.variation1 >= 0 ? '+' : '';
+                    const sign2 = result.variation2 >= 0 ? '+' : '';
+                    tableHTML += `
+                        <tr>
+                            <td class="symbol">${result.symbol}</td>
+                            <td class="${variation1Class}">${sign1}${result.variation1.toFixed(2)}%</td>
+                            <td class="${variation2Class}">${sign2}${result.variation2.toFixed(2)}%</td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+
+                content.innerHTML = tableHTML;
+
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="error">
+                        <strong>Erreur:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
