@@ -82,26 +82,32 @@
     const errEl = document.getElementById('err');
 
     // --- UI init (par défaut: Septembre 2025) ---
-    (function initSelectors(){
-      const years = [2023, 2024, 2025];
-      years.forEach(y=>{
-        const o = document.createElement('option');
-        o.value = y; o.textContent = y;
-        yearSel.appendChild(o);
-      });
-      yearSel.value = 2025;
+   (function initSelectors(){
+  // années "réelles" pour le backend
+  const years = [2023, 2024, 2025];
 
-      const months = [
-        '01 Jan','02 Fév','03 Mar','04 Avr','05 Mai','06 Jun',
-        '07 Jul','08 Aoû','09 Sep','10 Oct','11 Nov','12 Déc'
-      ];
-      months.forEach((m,i)=>{
-        const o = document.createElement('option');
-        o.value = i; o.textContent = m;
-        monthSel.appendChild(o);
-      });
-      monthSel.value = 8; // 0-index → 8 = septembre
-    })();
+  // 👉 on affiche +1 mais on garde la valeur réelle
+  years.forEach(y=>{
+    const o = document.createElement('option');
+    o.value = String(y);          // utilisé par le backend (inchangé)
+    o.textContent = String(y + 1); // affichage seulement
+    o.dataset.realYear = y;        // (optionnel) utile pour debug
+    yearSel.appendChild(o);
+  });
+  yearSel.value = '2025';          // valeur réelle sélectionnée (affiche 2026)
+
+  const months = [
+    '01 Jan','02 Fév','03 Mar','04 Avr','05 Mai','06 Jun',
+    '07 Jul','08 Aoû','09 Sep','10 Oct','11 Nov','12 Déc'
+  ];
+  months.forEach((m,i)=>{
+    const o = document.createElement('option');
+    o.value = i; o.textContent = m;
+    monthSel.appendChild(o);
+  });
+  monthSel.value = 8; // septembre
+})();
+
 
     function toBrusselsDate(ms){
       const d = new Date(ms);
