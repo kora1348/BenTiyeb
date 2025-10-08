@@ -32,7 +32,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>📊 Spike max (mèche haute) — Bougies Daily</h1>
+      <h1>📊 Spike max (mèche haute) — Bougies Daily - 21</h1>
       <div class="sub">Variation = <strong>(High − Open) / Open × 100</strong> — aucune clôture affichée</div>
       <div style="text-align:center;"><span class="year-badge">Année 2024</span></div>
 
@@ -47,6 +47,7 @@
       </div>
 
       <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
+      <p>R + V</p>
     </div>
 
     <script>
@@ -98,7 +99,7 @@
           ];
 
           const dates = [
-          '2024-04-12','2024-08-17','2025-01-04'
+          '2024-04-12', '2025-01-04'
           ];
 
           const totalRequests = symbols.length * dates.length;
@@ -147,7 +148,6 @@
                 <tr>
                   <th>Symbole</th>
                   <th>12/04/2024<br><small>Spike max ↑</small></th>
-                  <th>17/08/2024<br><small>Spike max ↑</small></th>
                   <th>04/01/2025<br><small>Spike max ↑</small></th>
                 </tr>
               </thead>
