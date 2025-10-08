@@ -56,6 +56,7 @@
           <tr>
             <th style="width:180px">Symbole</th>
             <th style="width:260px">Date 21e bougie (Europe/Brussels)</th>
+            <th style="width:260px">Date &gt; 1 an après (Europe/Brussels)</th>
             <th style="width:170px">Variation 21 bougie</th>
           </tr>
         </thead>
@@ -65,7 +66,7 @@
       <div class="hint">
         Détection du listing (non affichée) : première bougie journalière disponible (<code>startTime=0</code>).<br>
         On conserve uniquement les cryptos dont le <b>jour de listing</b> est dans le mois/année choisis.<br>
-        21e bougie = jour n°21 après le listing. Variation = (Close − Open) / Open × 100.
+        21e bougie = jour n°21 après le listing. Variation = (Close − Open) / Open × 100. La colonne “&gt; 1 an après” = (21e bougie) + 1 an + 1 jour.
       </div>
     </div>
   </main>
@@ -115,6 +116,14 @@
       }).format(new Date(ms)) + 'T00:00:00');
       return { y: d.getUTCFullYear(), m: d.getUTCMonth() };
     }
+    // ajoute strictement > 1 an : +1 an +1 jour en UTC (robuste aux années bissextiles)
+    // Remplacement de plusThanOneYear
+function plusThanOneYear(ms){
+  const d = new Date(ms);
+  d.setUTCFullYear(d.getUTCFullYear() + 1); // même jour/heure l'année suivante
+  return d.getTime() + 1; // +1 ms => strictement > 1 an sans changer l'affichage (à la minute)
+}
+
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
 
     async function fetchJSON(url){
@@ -176,7 +185,7 @@
             const kl = await fetchJSON(u.toString());
             if(!kl || !kl.length) return null;
 
-            // Bougie 1 (listing) — utilisée seulement pour filtrer le mois/année, pas affichée
+            // Bougie 1 (listing) — utilisée pour filtrer le mois/année
             const k1 = kl[0];
             const openTime1 = k1[0];
 
@@ -184,23 +193,23 @@
             if (y !== Y || m !== M) return null; // listé hors mois ciblé
 
             // 21e bougie (date + variation) si dispo
-            let openTime21 = null, pct21 = null;
+            let openTime21 = null, pct21 = null, openTime21Plus = null;
             if (kl.length >= 21){
               const k21 = kl[20];
               openTime21 = k21[0];
               const open21 = parseFloat(k21[1]);
               const close21 = parseFloat(k21[4]);
               pct21 = open21>0 ? ((close21-open21)/open21*100) : 0;
+              openTime21Plus = plusThanOneYear(openTime21);
             }
 
-            return { sym, openTime21, pct21 };
+            return { sym, openTime21, openTime21Plus, pct21 };
           }catch(e){
             return null;
           }
         });
 
         const out = rows.filter(Boolean).sort((a,b)=>{
-          // trie par date 21 si dispo, sinon par symbole
           if (a.openTime21 && b.openTime21) return a.openTime21 - b.openTime21;
           if (a.openTime21) return -1;
           if (b.openTime21) return 1;
@@ -208,7 +217,7 @@
         });
 
         if(out.length === 0){
-          tbody.innerHTML = `<tr><td colspan="3" class="muted">Aucun nouveau PERP USDT-M listé en ${String(M+1).padStart(2,'0')}/${Y}.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4" class="muted">Aucun nouveau PERP USDT-M listé en ${String(M+1).padStart(2,'0')}/${Y}.</td></tr>`;
         } else {
           const frag = document.createDocumentFragment();
           out.forEach(r=>{
@@ -216,6 +225,7 @@
             tr.innerHTML = `
               <td>${r.sym}</td>
               <td>${r.openTime21===null ? '<span class="muted">—</span>' : toBrusselsDate(r.openTime21)}</td>
+              <td>${r.openTime21Plus===null ? '<span class="muted">—</span>' : toBrusselsDate(r.openTime21Plus)}</td>
               <td>${r.pct21===null ? '<span class="muted">—</span>' : `<span class="${r.pct21>=0?'up':'down'}">${fmtPct(r.pct21)}</span>`}</td>
             `;
             frag.appendChild(tr);
