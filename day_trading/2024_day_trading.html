@@ -44,7 +44,7 @@
          <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
       </div>
       <script>
-         // ✅ 1) Utiliser l’API FUTURES (USDT-M)
+         // ✅ 1) Utiliser l'API FUTURES (USDT-M)
          const API = 'https://fapi.binance.com';
          
          // ✅ 2) Toujours normaliser les symboles en MAJUSCULE
@@ -52,9 +52,9 @@
          
          async function getKline(symbol, date) {
            const startOfDay = new Date(date);     // 'YYYY-MM-DD' -> locale
-           startOfDay.setUTCHours(0,0,0,0);       // on force l’UTC de 00:00
+           startOfDay.setUTCHours(0,0,0,0);       // on force l'UTC de 00:00
            const endOfDay = new Date(date);
-           endOfDay.setUTCHours(23,59,59,999);    // jusqu’à 23:59:59 UTC
+           endOfDay.setUTCHours(23,59,59,999);    // jusqu'à 23:59:59 UTC
          
            const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
            const res = await fetch(url);
@@ -93,7 +93,7 @@
          
              const dates = [
                '2025-02-07','2025-02-14','2025-07-07','2025-07-10',
-               '2025-09-09','2025-09-11','2025-10-06','2025-10-10','2025-11-14'
+               '2025-10-06','2025-10-10','2025-11-14'
              ];
          
              const totalRequests = symbols.length * dates.length;
@@ -145,7 +145,6 @@
                      <th>Symbole</th>
                      <th>07/02/2025</th><th>14/02/2025</th>
                      <th>07/07/2025</th><th>10/07/2025</th>
-                     <th>09/09/2025</th><th>11/09/2025*</th>
                      <th>06/10/2025</th><th>10/10/2025</th>
                      <th>14/11/2025</th>
                    </tr>
