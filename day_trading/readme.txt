@@ -17,3 +17,7 @@
 2) On a analysé les nouveaux cryptos listés en 2024 (dropdown 2025)
 
 #end 
+
+================= REGLES ================= 
+
+Janvier , Juin , Septembre 
