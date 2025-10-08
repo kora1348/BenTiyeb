@@ -31,8 +31,8 @@
    </head>
    <body>
       <div class="container">
-         <h1>📊 Taux de variation (Bougies Daily - 20)</h1>
-         <div style="text-align:center;"><span class="year-badge">Année 2024</span></div>
+         <h1>📊 Taux de variation (Bougies Daily - 18)</h1>
+         <div style="text-align:center;"><span class="year-badge">Année 2025</span></div>
          <div id="progressContainer" style="display:none;">
             <div class="progress-container">
                <div id="progressBar" class="progress-bar" style="width:0%;">0%</div>
@@ -42,7 +42,7 @@
             <div class="loading">Chargement des données...</div>
          </div>
          <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-         <p>R + V</p>
+            <p>R + R + R + R + R + R </p>
       </div>
       <script>
          // ✅ 1) Utiliser l'API FUTURES (USDT-M)
@@ -93,7 +93,8 @@
          
          
              const dates = [
-               '2024-04-11','2025-01-03'
+               '2025-02-04','2025-02-11','2025-07-04', '2025-07-07',
+               '2025-10-03','2025-10-07'
              ];
          
              const totalRequests = symbols.length * dates.length;
@@ -143,8 +144,9 @@
                  <thead>
                    <tr>
                      <th>Symbole</th>
-                     <th>11/04/2024</th>
-                     <th>03/01/2025</th>
+                     <th>04/02/2025</th><th>11/02/2025</th>
+                     <th>04/07/2025</th><th>07/07/2025</th>
+                     <th>03/10/2025</th><th>07/10/2025</th>
                    </tr>
                  </thead>
                  <tbody>
