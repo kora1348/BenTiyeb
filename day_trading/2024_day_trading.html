@@ -152,19 +152,39 @@
                  <tbody>
              `;
          
+             // Calculer les totaux par colonne
+             const totals = new Array(dates.length).fill(0);
+             const counts = new Array(dates.length).fill(0);
+             
              results.forEach(r => {
                tableHTML += `<tr><td class="symbol">${r.symbol}</td>`;
-               r.variations.forEach(v => {
+               r.variations.forEach((v, idx) => {
                  if (v === null || !isFinite(v)) {
                    tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
                  } else {
                    const cls = v >= 0 ? 'positive' : 'negative';
                    const sign = v >= 0 ? '+' : '';
                    tableHTML += `<td class="${cls}">${sign}${v.toFixed(2)}%</td>`;
+                   totals[idx] += v;
+                   counts[idx]++;
                  }
                });
                tableHTML += `</tr>`;
              });
+         
+             // Ajouter la ligne de total
+             tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
+             tableHTML += `<td class="symbol">TOTAL</td>`;
+             totals.forEach((total, idx) => {
+               if (counts[idx] === 0) {
+                 tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
+               } else {
+                 const cls = total >= 0 ? 'positive' : 'negative';
+                 const sign = total >= 0 ? '+' : '';
+                 tableHTML += `<td class="${cls}">${sign}${total.toFixed(2)}%</td>`;
+               }
+             });
+             tableHTML += `</tr>`;
          
              tableHTML += `</tbody></table>`;
              content.innerHTML = tableHTML;
