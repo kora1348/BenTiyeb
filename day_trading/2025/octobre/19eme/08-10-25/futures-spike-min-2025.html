@@ -6,7 +6,7 @@
       <title>Spike min (Low vs Open) — Futures USDT-M</title>
       <style>
          /* mêmes styles que ton code… (inchangés) */
-                  *{margin:0;padding:0;box-sizing:border-box}
+         *{margin:0;padding:0;box-sizing:border-box}
          body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
          .container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
          h1{text-align:center;color:#333;margin-bottom:30px;font-size:28px}
@@ -34,7 +34,7 @@
    </head>
    <body>
       <div class="container">
-         <h1>📉 Spike min (mèche la plus basse) — Bougies Daily 22</h1>
+         <h1>📉 Spike min (mèche la plus basse) — Bougies Daily 19</h1>
          <div class="sub">Variation = <strong>(Low − Open) / Open × 100</strong> — aucune clôture affichée</div>
          <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
          <div id="progressContainer" style="display:none;">
@@ -46,7 +46,7 @@
             <div class="loading">Chargement des données...</div>
          </div>
          <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-         <p>X + X + X + R + V + V</p>
+         <p>V + V + X + X + V + X </p>
       </div>
       <script>
          // ✅ API FUTURES (USDT-M)
@@ -97,8 +97,8 @@
              ];
          
              const dates = [
-               '2025-02-08','2025-02-15','2025-07-08','2025-07-11',
-                  '2025-10-07','2025-10-11'
+                    '2025-02-05','2025-02-12','2025-07-05', '2025-07-08',
+               '2025-10-04','2025-10-08'
              ];
          
              const totalRequests = symbols.length * dates.length;
@@ -146,12 +146,12 @@
                  <thead>
                    <tr>
                      <th>Symbole</th>
-                     <th>08/02/2025<br><small>Spike min ↓</small></th>
-                     <th>15/02/2025<br><small>Spike min ↓</small></th>
+                     <th>05/02/2025<br><small>Spike min ↓</small></th>
+                     <th>12/02/2025<br><small>Spike min ↓</small></th>
+                     <th>05/07/2025<br><small>Spike min ↓</small></th>
                      <th>08/07/2025<br><small>Spike min ↓</small></th>
-                     <th>11/07/2025<br><small>Spike min ↓</small></th>
-                     <th>07/10/2025<br><small>Spike min ↓</small></th>
-                     <th>11/10/2025<br><small>Spike min ↓</small></th>
+                     <th>04/10/2025<br><small>Spike min ↓</small></th>
+                     <th>08/10/2025<br><small>Spike min ↓</small></th>
                    </tr>
                  </thead>
                  <tbody>
