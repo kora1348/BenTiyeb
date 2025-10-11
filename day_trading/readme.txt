@@ -21,3 +21,6 @@
 ================= REGLES ================= 
 
 Janvier , Juin , Septembre 
+
+
+10 octobre = 21 bougies d'une nouvelle crypto de l'année 2024 après 21 jours ! 
