@@ -1,0 +1,30 @@
+*** en fait tu sais aussi me faire la 22eme bougie au lieu de la 21eme bougie?
+
+
+Top, voici les changements précis pour passer de 21e à 22e bougie :
+
+Texte/UI
+
+<title> : “21e bougie” → “22e bougie”
+
+<h1> : “21e bougie” → “22e bougie”
+
+En-têtes de colonnes : “Date 21e bougie” → “Date 22e bougie” ; “Variation 21 bougie” → “Variation 22e bougie”
+
+Aide (.hint) : “21e bougie = jour n°21 …” → “22e bougie = jour n°22 …”
+
+Dans l’aide, j’ai aussi harmonisé “+1 an +1 jour” en “+1 an (strictement > 1 an)” (implémenté via +1 milliseconde).
+
+Logique JS
+
+Requête klines : limit: '21' → limit: '22'
+
+Index de la bougie : kl[20] → kl[21] (car 22e = index 21)
+
+Variables : openTime21, pct21, openTime21Plus → openTime22, pct22, openTime22Plus
+
+Tri et affichage : usages de openTime21/pct21 → openTime22/pct22
+
+Détail mineur : j’utilise const openTime1 = kl[0][0]; (équivaut à avant) pour la date de listing.
+
+Fonction plusThanOneYear inchangée, mais utilisée sur la 22e bougie.
