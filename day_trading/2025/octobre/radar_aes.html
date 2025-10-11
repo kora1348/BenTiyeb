@@ -30,7 +30,7 @@
 </head>
 <body>
   <header>
-    <h1 id="h1">Listings en septembre • Bougie n°<span id="nLabel">20</span></h1>
+    <h1 id="h1">Listings en janvier • Bougie n°<span id="nLabel">20</span></h1>
     <div class="sub">Marché analysé : <b>Binance Futures — USDT-M PERP</b></div>
   </header>
 
@@ -52,7 +52,7 @@
         <button id="runBtn">Lister</button>
         <span id="status" class="muted"></span>
       </div>
-      <!-- 🔵 Affichage du mapping "N — JJ Mois AAAA" -->
+      <!-- Affichage "N — JJ Mois AAAA" -->
       <div class="muted" id="nCalendar" style="margin-left:auto">
         Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
       </div>
@@ -100,36 +100,38 @@
     const hintN2 = document.getElementById('hintN2');
     const hintN3 = document.getElementById('hintN3');
 
-    // zone d'affichage "N — JJ Mois AAAA"
     const nCalN = document.getElementById('nCalN');
     const nCalDate = document.getElementById('nCalDate');
 
-    // référence du "jour de listing" pour ce mois : le plus ancien detecté
     let refListingMs = null;
 
-    // --- UI init (par défaut: Septembre 2025, bougie n°20) ---
+    // --- UI init (Année: 2024 uniquement; Mois: Jan, Jun, Sep; Janvier par défaut) ---
     (function initSelectors(){
-      const years = [2023, 2024, 2025];
+      // Année réelle pour backend (affichage +1) -> seulement 2024
+      const years = [2024];
       years.forEach(y=>{
         const o = document.createElement('option');
         o.value = String(y);
-        o.textContent = String(y + 1); // affichage seulement
+        o.textContent = String(y + 1); // affiché 2025
         o.dataset.realYear = y;
         yearSel.appendChild(o);
       });
-      yearSel.value = '2025'; // (affichera 2026)
+      yearSel.value = '2024'; // affichera 2025
 
-      const months = [
-        '01 Jan','02 Fév','03 Mar','04 Avr','05 Mai','06 Jun',
-        '07 Jul','08 Aoû','09 Sep','10 Oct','11 Nov','12 Déc'
+      // Mois limités: Janvier (0), Juin (5), Septembre (8) — Janvier par défaut
+      const limitedMonths = [
+        { label: '01 Jan', value: 0 },
+        { label: '06 Jun', value: 5 },
+        { label: '09 Sep', value: 8 },
       ];
-      months.forEach((m,i)=>{
+      limitedMonths.forEach(({label,value})=>{
         const o = document.createElement('option');
-        o.value = i; o.textContent = m;
+        o.value = value; o.textContent = label;
         monthSel.appendChild(o);
       });
-      monthSel.value = 8; // septembre
+      monthSel.value = 0; // ✅ Janvier par défaut
 
+      // N° de bougie (10 → 60)
       for(let n=10;n<=60;n++){
         const o = document.createElement('option');
         o.value = n; o.textContent = String(n);
@@ -137,8 +139,8 @@
       }
       candleSel.value = '20';
 
-      updateLabels(); // initialise les libellés
-      updateNCalendar(); // placeholder
+      updateLabels();
+      updateNCalendar();
     })();
 
     function capitalizeFr(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -160,7 +162,7 @@
       hintN2.textContent = n;
       hintN3.textContent = n;
       document.title = `Listings — Bougie n°${n} (Binance Futures USDT-M PERP)`;
-      updateNCalendar(); // resynchronise l'affichage "N — date"
+      updateNCalendar();
     }
 
     function updateNCalendar(){
@@ -170,7 +172,6 @@
         nCalDate.textContent = '—';
         return;
       }
-      // bougie n = listing + (n-1) jours
       const ms = refListingMs + (n-1) * 24*60*60*1000;
       nCalDate.textContent = formatLongFrDate(ms);
     }
@@ -231,7 +232,7 @@
       statusEl.textContent = 'Chargement des symboles…';
       tbody.innerHTML = '';
       progressEl.textContent = '—';
-      refListingMs = null; // sera recalculé
+      refListingMs = null;
 
       const Y = parseInt(yearSel.value,10);
       const M = parseInt(monthSel.value,10);
@@ -255,12 +256,10 @@
             const kl = await fetchJSON(u.toString());
             if(!kl || !kl.length) return null;
 
-            // Bougie 1 (listing)
             const openTime1 = kl[0][0];
             const { y, m } = monthYearInBrussels(openTime1);
             if (y !== Y || m !== M) return null;
 
-            // Bougie n
             let openTimeN = null, pctN = null, openTimeNPlus = null;
             if (kl.length >= N){
               const kN = kl[N-1];
@@ -279,13 +278,12 @@
 
         const kept = rows.filter(Boolean);
 
-        // 🔵 Calcule la référence "premier jour de listing" (le plus ancien)
         if(kept.length){
           refListingMs = kept.reduce((min, r) => Math.min(min, r.openTime1), Number.POSITIVE_INFINITY);
         } else {
           refListingMs = null;
         }
-        updateNCalendar(); // met à jour "N — JJ Mois AAAA"
+        updateNCalendar();
 
         const out = kept.sort((a,b)=>{
           if (a.openTimeN && b.openTimeN) return a.openTimeN - b.openTimeN;
@@ -319,9 +317,7 @@
       }
     }
 
-    // Sync si changement de N avant exécution
     candleSel.addEventListener('change', ()=>updateLabels());
-
     document.getElementById('runBtn').addEventListener('click', run);
     run(); // lancement initial
   </script>
