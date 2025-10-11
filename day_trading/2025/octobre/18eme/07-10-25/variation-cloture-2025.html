@@ -5,7 +5,6 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
       <title>Taux de variation (Daily) — Futures USDT-M</title>
       <style>
-         /* mêmes styles que ton code… (inchangés) */
          *{margin:0;padding:0;box-sizing:border-box}
          body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
          .container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
@@ -21,19 +20,30 @@
          .negative{color:#ef4444;font-weight:bold}
          .loading{text-align:center;color:#666;padding:20px}
          .error{background:#fee;border:1px solid #fcc;color:#c33;padding:15px;border-radius:10px;margin-bottom:20px}
-         button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s}
+         button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s;margin-bottom:10px}
          button:hover{transform:translateY(-2px)}
          button:disabled{opacity:.5;cursor:not-allowed}
          .progress-container{width:100%;background:#e5e7eb;border-radius:10px;height:30px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
          .progress-bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:10px;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px}
          .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
          .year-badge a{color:white;text-decoration:none}
+         .nav-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+         .nav-btn{background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:12px;border-radius:10px;text-align:center;text-decoration:none;color:white;font-weight:bold;transition:transform .2s;display:block}
+         .nav-btn:hover{transform:translateY(-2px)}
+         .nav-btn.spike-max{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)}
+         .nav-btn.spike-min{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
       </style>
    </head>
    <body>
       <div class="container">
          <h1>📊 Taux de variation (Bougies Daily - 18)</h1>
          <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
+         
+         <div class="nav-buttons">
+            <a href="/day_trading/2025/octobre/18eme/07-10-25/futures-spike-max-2025.html" class="nav-btn spike-max">📈 Voir Spike Max (mèche haute)</a>
+            <a href="/day_trading/2025/octobre/18eme/07-10-25/futures-spike-min-2025.html" class="nav-btn spike-min">📉 Voir Spike Min (mèche basse)</a>
+         </div>
+
          <div id="progressContainer" style="display:none;">
             <div class="progress-container">
                <div id="progressBar" class="progress-bar" style="width:0%;">0%</div>
@@ -46,23 +56,20 @@
          <p>R + R + R + R + R + R </p>
       </div>
       <script>
-         // ✅ 1) Utiliser l'API FUTURES (USDT-M)
          const API = 'https://fapi.binance.com';
-         
-         // ✅ 2) Toujours normaliser les symboles en MAJUSCULE
          const U = s => s.trim().toUpperCase();
          
          async function getKline(symbol, date) {
-           const startOfDay = new Date(date);     // 'YYYY-MM-DD' -> locale
-           startOfDay.setUTCHours(0,0,0,0);       // on force l'UTC de 00:00
+           const startOfDay = new Date(date);
+           startOfDay.setUTCHours(0,0,0,0);
            const endOfDay = new Date(date);
-           endOfDay.setUTCHours(23,59,59,999);    // jusqu'à 23:59:59 UTC
+           endOfDay.setUTCHours(23,59,59,999);
          
            const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
            const res = await fetch(url);
            if (!res.ok) throw new Error(`Erreur API pour ${symbol} (${res.status})`);
            const data = await res.json();
-           return data[0]; // peut être undefined si pas de donnée ce jour-là
+           return data[0];
          }
          
          function calculateDailyVariation(kline) {
@@ -119,7 +126,7 @@
                        const progress = Math.round((completedRequests / totalRequests) * 100);
                        progressBar.style.width = progress + '%';
                        progressBar.textContent = progress + '%';
-                       return null; // non listé / pas de données / rate-limit
+                       return null;
                      })
                  );
                }
@@ -127,12 +134,10 @@
          
              const allVariations = await Promise.all(allPromises);
          
-             // Regrouper par symbole
              const results = [];
              for (let i = 0; i < symbols.length; i++) {
                const variations = allVariations.slice(i * dates.length, (i + 1) * dates.length);
                results.push({
-                 // affichage lisible : on montre le ticker en MAJ
                  symbol: U(symbols[i]),
                  variations
                });
@@ -153,7 +158,6 @@
                  <tbody>
              `;
          
-             // Calculer les totaux par colonne
              const totals = new Array(dates.length).fill(0);
              const counts = new Array(dates.length).fill(0);
              
@@ -173,7 +177,6 @@
                tableHTML += `</tr>`;
              });
          
-             // Ajouter la ligne de total
              tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
              tableHTML += `<td class="symbol">TOTAL</td>`;
              totals.forEach((total, idx) => {
