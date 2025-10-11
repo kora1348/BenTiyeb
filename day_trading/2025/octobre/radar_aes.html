@@ -26,6 +26,26 @@
     .hint{font-size:12px;color:var(--muted);margin-top:8px}
     .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:13px}
     .right{position:absolute;top:12px;right:12px}
+
+    /* Bouton Accueil en blanc */
+    #homeBtn { color:white!important; border:1px solid var(--border); }
+    #homeBtn a { color:white!important; text-decoration:none; display:block; }
+
+    /* Bannière date de la bougie (sous le tableau) */
+    .candle-date-banner{
+      margin:16px 0 6px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#facc15;            /* jaune bien visible */
+      color:#111827;                  /* texte foncé pour contraste */
+      border:1px solid #f59e0b;       /* liseré jaune plus foncé */
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:700;
+      font-size:18px;
+      letter-spacing:.5px;
+    }
   </style>
 </head>
 <body>
@@ -49,10 +69,11 @@
         <select id="candleSel"></select>
       </label>
       <div style="display:flex;gap:8px;align-items:center">
-        <button id="runBtn">Lister</button>
+        <button id="runBtn">Run</button>
+        <button id="homeBtn"><a href="/index.html">Accueil</a></button>
         <span id="status" class="muted"></span>
       </div>
-      <!-- Affichage "N — JJ Mois AAAA" -->
+      <!-- Affichage "N — JJ Mois AAAA" (inchangé) -->
       <div class="muted" id="nCalendar" style="margin-left:auto">
         Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
       </div>
@@ -79,6 +100,9 @@
         Variation = (Close − Open) / Open × 100.
         La colonne “&gt; 1 an après” = (bougie n°<span id="hintN3">20</span>) + 1 an (strictement &gt; 1 an).
       </div>
+
+      <!-- Bannière de date de la bougie, sous le tableau -->
+      <div id="candleDateBanner" class="candle-date-banner">—</div>
     </div>
   </main>
 
@@ -103,11 +127,20 @@
     const nCalN = document.getElementById('nCalN');
     const nCalDate = document.getElementById('nCalDate');
 
-    let refListingMs = null;
+    /* Référence à la bannière jaune */
+    const candleDateBanner = document.getElementById('candleDateBanner');
+
+    /* ---- BASE FIXE POUR LA BANNIÈRE ----
+       Bougie 20 = 09/10/2025 (Europe/Brussels) => on calcule N par décalage en jours
+       (N - 20) * 1 jour. */
+    const dayMs = 24*60*60*1000;
+    // 09 oct 2025 à 00:00:00 UTC pour rester stable, puis formatée en Europe/Brussels
+    const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0); // mois 9 = octobre
+
+    let refListingMs = null; // reste utilisé pour l'en-tête "N — JJ Mois AAAA" et le tableau
 
     // --- UI init (Année: 2024 uniquement; Mois: Jan, Jun, Sep; Janvier par défaut) ---
     (function initSelectors(){
-      // Année réelle pour backend (affichage +1) -> seulement 2024
       const years = [2024];
       years.forEach(y=>{
         const o = document.createElement('option');
@@ -118,7 +151,6 @@
       });
       yearSel.value = '2024'; // affichera 2025
 
-      // Mois limités: Janvier (0), Juin (5), Septembre (8) — Janvier par défaut
       const limitedMonths = [
         { label: '01 Jan', value: 0 },
         { label: '06 Jun', value: 5 },
@@ -129,9 +161,8 @@
         o.value = value; o.textContent = label;
         monthSel.appendChild(o);
       });
-      monthSel.value = 0; // ✅ Janvier par défaut
+      monthSel.value = 0; // Janvier
 
-      // N° de bougie (10 → 60)
       for(let n=10;n<=60;n++){
         const o = document.createElement('option');
         o.value = n; o.textContent = String(n);
@@ -141,6 +172,7 @@
 
       updateLabels();
       updateNCalendar();
+      updateBannerOnly(); // affiche déjà 09/10/25 au chargement pour bougie 20
     })();
 
     function capitalizeFr(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -153,6 +185,13 @@
       return `${day} ${capitalizeFr(month)} ${year}`;
     }
 
+    function formatShortFrDate(ms){
+      const d = new Date(ms);
+      return new Intl.DateTimeFormat('fr-BE', {
+        timeZone: tz, day:'2-digit', month:'2-digit', year:'2-digit'
+      }).format(d);
+    }
+
     function updateLabels(){
       const n = parseInt(candleSel.value,10);
       nLabel.textContent = n;
@@ -163,8 +202,10 @@
       hintN3.textContent = n;
       document.title = `Listings — Bougie n°${n} (Binance Futures USDT-M PERP)`;
       updateNCalendar();
+      updateBannerOnly(); // met à jour la bannière selon la règle fixe
     }
 
+    // Met à jour l’encart "Bougie n°N — JJ Mois AAAA" (inchangé, dépend de refListingMs)
     function updateNCalendar(){
       const n = parseInt(candleSel.value,10);
       nCalN.textContent = n;
@@ -172,8 +213,15 @@
         nCalDate.textContent = '—';
         return;
       }
-      const ms = refListingMs + (n-1) * 24*60*60*1000;
+      const ms = refListingMs + (n-1) * dayMs;
       nCalDate.textContent = formatLongFrDate(ms);
+    }
+
+    // AJOUT : met à jour la bannière jaune selon ta règle fixe
+    function updateBannerOnly(){
+      const n = parseInt(candleSel.value,10);
+      const ms = BANNER_BASE_MS + (n - 20) * dayMs;
+      candleDateBanner.textContent = formatShortFrDate(ms); // JJ/MM/AA
     }
 
     candleSel.addEventListener('change', updateLabels);
@@ -283,7 +331,7 @@
         } else {
           refListingMs = null;
         }
-        updateNCalendar();
+        updateNCalendar(); // met à jour l’entête (la bannière jaune suit sa règle fixe)
 
         const out = kept.sort((a,b)=>{
           if (a.openTimeN && b.openTimeN) return a.openTimeN - b.openTimeN;
@@ -319,7 +367,12 @@
 
     candleSel.addEventListener('change', ()=>updateLabels());
     document.getElementById('runBtn').addEventListener('click', run);
-    run(); // lancement initial
+
+    const homeBtn = document.getElementById('homeBtn');
+    homeBtn.addEventListener('click', ()=>{ window.location.href = '/'; });
+
+    // Lancement auto désactivé
+    //run();
   </script>
 </body>
 </html>
