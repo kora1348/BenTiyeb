@@ -3,7 +3,7 @@
    <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>Taux de variation (Daily) — Futures USDT-M</title>
+      <title>Spike min (Low vs Open) — Futures USDT-M</title>
       <style>
          /* mêmes styles que ton code… (inchangés) */
          *{margin:0;padding:0;box-sizing:border-box}
@@ -27,11 +27,15 @@
          .progress-container{width:100%;background:#e5e7eb;border-radius:10px;height:30px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
          .progress-bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:10px;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px}
          .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
+         .sub{color:#555;text-align:center;margin:-18px 0 18px 0;font-size:13px}
+         .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
+         .year-badge a{color:white;text-decoration:none}
       </style>
    </head>
    <body>
       <div class="container">
-         <h1>📊 Taux de variation (Bougies Daily - 19) *Annulé</h1>
+         <h1>📉 Spike min (mèche la plus basse) — Bougies Daily 21</h1>
+         <div class="sub">Variation = <strong>(Low − Open) / Open × 100</strong> — aucune clôture affichée</div>
          <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
          <div id="progressContainer" style="display:none;">
             <div class="progress-container">
@@ -42,32 +46,35 @@
             <div class="loading">Chargement des données...</div>
          </div>
          <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-            <p>V + V + X + X + V + X </p>
+         <p>V + V + R + V + V + R</p>
       </div>
       <script>
-         // ✅ 1) Utiliser l'API FUTURES (USDT-M)
+         // ✅ API FUTURES (USDT-M)
          const API = 'https://fapi.binance.com';
          
-         // ✅ 2) Toujours normaliser les symboles en MAJUSCULE
+         // ✅ Normaliser en MAJUSCULE
          const U = s => s.trim().toUpperCase();
          
+         // Récupère la bougie daily couvrant `date` (UTC)
          async function getKline(symbol, date) {
-           const startOfDay = new Date(date);     // 'YYYY-MM-DD' -> locale
-           startOfDay.setUTCHours(0,0,0,0);       // on force l'UTC de 00:00
+           const startOfDay = new Date(date);
+           startOfDay.setUTCHours(0,0,0,0);
            const endOfDay = new Date(date);
-           endOfDay.setUTCHours(23,59,59,999);    // jusqu'à 23:59:59 UTC
+           endOfDay.setUTCHours(23,59,59,999);
          
            const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
            const res = await fetch(url);
            if (!res.ok) throw new Error(`Erreur API pour ${symbol} (${res.status})`);
            const data = await res.json();
-           return data[0]; // peut être undefined si pas de donnée ce jour-là
+           return data[0]; // undefined si pas de donnée ce jour-là
          }
          
-         function calculateDailyVariation(kline) {
-           const open = parseFloat(kline[1]);
-           const close = parseFloat(kline[4]);
-           return ((close - open) / open) * 100;
+         // 🔴 Calcul SPIKE MIN: (Low − Open) / Open × 100  (souvent négatif)
+         function calcSpikeMinPct(kline) {
+           const open = parseFloat(kline[1]); // open
+           const low  = parseFloat(kline[3]); // low
+           if (!isFinite(open) || open === 0 || !isFinite(low)) return null;
+           return ((low - open) / open) * 100;
          }
          
          async function fetchData() {
@@ -83,25 +90,21 @@
            progressBar.textContent = '0%';
          
            try {
-            const symbols = [
-             "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
-         "1000satsusdt", "1000luncusdt", 
-         "ANKRUSDT","DENTUSDT",
-         "ENJUSDT", "NXPCUSDT",
-         
-         ];
-         
+             // Liste modifiable
+             const symbols = [
+               "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+               "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT"
+             ];
          
              const dates = [
-               '2025-02-05','2025-02-12','2025-07-05', '2025-07-08',
-               '2025-10-04','2025-10-08'
+               '2025-02-07','2025-02-14','2025-07-07','2025-07-10',
+               '2025-10-06','2025-10-10'
              ];
          
              const totalRequests = symbols.length * dates.length;
              let completedRequests = 0;
          
              const allPromises = [];
-         
              for (const symbol of symbols) {
                for (const date of dates) {
                  allPromises.push(
@@ -111,14 +114,14 @@
                        const progress = Math.round((completedRequests / totalRequests) * 100);
                        progressBar.style.width = progress + '%';
                        progressBar.textContent = progress + '%';
-                       return kline ? calculateDailyVariation(kline) : null;
+                       return kline ? calcSpikeMinPct(kline) : null;
                      })
                      .catch(() => {
                        completedRequests++;
                        const progress = Math.round((completedRequests / totalRequests) * 100);
                        progressBar.style.width = progress + '%';
                        progressBar.textContent = progress + '%';
-                       return null; // non listé / pas de données / rate-limit
+                       return null; // non listé / pas de data / rate-limit
                      })
                  );
                }
@@ -131,7 +134,6 @@
              for (let i = 0; i < symbols.length; i++) {
                const variations = allVariations.slice(i * dates.length, (i + 1) * dates.length);
                results.push({
-                 // affichage lisible : on montre le ticker en MAJ
                  symbol: U(symbols[i]),
                  variations
                });
@@ -144,24 +146,28 @@
                  <thead>
                    <tr>
                      <th>Symbole</th>
-                     <th>05/02/2025</th><th>12/02/2025</th>
-                     <th>05/07/2025</th><th>08/07/2025</th>
-                     <th>04/10/2025</th><th>08/10/2025</th>
+                     <th>07/02/2025<br><small>Spike min ↓</small></th>
+                     <th>14/02/2025<br><small>Spike min ↓</small></th>
+                     <th>07/07/2025<br><small>Spike min ↓</small></th>
+                     <th>10/07/2025<br><small>Spike min ↓</small></th>
+                     <th>06/10/2025<br><small>Spike min ↓</small></th>
+                     <th>10/10/2025<br><small>Spike min ↓</small></th>
                    </tr>
                  </thead>
                  <tbody>
              `;
          
-             // Calculer les totaux par colonne
+             // Totaux par colonne (somme des spikes min)
              const totals = new Array(dates.length).fill(0);
              const counts = new Array(dates.length).fill(0);
-             
+         
              results.forEach(r => {
                tableHTML += `<tr><td class="symbol">${r.symbol}</td>`;
                r.variations.forEach((v, idx) => {
                  if (v === null || !isFinite(v)) {
                    tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
                  } else {
+                   // v est souvent négatif → rouge
                    const cls = v >= 0 ? 'positive' : 'negative';
                    const sign = v >= 0 ? '+' : '';
                    tableHTML += `<td class="${cls}">${sign}${v.toFixed(2)}%</td>`;
@@ -172,9 +178,9 @@
                tableHTML += `</tr>`;
              });
          
-             // Ajouter la ligne de total
+             // Ligne TOTAL
              tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
-             tableHTML += `<td class="symbol">TOTAL</td>`;
+             tableHTML += `<td class="symbol">TOTAL (somme spikes min)</td>`;
              totals.forEach((total, idx) => {
                if (counts[idx] === 0) {
                  tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
