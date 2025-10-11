@@ -32,9 +32,9 @@
   </head>
   <body>
     <div class="container">
-      <h1>📊 Spike max (mèche haute) — Bougies Daily 20</h1>
+      <h1>📊 Spike max (mèche haute) — Bougies Daily 21</h1>
       <div class="sub">Variation = <strong>(High − Open) / Open × 100</strong> — aucune clôture affichée</div>
-      <div style="text-align:center;"><span class="year-badge">Année 2025</span></div>
+      <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
 
       <div id="progressContainer" style="display:none;">
         <div class="progress-container">
@@ -47,7 +47,7 @@
       </div>
 
       <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-      <p>R + R + V + V + R + R </p>
+       <p>V + V + R + V + V + R</p>
     </div>
 
     <script>
@@ -98,10 +98,10 @@
             "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT"
           ];
 
-         const dates = [
-               '2025-02-06','2025-02-13','2025-07-06', '2025-07-09',
-               '2025-10-05','2025-10-09'
-             ];
+          const dates = [
+            '2025-02-07','2025-02-14','2025-07-07','2025-07-10',
+            '2025-10-06','2025-10-10'
+          ];
 
           const totalRequests = symbols.length * dates.length;
           let completedRequests = 0;
@@ -148,12 +148,12 @@
               <thead>
                 <tr>
                   <th>Symbole</th>
-                  <th>06/02/2025<br><small>Spike max ↑</small></th>
-                  <th>13/02/2025<br><small>Spike max ↑</small></th>
-                  <th>06/07/2025<br><small>Spike max ↑</small></th>
-                  <th>09/07/2025<br><small>Spike max ↑</small></th>
-                  <th>05/10/2025<br><small>Spike max ↑</small></th>
-                  <th>09/10/2025<br><small>Spike max ↑</small></th>
+                  <th>07/02/2025<br><small>Spike max ↑</small></th>
+                  <th>14/02/2025<br><small>Spike max ↑</small></th>
+                  <th>07/07/2025<br><small>Spike max ↑</small></th>
+                  <th>10/07/2025<br><small>Spike max ↑</small></th>
+                  <th>06/10/2025<br><small>Spike max ↑</small></th>
+                  <th>10/10/2025<br><small>Spike max ↑</small></th>
                 </tr>
               </thead>
               <tbody>

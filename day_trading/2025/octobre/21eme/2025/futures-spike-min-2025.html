@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Spike max (High vs Open) — Futures USDT-M</title>
+    <title>Spike min (Low vs Open) — Futures USDT-M</title>
     <style>
       /* mêmes styles que ton code… (inchangés) */
       *{margin:0;padding:0;box-sizing:border-box}
@@ -32,9 +32,9 @@
   </head>
   <body>
     <div class="container">
-      <h1>📊 Spike max (mèche haute) — Bougies Daily 21</h1>
-      <div class="sub">Variation = <strong>(High − Open) / Open × 100</strong> — aucune clôture affichée</div>
-      <div style="text-align:center;"><span class="year-badge">Année 2025</span></div>
+      <h1>📉 Spike min (mèche la plus basse) — Bougies Daily 21</h1>
+      <div class="sub">Variation = <strong>(Low − Open) / Open × 100</strong> — aucune clôture affichée</div>
+      <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
 
       <div id="progressContainer" style="display:none;">
         <div class="progress-container">
@@ -71,12 +71,12 @@
         return data[0]; // undefined si pas de donnée ce jour-là
       }
 
-      // 🟢 Calcul SPIKE MAX: (High − Open) / Open × 100
-      function calcSpikeMaxPct(kline) {
+      // 🔴 Calcul SPIKE MIN: (Low − Open) / Open × 100  (souvent négatif)
+      function calcSpikeMinPct(kline) {
         const open = parseFloat(kline[1]); // open
-        const high = parseFloat(kline[2]); // high
-        if (!isFinite(open) || open === 0 || !isFinite(high)) return null;
-        return ((high - open) / open) * 100;
+        const low  = parseFloat(kline[3]); // low
+        if (!isFinite(open) || open === 0 || !isFinite(low)) return null;
+        return ((low - open) / open) * 100;
       }
 
       async function fetchData() {
@@ -92,7 +92,7 @@
         progressBar.textContent = '0%';
 
         try {
-          // Tu peux modifier librement cette liste
+          // Liste modifiable
           const symbols = [
             "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
             "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT"
@@ -116,7 +116,7 @@
                     const progress = Math.round((completedRequests / totalRequests) * 100);
                     progressBar.style.width = progress + '%';
                     progressBar.textContent = progress + '%';
-                    return kline ? calcSpikeMaxPct(kline) : null;
+                    return kline ? calcSpikeMinPct(kline) : null;
                   })
                   .catch(() => {
                     completedRequests++;
@@ -148,18 +148,18 @@
               <thead>
                 <tr>
                   <th>Symbole</th>
-                  <th>07/02/2025<br><small>Spike max ↑</small></th>
-                  <th>14/02/2025<br><small>Spike max ↑</small></th>
-                  <th>07/07/2025<br><small>Spike max ↑</small></th>
-                  <th>10/07/2025<br><small>Spike max ↑</small></th>
-                  <th>06/10/2025<br><small>Spike max ↑</small></th>
-                  <th>10/10/2025<br><small>Spike max ↑</small></th>
+                  <th>07/02/2025<br><small>Spike min ↓</small></th>
+                  <th>14/02/2025<br><small>Spike min ↓</small></th>
+                  <th>07/07/2025<br><small>Spike min ↓</small></th>
+                  <th>10/07/2025<br><small>Spike min ↓</small></th>
+                  <th>06/10/2025<br><small>Spike min ↓</small></th>
+                  <th>10/10/2025<br><small>Spike min ↓</small></th>
                 </tr>
               </thead>
               <tbody>
           `;
 
-          // Totaux par colonne (somme des spikes)
+          // Totaux par colonne (somme des spikes min)
           const totals = new Array(dates.length).fill(0);
           const counts = new Array(dates.length).fill(0);
 
@@ -169,6 +169,7 @@
               if (v === null || !isFinite(v)) {
                 tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
               } else {
+                // v est souvent négatif → rouge
                 const cls = v >= 0 ? 'positive' : 'negative';
                 const sign = v >= 0 ? '+' : '';
                 tableHTML += `<td class="${cls}">${sign}${v.toFixed(2)}%</td>`;
@@ -181,7 +182,7 @@
 
           // Ligne TOTAL
           tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
-          tableHTML += `<td class="symbol">TOTAL (somme des spikes)</td>`;
+          tableHTML += `<td class="symbol">TOTAL (somme spikes min)</td>`;
           totals.forEach((total, idx) => {
             if (counts[idx] === 0) {
               tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
