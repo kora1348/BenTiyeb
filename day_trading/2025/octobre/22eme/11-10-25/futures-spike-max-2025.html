@@ -3,7 +3,7 @@
    <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>Spike max — 11-10-25</title>
+      <title>Spike max — </title>
       <style>
          /* mêmes styles que ton code… (inchangés) */
          *{margin:0;padding:0;box-sizing:border-box}
@@ -46,9 +46,50 @@
             <div class="loading">Chargement des données...</div>
          </div>
          <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-         <p>X + X + X + R + V + V</p>
+         <p></p>
       </div>
       <script>
+         /* === Ajout: adapter automatiquement le <title> et le <h1> depuis une date === */
+         const REF_DATE_FR = '11/10/2025'; // ← change ici la date (JJ/MM/AAAA)
+         
+         function ddmmyyyyToPartsFR(str){
+           const [jj, mm, aaaa] = str.split('/').map(Number);
+           return { jj, mm, aaaa };
+         }
+         function dateUTC(yyyy, mm, dd){
+           return new Date(Date.UTC(yyyy, mm - 1, dd));
+         }
+         function daysBetweenUTC(d1, d2){
+           const msDay = 24*60*60*1000;
+           const t1 = Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
+           const t2 = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate());
+           return Math.round((t2 - t1) / msDay);
+         }
+         
+         (function applyTitleAndH1(){
+           // 20e bougie = 09/10/2025
+           const ref20 = dateUTC(2025, 10, 9);
+         
+           const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
+           const sel   = dateUTC(aaaa, mm, jj);
+         
+           const delta = daysBetweenUTC(ref20, sel);
+           const numeroBougie = 20 + delta;
+         
+           // Mettre à jour <title> : "Spike max — JJ-MM-AA"
+           const t = document.querySelector('title');
+           if (t){
+             const yy = String(aaaa).slice(-2);
+             t.textContent = `Spike max — ${String(jj).padStart(2,'0')}-${String(mm).padStart(2,'0')}-${yy}`;
+           }
+         
+           // Mettre à jour le <h1> (on ne change pas la structure)
+           const h1 = document.querySelector('h1');
+           if (h1){
+             h1.textContent = `📊 Spike max (mèche haute) — Bougies Daily ${numeroBougie}`;
+           }
+         })();
+         
          // ✅ API FUTURES (USDT-M)
          const API = 'https://fapi.binance.com';
          
@@ -97,8 +138,8 @@
              ];
          
              const dates = [
-              '2025-02-08','2025-02-15','2025-07-08','2025-07-11',
-                  '2025-10-07','2025-10-11'
+               '2025-02-08','2025-02-15','2025-07-08','2025-07-11',
+               '2025-10-07','2025-10-11'
              ];
          
              const totalRequests = symbols.length * dates.length;

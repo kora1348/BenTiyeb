@@ -3,7 +3,7 @@
    <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>09-10-25</title>
+      <title>Spike min — </title>
       <style>
          /* mêmes styles que ton code… (inchangés) */
          *{margin:0;padding:0;box-sizing:border-box}
@@ -21,28 +21,22 @@
          .negative{color:#ef4444;font-weight:bold}
          .loading{text-align:center;color:#666;padding:20px}
          .error{background:#fee;border:1px solid #fcc;color:#c33;padding:15px;border-radius:10px;margin-bottom:20px}
-         button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s;margin-bottom:10px}
+         button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s}
          button:hover{transform:translateY(-2px)}
          button:disabled{opacity:.5;cursor:not-allowed}
          .progress-container{width:100%;background:#e5e7eb;border-radius:10px;height:30px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
          .progress-bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:10px;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px}
          .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
+         .sub{color:#555;text-align:center;margin:-18px 0 18px 0;font-size:13px}
+         .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
          .year-badge a{color:white;text-decoration:none}
-         .nav-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
-         .nav-btn{background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:12px;border-radius:10px;text-align:center;text-decoration:none;color:white;font-weight:bold;transition:transform .2s;display:block}
-         .nav-btn:hover{transform:translateY(-2px)}
-         .nav-btn.spike-max{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)}
-         .nav-btn.spike-min{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
       </style>
    </head>
    <body>
       <div class="container">
-         <h1>📊 Taux de variation (Bougies Daily - 20)</h1>
+         <h1 id="pageTitle">📉 Spike min (mèche la plus basse) — Bougies Daily 22</h1>
+         <div class="sub">Variation = <strong>(Low − Open) / Open × 100</strong> — aucune clôture affichée</div>
          <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
-         <div class="nav-buttons">
-            <a href="/day_trading/2025/octobre/20eme/09-10-25/futures-spike-max-2025.html" class="nav-btn spike-max">📈 Voir Spike Max (mèche haute)</a>
-            <a href="/day_trading/2025/octobre/20eme/09-10-25/futures-spike-min-2025.html" class="nav-btn spike-min">📉 Voir Spike Min (mèche basse)</a>
-         </div>
          <div id="progressContainer" style="display:none;">
             <div class="progress-container">
                <div id="progressBar" class="progress-bar" style="width:0%;">0%</div>
@@ -52,32 +46,76 @@
             <div class="loading">Chargement des données...</div>
          </div>
          <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-         <p>R + R + V + V + R + R </p>
+         <p></p>
       </div>
       <script>
-         // ✅ 1) Utiliser l'API FUTURES (USDT-M)
+         /* === Ajout: adapter automatiquement le <title> et le <h1> à partir d'une date === */
+         const REF_DATE_FR = '11/10/2025'; // ← change ici la date (JJ/MM/AAAA)
+         
+         function ddmmyyyyToPartsFR(str){
+           const [jj, mm, aaaa] = str.split('/').map(Number);
+           return { jj, mm, aaaa };
+         }
+         function dateUTC(yyyy, mm, dd){
+           return new Date(Date.UTC(yyyy, mm - 1, dd));
+         }
+         function daysBetweenUTC(d1, d2){
+           const msDay = 24*60*60*1000;
+           const t1 = Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
+           const t2 = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate());
+           return Math.round((t2 - t1) / msDay);
+         }
+         
+         (function applyTitleAndH1(){
+           // 20e bougie = 09/10/2025
+           const ref20 = dateUTC(2025, 10, 9);
+         
+           const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
+           const sel   = dateUTC(aaaa, mm, jj);
+         
+           const delta = daysBetweenUTC(ref20, sel);
+           const numeroBougie = 20 + delta;
+         
+           // Mettre à jour <title> sous forme "Spike min — JJ-MM-AA"
+           const t = document.querySelector('title');
+           if (t){
+             const yy = String(aaaa).slice(-2);
+             t.textContent = `Spike min — ${String(jj).padStart(2,'0')}-${String(mm).padStart(2,'0')}-${yy}`;
+           }
+         
+           // Mettre à jour le <h1>
+           const h1 = document.getElementById('pageTitle') || document.querySelector('h1');
+           if (h1){
+             h1.textContent = `📉 Spike min (mèche la plus basse) — Bougies Daily ${numeroBougie}`;
+           }
+         })();
+         
+         // ✅ API FUTURES (USDT-M)
          const API = 'https://fapi.binance.com';
          
-         // ✅ 2) Toujours normaliser les symboles en MAJUSCULE
+         // ✅ Normaliser en MAJUSCULE
          const U = s => s.trim().toUpperCase();
          
+         // Récupère la bougie daily couvrant `date` (UTC)
          async function getKline(symbol, date) {
-           const startOfDay = new Date(date);     // 'YYYY-MM-DD' -> locale
-           startOfDay.setUTCHours(0,0,0,0);       // on force l'UTC de 00:00
+           const startOfDay = new Date(date);
+           startOfDay.setUTCHours(0,0,0,0);
            const endOfDay = new Date(date);
-           endOfDay.setUTCHours(23,59,59,999);    // jusqu'à 23:59:59 UTC
+           endOfDay.setUTCHours(23,59,59,999);
          
            const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
            const res = await fetch(url);
            if (!res.ok) throw new Error(`Erreur API pour ${symbol} (${res.status})`);
            const data = await res.json();
-           return data[0]; // peut être undefined si pas de donnée ce jour-là
+           return data[0]; // undefined si pas de donnée ce jour-là
          }
          
-         function calculateDailyVariation(kline) {
-           const open = parseFloat(kline[1]);
-           const close = parseFloat(kline[4]);
-           return ((close - open) / open) * 100;
+         // 🔴 Calcul SPIKE MIN: (Low − Open) / Open × 100  (souvent négatif)
+         function calcSpikeMinPct(kline) {
+           const open = parseFloat(kline[1]); // open
+           const low  = parseFloat(kline[3]); // low
+           if (!isFinite(open) || open === 0 || !isFinite(low)) return null;
+           return ((low - open) / open) * 100;
          }
          
          async function fetchData() {
@@ -93,25 +131,21 @@
            progressBar.textContent = '0%';
          
            try {
-            const symbols = [
-             "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
-         "1000satsusdt", "1000luncusdt", 
-         "ANKRUSDT","DENTUSDT",
-         "ENJUSDT", "NXPCUSDT",
-         
-         ];
-         
+             // Liste modifiable
+             const symbols = [
+               "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+               "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT"
+             ];
          
              const dates = [
-               '2025-02-06','2025-02-13','2025-07-06', '2025-07-09',
-               '2025-10-05','2025-10-09'
+               '2025-02-08','2025-02-15','2025-07-08','2025-07-11',
+               '2025-10-07','2025-10-11'
              ];
          
              const totalRequests = symbols.length * dates.length;
              let completedRequests = 0;
          
              const allPromises = [];
-         
              for (const symbol of symbols) {
                for (const date of dates) {
                  allPromises.push(
@@ -121,14 +155,14 @@
                        const progress = Math.round((completedRequests / totalRequests) * 100);
                        progressBar.style.width = progress + '%';
                        progressBar.textContent = progress + '%';
-                       return kline ? calculateDailyVariation(kline) : null;
+                       return kline ? calcSpikeMinPct(kline) : null;
                      })
                      .catch(() => {
                        completedRequests++;
                        const progress = Math.round((completedRequests / totalRequests) * 100);
                        progressBar.style.width = progress + '%';
                        progressBar.textContent = progress + '%';
-                       return null; // non listé / pas de données / rate-limit
+                       return null; // non listé / pas de data / rate-limit
                      })
                  );
                }
@@ -141,7 +175,6 @@
              for (let i = 0; i < symbols.length; i++) {
                const variations = allVariations.slice(i * dates.length, (i + 1) * dates.length);
                results.push({
-                 // affichage lisible : on montre le ticker en MAJ
                  symbol: U(symbols[i]),
                  variations
                });
@@ -154,24 +187,28 @@
                  <thead>
                    <tr>
                      <th>Symbole</th>
-                     <th>06/02/2025</th><th>13/02/2025</th>
-                     <th>06/07/2025</th><th>09/07/2025</th>
-                     <th>05/10/2025</th><th>09/10/2025</th>
+                     <th>08/02/2025<br><small>Spike min ↓</small></th>
+                     <th>15/02/2025<br><small>Spike min ↓</small></th>
+                     <th>08/07/2025<br><small>Spike min ↓</small></th>
+                     <th>11/07/2025<br><small>Spike min ↓</small></th>
+                     <th>07/10/2025<br><small>Spike min ↓</small></th>
+                     <th>11/10/2025<br><small>Spike min ↓</small></th>
                    </tr>
                  </thead>
                  <tbody>
              `;
          
-             // Calculer les totaux par colonne
+             // Totaux par colonne (somme des spikes min)
              const totals = new Array(dates.length).fill(0);
              const counts = new Array(dates.length).fill(0);
-             
+         
              results.forEach(r => {
                tableHTML += `<tr><td class="symbol">${r.symbol}</td>`;
                r.variations.forEach((v, idx) => {
                  if (v === null || !isFinite(v)) {
                    tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
                  } else {
+                   // v est souvent négatif → rouge
                    const cls = v >= 0 ? 'positive' : 'negative';
                    const sign = v >= 0 ? '+' : '';
                    tableHTML += `<td class="${cls}">${sign}${v.toFixed(2)}%</td>`;
@@ -182,9 +219,9 @@
                tableHTML += `</tr>`;
              });
          
-             // Ajouter la ligne de total
+             // Ligne TOTAL
              tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
-             tableHTML += `<td class="symbol">TOTAL</td>`;
+             tableHTML += `<td class="symbol">TOTAL (somme spikes min)</td>`;
              totals.forEach((total, idx) => {
                if (counts[idx] === 0) {
                  tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
