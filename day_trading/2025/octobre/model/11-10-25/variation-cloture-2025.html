@@ -1,264 +1,308 @@
 <!DOCTYPE html>
 <html lang="fr">
-   <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title></title>
-      <style>
-         *{margin:0;padding:0;box-sizing:border-box}
-         body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
-         .container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
-         h1{text-align:center;color:#333;margin-bottom:30px;font-size:28px}
-         table{width:100%;border-collapse:collapse;margin-bottom:20px;background:white;border-radius:10px;overflow:hidden}
-         thead{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}
-         th{padding:15px 10px;text-align:center;font-weight:bold;font-size:14px}
-         td{padding:15px 10px;text-align:center;border-bottom:1px solid #eee;font-size:14px}
-         tbody tr:last-child td{border-bottom:none}
-         tbody tr:hover{background:#f8f9fa}
-         .symbol{font-weight:bold;color:#333}
-         .positive{color:#22c55e;font-weight:bold}
-         .negative{color:#ef4444;font-weight:bold}
-         .loading{text-align:center;color:#666;padding:20px}
-         .error{background:#fee;border:1px solid #fcc;color:#c33;padding:15px;border-radius:10px;margin-bottom:20px}
-         button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s;margin-bottom:10px}
-         button:hover{transform:translateY(-2px)}
-         button:disabled{opacity:.5;cursor:not-allowed}
-         .progress-container{width:100%;background:#e5e7eb;border-radius:10px;height:30px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
-         .progress-bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:10px;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px}
-         .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
-         .year-badge a{color:white;text-decoration:none}
-         .nav-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
-         .nav-btn{background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:12px;border-radius:10px;text-align:center;text-decoration:none;color:white;font-weight:bold;transition:transform .2s;display:block}
-         .nav-btn:hover{transform:translateY(-2px)}
-         .nav-btn.spike-max{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)}
-         .nav-btn.spike-min{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
-      </style>
-   </head>
-   <body>
-      <div class="container">
-         <h1 id="pageTitle">📊 Taux de variation (Bougies Daily - ?)</h1>
-         <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
-         <div class="nav-buttons">
-            <a id="linkSpikeMax" href="#" class="nav-btn spike-max">📈 Voir Spike Max (mèche haute)</a>
-            <a id="linkSpikeMin" href="#" class="nav-btn spike-min">📉 Voir Spike Min (mèche basse)</a>
-         </div>
-         <div id="progressContainer" style="display:none;">
-            <div class="progress-container">
-               <div id="progressBar" class="progress-bar" style="width:0%;">0%</div>
-            </div>
-         </div>
-         <div id="content">
-            <div class="loading">Chargement des données...</div>
-         </div>
-         <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-         <p></p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title></title>
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+      .container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
+      h1{text-align:center;color:#333;margin-bottom:30px;font-size:28px}
+      table{width:100%;border-collapse:collapse;margin-bottom:20px;background:white;border-radius:10px;overflow:hidden}
+      thead{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}
+      th{padding:15px 10px;text-align:center;font-weight:bold;font-size:14px}
+      td{padding:15px 10px;text-align:center;border-bottom:1px solid #eee;font-size:14px}
+      tbody tr:last-child td{border-bottom:none}
+      tbody tr:hover{background:#f8f9fa}
+      .symbol{font-weight:bold;color:#333}
+      .positive{color:#22c55e;font-weight:bold}
+      .negative{color:#ef4444;font-weight:bold}
+      .loading{text-align:center;color:#666;padding:20px}
+      .error{background:#fee;border:1px solid #fcc;color:#c33;padding:15px;border-radius:10px;margin-bottom:20px}
+      button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s;margin-bottom:10px}
+      button:hover{transform:translateY(-2px)}
+      button:disabled{opacity:.5;cursor:not-allowed}
+      .progress-container{width:100%;background:#e5e7eb;border-radius:10px;height:30px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
+      .progress-bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:10px;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px}
+      .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
+      .year-badge a{color:white;text-decoration:none}
+      .nav-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+      .nav-btn{background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:12px;border-radius:10px;text-align:center;text-decoration:none;color:white;font-weight:bold;transition:transform .2s;display:block}
+      .nav-btn:hover{transform:translateY(-2px)}
+      .nav-btn.spike-max{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)}
+      .nav-btn.spike-min{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="pageTitle">📊 Taux de variation (Bougies Daily - ?)</h1>
+      <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
+      <div class="nav-buttons">
+        <a id="linkSpikeMax" href="#" class="nav-btn spike-max">📈 Voir Spike Max (mèche haute)</a>
+        <a id="linkSpikeMin" href="#" class="nav-btn spike-min">📉 Voir Spike Min (mèche basse)</a>
       </div>
-      <script>
-         // =========================
-         // PARAMÈTRE MODIFIABLE
-         // =========================
-         const REF_DATE_FR = '11/10/2025'; // ← mets ici la date au format JJ/MM/AAAA
-         
-         // =========================
-         // CALCUL DU NUMÉRO DE BOUGIE
-         // Base: 20e bougie = 09/10/2025
-         // N = 20 + (date_saisie - 09/10/2025 en jours)
-         // =========================
-         function ddmmyyyyToPartsFR(str){
-           const [jj, mm, aaaa] = str.split('/').map(Number);
-           return { jj, mm, aaaa };
-         }
-         function dateUTC(yyyy, mm, dd){
-           // mm = 1..12  → JS: 0..11
-           return new Date(Date.UTC(yyyy, mm - 1, dd));
-         }
-         function daysBetweenUTC(d1, d2){
-           const msDay = 24*60*60*1000;
-           const t1 = Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
-           const t2 = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate());
-           return Math.round((t2 - t1) / msDay);
-         }
-         
-         (function applyTitleAndLinks(){
-           // Référence pour la 20e bougie
-           const ref20 = dateUTC(2025, 10, 9); // 09/10/2025
-         
-           // Date saisie
-           const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
-           const refSel = dateUTC(aaaa, mm, jj);
-         
-           // Delta jours et numéro de bougie
-           const delta = daysBetweenUTC(ref20, refSel);
-           const numeroBougie = 20 + delta;
-         
-           // Mise à jour <h1>
-           const h1 = document.getElementById('pageTitle');
-           if (h1) h1.textContent = `📊 Taux de variation (Bougies Daily - ${numeroBougie})`;
-         
-           // Mise à jour <title> au format JJ-MM-AA
-           const t = document.querySelector('title');
-           if (t){
-             const yy = String(aaaa).slice(-2);
-             t.textContent = `${String(jj).padStart(2,'0')}-${String(mm).padStart(2,'0')}-${yy}`;
-           }
-         
-           // Mise à jour des liens Spike Max / Min
-           const jjStr = String(jj).padStart(2,'0');
-           const mmStr = String(mm).padStart(2,'0');
-           const yyStr = String(aaaa).slice(-2);
-         
-           const basePath = `/day_trading/${aaaa}/octobre/${numeroBougie}eme/${jjStr}-${mmStr}-${yyStr}`;
-           const linkMax = document.getElementById('linkSpikeMax');
-           const linkMin = document.getElementById('linkSpikeMin');
-           if (linkMax) linkMax.href = `${basePath}/futures-spike-max-${aaaa}.html`;
-           if (linkMin) linkMin.href = `${basePath}/futures-spike-min-${aaaa}.html`;
-         })();
-         
-         // =========================
-         // Données Futures Binance
-         // =========================
-         const API = 'https://fapi.binance.com';
-         const U = s => s.trim().toUpperCase();
-         
-         async function getKline(symbol, dateISO){
-           const startOfDay = new Date(dateISO);
-           startOfDay.setUTCHours(0,0,0,0);
-           const endOfDay = new Date(dateISO);
-           endOfDay.setUTCHours(23,59,59,999);
-         
-           const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
-           const res = await fetch(url);
-           if (!res.ok) throw new Error(`Erreur API pour ${symbol} (${res.status})`);
-           const data = await res.json();
-           return data[0];
-         }
-         
-         function calculateDailyVariation(kline){
-           const open = parseFloat(kline[1]);
-           const close = parseFloat(kline[4]);
-           return ((close - open) / open) * 100;
-         }
-         
-         async function fetchData(){
-           const content = document.getElementById('content');
-           const btn = document.getElementById('refreshBtn');
-           const progressContainer = document.getElementById('progressContainer');
-           const progressBar = document.getElementById('progressBar');
-         
-           btn.disabled = true;
-           content.innerHTML = '';
-           progressContainer.style.display = 'block';
-           progressBar.style.width = '0%';
-           progressBar.textContent = '0%';
-         
-           try{
-             const symbols = [
-               "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
-               "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT",
-             ];
-         
-             const dates = [
-               '2025-02-08','2025-02-15','2025-07-08','2025-07-11',
-               '2025-10-07','2025-10-11'
-             ];
-         
-             const totalRequests = symbols.length * dates.length;
-             let completedRequests = 0;
-         
-             const allPromises = [];
-         
-             for (const symbol of symbols){
-               for (const date of dates){
-                 allPromises.push(
-                   getKline(symbol, date)
-                     .then(kline=>{
-                       completedRequests++;
-                       const progress = Math.round((completedRequests / totalRequests) * 100);
-                       progressBar.style.width = progress + '%';
-                       progressBar.textContent = progress + '%';
-                       return kline ? calculateDailyVariation(kline) : null;
-                     })
-                     .catch(()=>{
-                       completedRequests++;
-                       const progress = Math.round((completedRequests / totalRequests) * 100);
-                       progressBar.style.width = progress + '%';
-                       progressBar.textContent = progress + '%';
-                       return null;
-                     })
-                 );
-               }
-             }
-         
-             const allVariations = await Promise.all(allPromises);
-         
-             const results = [];
-             for (let i=0;i<symbols.length;i++){
-               const variations = allVariations.slice(i*dates.length,(i+1)*dates.length);
-               results.push({ symbol: U(symbols[i]), variations });
-             }
-         
-             progressContainer.style.display = 'none';
-         
-             let tableHTML = `
-               <table>
-                 <thead>
-                   <tr>
-                     <th>Symbole</th>
-                     <th>08/02/2025</th>
-                     <th>15/02/2025</th>
-                     <th>08/07/2025</th>
-                     <th>11/07/2025</th>
-                     <th>07/10/2025</th>
-                     <th>11/10/2025</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-             `;
-         
-             const totals = new Array(dates.length).fill(0);
-             const counts = new Array(dates.length).fill(0);
-         
-             results.forEach(r=>{
-               tableHTML += `<tr><td class="symbol">${r.symbol}</td>`;
-               r.variations.forEach((v, idx)=>{
-                 if (v === null || !isFinite(v)){
-                   tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
-                 } else {
-                   const cls = v >= 0 ? 'positive':'negative';
-                   const sign = v >= 0 ? '+' : '';
-                   tableHTML += `<td class="${cls}">${sign}${v.toFixed(2)}%</td>`;
-                   totals[idx] += v;
-                   counts[idx]++;
-                 }
-               });
-               tableHTML += `</tr>`;
-             });
-         
-             tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
-             tableHTML += `<td class="symbol">TOTAL</td>`;
-             totals.forEach((total, idx)=>{
-               if (counts[idx] === 0){
-                 tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
-               } else {
-                 const cls = total >= 0 ? 'positive':'negative';
-                 const sign = total >= 0 ? '+' : '';
-                 tableHTML += `<td class="${cls}">${sign}${total.toFixed(2)}%</td>`;
-               }
-             });
-             tableHTML += `</tr>`;
-         
-             tableHTML += `</tbody></table>`;
-             content.innerHTML = tableHTML;
-         
-           } catch(err){
-             progressContainer.style.display = 'none';
-             content.innerHTML = `<div class="error"><strong>Erreur:</strong> ${err.message}</div>`;
-           } finally{
-             btn.disabled = false;
-           }
-         }
-         
-         fetchData();
-      </script>
-   </body>
+
+      <div id="progressContainer" style="display:none;">
+        <div class="progress-container">
+          <div id="progressBar" class="progress-bar" style="width:0%;">0%</div>
+        </div>
+      </div>
+
+      <div id="content"><div class="loading">Chargement des données...</div></div>
+
+      <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
+      <p></p>
+    </div>
+
+    <script>
+      // =========================
+      // PARAMÈTRE MODIFIABLE — ta date de référence (JJ/MM/AAAA)
+      // =========================
+      const REF_DATE_FR = '11/10/2025';
+
+      // =========================
+      // LOGIQUE DÉCALAGE AUTOMATIQUE DES 6 DATES
+      // On utilise comme base: quand REF_DATE_FR === BASE_REF_FR (11/10/2025),
+      // alors les 6 dates sont celles-ci. Ensuite on décale toutes ces dates
+      // de +/− (REF_DATE_FR - BASE_REF_FR) en jours.
+      // =========================
+      const BASE_REF_FR = '11/10/2025';
+      const BASE_DATES_FR = [
+        '08/02/2025',
+        '15/02/2025',
+        '08/07/2025',
+        '11/07/2025',
+        '07/10/2025',
+        '11/10/2025'
+      ];
+
+      // ===== Utils dates (UTC, safe) =====
+      const pad2 = n => String(n).padStart(2,'0');
+
+      function parseFR(strFR){ // "JJ/MM/AAAA" -> Date UTC
+        const [jj,mm,aaaa] = strFR.split('/').map(Number);
+        return new Date(Date.UTC(aaaa, mm-1, jj));
+      }
+      function formatFR(d){ // Date -> "JJ/MM/AAAA"
+        return `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
+      }
+      function formatISO(d){ // Date -> "YYYY-MM-DD"
+        return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`;
+      }
+      function daysBetweenUTC(d1,d2){
+        const ms = 24*60*60*1000;
+        const t1 = Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
+        const t2 = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate());
+        return Math.round((t2 - t1)/ms);
+      }
+      function addDaysUTC(d, n){
+        const cp = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+        cp.setUTCDate(cp.getUTCDate() + n);
+        return cp;
+      }
+
+      // Calcule les 6 dates (FR pour affichage + ISO pour API)
+      function computeShiftedDates(){
+        const baseRef = parseFR(BASE_REF_FR);
+        const refSel  = parseFR(REF_DATE_FR);
+        const delta   = daysBetweenUTC(baseRef, refSel); // ex: 12/10 → +1 ; 05/10 → −6
+
+        const datesFR = [];
+        const datesISO = [];
+        for (const fr of BASE_DATES_FR){
+          const d0 = parseFR(fr);
+          const d  = addDaysUTC(d0, delta);
+          datesFR.push(formatFR(d));
+          datesISO.push(formatISO(d));
+        }
+        return { datesFR, datesISO };
+      }
+
+      // =========================
+      // Affichage titre, <title> et liens Spike
+      // (je garde ta logique “n° de bougie” basée sur 20e = 09/10/2025)
+      // =========================
+      function ddmmyyyyToPartsFR(str){
+        const [jj, mm, aaaa] = str.split('/').map(Number);
+        return { jj, mm, aaaa };
+      }
+      function dateUTC(yyyy, mm, dd){
+        return new Date(Date.UTC(yyyy, mm - 1, dd));
+      }
+
+      (function applyTitleAndLinks(){
+        // 20e bougie = 09/10/2025
+        const ref20 = dateUTC(2025, 10, 9);
+
+        const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
+        const refSel = dateUTC(aaaa, mm, jj);
+
+        const deltaDays = daysBetweenUTC(ref20, refSel);
+        const numeroBougie = 20 + deltaDays;
+
+        const h1 = document.getElementById('pageTitle');
+        if (h1) h1.textContent = `📊 Taux de variation (Bougies Daily - ${numeroBougie})`;
+
+        const t = document.querySelector('title');
+        if (t){
+          const yy = String(aaaa).slice(-2);
+          t.textContent = `${pad2(jj)}-${pad2(mm)}-${yy}`;
+        }
+
+        const jjStr = pad2(jj);
+        const mmStr = pad2(mm);
+        const yyStr = String(aaaa).slice(-2);
+
+        const basePath = `/day_trading/${aaaa}/octobre/${numeroBougie}eme/${jjStr}-${mmStr}-${yyStr}`;
+        const linkMax = document.getElementById('linkSpikeMax');
+        const linkMin = document.getElementById('linkSpikeMin');
+        if (linkMax) linkMax.href = `${basePath}/futures-spike-max-${aaaa}.html`;
+        if (linkMin) linkMin.href = `${basePath}/futures-spike-min-${aaaa}.html`;
+      })();
+
+      // =========================
+      // Données Futures Binance
+      // =========================
+      const API = 'https://fapi.binance.com';
+      const U = s => s.trim().toUpperCase();
+
+      async function getKline(symbol, dateISO){
+        const startOfDay = new Date(dateISO);
+        startOfDay.setUTCHours(0,0,0,0);
+        const endOfDay = new Date(dateISO);
+        endOfDay.setUTCHours(23,59,59,999);
+
+        const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Erreur API pour ${symbol} (${res.status})`);
+        const data = await res.json();
+        return data[0];
+      }
+
+      function calculateDailyVariation(kline){
+        const open = parseFloat(kline[1]);
+        const close = parseFloat(kline[4]);
+        return ((close - open) / open) * 100;
+      }
+
+      async function fetchData(){
+        const content = document.getElementById('content');
+        const btn = document.getElementById('refreshBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+
+        btn.disabled = true;
+        content.innerHTML = '';
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+
+        try{
+          // 👉 Tes symboles (laisse, modifie ou complète comme tu veux)
+          const symbols = [
+            "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+            "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT",
+          ];
+
+          // 👉 6 dates calculées automatiquement en fonction de REF_DATE_FR
+          const { datesFR, datesISO } = computeShiftedDates();
+
+          // Progress tracking
+          const totalRequests = symbols.length * datesISO.length;
+          let completedRequests = 0;
+
+          const allPromises = [];
+          for (const symbol of symbols){
+            for (const dateISO of datesISO){
+              allPromises.push(
+                getKline(symbol, dateISO)
+                  .then(kline=>{
+                    completedRequests++;
+                    const p = Math.round((completedRequests / totalRequests) * 100);
+                    progressBar.style.width = p + '%';
+                    progressBar.textContent = p + '%';
+                    return kline ? calculateDailyVariation(kline) : null;
+                  })
+                  .catch(()=>{
+                    completedRequests++;
+                    const p = Math.round((completedRequests / totalRequests) * 100);
+                    progressBar.style.width = p + '%';
+                    progressBar.textContent = p + '%';
+                    return null;
+                  })
+              );
+            }
+          }
+
+          const allVariations = await Promise.all(allPromises);
+
+          const results = [];
+          for (let i=0;i<symbols.length;i++){
+            const variations = allVariations.slice(i*datesISO.length,(i+1)*datesISO.length);
+            results.push({ symbol: U(symbols[i]), variations });
+          }
+
+          progressContainer.style.display = 'none';
+
+          // ===== Table dynamique (dates d’en-tête calculées) =====
+          let tableHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Symbole</th>
+                  ${datesFR.map(d=>`<th>${d}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          const totals = new Array(datesISO.length).fill(0);
+          const counts = new Array(datesISO.length).fill(0);
+
+          results.forEach(r=>{
+            tableHTML += `<tr><td class="symbol">${r.symbol}</td>`;
+            r.variations.forEach((v, idx)=>{
+              if (v === null || !isFinite(v)){
+                tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
+              } else {
+                const cls = v >= 0 ? 'positive':'negative';
+                const sign = v >= 0 ? '+' : '';
+                tableHTML += `<td class="${cls}">${sign}${v.toFixed(2)}%</td>`;
+                totals[idx] += v;
+                counts[idx]++;
+              }
+            });
+            tableHTML += `</tr>`;
+          });
+
+          // Ligne TOTAL
+          tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
+          tableHTML += `<td class="symbol">TOTAL</td>`;
+          totals.forEach((total, idx)=>{
+            if (counts[idx] === 0){
+              tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
+            } else {
+              const cls = total >= 0 ? 'positive':'negative';
+              const sign = total >= 0 ? '+' : '';
+              tableHTML += `<td class="${cls}">${sign}${total.toFixed(2)}%</td>`;
+            }
+          });
+          tableHTML += `</tr>`;
+
+          tableHTML += `</tbody></table>`;
+          content.innerHTML = tableHTML;
+
+        } catch(err){
+          progressContainer.style.display = 'none';
+          content.innerHTML = `<div class="error"><strong>Erreur:</strong> ${err.message}</div>`;
+        } finally{
+          btn.disabled = false;
+        }
+      }
+
+      // Go!
+      fetchData();
+    </script>
+  </body>
 </html>
