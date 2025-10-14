@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
@@ -35,7 +35,13 @@
     <div class="container">
       <h1 id="pageTitle">📉 Spike min (mèche la plus basse) — Bougies Daily ?</h1>
       <div class="sub">Variation = <strong>(Low − Open) / Open × 100</strong> — aucune clôture affichée</div>
-      <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
+
+      <div style="text-align:center;">
+        <span class="year-badge"><a href="/index.html">Année 2025</a></span>
+        <div style="margin-top:10px; margin-bottom: 10px;color:#667eea;font-weight:bold;font-size:16px;">
+          📅 Date de référence : <span id="refDateDisplay"></span>
+        </div>
+      </div>
 
       <div id="progressContainer" style="display:none;">
         <div class="progress-container">
@@ -53,25 +59,24 @@
 
     <script>
       /* =========================
-         PARAMÈTRE MODIFIABLE
+         PARAMÈTRE MODIFIABLE (JJ/MM/AAAA)
          ========================= */
-      const REF_DATE_FR = '04/10/2025'; // ← JJ/MM/AAAA
+      const REF_DATE_FR = '11/10/2025';
 
       /* =========================
          BASE DE RÉFÉRENCE (mapping d’origine)
-         Quand REF_DATE_FR === BASE_REF_FR (11/10/2025),
-         les 6 dates “de base” sont celles-ci.
-         Ensuite on applique un décalage ±(REF_DATE_FR − BASE_REF_FR) jours
-         à TOUTES ces dates —> plus rien en dur.
+         Quand REF_DATE_FR === BASE_REF_FR, les 6 dates “de base”
+         sont celles-ci. Ensuite on applique un décalage ±(REF − BASE) jours
+         à toutes ces dates —> rien en dur.
          ========================= */
-      const BASE_REF_FR = '04/10/2025';
+      const BASE_REF_FR = '11/10/2025';
       const BASE_DATES_FR = [
-        '01/02/2025',
         '08/02/2025',
-        '01/07/2025',
-        '04/07/2025',
-        '30/09/2025',
-        '04/10/2025'
+        '15/02/2025',
+        '08/07/2025',
+        '11/07/2025',
+        '07/10/2025',
+        '11/10/2025'
       ];
 
       // ========= Utils dates (UTC safe) =========
@@ -116,7 +121,7 @@
         return { datesFR, datesISO };
       }
 
-      // ====== Affichage titre / <title> avec n° de bougie (20e = 09/10/2025) ======
+      // ====== Affichage titre / <title> / "Date de référence" / n° de bougie ======
       function ddmmyyyyToPartsFR(str){
         const [jj, mm, aaaa] = str.split('/').map(Number);
         return { jj, mm, aaaa };
@@ -125,12 +130,12 @@
         return new Date(Date.UTC(yyyy, mm - 1, dd));
       }
 
-      (function applyTitleAndH1(){
-        // 20e bougie = 09/10/2025
+      (function applyTitleH1AndRefDate(){
+        // 20e bougie = 09/10/2025 (référence commune)
         const ref20 = dateUTC(2025, 10, 9);
 
         const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
-        const sel   = dateUTC(aaaa, mm, jj);
+        const sel = dateUTC(aaaa, mm, jj);
 
         const delta = daysBetweenUTC(ref20, sel);
         const numeroBougie = 20 + delta;
@@ -142,10 +147,16 @@
           t.textContent = `Spike min — ${pad2(jj)}-${pad2(mm)}-${yy}`;
         }
 
-        // <h1>
+        // <h1> : inclure le numéro de bougie
         const h1 = document.getElementById('pageTitle') || document.querySelector('h1');
         if (h1){
           h1.textContent = `📉 Spike min (mèche la plus basse) — Bougies Daily ${numeroBougie}`;
+        }
+
+        // 📅 Date de référence (format JJ/MM/AAAA avec slashs)
+        const refSpan = document.getElementById('refDateDisplay');
+        if (refSpan){
+          refSpan.textContent = `${pad2(jj)}/${pad2(mm)}/${aaaa}`;
         }
       })();
 

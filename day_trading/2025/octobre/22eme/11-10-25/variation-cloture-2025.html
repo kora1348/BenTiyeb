@@ -37,7 +37,13 @@
   <body>
     <div class="container">
       <h1 id="pageTitle">📊 Taux de variation (Bougies Daily - ?)</h1>
-      <div style="text-align:center;"><span class="year-badge"><a href="/index.html">Année 2025</a></span></div>
+      <div style="text-align:center;">
+        <span class="year-badge"><a href="/index.html">Année 2025</a></span>
+        <div style="margin-top:10px; margin-bottom: 10px;color:#667eea;font-weight:bold;font-size:16px;">
+          📅 Date de référence : <span id="refDateDisplay"></span>
+        </div>
+      </div>
+
       <div class="nav-buttons">
         <a id="linkSpikeMax" href="#" class="nav-btn spike-max">📈 Voir Spike Max (mèche haute)</a>
         <a id="linkSpikeMin" href="#" class="nav-btn spike-min">📉 Voir Spike Min (mèche basse)</a>
@@ -59,35 +65,31 @@
       // =========================
       // PARAMÈTRE MODIFIABLE — ta date de référence (JJ/MM/AAAA)
       // =========================
-      const REF_DATE_FR = '11/10/2025';
+      const REF_DATE_FR = '05/10/2025';
 
       // =========================
       // LOGIQUE DÉCALAGE AUTOMATIQUE DES 6 DATES
-      // On utilise comme base: quand REF_DATE_FR === BASE_REF_FR (11/10/2025),
-      // alors les 6 dates sont celles-ci. Ensuite on décale toutes ces dates
-      // de +/− (REF_DATE_FR - BASE_REF_FR) en jours.
       // =========================
-      const BASE_REF_FR = '11/10/2025';
+      const BASE_REF_FR = '05/10/2025';
       const BASE_DATES_FR = [
-        '08/02/2025',
-        '15/02/2025',
-        '08/07/2025',
-        '11/07/2025',
-        '07/10/2025',
-        '11/10/2025'
+        '02/02/2025',
+        '09/02/2025',
+        '02/07/2025',
+        '05/07/2025',
+        '01/10/2025',
+        '05/10/2025'
       ];
 
       // ===== Utils dates (UTC, safe) =====
       const pad2 = n => String(n).padStart(2,'0');
-
-      function parseFR(strFR){ // "JJ/MM/AAAA" -> Date UTC
+      function parseFR(strFR){
         const [jj,mm,aaaa] = strFR.split('/').map(Number);
         return new Date(Date.UTC(aaaa, mm-1, jj));
       }
-      function formatFR(d){ // Date -> "JJ/MM/AAAA"
+      function formatFR(d){
         return `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
       }
-      function formatISO(d){ // Date -> "YYYY-MM-DD"
+      function formatISO(d){
         return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`;
       }
       function daysBetweenUTC(d1,d2){
@@ -106,8 +108,7 @@
       function computeShiftedDates(){
         const baseRef = parseFR(BASE_REF_FR);
         const refSel  = parseFR(REF_DATE_FR);
-        const delta   = daysBetweenUTC(baseRef, refSel); // ex: 12/10 → +1 ; 05/10 → −6
-
+        const delta   = daysBetweenUTC(baseRef, refSel);
         const datesFR = [];
         const datesISO = [];
         for (const fr of BASE_DATES_FR){
@@ -120,8 +121,7 @@
       }
 
       // =========================
-      // Affichage titre, <title> et liens Spike
-      // (je garde ta logique “n° de bougie” basée sur 20e = 09/10/2025)
+      // Affichage titre, <title>, liens Spike et "Date de référence"
       // =========================
       function ddmmyyyyToPartsFR(str){
         const [jj, mm, aaaa] = str.split('/').map(Number);
@@ -131,34 +131,39 @@
         return new Date(Date.UTC(yyyy, mm - 1, dd));
       }
 
-      (function applyTitleAndLinks(){
-        // 20e bougie = 09/10/2025
+      (function applyTitleLinksAndRefDate(){
+        // 20e bougie = 09/10/2025 (référence de calcul du numéro)
         const ref20 = dateUTC(2025, 10, 9);
 
         const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
         const refSel = dateUTC(aaaa, mm, jj);
 
+        // ---- (1) Numéro de bougie dans le H1
         const deltaDays = daysBetweenUTC(ref20, refSel);
         const numeroBougie = 20 + deltaDays;
-
         const h1 = document.getElementById('pageTitle');
         if (h1) h1.textContent = `📊 Taux de variation (Bougies Daily - ${numeroBougie})`;
 
+        // ---- (2) <title> automatique (format JJ-MM-AA demandé précédemment)
         const t = document.querySelector('title');
         if (t){
           const yy = String(aaaa).slice(-2);
           t.textContent = `${pad2(jj)}-${pad2(mm)}-${yy}`;
         }
 
+        // ---- (3) Liens Spike (basés sur REF_DATE_FR + numéro calculé)
         const jjStr = pad2(jj);
         const mmStr = pad2(mm);
         const yyStr = String(aaaa).slice(-2);
-
         const basePath = `/day_trading/${aaaa}/octobre/${numeroBougie}eme/${jjStr}-${mmStr}-${yyStr}`;
         const linkMax = document.getElementById('linkSpikeMax');
         const linkMin = document.getElementById('linkSpikeMin');
         if (linkMax) linkMax.href = `${basePath}/futures-spike-max-${aaaa}.html`;
         if (linkMin) linkMin.href = `${basePath}/futures-spike-min-${aaaa}.html`;
+
+        // ---- (4) 📅 Date de référence (AUTO, format JJ/MM/AAAA avec SLASHS)
+        const refSpan = document.getElementById('refDateDisplay');
+        if (refSpan) refSpan.textContent = `${pad2(jj)}/${pad2(mm)}/${aaaa}`;
       })();
 
       // =========================
@@ -172,7 +177,6 @@
         startOfDay.setUTCHours(0,0,0,0);
         const endOfDay = new Date(dateISO);
         endOfDay.setUTCHours(23,59,59,999);
-
         const url = `${API}/fapi/v1/klines?symbol=${U(symbol)}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Erreur API pour ${symbol} (${res.status})`);
@@ -199,13 +203,13 @@
         progressBar.textContent = '0%';
 
         try{
-          // 👉 Tes symboles (laisse, modifie ou complète comme tu veux)
+          // 👉 Tes symboles (modifie librement)
           const symbols = [
             "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
             "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT",
           ];
 
-          // 👉 6 dates calculées automatiquement en fonction de REF_DATE_FR
+          // 👉 6 dates calculées automatiquement
           const { datesFR, datesISO } = computeShiftedDates();
 
           // Progress tracking
@@ -245,7 +249,7 @@
 
           progressContainer.style.display = 'none';
 
-          // ===== Table dynamique (dates d’en-tête calculées) =====
+          // ===== Table dynamique =====
           let tableHTML = `
             <table>
               <thead>
