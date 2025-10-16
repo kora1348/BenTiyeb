@@ -54,28 +54,26 @@
       </div>
 
       <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-      <p></p>
+      <p>R + R + X + X + R + R</p>
     </div>
 
     <script>
-      /* =========================
-         PARAMÈTRE MODIFIABLE (JJ/MM/AAAA)
-         ========================= */
-      const REF_DATE_FR = '04/10/2025';
+            // =========================
+      // PARAMÈTRE MODIFIABLE — ta date de référence (JJ/MM/AAAA)
+      // =========================
+      const REF_DATE_FR = '19/10/2025';
 
-      /* =========================
-         BASE DE RÉFÉRENCE (mapping d’origine)
-         Quand REF_DATE_FR === BASE_REF_FR, les 6 dates “de base” sont celles-ci.
-         Ensuite on applique un décalage ±(REF − BASE) jours à toutes ces dates —> rien en dur.
-         ========================= */
-      const BASE_REF_FR = '04/10/2025';
+      // =========================
+      // LOGIQUE DÉCALAGE AUTOMATIQUE DES 6 DATES
+      // =========================
+      const BASE_REF_FR = '19/10/2025';
       const BASE_DATES_FR = [
-        '01/02/2025',
-        '08/02/2025',
-        '01/07/2025',
-        '04/07/2025',
-        '30/09/2025',
-        '04/10/2025'
+        '16/02/2025',
+        '23/02/2025',
+        '16/07/2025',
+        '19/07/2025',
+        '15/10/2025',
+        '19/10/2025'
       ];
 
       // ========= Utils dates (UTC safe) =========
