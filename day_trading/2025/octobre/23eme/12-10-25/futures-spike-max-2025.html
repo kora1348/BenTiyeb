@@ -1,9 +1,9 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Spike min — </title>
+    <title>Spike max — </title>
     <style>
       /* mêmes styles que ton code… (inchangés) */
       *{margin:0;padding:0;box-sizing:border-box}
@@ -33,8 +33,8 @@
   </head>
   <body>
     <div class="container">
-      <h1 id="pageTitle">📉 Spike min (mèche la plus basse) — Bougies Daily ?</h1>
-      <div class="sub">Variation = <strong>(Low − Open) / Open × 100</strong> — aucune clôture affichée</div>
+      <h1 id="pageTitle">📊 Spike max (mèche haute) — Bougies Daily ?</h1>
+      <div class="sub">Variation = <strong>(High − Open) / Open × 100</strong> — aucune clôture affichée</div>
 
       <div style="text-align:center;">
         <span class="year-badge"><a href="/index.html">Année 2025</a></span>
@@ -54,26 +54,26 @@
       </div>
 
       <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-      <p>X + X + X + R + V + V</p>
+      <p>V + V + V + X + V + V</p>
     </div>
 
     <script>
             // =========================
       // PARAMÈTRE MODIFIABLE — ta date de référence (JJ/MM/AAAA)
       // =========================
-      const REF_DATE_FR = '11/10/2025';
+      const REF_DATE_FR = '12/10/2025';
 
       // =========================
       // LOGIQUE DÉCALAGE AUTOMATIQUE DES 6 DATES
       // =========================
-      const BASE_REF_FR = '11/10/2025';
+      const BASE_REF_FR = '12/10/2025';
       const BASE_DATES_FR = [
-        '08/02/2025',
-        '15/02/2025',
-        '07/07/2025',
-        '11/07/2025',
-        '07/10/2025',
-        '11/10/2025'
+        '09/02/2025',
+        '16/02/2025',
+        '09/07/2025',
+        '12/07/2025',
+        '08/10/2025',
+        '12/10/2025'
       ];
 
       // ========= Utils dates (UTC safe) =========
@@ -118,7 +118,7 @@
         return { datesFR, datesISO };
       }
 
-      // ====== Affichage titre / <title> / "Date de référence" / n° de bougie ======
+      // ====== <title> / <h1> / "Date de référence" / n° de bougie ======
       function ddmmyyyyToPartsFR(str){
         const [jj, mm, aaaa] = str.split('/').map(Number);
         return { jj, mm, aaaa };
@@ -128,7 +128,7 @@
       }
 
       (function applyTitleH1AndRefDate(){
-        // 20e bougie = 09/10/2025 (référence commune)
+        // 20e bougie = 09/10/2025 (référence commune à tes pages)
         const ref20 = dateUTC(2025, 10, 9);
 
         const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
@@ -137,17 +137,17 @@
         const delta = daysBetweenUTC(ref20, sel);
         const numeroBougie = 20 + delta;
 
-        // <title> : "Spike min — JJ-MM-AA"
+        // <title> : "Spike max — JJ-MM-AA"
         const t = document.querySelector('title');
         if (t){
           const yy = String(aaaa).slice(-2);
-          t.textContent = `Spike min — ${pad2(jj)}-${pad2(mm)}-${yy}`;
+          t.textContent = `Spike max — ${pad2(jj)}-${pad2(mm)}-${yy}`;
         }
 
         // <h1> : inclure le numéro de bougie
         const h1 = document.getElementById('pageTitle') || document.querySelector('h1');
         if (h1){
-          h1.textContent = `📉 Spike min (mèche la plus basse) — Bougies Daily ${numeroBougie}`;
+          h1.textContent = `📊 Spike max (mèche haute) — Bougies Daily ${numeroBougie}`;
         }
 
         // 📅 Date de référence (format JJ/MM/AAAA avec slashs)
@@ -177,12 +177,12 @@
         return data[0]; // undefined si pas de donnée ce jour-là
       }
 
-      // 🔴 SPIKE MIN: (Low − Open) / Open × 100
-      function calcSpikeMinPct(kline) {
+      // 🟢 SPIKE MAX: (High − Open) / Open × 100
+      function calcSpikeMaxPct(kline) {
         const open = parseFloat(kline[1]); // open
-        const low  = parseFloat(kline[3]); // low
-        if (!isFinite(open) || open === 0 || !isFinite(low)) return null;
-        return ((low - open) / open) * 100;
+        const high = parseFloat(kline[2]); // high
+        if (!isFinite(open) || open === 0 || !isFinite(high)) return null;
+        return ((high - open) / open) * 100;
       }
 
       async function fetchData() {
@@ -220,7 +220,7 @@
                     const p = Math.round((completedRequests / totalRequests) * 100);
                     progressBar.style.width = p + '%';
                     progressBar.textContent = p + '%';
-                    return kline ? calcSpikeMinPct(kline) : null;
+                    return kline ? calcSpikeMaxPct(kline) : null;
                   })
                   .catch(() => {
                     completedRequests++;
@@ -250,13 +250,13 @@
               <thead>
                 <tr>
                   <th>Symbole</th>
-                  ${datesFR.map(d=>`<th>${d}<br><small>Spike min ↓</small></th>`).join('')}
+                  ${datesFR.map(d=>`<th>${d}<br><small>Spike max ↑</small></th>`).join('')}
                 </tr>
               </thead>
               <tbody>
           `;
 
-          // Totaux par colonne (somme des spikes min)
+          // Totaux par colonne (somme des spikes max)
           const totals = new Array(datesISO.length).fill(0);
           const counts = new Array(datesISO.length).fill(0);
 
@@ -278,7 +278,7 @@
 
           // Ligne TOTAL
           tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
-          tableHTML += `<td class="symbol">TOTAL (somme spikes min)</td>`;
+          tableHTML += `<td class="symbol">TOTAL (somme spikes max)</td>`;
           totals.forEach((total, idx) => {
             if (counts[idx] === 0) {
               tableHTML += `<td style="color:#9ca3af;">N/A</td>`;

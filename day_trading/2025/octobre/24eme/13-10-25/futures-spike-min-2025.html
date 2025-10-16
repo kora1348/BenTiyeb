@@ -54,28 +54,27 @@
       </div>
 
       <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
-      <p>X + X + X + R + V + V</p>
+      <p>V + X + V + R + V + X</p>
     </div>
 
     <script>
             // =========================
       // PARAMÈTRE MODIFIABLE — ta date de référence (JJ/MM/AAAA)
       // =========================
-      const REF_DATE_FR = '11/10/2025';
+      const REF_DATE_FR = '13/10/2025';
 
       // =========================
       // LOGIQUE DÉCALAGE AUTOMATIQUE DES 6 DATES
       // =========================
-      const BASE_REF_FR = '11/10/2025';
+      const BASE_REF_FR = '13/10/2025';
       const BASE_DATES_FR = [
-        '08/02/2025',
-        '15/02/2025',
-        '07/07/2025',
-        '11/07/2025',
-        '07/10/2025',
-        '11/10/2025'
+        '10/02/2025',
+        '17/02/2025',
+        '10/07/2025',
+        '13/07/2025',
+        '09/10/2025',
+        '13/10/2025'
       ];
-
       // ========= Utils dates (UTC safe) =========
       const pad2 = n => String(n).padStart(2,'0');
 
