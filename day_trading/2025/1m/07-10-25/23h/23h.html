@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Variation 1m — 10/10/2025 23h00–23h59 (Europe/Brussels)</title>
+  <title>Variation 1m — 07/10/2025 23h00–23h59 (Europe/Brussels)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -16,6 +16,18 @@
     .meta{color:var(--muted);font-size:14px}
     .controls{margin-left:auto}
     .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+
+    /* Bandeau variation négative */
+    #variation_negative{
+      max-width:1200px;margin:8px auto 16px;
+      background:linear-gradient(180deg,rgba(220,38,38,.1),rgba(220,38,38,.04)), var(--card);
+      border:1px solid rgba(220,38,38,.35);
+      color:#fecaca; /* rouge clair */
+      padding:10px 12px;border-radius:12px;font-size:14px;
+    }
+    #variation_negative .title{font-weight:700;color:#fca5a5}
+    #variation_negative .times{color:#ffd1d1}
+
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;max-width:1200px;margin:0 auto}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
     .card header{background:var(--header);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center}
@@ -36,14 +48,17 @@
 <body>
   <header>
     <h1>Variation 1m — Heure 23h (Europe/Brussels)</h1>
-    <div class="meta">Date : <strong>10/10/2025</strong> • Plage : <strong>23:00 → 23:59</strong> • Timeframe : <strong>1m</strong></div>
+    <div class="meta">Date : <strong>07/10/2025</strong> • Plage : <strong>23:00 → 23:59</strong> • Timeframe : <strong>1m</strong></div>
     <div class="controls"><button id="reload">Recharger</button></div>
   </header>
+
+  <!-- Bandeau d’alerte quand toutes les cryptos sont négatives à une ou plusieurs minutes -->
+  <div id="variation_negative">Analyse en cours…</div>
 
   <div id="grid" class="grid"></div>
 
   <footer class="small">
-    Chaque carte affiche les 60 minutes de 23:00 à 23:59 pour le 10/10/2025 (Europe/Brussels).
+    Chaque carte affiche les 60 minutes de 23:00 à 23:59 pour le 07/10/2025 (Europe/Brussels).
   </footer>
 
 <script>
@@ -51,14 +66,14 @@
   // --- Paramètres utilisateur ---
   const symbols = [
     "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
-    "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT"
+    "1000SATSUSDT","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT"
   ];
   const timeZone = "Europe/Brussels";
   const interval = "1m";
 
   // --- Calcul précis de la fenêtre horaire locale 2025-10-10 23:00 → 23:59:59.999 (Brussels) ---
   function localToUtcMs(y, m /*1-12*/, d, hh, mm, ss, ms, tz) {
-    // On construit une date "approx" en UTC puis on corrige avec l'offset du fuseau à ce moment-là
+    // Construit une date "approx" en UTC puis corrige avec l'offset du fuseau à ce moment-là
     const approxUtc = Date.UTC(y, m-1, d, hh, mm, ss, ms);
     const offset = tzOffsetMsAt(new Date(approxUtc), tz);
     return approxUtc - offset;
@@ -75,12 +90,14 @@
     return asUTC - date.getTime();
   }
 
-  // 10/10/2025 23:00:00.000 → 23:59:59.999 (heure Brussels)
-  const startTime = localToUtcMs(2025, 10, 10, 23, 0, 0, 0, timeZone);
-  const endTime   = localToUtcMs(2025, 10, 10, 23, 59, 59, 999, timeZone);
+  // 07/10/2025 23:00:00.000 → 23:59:59.999 (heure Brussels)
+  const startTime = localToUtcMs(2025, 10, 7, 23, 0, 0, 0, timeZone);
+  const endTime   = localToUtcMs(2025, 10, 7, 23, 59, 59, 999, timeZone);
 
   // --- UI helpers ---
   const grid = document.getElementById('grid');
+  const banner = document.getElementById('variation_negative');
+
   function buildCard(symbol) {
     const card = document.createElement('div'); card.className = 'card';
     const head = document.createElement('header');
@@ -128,7 +145,6 @@
     const [hStr, mStr] = fmt.format(dt).split(':');
     const h = Number(hStr), m = Number(mStr);
     return h === 23 ? m : -1;
-    // (On ne s'appuie pas sur l'ordre du tableau, on recalcule l'heure locale de chaque bougie)
   }
 
   async function fetchKlines(symbol) {
@@ -137,7 +153,7 @@
     url.searchParams.set('interval', interval);
     url.searchParams.set('startTime', String(startTime));
     url.searchParams.set('endTime', String(endTime));
-    url.searchParams.set('limit', '1000'); // suffisant
+    url.searchParams.set('limit', '1000'); // suffisant pour 60 bougies
     const res = await fetch(url.toString());
     if (!res.ok) {
       const txt = await res.text().catch(()=> '');
@@ -148,8 +164,14 @@
     return data;
   }
 
-  function renderHour23(tbody, klines) {
-    // Met à jour uniquement les lignes 23:00–23:59
+  // Enregistre les variations négatives par symbole et par minute (0..59)
+  const negBySymbol = new Map();   // symbol -> Array(60) de booleans (true si négatif), undefined si pas de donnée
+  const dataBySymbol = new Map();  // symbol -> Array(60) de booleans (true si on a une bougie pour cette minute)
+
+  function renderHour23(tbody, klines, symbol) {
+    const negArr = Array(60).fill(undefined);
+    const hasArr = Array(60).fill(false);
+
     let filled = 0;
     for (const k of klines) {
       const openTime = k[0];       // open time (ms)
@@ -160,29 +182,62 @@
         const p = pctChange(open, close);
         const row = tbody.children[idx];
         const cell = row.children[1];
+
         if (p === null) {
           cell.textContent = 'n/a';
           cell.className = 'pct zero';
+          negArr[idx] = undefined;
+          hasArr[idx] = false;
         } else {
           cell.textContent = (p >= 0 ? '+' : '') + p.toFixed(3) + '%';
           cell.className = 'pct ' + (p > 0 ? 'up' : (p < 0 ? 'down' : 'zero'));
+          negArr[idx] = (p < 0);
+          hasArr[idx] = true;
         }
         filled++;
       }
     }
+
+    negBySymbol.set(symbol, negArr);
+    dataBySymbol.set(symbol, hasArr);
     return filled;
   }
 
   const cards = symbols.map(s => ({ symbol: s, ...buildCard(s) }));
 
+  function updateNegativeBanner() {
+    // Cherche toutes les minutes m où, pour tous les symbols,
+    // on a une donnée ET elle est négative.
+    const minutesAllNeg = [];
+    for (let m = 0; m < 60; m++) {
+      let allNeg = true;
+      for (const s of symbols) {
+        const hasArr = dataBySymbol.get(s);
+        const negArr = negBySymbol.get(s);
+        if (!hasArr || !negArr || !hasArr[m] || negArr[m] !== true) {
+          allNeg = false; break;
+        }
+      }
+      if (allNeg) minutesAllNeg.push(m);
+    }
+
+    if (minutesAllNeg.length === 0) {
+      banner.innerHTML = `<span class="title">Variation négative synchronisée :</span> aucune minute entre 23:00 et 23:59 où <em>toutes</em> les cryptos sont négatives (données complètes requises).`;
+    } else {
+      const times = minutesAllNeg.map(m => `23:${String(m).padStart(2,'0')}`).join(', ');
+      banner.innerHTML = `<span class="title">Variation négative synchronisée :</span> à <span class="times">${times}</span>, <strong>toutes</strong> les cryptos étaient négatives.`;
+    }
+  }
+
   async function loadAll() {
+    banner.textContent = 'Analyse en cours…';
     await Promise.all(cards.map(async (c) => {
       c.statusEl.textContent = 'Chargement…';
       c.loadingEl.className = 'loading';
       c.loadingEl.textContent = 'Requête klines 1m…';
       try {
         const kl = await fetchKlines(c.symbol);
-        const count = renderHour23(c.tbody, kl);
+        const count = renderHour23(c.tbody, kl, c.symbol);
         c.statusEl.textContent = `OK • ${count}/60 minutes`;
         if (count < 60) {
           c.loadingEl.className = 'error';
@@ -194,8 +249,12 @@
         c.statusEl.textContent = 'Erreur';
         c.loadingEl.className = 'error';
         c.loadingEl.textContent = 'Échec: ' + (e?.message || e);
+        // En cas d'erreur, on force des tableaux vides pour éviter un "allNeg" faux-positif
+        negBySymbol.set(c.symbol, Array(60).fill(undefined));
+        dataBySymbol.set(c.symbol, Array(60).fill(false));
       }
     }));
+    updateNegativeBanner();
   }
 
   // 1er chargement + bouton
