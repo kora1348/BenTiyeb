@@ -6,25 +6,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; }
-    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:13px}
     header{padding:18px 16px;border-bottom:1px solid var(--border)}
     h1{margin:0;font-size:20px}
     .sub{color:var(--muted);font-size:13px;margin-top:4px}
     main{max-width:980px;margin:18px auto;padding:0 12px}
-    .controls{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;align-items:flex-end}
-    label span{display:block;margin-bottom:6px}
-    select,button{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;align-items:flex-end}
+    label{font-size:12px}
+    label span{display:block;margin-bottom:4px;font-size:11px}
+    select,button{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px}
     button{cursor:pointer}
     .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;position:relative}
     table{width:100%;border-collapse:collapse;margin-top:6px}
-    th,td{padding:10px;border-bottom:1px solid var(--border);font-size:14px;text-align:right;vertical-align:top}
+    th,td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;vertical-align:top}
     th:first-child,td:first-child{text-align:left}
     .up{color:var(--ok);font-weight:600}
     .down{color:var(--bad);font-weight:600}
     .muted{color:var(--muted)}
     .error{color:var(--bad);margin-top:8px}
-    .hint{font-size:12px;color:var(--muted);margin-top:8px}
-    .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:13px}
+    .hint{font-size:11px;color:var(--muted);margin-top:8px}
+    .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px}
     .right{position:absolute;top:12px;right:12px}
     #homeBtn { color:white!important; border:1px solid var(--border); }
     #homeBtn a { color:white!important; text-decoration:none; display:block; }
@@ -33,6 +34,9 @@
       background:#facc15;color:#111827;border:1px solid #f59e0b;border-radius:12px;
       padding:10px 14px;font-weight:700;font-size:18px;letter-spacing:.5px;
     }
+    .btn-group{display:flex;gap:8px;align-items:center}
+    #status{font-size:11px}
+    #nCalendar{font-size:12px;margin-left:auto}
   </style>
 </head>
 <body>
@@ -56,19 +60,18 @@
         <select id="candleSel"></select>
       </label>
 
-      <!-- Sélecteur 3m lié à la journée N -->
       <label>
         <span class="muted">Bougie 3m dans la journée N</span>
         <select id="m3Sel"></select>
       </label>
 
-      <div style="display:flex;gap:8px;align-items:center">
+      <div class="btn-group">
         <button id="runBtn">Run</button>
         <button id="homeBtn"><a href="/index.html">Accueil</a></button>
         <span id="status" class="muted"></span>
       </div>
 
-      <div class="muted" id="nCalendar" style="margin-left:auto">
+      <div class="muted" id="nCalendar">
         Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
       </div>
     </div>
@@ -93,8 +96,8 @@
         On conserve uniquement les cryptos dont le <b>jour de listing</b> est dans le mois/année choisis.<br>
         Bougie n°<span id="hintN">20</span> = jour n°<span id="hintN2">20</span> après le listing.
         Variation = (Close − Open) / Open × 100.
-        La colonne “&gt; 1 an après” = (bougie n°<span id="hintN3">20</span>) + 1 an (strictement &gt; 1 an).<br>
-        La liste “3m” te laisse choisir l’<b>intervalle 3 minutes</b> dans la journée N (Europe/Brussels).
+        La colonne "&gt; 1 an après" = (bougie n°<span id="hintN3">20</span>) + 1 an (strictement &gt; 1 an).<br>
+        La liste "3m" te laisse choisir l'<b>intervalle 3 minutes</b> dans la journée N (Europe/Brussels).
       </div>
 
       <div id="candleDateBanner" class="candle-date-banner">—</div>
@@ -130,11 +133,10 @@
     const dayMs = 24*60*60*1000;
     const threeMinMs = 3*60*1000;
 
-    // 09 oct 2025 00:00:00 UTC (base visuelle pour la bannière jaune)
     const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
 
-    let refListingMs = null;  // pour l'encart "Bougie N — JJ Mois AAAA"
-    let lastRows = [];        // résultats du dernier run
+    let refListingMs = null;
+    let lastRows = [];
 
     (function initSelectors(){
       const years = [2024];
@@ -166,7 +168,7 @@
       }
       candleSel.value = '20';
 
-      fillM3Options(); // 23:18 par défaut
+      fillM3Options();
 
       updateLabels();
       updateNCalendar();
@@ -233,19 +235,13 @@
       candleDateBanner.textContent = new Intl.DateTimeFormat('fr-BE',{timeZone:tz,day:'2-digit',month:'2-digit',year:'2-digit'}).format(ms);
     }
 
-    candleSel.addEventListener('change', ()=>{
-      updateLabels();
-      // On relance un run pour recalculer toutes les variations liées à N
-      run();
-    });
+    candleSel.addEventListener('change', updateLabels);
 
     m3Sel.addEventListener('change', ()=>{
       const totMin = parseInt(m3Sel.value,10);
       const hh = String(Math.floor(totMin/60)).padStart(2,'0');
       const mm = String(totMin%60).padStart(2,'0');
       m3Hdr.textContent = `${hh}:${mm}`;
-      // Important : on DOIT recalculer, car la bougie 3m change
-      run();
     });
 
     function toBrusselsDate(ms){
@@ -266,7 +262,7 @@
     function plusThanOneYear(ms){
       const d = new Date(ms);
       d.setUTCFullYear(d.getUTCFullYear() + 1);
-      return d.getTime() + 1; // strictement > 1 an
+      return d.getTime() + 1;
     }
 
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
@@ -300,40 +296,31 @@
       });
     }
 
-    // ✅ Calcul d'offset robuste (en minutes) pour Europe/Brussels à une date donnée
-function getTzOffsetMinutesEuropeBrussels(ms){
-  // renvoie combien de minutes il faut AJOUTER à l'UTC pour obtenir l'heure Brussels
-  const dtf = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Europe/Brussels',
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hourCycle: 'h23'
-  });
-  const parts = dtf.formatToParts(new Date(ms));
-  const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-  // construit le "ms" de ce même instant vu depuis Brussels, mais en UTC
-  const asUTC = Date.UTC(
-    Number(map.year), Number(map.month) - 1, Number(map.day),
-    Number(map.hour), Number(map.minute), Number(map.second)
-  );
-  // différence (Brussels horodaté en UTC) - ms UTC réel = offset en ms
-  return Math.round((asUTC - ms) / 60000); // ex: 60 (CET) ou 120 (CEST)
-}
+    function getTzOffsetMinutesEuropeBrussels(ms){
+      const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Brussels',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hourCycle: 'h23'
+      });
+      const parts = dtf.formatToParts(new Date(ms));
+      const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+      const asUTC = Date.UTC(
+        Number(map.year), Number(map.month) - 1, Number(map.day),
+        Number(map.hour), Number(map.minute), Number(map.second)
+      );
+      return Math.round((asUTC - ms) / 60000);
+    }
 
-// ✅ Convertit HH:MM Brussels de la journée N (openTimeN_utc = 00:00 UTC)
-//     → openTime UTC de la bougie 3m correspondante
-function m3UtcFromDailyOpen(openTimeN_utc, minutesBrussels){
-  // On prend midi pour éviter les bords (changement d'heure)
-  const probe = openTimeN_utc + 12*60*60*1000;
-  const offsetMin = getTzOffsetMinutesEuropeBrussels(probe); // 60 ou 120
-  const minutesUtcFromMidnight = minutesBrussels - offsetMin;
-  if (minutesUtcFromMidnight < 0 || minutesUtcFromMidnight >= 1440) return null;
-  const k = Math.floor(minutesUtcFromMidnight / 3); // index 3m dans la journée
-  return openTimeN_utc + k * (3*60*1000);
-}
+    function m3UtcFromDailyOpen(openTimeN_utc, minutesBrussels){
+      const probe = openTimeN_utc + 12*60*60*1000;
+      const offsetMin = getTzOffsetMinutesEuropeBrussels(probe);
+      const minutesUtcFromMidnight = minutesBrussels - offsetMin;
+      if (minutesUtcFromMidnight < 0 || minutesUtcFromMidnight >= 1440) return null;
+      const k = Math.floor(minutesUtcFromMidnight / 3);
+      return openTimeN_utc + k * (3*60*1000);
+    }
 
-
-    // Récupère la variation de la bougie 3m ciblée (et renvoie aussi l’heure affichable)
     async function fetch3mPct(sym, openTimeN, minutesBrussels){
       if(openTimeN == null) return { pct3m: null, m3Display: '—' };
       const m3Utc = m3UtcFromDailyOpen(openTimeN, minutesBrussels);
@@ -424,13 +411,12 @@ function m3UtcFromDailyOpen(openTimeN_utc, minutesBrussels){
             let openTimeN = null, pctN = null, openTimeNPlus = null, pct3m = null, m3Display = '—';
             if (kl.length >= N){
               const kN = kl[N-1];
-              openTimeN = kN[0]; // 00:00 UTC de la journée N
+              openTimeN = kN[0];
               const openN = parseFloat(kN[1]);
               const closeN = parseFloat(kN[4]);
               pctN = openN>0 ? ((closeN-openN)/openN*100) : 0;
               openTimeNPlus = plusThanOneYear(openTimeN);
 
-              // >>> NOUVEAU : variation de la bougie 3m sélectionnée
               const res3m = await fetch3mPct(sym, openTimeN, m3Minutes);
               pct3m = res3m.pct3m;
               m3Display = res3m.m3Display;
@@ -471,9 +457,6 @@ function m3UtcFromDailyOpen(openTimeN_utc, minutesBrussels){
 
     document.getElementById('runBtn').addEventListener('click', run);
     document.getElementById('homeBtn').addEventListener('click', ()=>{ window.location.href = '/'; });
-
-    // Lancement auto désactivé
-    // run();
   </script>
 </body>
 </html>
