@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Listings — Bougie n°20 (Binance Futures USDT-M PERP)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; }
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:13px}
+    header{padding:18px 16px;border-bottom:1px solid var(--border)}
+    h1{margin:0;font-size:20px}
+    .sub{color:var(--muted);font-size:13px;margin-top:4px}
+    main{max-width:980px;margin:18px auto;padding:0 12px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;align-items:flex-end}
+    label{font-size:12px}
+    label span{display:block;margin-bottom:4px;font-size:11px}
+    select,button{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px}
+    button{cursor:pointer}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;position:relative}
+    table{width:100%;border-collapse:collapse;margin-top:6px}
+    th,td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;vertical-align:top}
+    th:first-child,td:first-child{text-align:left}
+    .up{color:var(--ok);font-weight:600}
+    .down{color:var(--bad);font-weight:600}
+    .muted{color:var(--muted)}
+    .error{color:var(--bad);margin-top:8px}
+    .hint{font-size:11px;color:var(--muted);margin-top:8px}
+    .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px}
+    .right{position:absolute;top:-70px;right:12px}
+    #homeBtn { color:white!important; border:1px solid var(--border); }
+    #homeBtn a { color:white!important; text-decoration:none; display:block; }
+    .candle-date-banner{
+      margin:16px 0 6px;display:flex;justify-content:center;align-items:center;
+      background:#facc15;color:#111827;border:1px solid #f59e0b;border-radius:12px;
+      padding:10px 14px;font-weight:700;font-size:18px;letter-spacing:.5px;
+    }
+    .btn-group{display:flex;gap:8px;align-items:center}
+    #status{font-size:11px}
+    #nCalendar{font-size:12px;margin-left:auto}
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="h1">Listings en janvier • Bougie n°<span id="nLabel">20</span></h1>
+    <div class="sub">Marché analysé : <b>Binance Futures — USDT-M PERP</b></div>
+  </header>
+
+  <main>
+    <div class="controls">
+      <label>
+        <span class="muted">Année (affichée +1)</span>
+        <select id="yearSel"></select>
+      </label>
+      <label>
+        <span class="muted">Mois</span>
+        <select id="monthSel"></select>
+      </label>
+      <label>
+        <span class="muted">N° de bougie (daily)</span>
+        <select id="candleSel"></select>
+      </label>
+
+      <label>
+        <span class="muted">Bougie 1h dans la journée N</span>
+        <select id="h1Sel"></select>
+      </label>
+
+      <div class="btn-group">
+        <button id="runBtn">Run</button>
+        <button id="homeBtn"><a href="/index.html">Accueil</a></button>
+        <span id="status" class="muted"></span>
+      </div>
+
+      <div class="muted" id="nCalendar">
+        Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="right badge"><span id="progress">—</span></div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:160px">Symbole</th>
+            <th style="width:230px">Date bougie n°<span id="thN1">20</span> (Europe/Brussels)</th>
+            <th style="width:230px">Date &gt; 1 an après (Europe/Brussels)</th>
+            <th style="width:150px">Variation bougie n°<span id="thN2">20</span></th>
+            <th style="width:230px">Variation bougie 1h (<span id="h1Hdr">23:00</span>)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="err" class="error"></div>
+      <div class="hint" id="hint">
+        Détection du listing : première bougie journalière disponible (<code>startTime=0</code>).<br>
+        On conserve uniquement les cryptos dont le <b>jour de listing</b> est dans le mois/année choisis.<br>
+        Bougie n°<span id="hintN">20</span> = jour n°<span id="hintN2">20</span> après le listing.
+        Variation = (Close − Open) / Open × 100.
+        La colonne "&gt; 1 an après" = (bougie n°<span id="hintN3">20</span>) + 1 an (strictement &gt; 1 an).<br>
+        La liste "1h" te laisse choisir l'<b>heure</b> dans la journée N (Europe/Brussels).
+      </div>
+
+      <div id="candleDateBanner" class="candle-date-banner">—</div>
+    </div>
+  </main>
+
+  <script>
+    const tz = 'Europe/Brussels';
+    const yearSel   = document.getElementById('yearSel');
+    const monthSel  = document.getElementById('monthSel');
+    const candleSel = document.getElementById('candleSel');
+    const h1Sel     = document.getElementById('h1Sel');
+
+    const runBtn    = document.getElementById('runBtn');
+    const statusEl  = document.getElementById('status');
+    const progressEl= document.getElementById('progress');
+    const tbody     = document.getElementById('tbody');
+    const errEl     = document.getElementById('err');
+
+    const nLabel = document.getElementById('nLabel');
+    const thN1   = document.getElementById('thN1');
+    const thN2   = document.getElementById('thN2');
+    const hintN  = document.getElementById('hintN');
+    const hintN2 = document.getElementById('hintN2');
+    const hintN3 = document.getElementById('hintN3');
+
+    const nCalN    = document.getElementById('nCalN');
+    const nCalDate = document.getElementById('nCalDate');
+    const h1Hdr    = document.getElementById('h1Hdr');
+
+    const candleDateBanner = document.getElementById('candleDateBanner');
+
+    const dayMs = 24*60*60*1000;
+
+    // BANNIÈRE DE DÉMO (référence d'affichage)
+    const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
+
+    let refListingMs = null;
+    let lastRows = [];
+
+    (function initSelectors(){
+      const years = [2024];
+      years.forEach(y=>{
+        const o = document.createElement('option');
+        o.value = String(y);
+        o.textContent = String(y + 1);
+        o.dataset.realYear = y;
+        yearSel.appendChild(o);
+      });
+      yearSel.value = '2024';
+
+      const limitedMonths = [
+        { label: '01 Jan', value: 0 },
+        { label: '06 Jun', value: 5 },
+        { label: '09 Sep', value: 8 },
+      ];
+      limitedMonths.forEach(({label,value})=>{
+        const o = document.createElement('option');
+        o.value = value; o.textContent = label;
+        monthSel.appendChild(o);
+      });
+      monthSel.value = 0;
+
+      for(let n=1;n<=60;n++){
+        const o = document.createElement('option');
+        o.value = n; o.textContent = String(n);
+        candleSel.appendChild(o);
+      }
+      candleSel.value = '20';
+
+      fillH1Options();
+
+      updateLabels();
+      updateNCalendar();
+      updateBannerOnly();
+    })();
+
+    function fillH1Options(defaultHH='23'){
+      h1Sel.innerHTML = '';
+      for(let hh=0; hh<24; hh++){
+        const h = String(hh).padStart(2,'0');
+        const o = document.createElement('option');
+        o.value = h;
+        o.textContent = `${h}:00`;
+        h1Sel.appendChild(o);
+      }
+      h1Sel.value = defaultHH;
+      h1Hdr.textContent = `${defaultHH}:00`;
+    }
+
+    function capitalizeFr(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    function formatLongFrDate(ms){
+      const d = new Date(ms);
+      const day = new Intl.DateTimeFormat('fr-BE', { timeZone: tz, day:'2-digit' }).format(d);
+      const month = new Intl.DateTimeFormat('fr-BE', { timeZone: tz, month:'long' }).format(d);
+      const year = new Intl.DateTimeFormat('fr-BE', { timeZone: tz, year:'numeric' }).format(d);
+      return `${day} ${capitalizeFr(month)} ${year}`;
+    }
+
+    function formatBrusselsDateTime(ms){
+      const d = new Date(ms);
+      return new Intl.DateTimeFormat('fr-BE', {
+        timeZone: tz, year:'2-digit', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit'
+      }).format(d);
+    }
+
+    function updateLabels(){
+      const n = parseInt(candleSel.value,10);
+      nLabel.textContent = n;
+      thN1.textContent = n;
+      thN2.textContent = n;
+      hintN.textContent = n;
+      hintN2.textContent = n;
+      hintN3.textContent = n;
+      document.title = `Listings — Bougie n°${n} (Binance Futures USDT-M PERP)`;
+      updateNCalendar();
+      updateBannerOnly();
+    }
+
+    function updateNCalendar(){
+      const n = parseInt(candleSel.value,10);
+      nCalN.textContent = n;
+      if(refListingMs==null){ nCalDate.textContent = '—'; return; }
+      const ms = refListingMs + (n-1) * dayMs;
+      nCalDate.textContent = formatLongFrDate(ms);
+    }
+
+    function updateBannerOnly(){
+      const n = parseInt(candleSel.value,10);
+      const ms = BANNER_BASE_MS + (n - 20) * dayMs;
+      candleDateBanner.textContent = new Intl.DateTimeFormat('fr-BE',{timeZone:tz,day:'2-digit',month:'2-digit',year:'2-digit'}).format(ms);
+    }
+
+    candleSel.addEventListener('change', updateLabels);
+
+    h1Sel.addEventListener('change', ()=>{
+      const hh = h1Sel.value.padStart(2,'0');
+      h1Hdr.textContent = `${hh}:00`;
+    });
+
+    function toBrusselsDate(ms){
+      const d = new Date(ms);
+      return new Intl.DateTimeFormat('fr-BE', {
+        timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit'
+      }).format(d);
+    }
+
+    function monthYearInBrussels(ms){
+      const d = new Date(new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit'
+      }).format(new Date(ms)) + 'T00:00:00');
+      return { y: d.getUTCFullYear(), m: d.getUTCMonth() };
+    }
+
+    function plusThanOneYear(ms){
+      const d = new Date(ms);
+      d.setUTCFullYear(d.getUTCFullYear() + 1);
+      return d.getTime() + 1;
+    }
+
+    const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
+
+    async function fetchJSON(url){
+      const r = await fetch(url);
+      if(!r.ok) throw new Error(`HTTP ${r.status} — ${await r.text()}`);
+      return r.json();
+    }
+
+    async function mapLimit(items, limit, worker){
+      const ret = [];
+      let i = 0, active = 0, done = 0;
+      return new Promise(resolve=>{
+        const next = ()=>{
+          while(active < limit && i < items.length){
+            const idx = i++, item = items[idx];
+            active++;
+            Promise.resolve(worker(item, idx))
+              .then(res=>{ ret[idx] = res; })
+              .catch(()=>{ ret[idx] = null; })
+              .finally(()=>{
+                active--; done++;
+                progressEl.textContent = `${done}/${items.length}`;
+                if(done === items.length) resolve(ret);
+                else next();
+              });
+          }
+        };
+        next();
+      });
+    }
+
+    // Offset Europe/Brussels en minutes pour un timestamp donné
+    function getTzOffsetMinutesEuropeBrussels(ms){
+      const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Brussels',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hourCycle: 'h23'
+      });
+      const parts = dtf.formatToParts(new Date(ms));
+      const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+      const asUTC = Date.UTC(
+        Number(map.year), Number(map.month) - 1, Number(map.day),
+        Number(map.hour), Number(map.minute), Number(map.second)
+      );
+      return Math.round((asUTC - ms) / 60000);
+    }
+
+    // Convertit "heure (Bruxelles)" vers le début de bougie 1h en UTC dans la journée N
+    function h1UtcFromDailyOpen(openTimeN_utc, hourBrussels){
+      const probe = openTimeN_utc + 12*60*60*1000; // au milieu de la journée N
+      const offsetMin = getTzOffsetMinutesEuropeBrussels(probe); // 60 ou 120
+      const minutesUtcFromMidnight = hourBrussels*60 - offsetMin;
+      if (minutesUtcFromMidnight < 0 || minutesUtcFromMidnight >= 1440) return null; // hors de la journée N
+      const k = Math.floor(minutesUtcFromMidnight / 60);
+      return openTimeN_utc + k * (60*60*1000);
+    }
+
+    async function fetch1hPct(sym, openTimeN, hourBrussels){
+      if(openTimeN == null) return { pct1h: null, h1Display: '—' };
+      const h1Utc = h1UtcFromDailyOpen(openTimeN, hourBrussels);
+      if(h1Utc == null) return { pct1h: null, h1Display: '—' };
+
+      const u = new URL('https://fapi.binance.com/fapi/v1/klines');
+      u.searchParams.set('symbol', sym);
+      u.searchParams.set('interval', '1h');
+      u.searchParams.set('startTime', String(h1Utc));
+      u.searchParams.set('limit', '1');
+      try{
+        const kl = await fetchJSON(u.toString());
+        if(!kl || !kl.length) return { pct1h: null, h1Display: '—' };
+        const k = kl[0];
+        const o = parseFloat(k[1]), c = parseFloat(k[4]);
+        const pct1h = o > 0 ? ((c - o) / o * 100) : 0;
+        return { pct1h, h1Display: formatBrusselsDateTime(h1Utc) };
+      }catch{
+        return { pct1h: null, h1Display: '—' };
+      }
+    }
+
+    function renderTable(rows){
+      tbody.innerHTML = '';
+      if(!rows.length){
+        tbody.innerHTML = `<tr><td colspan="5" class="muted">Aucun nouveau PERP USDT-M listé pour les critères choisis.</td></tr>`;
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      rows.forEach(r=>{
+        const tdSym   = `<td>${r.sym}</td>`;
+        const tdN     = `<td>${r.openTimeN===null ? '<span class="muted">—</span>' : toBrusselsDate(r.openTimeN)}</td>`;
+        const tdPlus1 = `<td>${r.openTimeNPlus===null ? '<span class="muted">—</span>' : toBrusselsDate(r.openTimeNPlus)}</td>`;
+        const tdPct   = `<td>${r.pctN===null ? '<span class="muted">—</span>' : `<span class="${r.pctN>=0?'up':'down'}">${fmtPct(r.pctN)}</span>`}</td>`;
+
+        let td1h;
+        if(r.pct1h == null){
+          td1h = `<td><span class="muted">—</span></td>`;
+        }else{
+          td1h = `<td>
+            <div><span class="${r.pct1h>=0?'up':'down'}">${fmtPct(r.pct1h)}</span></div>
+            <div class="muted" style="font-size:12px">${r.h1Display || '—'}</div>
+          </td>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = tdSym + tdN + tdPlus1 + tdPct + td1h;
+        frag.appendChild(tr);
+      });
+      tbody.appendChild(frag);
+    }
+
+    async function run(){
+      errEl.textContent = '';
+      statusEl.textContent = 'Chargement des symboles…';
+      tbody.innerHTML = '';
+      progressEl.textContent = '—';
+      refListingMs = null;
+      lastRows = [];
+
+      const Y = parseInt(yearSel.value,10);
+      const M = parseInt(monthSel.value,10);
+      const N = parseInt(candleSel.value,10);
+      const hourBrussels = parseInt(h1Sel.value,10); // 0..23
+
+      try{
+        const ex = await fetchJSON('https://fapi.binance.com/fapi/v1/exchangeInfo');
+        const symbols = (ex.symbols || [])
+          .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT' && s.status === 'TRADING')
+          .map(s => s.symbol);
+
+        statusEl.textContent = `Analyse des premiers listings (${symbols.length} symboles)…`;
+
+        const rows = await mapLimit(symbols, 6, async (sym)=>{
+          try{
+            const u = new URL('https://fapi.binance.com/fapi/v1/klines');
+            u.searchParams.set('symbol', sym);
+            u.searchParams.set('interval', '1d');
+            u.searchParams.set('limit', String(N));
+            u.searchParams.set('startTime', '0');
+            const kl = await fetchJSON(u.toString());
+            if(!kl || !kl.length) return null;
+
+            const openTime1 = kl[0][0];
+            const { y, m } = monthYearInBrussels(openTime1);
+            if (y !== Y || m !== M) return null;
+
+            let openTimeN = null, pctN = null, openTimeNPlus = null, pct1h = null, h1Display = '—';
+            if (kl.length >= N){
+              const kN = kl[N-1];
+              openTimeN = kN[0];
+              const openN = parseFloat(kN[1]);
+              const closeN = parseFloat(kN[4]);
+              pctN = openN>0 ? ((closeN-openN)/openN*100) : 0;
+              openTimeNPlus = plusThanOneYear(openTimeN);
+
+              const res1h = await fetch1hPct(sym, openTimeN, hourBrussels);
+              pct1h = res1h.pct1h;
+              h1Display = res1h.h1Display;
+            }
+
+            return { sym, openTime1, openTimeN, openTimeNPlus, pctN, pct1h, h1Display };
+          }catch(e){
+            return null;
+          }
+        });
+
+        const kept = rows.filter(Boolean);
+
+        if(kept.length){
+          refListingMs = kept.reduce((min, r) => Math.min(min, r.openTime1), Number.POSITIVE_INFINITY);
+        } else {
+          refListingMs = null;
+        }
+        updateNCalendar();
+
+        const out = kept.sort((a,b)=>{
+          if (a.openTimeN && b.openTimeN) return a.openTimeN - b.openTimeN;
+          if (a.openTimeN) return -1;
+          if (b.openTimeN) return 1;
+          return a.sym.localeCompare(b.sym);
+        });
+
+        lastRows = out;
+        renderTable(lastRows);
+
+        const hh = h1Sel.value.padStart(2,'0');
+        statusEl.textContent = `Terminé — ${out.length} symbole(s) • Bougie n°${N} • ${String(M+1).padStart(2,'0')}/${Y} • 1h ${hh}:00`;
+      }catch(e){
+        console.error(e);
+        errEl.textContent = 'Erreur: ' + e.message;
+        statusEl.textContent = '';
+      }
+    }
+
+    document.getElementById('runBtn').addEventListener('click', run);
+    document.getElementById('homeBtn').addEventListener('click', ()=>{ window.location.href = '/'; });
+  </script>
+</body>
+</html>
