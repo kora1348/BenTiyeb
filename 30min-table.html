@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Variation 1h — 19/10/2025 13h00–13h59 (Europe/Brussels)</title>
+  <title>Variation 30 min — 07/10/2025 (Europe/Brussels) — 20:30, 21:00, 21:30, 23:00</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -24,8 +24,15 @@
       color:#fecaca; padding:10px 12px;border-radius:12px;font-size:14px;
     }
     #variation_negative .title{font-weight:700;color:#fca5a5}
-    #total_variation{font-weight:800;color:var(--total)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+    #total_variation{display:flex;gap:10px;flex-wrap:wrap}
+    #total_variation .badge{
+      background:#1f2937;border:1px solid var(--border);border-radius:999px;
+      padding:4px 10px;color:#fff;font-weight:700
+    }
+    #total_variation .badge.positive{color:#22c55e}
+    #total_variation .badge.negative{color:#ef4444}
+    #total_variation .badge.zero{color:#94a3b8}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px;max-width:1200px;margin:0 auto}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
     .card header{background:var(--header);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center}
     .symbol{font-weight:700;letter-spacing:.3px}
@@ -43,24 +50,39 @@
 </head>
 <body>
   <header>
-    <h1>Variation 1h — Heure 13h (Europe/Brussels)</h1>
-    <div class="meta">Date : <strong>19/10/2025</strong> • Plage : <strong>13:00 → 13:59</strong> • Timeframe : <strong>1h</strong></div>
+    <h1>Variation 30 min — Europe/Brussels</h1>
+    <div class="meta">Date : <strong>07/10/2025</strong> • Créneaux : <strong>20:30</strong>, <strong>21:00</strong>, <strong>21:30</strong>, <strong>23:00</strong> • Timeframe interne : <strong>1m → fenêtre 30 min</strong></div>
     <div class="controls"><button id="reload">Recharger</button></div>
   </header>
+
   <div id="variation_negative">
-    <span class="title">TOTAL (somme des variations) : </span>
-    <span id="total_variation">—</span>
+    <span class="title">TOTAL par créneau (somme des variations de tous les symboles) : </span>
+    <div id="total_variation"></div>
   </div>
+
   <div id="grid" class="grid"></div>
+
 <script>
 (async () => {
-const symbols = [
-  "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
-  "1000SATSUSDT","LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT",
-];
-
+  // --- Paramètres ---
+  const symbols = [
+    "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+    "1000SATSUSDT","LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT",
+  ];
   const timeZone = "Europe/Brussels";
-  const interval = "1h";
+  // Date locale voulue : 07/10/2025
+  const dateY = 2025, dateM = 10, dateD = 7;
+
+  // Créneaux locaux pour lesquels on veut une variation sur 30 minutes
+  const slotsHHMM = [
+    [20,30],
+    [21, 0],
+    [21,30],
+    [23, 0],
+  ];
+  const windowMinutes = 30;  // ← 30 minutes
+
+  // --- Utils TZ (sans lib) ---
   function tzOffsetMsAt(date, tz) {
     const dtf = new Intl.DateTimeFormat('en-GB', {
       timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit',
@@ -77,10 +99,24 @@ const symbols = [
     const offset = tzOffsetMsAt(new Date(approxUtc), tz);
     return approxUtc - offset;
   }
-  const startTime = localToUtcMs(2025, 10, 1, 8, 0, 0, 0, timeZone);
-  const endTime   = localToUtcMs(2025, 10, 1, 8, 59, 59, 999, timeZone);
+  function fmtPct(p){ return (p >= 0 ? '+' : '') + p.toFixed(3) + '%'; }
+  function clsPct(p){ return 'pct ' + (p > 0 ? 'up' : (p < 0 ? 'down' : 'zero')); }
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function labelSlot(h, m){
+    const endTotal = h*60+m+windowMinutes-1;
+    return `${pad(h)}:${pad(m)}–${pad((endTotal/60)|0)}:${pad(endTotal%60)}`;
+  }
+
+  // Convertit un créneau local (h,m) en fenêtre UTC [start,end] couvrant 30 min (00s → 29:59.999)
+  function slotWindowUtc(h, m) {
+    const startUtc = localToUtcMs(dateY, dateM, dateD, h, m, 0, 0, timeZone);
+    const endUtc = startUtc + windowMinutes*60*1000 - 1; // inclusif
+    return { startUtc, endUtc };
+  }
+
+  // --- DOM ---
   const grid = document.getElementById('grid');
-  const totalVariationEl = document.getElementById('total_variation');
+  const totalsBar = document.getElementById('total_variation');
 
   function buildCard(symbol) {
     const card = document.createElement('div'); card.className = 'card';
@@ -88,19 +124,29 @@ const symbols = [
     const symEl = document.createElement('div'); symEl.className = 'symbol'; symEl.textContent = symbol;
     const status = document.createElement('div'); status.className = 'status'; status.textContent = 'Chargement…';
     head.appendChild(symEl); head.appendChild(status);
+
     const wrap = document.createElement('div'); wrap.className = 'table-wrap';
     const table = document.createElement('table');
-    table.innerHTML = `
-      <thead><tr><th>Heure (Brussels)</th><th style="text-align:right">Variation (1h)</th></tr></thead>
-      <tbody>
-        <tr><td class="time">13:00</td><td class="pct zero" data-role="val">—</td></tr>
-      </tbody>
-    `;
-    const tbody = table.querySelector('tbody');
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr><th>Créneau (Brussels)</th><th style="text-align:right">Variation (30 min)</th></tr>`;
+    const tbody = document.createElement('tbody');
+
+    // Lignes vides pour chaque slot
+    for (const [h,m] of slotsHHMM) {
+      const tr = document.createElement('tr');
+      const tdTime = document.createElement('td'); tdTime.className = 'time'; tdTime.textContent = labelSlot(h,m);
+      const tdVal = document.createElement('td'); tdVal.className = 'pct zero'; tdVal.textContent = '—';
+      tdVal.dataset.slot = `${h}:${m}`;
+      tr.appendChild(tdTime); tr.appendChild(tdVal); tbody.appendChild(tr);
+    }
+
+    table.appendChild(thead); table.appendChild(tbody);
     wrap.appendChild(table);
-    const loading = document.createElement('div'); loading.className = 'loading'; loading.textContent = 'Requête klines 1h…';
+    const loading = document.createElement('div'); loading.className = 'loading'; loading.textContent = 'Requêtes klines 1m…';
+
     card.appendChild(head); card.appendChild(wrap); card.appendChild(loading);
     grid.appendChild(card);
+
     return { card, statusEl: status, loadingEl: loading, tbody };
   }
 
@@ -110,17 +156,13 @@ const symbols = [
     return ((c - o) / o) * 100;
   }
 
-  function fmtPct(p){ return (p >= 0 ? '+' : '') + p.toFixed(3) + '%'; }
-
-  function clsPct(p){ return 'pct ' + (p > 0 ? 'up' : (p < 0 ? 'down' : 'zero')); }
-
-  async function fetchKlines(symbol) {
+  async function fetchKlines1m(symbol, startUtc, endUtc) {
     const url = new URL('https://api.binance.com/api/v3/klines');
     url.searchParams.set('symbol', symbol);
-    url.searchParams.set('interval', interval);
-    url.searchParams.set('startTime', String(startTime));
-    url.searchParams.set('endTime', String(endTime));
-    url.searchParams.set('limit', '1');
+    url.searchParams.set('interval', '1m'); // on agrège 30 min en 1m pour gérer pile :00/:30
+    url.searchParams.set('startTime', String(startUtc));
+    url.searchParams.set('endTime', String(endUtc));
+    url.searchParams.set('limit', '1000'); // large pour 30 min
     const res = await fetch(url.toString());
     if (!res.ok) {
       const txt = await res.text().catch(()=> '');
@@ -131,53 +173,66 @@ const symbols = [
     return data;
   }
 
+  // Préparation cartes
   const cards = symbols.map(s => {
     const built = buildCard(s);
-    return { symbol: s, ...built, valueCell: built.tbody.querySelector('[data-role="val"]') };
+    const rowCells = {};
+    for (const [h,m] of slotsHHMM) {
+      rowCells[`${h}:${m}`] = built.tbody.querySelector(`td[data-slot="${h}:${m}"]`);
+    }
+    return { symbol: s, ...built, rowCells };
   });
 
-  const variations = new Map();
+  // Suivi des totaux par créneau
+  const totals = new Map(); // key "h:m" -> {sum, count}
+  for (const [h,m] of slotsHHMM) totals.set(`${h}:${m}`, {sum:0, count:0});
+
+  // Récupération / calculs
   await Promise.all(cards.map(async (c) => {
     c.statusEl.textContent = 'Chargement…';
-    c.loadingEl.textContent = 'Requête klines 1h…';
+    c.loadingEl.textContent = 'Requêtes klines 1m…';
     try {
-      const kl = await fetchKlines(c.symbol);
-      if (kl.length > 0) {
-        const open = kl[0][1];
-        const close = kl[0][4];
-        const p = pctChange(open, close);
-        variations.set(c.symbol, p);
-        if (p === null) {
-          c.valueCell.textContent = 'n/a';
-          c.valueCell.className = 'pct zero';
-        } else {
-          c.valueCell.textContent = fmtPct(p);
-          c.valueCell.className = clsPct(p);
+      for (const [h,m] of slotsHHMM) {
+        const { startUtc, endUtc } = slotWindowUtc(h, m);
+        const kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
+        let p = null;
+        if (kl.length > 0) {
+          const first = kl[0];             // [ openTime, open, high, low, close, ... ]
+          const last  = kl[kl.length-1];
+          const open = first[1];
+          const close = last[4];
+          p = pctChange(open, close);
         }
-      } else {
-        variations.set(c.symbol, null);
-        c.valueCell.textContent = 'n/a';
-        c.valueCell.className = 'pct zero';
+        const cell = c.rowCells[`${h}:${m}`];
+        if (p === null) {
+          cell.textContent = 'n/a';
+          cell.className = 'pct zero';
+        } else {
+          cell.textContent = fmtPct(p);
+          cell.className = clsPct(p);
+          const t = totals.get(`${h}:${m}`); t.sum += p; t.count += 1;
+        }
       }
       c.statusEl.textContent = 'OK';
       c.loadingEl.textContent = 'Terminé.';
     } catch (e) {
-      variations.set(c.symbol, null);
       c.statusEl.textContent = 'Erreur';
       c.loadingEl.className = 'error';
       c.loadingEl.textContent = 'Échec: ' + (e?.message || e);
-      c.valueCell.textContent = 'n/a';
-      c.valueCell.className = 'pct zero';
     }
   }));
 
-  let total = 0;
-  let count = 0;
-  for (const p of variations.values()) {
-    if (p !== null && isFinite(p)) { total += p; count++; }
+  // Affichage des totaux par créneau
+  totalsBar.innerHTML = '';
+  for (const [h,m] of slotsHHMM) {
+    const key = `${h}:${m}`;
+    const {sum, count} = totals.get(key);
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
+    const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
+    badge.textContent = `${pad(h)}:${pad(m)} → ${txt}`;
+    totalsBar.appendChild(badge);
   }
-  const totalTxt = count === 0 ? 'n/a' : (total >= 0 ? '+' : '') + total.toFixed(3) + '%';
-  totalVariationEl.textContent = totalTxt;
 
   document.getElementById('reload').addEventListener('click', () => location.reload());
 })();
