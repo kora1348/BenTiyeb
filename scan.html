@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>30m — 07-10-25 20:30 (Europe/Brussels)</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:20px;color:#111}
+    .container{background:#fff;border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
+    header{display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+    h1{font-size:22px}
+    .sub{color:#4f46e5;font-weight:700}
+    .bar-wrap{width:100%;background:#e5e7eb;border-radius:10px;height:26px;overflow:hidden;margin:12px 0}
+    .bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;width:0%}
+    button{padding:10px 14px;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    table{width:100%;border-collapse:collapse;margin-top:12px;border-radius:10px;overflow:hidden}
+    thead{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
+    th,td{padding:12px 10px;text-align:center;border-bottom:1px solid #eee;font-size:14px}
+    tbody tr:hover{background:#f8f9fa}
+    .symbol{font-weight:700}
+    .pos{color:#16a34a;font-weight:700}
+    .neg{color:#dc2626;font-weight:700}
+    .muted{color:#9ca3af}
+    .error{background:#fee;border:1px solid #fcc;color:#b91c1c;padding:12px;border-radius:10px;margin-top:12px}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .tag{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>📊 Variation 30m — toutes les PERP USDT-M</h1>
+        <div class="sub">Bougie ouverte le <strong>07/10/2025 20:30</strong> (Europe/Brussels) → <strong>18:30</strong> (UTC)</div>
+        <div class="controls" style="margin-top:6px">
+          <span class="tag">Intervalle: 30m</span>
+          <span class="tag">Heure locale choisie: 20:30 (Brussels)</span>
+          <span class="tag">UTC: 18:30</span>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="runBtn">🔄 Run</button>
+      </div>
+    </header>
+
+    <div class="bar-wrap" id="barWrap" style="display:none">
+      <div class="bar" id="bar">0%</div>
+    </div>
+
+    <div id="content">
+      <div class="muted">Clique sur <b>Run</b> pour lancer la collecte.</div>
+    </div>
+
+    <div id="errorBox" class="error" style="display:none"></div>
+  </div>
+
+  <script>
+    // --- Paramètres fixes demandés ---
+    // Le 07/10/2025 20:30 Europe/Brussels correspond à 18:30 UTC (CEST = UTC+2 en octobre jusqu'au dernier dimanche)
+    const OPEN_UTC_MS = Date.UTC(2025, 9, 7, 18, 30); // 2025-10-07T18:30:00.000Z
+    const INTERVAL = '30m';
+    const API = 'https://fapi.binance.com';
+
+    // Durée d’une bougie 30m en ms
+    const INTERVAL_MS = 30 * 60 * 1000;
+    const END_UTC_MS = OPEN_UTC_MS + INTERVAL_MS - 1;
+
+    // Limiteur de concurrence pour éviter trop de requêtes simultanées
+    function pLimit(concurrency){
+      const queue = [];
+      let active = 0;
+      const next = () => {
+        if (queue.length === 0 || active >= concurrency) return;
+        active++;
+        const { fn, resolve, reject } = queue.shift();
+        Promise.resolve()
+          .then(fn)
+          .then((v)=>{ resolve(v); active--; next(); })
+          .catch((e)=>{ reject(e); active--; next(); });
+      };
+      return (fn) => new Promise((resolve, reject)=>{
+        queue.push({ fn, resolve, reject });
+        next();
+      });
+    }
+
+    async function getPerpUSDTTradingSymbols(){
+      const res = await fetch(`${API}/fapi/v1/exchangeInfo`);
+      if(!res.ok) throw new Error('exchangeInfo indisponible');
+      const data = await res.json();
+      // Filtrer PERPETUAL + quoteAsset=USDT + status=TRADING
+      const symbols = (data.symbols||[])
+        .filter(s => s.contractType === 'PERPETUAL' && s.quoteAsset === 'USDT' && s.status === 'TRADING')
+        .map(s => s.symbol);
+      // Tri alpha pour stabilité
+      symbols.sort();
+      return symbols;
+    }
+
+    async function getKline30mAt(symbol, startMs, endMs){
+      const url = `${API}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=1`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error(`Klines ${symbol}: ${res.status}`);
+      const arr = await res.json();
+      return arr[0] || null; // [ openTime, open, high, low, close, ... ]
+    }
+
+    function variationFromKline(k){
+      const open = parseFloat(k[1]);
+      const close = parseFloat(k[4]);
+      return ((close - open) / open) * 100;
+    }
+
+    function setBar(pct){
+      const barWrap = document.getElementById('barWrap');
+      const bar = document.getElementById('bar');
+      barWrap.style.display = 'block';
+      bar.style.width = `${pct}%`;
+      bar.textContent = `${pct}%`;
+    }
+
+    function showError(msg){
+      const box = document.getElementById('errorBox');
+      box.style.display = 'block';
+      box.textContent = msg;
+    }
+
+    function clearError(){
+      const box = document.getElementById('errorBox');
+      box.style.display = 'none';
+      box.textContent = '';
+    }
+
+    function renderTable(rows){
+      // rows: [{symbol, value: number|null}]
+      // tri par variation décroissante, N/A en bas
+      const valRows = rows.filter(r => typeof r.value === 'number').sort((a,b)=>b.value - a.value);
+      const naRows  = rows.filter(r => r.value == null);
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Symbole</th>
+              <th>07/10/2025 20:30 (30m)</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for(const r of valRows){
+        const cls = r.value >= 0 ? 'pos' : 'neg';
+        const sign = r.value >= 0 ? '+' : '';
+        html += `<tr>
+          <td class="symbol">${r.symbol}</td>
+          <td class="${cls}">${sign}${r.value.toFixed(2)}%</td>
+        </tr>`;
+      }
+      for(const r of naRows){
+        html += `<tr>
+          <td class="symbol">${r.symbol}</td>
+          <td class="muted">N/A</td>
+        </tr>`;
+      }
+
+      html += `</tbody></table>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    document.getElementById('runBtn').addEventListener('click', async ()=>{
+      clearError();
+      document.getElementById('content').innerHTML = `<div class="muted">Chargement des symboles PERP USDT-M…</div>`;
+      document.getElementById('runBtn').disabled = true;
+      setBar(0);
+
+      try{
+        const symbols = await getPerpUSDTTradingSymbols();
+        if(!symbols.length) throw new Error("Aucun symbole PERP USDT-M trouvé.");
+
+        // Concurrence raisonnable (ajuste si besoin)
+        const limit = pLimit(8);
+        const total = symbols.length;
+        let done = 0;
+
+        const tasks = symbols.map(sym => limit(async ()=>{
+          try{
+            const k = await getKline30mAt(sym, OPEN_UTC_MS, END_UTC_MS);
+            done++;
+            setBar(Math.round((done/total)*100));
+            if(!k) return { symbol: sym, value: null };
+            return { symbol: sym, value: variationFromKline(k) };
+          }catch(e){
+            done++;
+            setBar(Math.round((done/total)*100));
+            return { symbol: sym, value: null };
+          }
+        }));
+
+        const results = await Promise.all(tasks);
+        renderTable(results);
+      }catch(err){
+        showError(`Erreur: ${err.message||err}`);
+      }finally{
+        document.getElementById('runBtn').disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

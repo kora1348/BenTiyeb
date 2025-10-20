@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>30m — Variation (heure Belgique)</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:20px;color:#111}
+    .container{background:#fff;border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
+    header{display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+    h1{font-size:22px}
+    .sub{color:#4f46e5;font-weight:700}
+    .bar-wrap{width:100%;background:#e5e7eb;border-radius:10px;height:26px;overflow:hidden;margin:12px 0}
+    .bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;width:0%}
+    button{padding:10px 14px;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    table{width:100%;border-collapse:collapse;margin-top:12px;border-radius:10px;overflow:hidden}
+    thead{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
+    th,td{padding:12px 10px;text-align:center;border-bottom:1px solid #eee;font-size:14px}
+    tbody tr:hover{background:#f8f9fa}
+    .symbol{font-weight:700}
+    .pos{color:#16a34a;font-weight:700}
+    .neg{color:#dc2626;font-weight:700}
+    .muted{color:#9ca3af}
+    .error{background:#fee;border:1px solid #fcc;color:#b91c1c;padding:12px;border-radius:10px;margin-top:12px}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .tag{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+    label{font-size:12px;color:#374151}
+    input[type="date"],input[type="time"]{padding:8px 10px;border:1px solid #c7d2fe;border-radius:10px;background:#eef2ff;color:#111;font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>📊 Variation 30m — PERP USDT-M (liste fournie)</h1>
+        <div id="subtitle" class="sub">Bougie ouverte le <strong>07/10/2025 21:00</strong> (Europe/Brussels) → <strong>19:00</strong> (UTC)</div>
+        <div class="row">
+          <label for="localDate">Date (Belgique)</label>
+          <input id="localDate" type="date" value="2025-10-07">
+          <label for="localTime">Heure (Belgique)</label>
+          <input id="localTime" type="time" value="21:00" step="1800"> <!-- pas de 30 min -->
+          <span class="tag">Intervalle: 30m</span>
+          <span id="utcTag" class="tag">UTC: 19:00</span>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="runBtn">🔄 Run</button>
+      </div>
+    </header>
+
+    <div class="bar-wrap" id="barWrap" style="display:none">
+      <div class="bar" id="bar">0%</div>
+    </div>
+
+    <div id="content">
+      <div class="muted">Choisis la <b>date</b> et l’<b>heure belge</b> (ex. 23:30), puis clique <b>Run</b>.</div>
+    </div>
+
+    <div id="errorBox" class="error" style="display:none"></div>
+  </div>
+
+  <script>
+    // ========================
+    // CONFIG
+    // ========================
+    const API = 'https://fapi.binance.com';
+    const INTERVAL = '30m';
+    const INTERVAL_MS = 30 * 60 * 1000;
+
+    // --- Liste fournie des tickers (USDT-M PERP) ---
+    const SYMBOLS = [
+      "HSTUSDT","GMTUSDT","KDAUSDT","HEIUSDT","KAVAUSDT","DUSDT","PONKEUSDT","ZKUSDT","PROMUSDT","ASRUSDT",
+      "TRXUSDT","RESOLVUSDT","ZRCUSDT","ARCUSDT","OGUSDT","AVAXUSDT","SONICUSDT","BANANAUSDT","YGGUSDT","RPLUSDT",
+      "INITUSDT","SLPUSDT","BICOUSDT","STEEMUSDT","BRETTUSDT","CROSSUSDT","TONUSDT","FXSUSDT","UBUSDT","PENGUUSDT",
+      "TREEUSDT","SWELLUSDT","RONINUSDT","ACXUSDT","MITOUSDT","1000XUSDT","CETUSUSDT","1MBABYDOGEUSDT","SANTOSUSDT","API3USDT",
+      "WLDUSDT","TRUUSDT","FIDAUSDT","OMUSDT","DYMUSDT","1000CHEEMSUSDT","HIVEUSDT","MUSDT","PUNDIXUSDT","POLYXUSDT",
+      "COTIUSDT","FUSDT","ERAUSDT","ETCUSDT","1000BONKUSDT","COSUSDT","SPELLUSDT","POWRUSDT","MOCAUSDT","CVXUSDT",
+      "CHZUSDT","RAYSOLUSDT","TACUSDT","XTZUSDT","YFIUSDT","LUMIAUSDT","ATOMUSDT","MOVRUSDT","LTCUSDT","KMNOUSDT",
+      "IPUSDT","CARVUSDT","TRUMPUSDT","EPTUSDT","HMSTRUSDT","FLUXUSDT","BULLAUSDT","THETAUSDT","ONTUSDT","FARTCOINUSDT",
+      "1000XECUSDT","WCTUSDT","BELUSDT","DOTUSDT","BIOUSDT","WAXPUSDT","NILUSDT","RUNEUSDT","NXPCUSDT","STORJUSDT",
+      "GLMUSDT","NEOUSDT","PUMPUSDT","OPUSDT","VANRYUSDT","INJUSDT","ETHWUSDT","ZILUSDT","FORTHUSDT","B3USDT",
+      "DFUSDT","SAFEUSDT","ARPAUSDT","NOTUSDT","SXTUSDT","PIPPINUSDT","ALLUSDT","AUSDT","TUSDT","TOSHIUSDT",
+      "TNSRUSDT","A2ZUSDT","ENSUSDT","BRUSDT","BLURUSDT","IOTXUSDT","BATUSDT","CGPTUSDT","SKLUSDT","BANUSDT",
+      "PROMPTUSDT","CUSDT","JTOUSDT","KSMUSDT","PORTALUSDT","MAVUSDT","PIXELUSDT","CATIUSDT","ICPUSDT","HOTUSDT",
+      "TAGUSDT","AXSUSDT","SOPHUSDT","GASUSDT","MAGICUSDT","COMPUSDT","PEOPLEUSDT","VICUSDT","THEUSDT","ONDOUSDT",
+      "GRTUSDT","SANDUSDT","MINAUSDT","VOXELUSDT","FIOUSDT","NOMUSDT","VTHOUSDT","BNTUSDT","KASUSDT","ORCAUSDT",
+      "MTLUSDT","SXPUSDT","SCRUSDT","ICXUSDT","DEEPUSDT","VINEUSDT","ONGUSDT","1000SATSUSDT","VELODROMEUSDT","VIRTUALUSDT",
+      "IDUSDT","ENJUSDT","AIOUSDT","RIFUSDT","PENDLEUSDT","ALGOUSDT","RLCUSDT","BIGTIMEUSDT","1INCHUSDT","PERPUSDT",
+      "BASUSDT","USUALUSDT","ZETAUSDT","ROSEUSDT","SOONUSDT","LIGHTUSDT","HFTUSDT","LINKUSDT","PHBUSDT","1000FLOKIUSDT",
+      "ARBUSDT","PLUMEUSDT","LQTYUSDT","VANAUSDT","BEAMXUSDT","ASTRUSDT","RDNTUSDT","TRBUSDT","ANKRUSDT","MEMEUSDT",
+      "RENDERUSDT","TRADOORUSDT","ARKUSDT","AUCTIONUSDT","XAIUSDT","NEWTUSDT","1000SHIBUSDT","HIGHUSDT","1000000MOGUSDT","IOUSDT",
+      "ARKMUSDT","SYRUPUSDT","XVGUSDT","CKBUSDT","ACTUSDT","BANANAS31USDT","ONEUSDT","TOKENUSDT","DENTUSDT","ATHUSDT",
+      "SUSHIUSDT","FETUSDT","ORDIUSDT","GALAUSDT","GOATUSDT","BMTUSDT","REIUSDT","SAHARAUSDT","COOKIEUSDT","DYDXUSDT",
+      "1000PEPEUSDT","ASTERUSDT","FISUSDT","ACHUSDT","RVNUSDT","KOMAUSDT","SYSUSDT","BDXNUSDT","ZENUSDT","JASMYUSDT",
+      "BCHUSDT","LPTUSDT","WUSDT","MBOXUSDT","ANIMEUSDT","REZUSDT","SUIUSDT","MOODENGUSDT","KNCUSDT","XVSUSDT",
+      "MEWUSDT","SPXUSDT","MLNUSDT","BARDUSDT","YALAUSDT","DASHUSDT","IOTAUSDT","SEIUSDT","XLMUSDT","LSKUSDT",
+      "DEGENUSDT","PHAUSDT","MANTAUSDT","PNUTUSDT","ZKCUSDT","IOSTUSDT","FILUSDT","HOMEUSDT","BANDUSDT","BSVUSDT",
+      "REDUSDT","ALTUSDT","DEGOUSDT","GUSDT","CHESSUSDT","LAYERUSDT","XPINUSDT","AGTUSDT","EGLDUSDT","ACEUSDT",
+      "ZORAUSDT","MEUSDT","DOLOUSDT","NEARUSDT","SIRENUSDT","GPSUSDT","LDOUSDT","JOEUSDT","DOGSUSDT","MYROUSDT",
+      "DOGEUSDT","AI16ZUSDT","VETUSDT","MASKUSDT","SIGNUSDT","1000CATUSDT","SYNUSDT","ZRXUSDT","ENAUSDT","PYTHUSDT",
+      "OXTUSDT","MOVEUSDT","AGLDUSDT","PARTIUSDT","TURBOUSDT","ILVUSDT","XRPUSDT","QTUMUSDT","CFXUSDT","AKTUSDT",
+      "OGNUSDT","TLMUSDT","DMCUSDT","LYNUSDT","WOOUSDT","CELOUSDT","CHILLGUYUSDT","NEIROUSDT","HBARUSDT","SPKUSDT",
+      "TAIKOUSDT","ADAUSDT","BERAUSDT","WLFIUSDT","TIAUSDT","DODOXUSDT","BOMEUSDT","WIFUSDT","FLOWUSDT","SOLUSDT",
+      "SHELLUSDT","DIAUSDT","RSRUSDT","SKYAIUSDT","MANAUSDT","SKYUSDT","ZECUSDT","AAVEUSDT","KAIAUSDT","1000RATSUSDT",
+      "JELLYJELLYUSDT","IMXUSDT","AEROUSDT","TOWNSUSDT","SFPUSDT","NKNUSDT","SUPERUSDT","MIRAUSDT","MELANIAUSDT","HEMIUSDT",
+      "SOMIUSDT","GMXUSDT","TAOUSDT","LAUSDT","PUMPBTCUSDT","XCNUSDT","LINEAUSDT","KAITOUSDT","HIPPOUSDT","UMAUSDT",
+      "GTCUSDT","POPCATUSDT","JUPUSDT","METISUSDT","SNXUSDT","EDUUSDT","COWUSDT","FLOCKUSDT","TAUSDT","XNYUSDT",
+      "0GUSDT","C98USDT","HYPEUSDT","MORPHOUSDT","B2USDT","HOLOUSDT","FFUSDT","AVAAIUSDT","IDOLUSDT","VFYUSDT",
+      "HUMAUSDT","DRIFTUSDT","OLUSDT","ARIAUSDT","BROCCOLIF3BUSDT","TWTUSDT","SWARMSUSDT","2ZUSDT","EDENUSDT","CUDISUSDT",
+      "ALCHUSDT","MYXUSDT","TAKEUSDT","AVNTUSDT","INUSDT","XPLUSDT","EVAAUSDT","BANKUSDT","ORDERUSDT","STXUSDT",
+      "OPENUSDT","STOUSDT","AIUSDT","HANAUSDT","AKEUSDT","TRUTHUSDT","1000000BOBUSDT","QUSDT","BLESSUSDT","KGENUSDT"
+    ];
+
+    // ========================
+    // TIMEZONE HELPERS (Europe/Brussels -> UTC)
+    // ========================
+    const ZONE = 'Europe/Brussels';
+
+    function tzOffsetMinutesAt(utcMs, timeZone){
+      // Offset = zoned(utcMs) - utcMs
+      const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone, hour12:false,
+        year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit'
+      });
+      const parts = dtf.formatToParts(new Date(utcMs));
+      const map = {};
+      for (const {type, value} of parts) map[type] = value;
+      const asUTC = Date.UTC(map.year, map.month-1, map.day, map.hour, map.minute, map.second);
+      return (asUTC - utcMs) / 60000;
+    }
+
+    // Convertit Y-M-D H:M exprimés en heure "Europe/Brussels" vers epoch UTC (ms).
+    function localBelgiumToUtcMs(y, m, d, hh, mm){
+      // itération pour corriger l’offset (DST)
+      let guess = Date.UTC(y, m-1, d, hh, mm); // supposer offset 0
+      for (let i=0;i<3;i++){
+        const offMin = tzOffsetMinutesAt(guess, ZONE);
+        guess = Date.UTC(y, m-1, d, hh, mm) - offMin*60000;
+      }
+      return guess;
+    }
+
+    // ========================
+    // NETWORK + RENDER
+    // ========================
+    function pLimit(concurrency){
+      const queue = []; let active = 0;
+      const next = () => {
+        if (!queue.length || active >= concurrency) return;
+        active++;
+        const { fn, resolve, reject } = queue.shift();
+        Promise.resolve().then(fn).then(
+          v => { active--; resolve(v); next(); },
+          e => { active--; reject(e); next(); }
+        );
+      };
+      return fn => new Promise((resolve, reject)=>{ queue.push({fn,resolve,reject}); next(); });
+    }
+
+    async function getKline30mAt(symbol, startMs, endMs){
+      const url = `${API}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=1`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error(`Klines ${symbol}: ${res.status}`);
+      const arr = await res.json();
+      return arr[0] || null; // [ openTime, open, high, low, close, ... ]
+    }
+
+    function variationFromKline(k){
+      const open = parseFloat(k[1]);
+      const close = parseFloat(k[4]);
+      return ((close - open) / open) * 100;
+    }
+
+    function setBar(pct){
+      const barWrap = document.getElementById('barWrap');
+      const bar = document.getElementById('bar');
+      barWrap.style.display = 'block';
+      bar.style.width = `${pct}%`;
+      bar.textContent = `${pct}%`;
+    }
+
+    function showError(msg){
+      const box = document.getElementById('errorBox');
+      box.style.display = 'block';
+      box.textContent = msg;
+    }
+    function clearError(){
+      const box = document.getElementById('errorBox');
+      box.style.display = 'none';
+      box.textContent = '';
+    }
+
+    function pad2(n){ return String(n).padStart(2,'0'); }
+
+    function updateHeader(localISO, utcMs){
+      const [y,m,d] = localISO.split('-').map(Number);
+      const timeStr = document.getElementById('localTime').value || '00:00';
+      const [hh,mm] = timeStr.split(':').map(Number);
+
+      // UTC label
+      const utc = new Date(utcMs);
+      const utcHH = pad2(utc.getUTCHours());
+      const utcMM = pad2(utc.getUTCMinutes());
+
+      document.title = `30m — ${pad2(d)}-${pad2(m)}-${String(y).slice(-2)} ${timeStr} (Europe/Brussels)`;
+      document.getElementById('subtitle').innerHTML =
+        `Bougie ouverte le <strong>${pad2(d)}/${pad2(m)}/${y} ${pad2(hh)}:${pad2(mm)}</strong> (Europe/Brussels) → <strong>${utcHH}:${utcMM}</strong> (UTC)`;
+      document.getElementById('utcTag').textContent = `UTC: ${utcHH}:${utcMM}`;
+    }
+
+    function renderTable(rows, localISO, timeStr){
+      const ok = rows.filter(r => typeof r.value === 'number').sort((a,b)=>b.value - a.value);
+      const na = rows.filter(r => r.value == null);
+
+      const [y,m,d] = localISO.split('-').map(Number);
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Symbole</th>
+              <th>${pad2(d)}/${pad2(m)}/${y} ${timeStr} (30m)</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      for(const r of ok){
+        const cls = r.value >= 0 ? 'pos' : 'neg';
+        const sign = r.value >= 0 ? '+' : '';
+        html += `<tr><td class="symbol">${r.symbol}</td><td class="${cls}">${sign}${r.value.toFixed(2)}%</td></tr>`;
+      }
+      for(const r of na){
+        html += `<tr><td class="symbol">${r.symbol}</td><td class="muted">N/A</td></tr>`;
+      }
+      html += `</tbody></table>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    // ========================
+    // RUN BTN
+    // ========================
+    document.getElementById('runBtn').addEventListener('click', async ()=>{
+      clearError();
+      const localISO = document.getElementById('localDate').value || '2025-10-07';
+      const timeStr  = document.getElementById('localTime').value || '21:00';
+      const [hh, mm] = timeStr.split(':').map(Number);
+      const [y, m, d] = localISO.split('-').map(Number);
+
+      // calc UTC pour Europe/Brussels
+      const openUtcMs = localBelgiumToUtcMs(y, m, d, hh, mm);
+      const endUtcMs  = openUtcMs + INTERVAL_MS - 1;
+
+      updateHeader(localISO, openUtcMs);
+
+      document.getElementById('content').innerHTML =
+        `<div class="muted">Chargement des variations (${SYMBOLS.length} paires)…</div>`;
+      document.getElementById('runBtn').disabled = true;
+      setBar(0);
+
+      try{
+        const limit = pLimit(8);
+        const total = SYMBOLS.length;
+        let done = 0;
+
+        const tasks = SYMBOLS.map(sym => limit(async ()=>{
+          try{
+            const k = await getKline30mAt(sym, openUtcMs, endUtcMs);
+            done++; setBar(Math.round((done/total)*100));
+            if(!k) return { symbol: sym, value: null };
+            return { symbol: sym, value: variationFromKline(k) };
+          }catch(e){
+            done++; setBar(Math.round((done/total)*100));
+            return { symbol: sym, value: null };
+          }
+        }));
+
+        const results = await Promise.all(tasks);
+        renderTable(results, localISO, timeStr);
+      }catch(err){
+        showError(`Erreur: ${err.message||err}`);
+      }finally{
+        document.getElementById('runBtn').disabled = false;
+      }
+    });
+
+    // Mise à jour du sous-titre en live quand l’heure change (sans fetch)
+    function previewUTC(){
+      const localISO = document.getElementById('localDate').value || '2025-10-07';
+      const timeStr  = document.getElementById('localTime').value || '21:30';
+      const [hh, mm] = timeStr.split(':').map(Number);
+      const [y, m, d] = localISO.split('-').map(Number);
+      const openUtcMs = localBelgiumToUtcMs(y, m, d, hh, mm);
+      updateHeader(localISO, openUtcMs);
+    }
+    document.getElementById('localDate').addEventListener('change', previewUTC);
+    document.getElementById('localTime').addEventListener('change', previewUTC);
+
+    // Initial preview
+    previewUTC();
+  </script>
+</body>
+</html>
