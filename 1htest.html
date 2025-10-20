@@ -77,8 +77,8 @@ const symbols = [
     const offset = tzOffsetMsAt(new Date(approxUtc), tz);
     return approxUtc - offset;
   }
-  const startTime = localToUtcMs(2025, 10, 19, 13, 0, 0, 0, timeZone);
-  const endTime   = localToUtcMs(2025, 10, 19, 13, 59, 59, 999, timeZone);
+  const startTime = localToUtcMs(2025, 10, 1, 8, 0, 0, 0, timeZone);
+  const endTime   = localToUtcMs(2025, 10, 1, 8, 59, 59, 999, timeZone);
   const grid = document.getElementById('grid');
   const totalVariationEl = document.getElementById('total_variation');
 
