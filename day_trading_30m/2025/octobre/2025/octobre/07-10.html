@@ -32,7 +32,7 @@
     #total_variation .badge.positive{color:#22c55e}
     #total_variation .badge.negative{color:#ef4444}
     #total_variation .badge.zero{color:#94a3b8}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:16px;max-width:1200px;margin:0 auto}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
     .card header{background:var(--header);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center}
     .symbol{font-weight:700;letter-spacing:.3px}
@@ -40,17 +40,19 @@
     .table-wrap{max-height:70vh;overflow:auto}
     table{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
     thead th{position:sticky;top:0;background:var(--header);border-bottom:1px solid var(--border);padding:6px 8px;font-size:12px;color:var(--muted);text-align:left}
+    thead th.num, tbody td.pct{text-align:right}
     tbody td, tbody th{border-bottom:1px solid rgba(255,255,255,.06);padding:6px 8px;font-size:12px}
     tbody td.time{color:var(--muted)}
-    .pct{font-weight:600;text-align:right}
+    .pct{font-weight:600}
     .up{color:var(--up)} .down{color:var(--down)} .zero{color:var(--zero)}
     .loading,.error{padding:10px 12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
     .error{color:#fca5a5}
+    .chip{font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:var(--muted);margin-left:8px}
   </style>
 </head>
 <body>
   <header>
-    <h1>Variation 30 min — Europe/Brussels</h1>
+    <h1>Variation 30 min — Europe/Brussels <span class="chip">+ Spike max / min</span></h1>
     <div class="meta">Date : <strong>07/10/2025</strong> • Créneaux : <strong>20:30</strong>, <strong>21:00</strong>, <strong>21:30</strong>, <strong>23:00</strong> • Timeframe interne : <strong>1m → fenêtre 30 min</strong></div>
     <div class="controls"><button id="reload">Recharger</button></div>
   </header>
@@ -69,7 +71,7 @@
     "ZKUSDT",
     "PUMPUSDT",
     "0GUSDT",
-];
+  ];
 
   const timeZone = "Europe/Brussels";
   // Date locale voulue : 07/10/2025
@@ -130,16 +132,43 @@
     const wrap = document.createElement('div'); wrap.className = 'table-wrap';
     const table = document.createElement('table');
     const thead = document.createElement('thead');
-    thead.innerHTML = `<tr><th>Créneau (Brussels)</th><th style="text-align:right">Variation (30 min)</th></tr>`;
+    thead.innerHTML = `
+      <tr>
+        <th>Créneau (Brussels)</th>
+        <th class="num">Variation (30 min)</th>
+        <th class="num">Spike max (mèche ↑)</th>
+        <th class="num">Spike min (mèche ↓)</th>
+      </tr>`;
     const tbody = document.createElement('tbody');
 
     // Lignes vides pour chaque slot
     for (const [h,m] of slotsHHMM) {
       const tr = document.createElement('tr');
-      const tdTime = document.createElement('td'); tdTime.className = 'time'; tdTime.textContent = labelSlot(h,m);
-      const tdVal = document.createElement('td'); tdVal.className = 'pct zero'; tdVal.textContent = '—';
-      tdVal.dataset.slot = `${h}:${m}`;
-      tr.appendChild(tdTime); tr.appendChild(tdVal); tbody.appendChild(tr);
+
+      const tdTime = document.createElement('td');
+      tdTime.className = 'time';
+      tdTime.textContent = labelSlot(h,m);
+
+      const tdVar = document.createElement('td');
+      tdVar.className = 'pct zero';
+      tdVar.textContent = '—';
+      tdVar.dataset.slot = `${h}:${m}:var`;
+
+      const tdSpikeUp = document.createElement('td');
+      tdSpikeUp.className = 'pct zero';
+      tdSpikeUp.textContent = '—';
+      tdSpikeUp.dataset.slot = `${h}:${m}:su`;
+
+      const tdSpikeDn = document.createElement('td');
+      tdSpikeDn.className = 'pct zero';
+      tdSpikeDn.textContent = '—';
+      tdSpikeDn.dataset.slot = `${h}:${m}:sd`;
+
+      tr.appendChild(tdTime);
+      tr.appendChild(tdVar);
+      tr.appendChild(tdSpikeUp);
+      tr.appendChild(tdSpikeDn);
+      tbody.appendChild(tr);
     }
 
     table.appendChild(thead); table.appendChild(tbody);
@@ -156,6 +185,28 @@
     const o = Number(open), c = Number(close);
     if (!isFinite(o) || o === 0 || !isFinite(c)) return null;
     return ((c - o) / o) * 100;
+  }
+  function spikeMaxPct(open, highs) {
+    const o = Number(open);
+    if (!isFinite(o) || o === 0 || highs.length === 0) return null;
+    let maxH = -Infinity;
+    for (const h of highs) {
+      const v = Number(h);
+      if (isFinite(v) && v > maxH) maxH = v;
+    }
+    if (!isFinite(maxH)) return null;
+    return ((maxH - o) / o) * 100;
+  }
+  function spikeMinPct(open, lows) {
+    const o = Number(open);
+    if (!isFinite(o) || o === 0 || lows.length === 0) return null;
+    let minL = Infinity;
+    for (const l of lows) {
+      const v = Number(l);
+      if (isFinite(v) && v < minL) minL = v;
+    }
+    if (!isFinite(minL)) return null;
+    return ((minL - o) / o) * 100; // négatif si mèche basse
   }
 
   async function fetchKlines1m(symbol, startUtc, endUtc) {
@@ -180,12 +231,14 @@
     const built = buildCard(s);
     const rowCells = {};
     for (const [h,m] of slotsHHMM) {
-      rowCells[`${h}:${m}`] = built.tbody.querySelector(`td[data-slot="${h}:${m}"]`);
+      rowCells[`${h}:${m}:var`] = built.tbody.querySelector(`td[data-slot="${h}:${m}:var"]`);
+      rowCells[`${h}:${m}:su`]  = built.tbody.querySelector(`td[data-slot="${h}:${m}:su"]`);
+      rowCells[`${h}:${m}:sd`]  = built.tbody.querySelector(`td[data-slot="${h}:${m}:sd"]`);
     }
     return { symbol: s, ...built, rowCells };
   });
 
-  // Suivi des totaux par créneau
+  // Suivi des totaux par créneau (UNIQUEMENT la variation 30 min, comme avant)
   const totals = new Map(); // key "h:m" -> {sum, count}
   for (const [h,m] of slotsHHMM) totals.set(`${h}:${m}`, {sum:0, count:0});
 
@@ -197,23 +250,41 @@
       for (const [h,m] of slotsHHMM) {
         const { startUtc, endUtc } = slotWindowUtc(h, m);
         const kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
-        let p = null;
+
+        let pVar = null, pSu = null, pSd = null;
+
         if (kl.length > 0) {
-          const first = kl[0];             // [ openTime, open, high, low, close, ... ]
+          // Kline format: [ openTime, open, high, low, close, volume, closeTime, ... ]
+          const first = kl[0];
           const last  = kl[kl.length-1];
-          const open = first[1];
-          const close = last[4];
-          p = pctChange(open, close);
+          const open0 = first[1];
+          const closeLast = last[4];
+
+          // Lists highs & lows
+          const highs = kl.map(k => k[2]);
+          const lows  = kl.map(k => k[3]);
+
+          // Variation close vs open de la fenêtre
+          pVar = pctChange(open0, closeLast);
+
+          // Spike max/min vs open de début de fenêtre
+          pSu = spikeMaxPct(open0, highs); // attendu positif ou 0
+          pSd = spikeMinPct(open0, lows);  // attendu négatif ou 0
         }
-        const cell = c.rowCells[`${h}:${m}`];
-        if (p === null) {
-          cell.textContent = 'n/a';
-          cell.className = 'pct zero';
-        } else {
-          cell.textContent = fmtPct(p);
-          cell.className = clsPct(p);
-          const t = totals.get(`${h}:${m}`); t.sum += p; t.count += 1;
-        }
+
+        // Remplissage cellules
+        const cVar = c.rowCells[`${h}:${m}:var`];
+        const cSu  = c.rowCells[`${h}:${m}:su`];
+        const cSd  = c.rowCells[`${h}:${m}:sd`];
+
+        if (pVar === null) { cVar.textContent = 'n/a'; cVar.className = 'pct zero'; }
+        else { cVar.textContent = fmtPct(pVar); cVar.className = clsPct(pVar); const t = totals.get(`${h}:${m}`); t.sum += pVar; t.count += 1; }
+
+        if (pSu === null) { cSu.textContent = 'n/a'; cSu.className = 'pct zero'; }
+        else { cSu.textContent = fmtPct(pSu); cSu.className = clsPct(pSu); }
+
+        if (pSd === null) { cSd.textContent = 'n/a'; cSd.className = 'pct zero'; }
+        else { cSd.textContent = fmtPct(pSd); cSd.className = clsPct(pSd); }
       }
       c.statusEl.textContent = 'OK';
       c.loadingEl.textContent = 'Terminé.';
@@ -224,7 +295,7 @@
     }
   }));
 
-  // Affichage des totaux par créneau
+  // Affichage des totaux par créneau (variation uniquement)
   totalsBar.innerHTML = '';
   for (const [h,m] of slotsHHMM) {
     const key = `${h}:${m}`;
