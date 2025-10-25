@@ -15,8 +15,9 @@
     header{max-width:1200px;margin:0 auto 16px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
     header h1{margin:0;font-size:20px;font-weight:700}
     .meta{color:var(--muted);font-size:14px}
-    .controls{margin-left:auto;}
-    .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;}
+    .controls{margin-left:auto;display:flex;gap:12px}
+    .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;font-size:14px}
+    .controls button a{color:#fff;text-decoration:none}
     #variation_negative{
       max-width:1200px;margin:8px auto 16px;
       background:linear-gradient(180deg,rgba(220,38,38,.1),rgba(220,38,38,.04)), var(--card);
@@ -57,11 +58,7 @@
     <div class="meta" id="metaLine">
       <!-- Injecté en JS : Date • Créneaux dynamiques • Timeframe -->
     </div>
-    <div class="controls"><button id="reload">Recharger</button></div>
     <div class="controls"><button id="reload"><a href="/index.html">Accueil</a></button></div>
-    <div class="controls">
-  <a href="/index.html" class="btn">Accueil</a>
-</div>
   </header>
 
   <div id="variation_negative">
