@@ -16,6 +16,7 @@
     label span{display:block;margin-bottom:4px;font-size:11px}
     select,button{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px}
     button{cursor:pointer}
+    .btn-danger{border-color:#3b1d1d;background:#1a0e0e}
     .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;position:relative}
     table{width:100%;border-collapse:collapse;margin-top:6px}
     th,td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;vertical-align:top}
@@ -76,6 +77,7 @@
 
       <div style="display:flex;gap:8px;align-items:center">
         <button id="runBtn">Run</button>
+        <button id="clearBtn" class="btn-danger">🗑️ Effacer</button>
         <button id="homeBtn"><a href="/index.html">Accueil</a></button>
         <span id="status" class="muted"></span>
       </div>
@@ -85,7 +87,7 @@
       </div>
     </div>
 
-    <!-- Nouvelle carte d'alerte -->
+    <!-- Carte d'alerte -->
     <div id="dupeCard" class="card dupe-card" style="display:none">
       <div class="dupe-title">
         🚨 <span>Dates répétées avec la même polarité — Bougie n°<span id="dupeN">—</span></span>
@@ -128,6 +130,7 @@
     const candleSel = document.getElementById('candleSel');
     const m30Sel    = document.getElementById('m30Sel');
     const runBtn    = document.getElementById('runBtn');
+    const clearBtn  = document.getElementById('clearBtn');
     const statusEl  = document.getElementById('status');
     const progressEl= document.getElementById('progress');
     const tbody     = document.getElementById('tbody');
@@ -189,14 +192,11 @@
       const d = new Date(new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms))+'T00:00:00');
       return { y: d.getUTCFullYear(), m: d.getUTCMonth() };
     }
-    function dateKeyBrussels(ms){ // YYYY-MM-DD (Europe/Brussels)
-      const d = new Date(ms);
-      const s = new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
-      return s; // ex: 2024-03-04
+    function dateKeyBrussels(ms){ // YYYY-MM-DD
+      return new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms));
     }
     function dateKeyHuman(ms){ // DD/MM/YY
-      const d = new Date(ms);
-      return new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'}).format(d);
+      return new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'}).format(new Date(ms));
     }
     function plusThanOneYear(ms){ const d=new Date(ms); d.setUTCFullYear(d.getUTCFullYear()+1); return d.getTime()+1; }
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
@@ -346,7 +346,7 @@
       return kept;
     }
 
-    // Calcul “rows” indépendants de 30m pour pouvoir comparer les 3 mois
+    // Calcul “rows” indépendants de 30m pour comparer les 3 mois
     async function computeRowsNo30m(Y,M,N){
       const kc = keyComputed(Y,M,N);
       if (CACHE.computed.has(kc)) return CACHE.computed.get(kc);
@@ -395,26 +395,24 @@
       return out;
     }
 
-    // ====== Dupe card : détection des dates dupliquées avec même polarité pour Jan/Jun/Sep
+    // ====== Dupe card (Jan/Jun/Sep)
     async function updateDupeCard(){
       const Y = parseInt(yearSel.value,10);
       const N = parseInt(candleSel.value,10);
       dupeN.textContent = N;
 
-      // s'assurer que les 3 mois sont chauffés et calculés (sans 30m)
       await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
       const rowsByMonth = await Promise.all(ALLOWED_MONTHS.map(m => computeRowsNo30m(Y,m,N)));
 
       const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 
-      // Détection
       const report = ALLOWED_MONTHS.map((M, idx)=>{
         const rows = rowsByMonth[idx];
-        const mapDates = new Map(); // key -> {pos:[{sym,pct,ms}], neg:[...]}
+        const mapDates = new Map(); // key -> {pos:[...], neg:[...]}
 
         rows.forEach(r=>{
           if (r.openTimeN==null || r.pctN==null) return;
-          if (r.pctN === 0) return; // ignore les neutres
+          if (r.pctN === 0) return; // ignore neutre
           const key = dateKeyBrussels(r.openTimeN);
           if (!mapDates.has(key)) mapDates.set(key, {pos:[],neg:[]});
           const bag = mapDates.get(key);
@@ -429,7 +427,6 @@
         return { monthLabel: monthNamesShort[M], dupes };
       });
 
-      // Rendu
       dupeContent.innerHTML = '';
       let totalDupes = 0;
       report.forEach(block=>{
@@ -457,24 +454,21 @@
       dupeCard.style.display = totalDupes ? 'block' : 'none';
     }
 
-    // ====== Build rows pour le mois courant (incluant 30m) & rendu
+    // ====== Build & render courant
     async function buildAndRenderCurrent(Y,M,N,m30Minutes){
-      // rows “no30m” (mise en cache par (Y,M,N))
       const rowsNo30 = await computeRowsNo30m(Y,M,N);
-      // ref pour le calendrier
       if (rowsNo30.length){
         refListingMs = rowsNo30.reduce((min, r) => Math.min(min, r.openTime1), Number.POSITIVE_INFINITY);
       }else{
         refListingMs = null;
       }
-      // enrichissement 30m seulement pour l’affichage
       const out = await enrichRowsWith30m(rowsNo30, m30Minutes);
       lastRows = out;
       renderTable(out);
       updateLabels(); updateNCalendar();
     }
 
-    // ====== Run (une seule fois par mois)
+    // ====== Run
     async function run(){
       errEl.textContent=''; tbody.innerHTML=''; progressEl.textContent='—';
       lastRows=[]; refListingMs=null;
@@ -487,19 +481,42 @@
       try{
         statusEl.textContent = 'Chargement initial (une seule fois)…';
         await warmMonth(Y,M);
-        // pré-chauffe silencieuse des deux autres
         Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
 
         statusEl.textContent = `Calcul local pour N=${N}…`;
         await buildAndRenderCurrent(Y,M,N,m30Minutes);
-
-        // met à jour la carte d’alerte globale (3 mois)
         await updateDupeCard();
 
         statusEl.textContent = `Terminé (cache) — ${lastRows.length} symbole(s) • Bougie n°${N} • ${String(M+1).padStart(2,'0')}/${Y} • 30m ${m30Hdr.textContent}`;
       }catch(e){
         console.error(e); errEl.textContent='Erreur: '+e.message; statusEl.textContent='';
       }
+    }
+
+    // ====== Effacer (reset complet des variables & caches)
+    function clearAll(){
+      // vider caches
+      CACHE.symbols = null;
+      CACHE.daily60.clear();
+      CACHE.monthRows.clear();
+      CACHE.pct30m.clear();
+      CACHE.computed.clear();
+
+      // vider états & UI
+      lastRows = [];
+      refListingMs = null;
+      tbody.innerHTML = '';
+      dupeContent.innerHTML = '';
+      dupeCard.style.display = 'none';
+      errEl.textContent = '';
+      progressEl.textContent = '—';
+      nCalDate.textContent = '—';
+      candleDateBanner.textContent = '—';
+
+      // garder les sélections actuelles mais rafraîchir les labels
+      updateLabels();
+
+      statusEl.textContent = 'Tout effacé — sélectionne tes paramètres puis clique Run.';
     }
 
     // ====== Fast re-render si cache déjà chaud
@@ -570,6 +587,7 @@
     monthSel.addEventListener('change', tryFastRender);
 
     runBtn.addEventListener('click', run);
+    clearBtn.addEventListener('click', clearAll);
 
     // ====== Header dynamique
     const h1 = document.getElementById('h1');
