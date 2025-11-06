@@ -349,24 +349,18 @@
       });
       return out;
     }
-    // ====== Build & render courant
-    async function buildAndRenderCurrent(Y,M,N,m30Minutes){
-      const rowsNo30 = await computeRowsNo30m(Y,M,N);
-      refListingMs = rowsNo30.length ? rowsNo30.reduce((min, r) => Math.min(min, r.openTime1), Number.POSITIVE_INFINITY) : null;
-      const out = await enrichRowsWith30m(rowsNo30, m30Minutes);
-      lastRows = out;
-      renderTable(out);
-      updateLabels(); updateNCalendar();
-    }
-    // ====== Test tous les créneaux 30m
+    // ====== Test tous les créneaux 30m avec suivi de progression
     async function testAll30mSlots(Y, M, N) {
       const all30mSlots = [];
       for (let totMin = 0; totMin < 24 * 60; totMin += 30) {
         all30mSlots.push(totMin);
       }
-
       const validSlots = [];
-      for (const m30Minutes of all30mSlots) {
+      for (let i = 0; i < all30mSlots.length; i++) {
+        const m30Minutes = all30mSlots[i];
+        const hh = String(Math.floor(m30Minutes / 60)).padStart(2, '0');
+        const mm = String(m30Minutes % 60).padStart(2, '0');
+        statusEl.textContent = `Test ${i+1}/${all30mSlots.length} — Créneau 30m : ${hh}:${mm}…`;
         const rowsByMonth = await Promise.all(
           ALLOWED_MONTHS.map(async m => {
             const base = await computeRowsNo30m(Y, m, N);
@@ -374,7 +368,6 @@
             return enriched;
           })
         );
-
         // Vérifie si la règle est respectée pour ce créneau 30m
         const everyMonthHasExactlyTwo = rowsByMonth.every(rows => {
           const mapDates = new Map();
@@ -385,7 +378,6 @@
             const bag = mapDates.get(key);
             (r.pctN > 0 ? bag.pos : bag.neg).push(r);
           });
-
           let count = 0;
           for (const [k, bag] of mapDates.entries()) {
             if (bag.pos.length === 2 && ((bag.pos[0].pct30m > 0 && bag.pos[1].pct30m > 0) || (bag.pos[0].pct30m < 0 && bag.pos[1].pct30m < 0))) count++;
@@ -393,12 +385,10 @@
           }
           return count === 2;
         });
-
         if (everyMonthHasExactlyTwo) {
           validSlots.push({ m30Minutes, rowsByMonth });
         }
       }
-
       return validSlots;
     }
     // ====== Affichage des cartes pour chaque créneau valide
@@ -408,12 +398,10 @@
         dupeCardsContainer.innerHTML = '<div class="muted">Aucun créneau 30m ne respecte la règle.</div>';
         return;
       }
-
       validSlots.forEach(slot => {
         const { m30Minutes, rowsByMonth } = slot;
         const hh = String(Math.floor(m30Minutes / 60)).padStart(2, '0');
         const mm = String(m30Minutes % 60).padStart(2, '0');
-
         const card = document.createElement('div');
         card.className = 'card dupe-card';
         card.innerHTML = `
@@ -422,10 +410,8 @@
           </div>
           <div id="dupeContent_${m30Minutes}"></div>
         `;
-
         const dupeContent = card.querySelector(`#dupeContent_${m30Minutes}`);
         const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-
         rowsByMonth.forEach((rows, idx) => {
           const M = ALLOWED_MONTHS[idx];
           const mapDates = new Map();
@@ -436,12 +422,10 @@
             const bag = mapDates.get(key);
             (r.pctN > 0 ? bag.pos : bag.neg).push(r);
           });
-
           const div = document.createElement('div');
           div.className = 'dupe-month';
           div.innerHTML = `<h4>${monthNamesShort[M]}</h4>`;
           const wrap = document.createElement('div');
-
           for (const [k, bag] of mapDates.entries()) {
             if (bag.pos.length === 2) {
               const [a, b] = bag.pos;
@@ -464,11 +448,9 @@
               }
             }
           }
-
           div.appendChild(wrap);
           dupeContent.appendChild(div);
         });
-
         dupeCardsContainer.appendChild(card);
       });
     }
@@ -479,15 +461,12 @@
       const Y = parseInt(yearSel.value,10);
       const M = parseInt(monthSel.value,10);
       const N = parseInt(candleSel.value,10);
-
       try{
         statusEl.textContent = 'Chargement initial (une seule fois)…';
         await warmMonth(Y,M);
         await Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
-
         statusEl.textContent = `Test de tous les créneaux 30m pour N=${N}…`;
         const validSlots = await testAll30mSlots(Y, M, N);
-
         if (validSlots.length > 0) {
           statusEl.textContent = `Trouvé ${validSlots.length} créneau(x) 30m valide(s) !`;
           renderDupeCards(validSlots, Y, N);
