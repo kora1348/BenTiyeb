@@ -332,60 +332,70 @@
     const markDirty = () => { statusEl.textContent = 'Paramètres modifiés — cliquez sur Run (premier chargement seulement)'; };
 
     // ====== Dupe card : Jan/Jun/Sep
-    async function updateDupeCard(){
-      const Y = parseInt(yearSel.value,10);
-      const N = parseInt(candleSel.value,10);
-      dupeN.textContent = N;
+    // ====== Dupe card : Jan/Jun/Sep — s'affiche UNIQUEMENT si chaque mois a exactement 2 dates
+async function updateDupeCard(){
+  const Y = parseInt(yearSel.value,10);
+  const N = parseInt(candleSel.value,10);
+  dupeN.textContent = N;
 
-      await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
-      const rowsByMonth = await Promise.all(ALLOWED_MONTHS.map(m => computeRows(Y,m,N)));
-      const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  // Chauffe des 3 mois et calcul des rows (sans requêtes réseau supplémentaires si en cache)
+  await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
+  const rowsByMonth = await Promise.all(ALLOWED_MONTHS.map(m => computeRows(Y,m,N)));
 
-      const report = ALLOWED_MONTHS.map((M, idx)=>{
-        const rows = rowsByMonth[idx];
-        const mapDates = new Map(); // date -> {pos:[],neg:[]}
-        rows.forEach(r=>{
-          if (r.openTimeN==null || r.pctN==null) return;
-          if (r.pctN===0) return;
-          const key = dateKeyBrussels(r.openTimeN);
-          if (!mapDates.has(key)) mapDates.set(key, {pos:[],neg:[]});
-          const bag = mapDates.get(key);
-          (r.pctN>0 ? bag.pos : bag.neg).push({ sym:r.sym, pct:r.pctN, ms:r.openTimeN });
-        });
+  const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 
-        const dupes=[];
-        for(const [k,bag] of mapDates.entries()){
-          if (bag.pos.length>=2) dupes.push({ human: dateKeyHuman(bag.pos[0].ms), sign:'positive', count:bag.pos.length, list:bag.pos.slice(0,6) });
-          if (bag.neg.length>=2) dupes.push({ human: dateKeyHuman(bag.neg[0].ms), sign:'negative', count:bag.neg.length, list:bag.neg.slice(0,6) });
-        }
-        return { monthLabel: monthNamesShort[M], dupes };
-      });
+  // Détection des dates doublées par polarité
+  const report = ALLOWED_MONTHS.map((M, idx)=>{
+    const rows = rowsByMonth[idx];
+    const mapDates = new Map(); // date -> {pos:[],neg:[]}
 
-      dupeContent.innerHTML='';
-      let totalDupes=0;
-      report.forEach(block=>{
-        const div=document.createElement('div');
-        div.className='dupe-month';
-        div.innerHTML=`<h4>${block.monthLabel}</h4>`;
-        if(!block.dupes.length){
-          div.innerHTML += `<div class="dupe-empty">Rien à signaler.</div>`;
-        }else{
-          totalDupes += block.dupes.length;
-          const wrap=document.createElement('div');
-          block.dupes.forEach(d=>{
-            const pill=document.createElement('span');
-            pill.className=`dupe-pill ${d.sign==='positive'?'positive':'negative'}`;
-            const signTxt=d.sign==='positive'?'Haussière':'Baissière';
-            const syms=d.list.map(x=>x.sym).join(', ');
-            pill.innerHTML=`<b>${d.human}</b> • ${signTxt} • x${d.count}<span class="muted" style="margin-left:6px">${syms}${d.count>6?', …':''}</span>`;
-            wrap.appendChild(pill);
-          });
-          div.appendChild(wrap);
-        }
-        dupeContent.appendChild(div);
-      });
-      dupeCard.style.display = totalDupes ? 'block' : 'none';
+    rows.forEach(r=>{
+      if (r.openTimeN==null || r.pctN==null) return;
+      if (r.pctN === 0) return;
+      const key = new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(r.openTimeN));
+      if (!mapDates.has(key)) mapDates.set(key, {pos:[],neg:[]});
+      const bag = mapDates.get(key);
+      (r.pctN>0 ? bag.pos : bag.neg).push({ sym:r.sym, pct:r.pctN, ms:r.openTimeN });
+    });
+
+    const dupes = [];
+    for (const [,bag] of mapDates.entries()){
+      if (bag.pos.length>=2) dupes.push({ human: new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'}).format(new Date(bag.pos[0].ms)), sign:'positive', count:bag.pos.length, list:bag.pos.slice(0,6) });
+      if (bag.neg.length>=2) dupes.push({ human: new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'}).format(new Date(bag.neg[0].ms)), sign:'negative', count:bag.neg.length, list:bag.neg.slice(0,6) });
     }
+    return { monthLabel: monthNamesShort[M], dupes };
+  });
+
+  // ✅ Afficher la carte uniquement si CHAQUE mois a EXACTEMENT 2 dates
+  const showCard = report.every(block => block.dupes.length === 2);
+
+  dupeContent.innerHTML = '';
+  if (!showCard){
+    dupeCard.style.display = 'none';
+    return;
+  }
+
+  // Rendu (limité à 2 pills par mois)
+  report.forEach(block=>{
+    const div = document.createElement('div');
+    div.className = 'dupe-month';
+    div.innerHTML = `<h4>${block.monthLabel}</h4>`;
+    const wrap = document.createElement('div');
+    block.dupes.slice(0,2).forEach(d=>{
+      const pill = document.createElement('span');
+      pill.className = `dupe-pill ${d.sign==='positive'?'positive':'negative'}`;
+      const signTxt = d.sign==='positive' ? 'Haussière' : 'Baissière';
+      const syms = d.list.map(x=>x.sym).join(', ');
+      pill.innerHTML = `<b>${d.human}</b> • ${signTxt} • x${d.count}<span class="muted" style="margin-left:6px">${syms}${d.count>6?', …':''}</span>`;
+      wrap.appendChild(pill);
+    });
+    div.appendChild(wrap);
+    dupeContent.appendChild(div);
+  });
+
+  dupeCard.style.display = 'block';
+}
+
 
     // ====== Build & render courant (1d)
     async function buildAndRenderCurrent(Y,M,N){
