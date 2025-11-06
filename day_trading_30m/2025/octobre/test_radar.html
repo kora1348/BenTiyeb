@@ -5,7 +5,7 @@
   <title>Listings — Bougie n°20 (Binance Futures USDT-M PERP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; }
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; --ink:#111827;}
     html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:13px}
     header{padding:18px 16px;border-bottom:1px solid var(--border)}
     h1{margin:0;font-size:20px}
@@ -36,6 +36,16 @@
     }
     #status{font-size:11px}
     #nCalendar{font-size:12px;margin-left:auto}
+
+    /* Carte d’alerte “dates en double avec même polarité” */
+    .dupe-card{margin:16px 0 10px;background:#0f1222;border:1px solid #23324a}
+    .dupe-title{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700}
+    .dupe-pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 10px;margin:4px 6px 0 0;font-size:12px}
+    .dupe-pill.positive{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.08)}
+    .dupe-pill.negative{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08)}
+    .dupe-month{margin-top:8px}
+    .dupe-empty{font-size:12px;color:var(--muted)}
+    .dupe-month h4{margin:8px 0 6px;font-size:13px;color:#d1d5db}
   </style>
 </head>
 <body>
@@ -73,6 +83,14 @@
       <div class="muted" id="nCalendar" style="margin-left:auto">
         Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
       </div>
+    </div>
+
+    <!-- Nouvelle carte d'alerte -->
+    <div id="dupeCard" class="card dupe-card" style="display:none">
+      <div class="dupe-title">
+        🚨 <span>Dates répétées avec la même polarité — Bougie n°<span id="dupeN">—</span></span>
+      </div>
+      <div id="dupeContent"></div>
     </div>
 
     <div class="card">
@@ -126,24 +144,31 @@
     const m30Hdr   = document.getElementById('m30Hdr');
     const candleDateBanner = document.getElementById('candleDateBanner');
 
+    const dupeCard = document.getElementById('dupeCard');
+    const dupeContent = document.getElementById('dupeContent');
+    const dupeN = document.getElementById('dupeN');
+
     // ====== Consts
     const dayMs = 24*60*60*1000;
     const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0); // 09/10/2025
+    const ALLOWED_MONTHS = [0,5,8]; // Jan, Jun, Sep
 
     let refListingMs = null;  // pour l'encart calendrier
     let lastRows = [];
 
     // ====== Caches
     const CACHE = {
-      symbols: null,              // Array<string>
+      symbols: null,
       daily60: new Map(),         // sym -> 1d klines (limit 60)
       monthRows: new Map(),       // `${Y}-${M}` -> [{sym, openTime1, daily60}]
       pct30m: new Map(),          // `${sym}-${openN}-${m30}` -> {pct30m, m30Display}
+      computed: new Map(),        // `${Y}-${M}-${N}` -> rows (sans dépendance 30m)
     };
     const keyMonth = (Y,M)=>`${Y}-${M}`;
     const key30m   = (sym, openTimeN, m30)=>`${sym}-${openTimeN}-${m30}`;
+    const keyComputed = (Y,M,N)=>`${Y}-${M}-${N}`;
 
-    // ====== Helpers
+    // ====== Helpers dates & formats
     function capitalizeFr(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
     function formatLongFrDate(ms){
       const d = new Date(ms);
@@ -164,9 +189,19 @@
       const d = new Date(new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms))+'T00:00:00');
       return { y: d.getUTCFullYear(), m: d.getUTCMonth() };
     }
+    function dateKeyBrussels(ms){ // YYYY-MM-DD (Europe/Brussels)
+      const d = new Date(ms);
+      const s = new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+      return s; // ex: 2024-03-04
+    }
+    function dateKeyHuman(ms){ // DD/MM/YY
+      const d = new Date(ms);
+      return new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'}).format(d);
+    }
     function plusThanOneYear(ms){ const d=new Date(ms); d.setUTCFullYear(d.getUTCFullYear()+1); return d.getTime()+1; }
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
 
+    // ====== Fetch helpers
     async function fetchJSON(url){
       const r = await fetch(url);
       if(!r.ok) throw new Error(`HTTP ${r.status} — ${await r.text()}`);
@@ -227,6 +262,7 @@
       }catch{ return { pct30m:null, m30Display:'—' }; }
     }
 
+    // ====== Rendering
     function renderTable(rows){
       tbody.innerHTML='';
       if(!rows.length){
@@ -309,31 +345,26 @@
       CACHE.monthRows.set(k, kept);
       return kept;
     }
-    async function buildRowsFromCache(Y,M,N,m30Minutes){
-      const base = CACHE.monthRows.get(keyMonth(Y,M)) || [];
-      if(!base.length){ refListingMs = null; return []; }
-      refListingMs = base.reduce((min,r)=>Math.min(min, r.openTime1), Number.POSITIVE_INFINITY);
 
-      const rows = await mapLimit(base, 10, async (r)=>{
+    // Calcul “rows” indépendants de 30m pour pouvoir comparer les 3 mois
+    async function computeRowsNo30m(Y,M,N){
+      const kc = keyComputed(Y,M,N);
+      if (CACHE.computed.has(kc)) return CACHE.computed.get(kc);
+
+      const base = CACHE.monthRows.get(keyMonth(Y,M)) || [];
+      if(!base.length){ CACHE.computed.set(kc, []); return []; }
+
+      const rows = await mapLimit(base, 12, async (r)=>{
         const kl = r.daily60;
-        let openTimeN=null, openTimeNPlus=null, pctN=null, pct30m=null, m30Display='—';
+        let openTimeN=null, openTimeNPlus=null, pctN=null;
         if (kl.length>=N){
           const kN = kl[N-1];
           openTimeN = kN[0];
           const o=parseFloat(kN[1]), c=parseFloat(kN[4]);
           pctN = o>0 ? ((c-o)/o*100) : 0;
           openTimeNPlus = plusThanOneYear(openTimeN);
-
-          const k30 = key30m(r.sym, openTimeN, m30Minutes);
-          if (CACHE.pct30m.has(k30)){
-            ({pct30m, m30Display} = CACHE.pct30m.get(k30));
-          }else{
-            const res30 = await fetch30mPct(r.sym, openTimeN, m30Minutes);
-            pct30m = res30.pct30m; m30Display = res30.m30Display;
-            CACHE.pct30m.set(k30, { pct30m, m30Display });
-          }
         }
-        return { sym:r.sym, openTime1:r.openTime1, openTimeN, openTimeNPlus, pctN, pct30m, m30Display };
+        return { sym:r.sym, openTime1:r.openTime1, openTimeN, openTimeNPlus, pctN };
       });
 
       const out = rows.sort((a,b)=>{
@@ -342,7 +373,105 @@
         if (b.openTimeN) return 1;
         return a.sym.localeCompare(b.sym);
       });
+
+      CACHE.computed.set(kc, out);
       return out;
+    }
+
+    // Ajoute les colonnes 30m depuis un rows “no30m”
+    async function enrichRowsWith30m(rows, m30Minutes){
+      const out = await mapLimit(rows, 10, async (r)=>{
+        if (!r.openTimeN) return { ...r, pct30m:null, m30Display:'—' };
+        const k30 = key30m(r.sym, r.openTimeN, m30Minutes);
+        if (CACHE.pct30m.has(k30)){
+          const { pct30m, m30Display } = CACHE.pct30m.get(k30);
+          return { ...r, pct30m, m30Display };
+        }else{
+          const res30 = await fetch30mPct(r.sym, r.openTimeN, m30Minutes);
+          CACHE.pct30m.set(k30, res30);
+          return { ...r, pct30m:res30.pct30m, m30Display:res30.m30Display };
+        }
+      });
+      return out;
+    }
+
+    // ====== Dupe card : détection des dates dupliquées avec même polarité pour Jan/Jun/Sep
+    async function updateDupeCard(){
+      const Y = parseInt(yearSel.value,10);
+      const N = parseInt(candleSel.value,10);
+      dupeN.textContent = N;
+
+      // s'assurer que les 3 mois sont chauffés et calculés (sans 30m)
+      await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
+      const rowsByMonth = await Promise.all(ALLOWED_MONTHS.map(m => computeRowsNo30m(Y,m,N)));
+
+      const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
+      // Détection
+      const report = ALLOWED_MONTHS.map((M, idx)=>{
+        const rows = rowsByMonth[idx];
+        const mapDates = new Map(); // key -> {pos:[{sym,pct,ms}], neg:[...]}
+
+        rows.forEach(r=>{
+          if (r.openTimeN==null || r.pctN==null) return;
+          if (r.pctN === 0) return; // ignore les neutres
+          const key = dateKeyBrussels(r.openTimeN);
+          if (!mapDates.has(key)) mapDates.set(key, {pos:[],neg:[]});
+          const bag = mapDates.get(key);
+          (r.pctN>0 ? bag.pos : bag.neg).push({ sym:r.sym, pct:r.pctN, ms:r.openTimeN });
+        });
+
+        const dupes = [];
+        for (const [k,bag] of mapDates.entries()){
+          if (bag.pos.length>=2) dupes.push({ key:k, human: dateKeyHuman(bag.pos[0].ms), sign:'positive', count:bag.pos.length, list:bag.pos.slice(0,6) });
+          if (bag.neg.length>=2) dupes.push({ key:k, human: dateKeyHuman(bag.neg[0].ms), sign:'negative', count:bag.neg.length, list:bag.neg.slice(0,6) });
+        }
+        return { monthLabel: monthNamesShort[M], dupes };
+      });
+
+      // Rendu
+      dupeContent.innerHTML = '';
+      let totalDupes = 0;
+      report.forEach(block=>{
+        const div = document.createElement('div');
+        div.className = 'dupe-month';
+        div.innerHTML = `<h4>${block.monthLabel}</h4>`;
+        if (!block.dupes.length){
+          div.innerHTML += `<div class="dupe-empty">Rien à signaler.</div>`;
+        }else{
+          totalDupes += block.dupes.length;
+          const wrap = document.createElement('div');
+          block.dupes.forEach(d=>{
+            const pill = document.createElement('span');
+            pill.className = `dupe-pill ${d.sign==='positive'?'positive':'negative'}`;
+            const signTxt = d.sign==='positive' ? 'Haussière' : 'Baissière';
+            const syms = d.list.map(x=>x.sym).join(', ');
+            pill.innerHTML = `<b>${d.human}</b> • ${signTxt} • x${d.count}<span class="muted" style="margin-left:6px">${syms}${d.count>6?', …':''}</span>`;
+            wrap.appendChild(pill);
+          });
+          div.appendChild(wrap);
+        }
+        dupeContent.appendChild(div);
+      });
+
+      dupeCard.style.display = totalDupes ? 'block' : 'none';
+    }
+
+    // ====== Build rows pour le mois courant (incluant 30m) & rendu
+    async function buildAndRenderCurrent(Y,M,N,m30Minutes){
+      // rows “no30m” (mise en cache par (Y,M,N))
+      const rowsNo30 = await computeRowsNo30m(Y,M,N);
+      // ref pour le calendrier
+      if (rowsNo30.length){
+        refListingMs = rowsNo30.reduce((min, r) => Math.min(min, r.openTime1), Number.POSITIVE_INFINITY);
+      }else{
+        refListingMs = null;
+      }
+      // enrichissement 30m seulement pour l’affichage
+      const out = await enrichRowsWith30m(rowsNo30, m30Minutes);
+      lastRows = out;
+      renderTable(out);
+      updateLabels(); updateNCalendar();
     }
 
     // ====== Run (une seule fois par mois)
@@ -358,17 +487,16 @@
       try{
         statusEl.textContent = 'Chargement initial (une seule fois)…';
         await warmMonth(Y,M);
-
-        // pré-chauffe silencieusement les deux autres mois définis (Jan/Jun/Sep)
-        const allowedMonths=[0,5,8];
-        const others = allowedMonths.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm));
-        Promise.allSettled(others);
+        // pré-chauffe silencieuse des deux autres
+        Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
 
         statusEl.textContent = `Calcul local pour N=${N}…`;
-        const out = await buildRowsFromCache(Y,M,N,m30Minutes);
-        lastRows = out; renderTable(out); updateLabels(); updateNCalendar();
+        await buildAndRenderCurrent(Y,M,N,m30Minutes);
 
-        statusEl.textContent = `Terminé (cache) — ${out.length} symbole(s) • Bougie n°${N} • ${String(M+1).padStart(2,'0')}/${Y} • 30m ${m30Hdr.textContent}`;
+        // met à jour la carte d’alerte globale (3 mois)
+        await updateDupeCard();
+
+        statusEl.textContent = `Terminé (cache) — ${lastRows.length} symbole(s) • Bougie n°${N} • ${String(M+1).padStart(2,'0')}/${Y} • 30m ${m30Hdr.textContent}`;
       }catch(e){
         console.error(e); errEl.textContent='Erreur: '+e.message; statusEl.textContent='';
       }
@@ -383,9 +511,9 @@
 
       if (CACHE.monthRows.has(keyMonth(Y,M))){
         statusEl.textContent = 'Recalcul rapide depuis le cache…';
-        const out = await buildRowsFromCache(Y,M,N,m30Minutes);
-        lastRows = out; renderTable(out); updateLabels(); updateNCalendar();
-        statusEl.textContent = `OK (cache) • ${out.length} symbole(s)`;
+        await buildAndRenderCurrent(Y,M,N,m30Minutes);
+        await updateDupeCard();
+        statusEl.textContent = `OK (cache) • ${lastRows.length} symbole(s)`;
       }else{
         markDirty();
       }
@@ -429,7 +557,7 @@
       m30Sel.value=String(defVal); m30Hdr.textContent=`${defaultHH}:${defaultMM}`;
     }
 
-    // ====== Listeners (recalcul instantané si cache chaud)
+    // ====== Listeners
     candleSel.addEventListener('change', async ()=>{ updateLabels(); await tryFastRender(); });
     m30Sel.addEventListener('change', async ()=>{
       const totMin=parseInt(m30Sel.value,10);
