@@ -37,7 +37,6 @@
     }
     #status{font-size:11px}
     #nCalendar{font-size:12px;margin-left:auto}
-
     /* Carte d’alerte “dates en double avec même polarité” */
     .dupe-card{margin:16px 0 10px;background:#0f1222;border:1px solid #23324a}
     .dupe-title{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700}
@@ -54,7 +53,6 @@
     <h1 id="h1">Listings en janvier • Bougie n°<span id="nLabel">20</span></h1>
     <div class="sub">Marché analysé : <b>Binance Futures — USDT-M PERP</b></div>
   </header>
-
   <main>
     <div class="controls">
       <label>
@@ -69,32 +67,18 @@
         <span class="muted">N° de bougie (daily)</span>
         <select id="candleSel"></select>
       </label>
-
-      <label>
-        <span class="muted">Bougie 30m dans la journée N</span>
-        <select id="m30Sel"></select>
-      </label>
-
       <div style="display:flex;gap:8px;align-items:center">
         <button id="runBtn">Run</button>
         <button id="clearBtn" class="btn-danger">🗑️ Effacer</button>
         <button id="homeBtn"><a href="/index.html">Accueil</a></button>
         <span id="status" class="muted"></span>
       </div>
-
       <div class="muted" id="nCalendar" style="margin-left:auto">
         Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
       </div>
     </div>
-
-    <!-- Carte d'alerte -->
-    <div id="dupeCard" class="card dupe-card" style="display:none">
-      <div class="dupe-title">
-        🚨 <span>Dates répétées avec la même polarité — Bougie n°<span id="dupeN">—</span></span>
-      </div>
-      <div id="dupeContent"></div>
-    </div>
-
+    <!-- Cartes d'alerte -->
+    <div id="dupeCardsContainer"></div>
     <div class="card">
       <div class="right badge"><span id="progress">—</span></div>
       <table>
@@ -104,7 +88,7 @@
             <th style="width:230px">Date bougie n°<span id="thN1">20</span> (Europe/Brussels)</th>
             <th style="width:230px">Date &gt; 1 an après (Europe/Brussels)</th>
             <th style="width:150px">Variation bougie n°<span id="thN2">20</span></th>
-            <th style="width:230px">Variation bougie 30m (<span id="m30Hdr">23:30</span>)</th>
+            <th style="width:230px">Variation bougie 30m</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -116,26 +100,22 @@
         Bougie n°<span id="hintN">20</span> = jour n°<span id="hintN2">20</span> après le listing.
         Variation = (Close - Open) / Open × 100.
         La colonne “&gt; 1 an après” = (bougie n°<span id="hintN3">20</span>) + 1 an (strictement &gt; 1 an).<br>
-        La liste “30m” te laisse choisir l’<b>intervalle 30 minutes</b> dans la journée N (Europe/Brussels).
       </div>
       <div id="candleDateBanner" class="candle-date-banner">—</div>
     </div>
   </main>
-
   <script>
     // ====== DOM refs
     const tz='Europe/Brussels';
     const yearSel   = document.getElementById('yearSel');
     const monthSel  = document.getElementById('monthSel');
     const candleSel = document.getElementById('candleSel');
-    const m30Sel    = document.getElementById('m30Sel');
     const runBtn    = document.getElementById('runBtn');
     const clearBtn  = document.getElementById('clearBtn');
     const statusEl  = document.getElementById('status');
     const progressEl= document.getElementById('progress');
     const tbody     = document.getElementById('tbody');
     const errEl     = document.getElementById('err');
-
     const nLabel = document.getElementById('nLabel');
     const thN1   = document.getElementById('thN1');
     const thN2   = document.getElementById('thN2');
@@ -144,33 +124,25 @@
     const hintN3 = document.getElementById('hintN3');
     const nCalN    = document.getElementById('nCalN');
     const nCalDate = document.getElementById('nCalDate');
-    const m30Hdr   = document.getElementById('m30Hdr');
     const candleDateBanner = document.getElementById('candleDateBanner');
-
-    const dupeCard = document.getElementById('dupeCard');
-    const dupeContent = document.getElementById('dupeContent');
-    const dupeN = document.getElementById('dupeN');
-
+    const dupeCardsContainer = document.getElementById('dupeCardsContainer');
     // ====== Consts
     const dayMs = 24*60*60*1000;
     const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0); // 09/10/2025
     const ALLOWED_MONTHS = [0,5,8]; // Jan, Jun, Sep
-
-    let refListingMs = null;  // pour l'encart calendrier
+    let refListingMs = null;
     let lastRows = [];
-
     // ====== Caches
     const CACHE = {
       symbols: null,
-      daily60: new Map(),         // sym -> 1d klines (limit 60)
-      monthRows: new Map(),       // `${Y}-${M}` -> [{sym, openTime1, daily60}]
-      pct30m: new Map(),          // `${sym}-${openN}-${m30}` -> {pct30m, m30Display}
-      computed: new Map(),        // `${Y}-${M}-${N}` -> rows (sans dépendance 30m)
+      daily60: new Map(),
+      monthRows: new Map(),
+      pct30m: new Map(),
+      computed: new Map(),
     };
     const keyMonth = (Y,M)=>`${Y}-${M}`;
     const key30m   = (sym, openTimeN, m30)=>`${sym}-${openTimeN}-${m30}`;
     const keyComputed = (Y,M,N)=>`${Y}-${M}-${N}`;
-
     // ====== Helpers dates & formats
     function capitalizeFr(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
     function formatLongFrDate(ms){
@@ -200,14 +172,12 @@
     }
     function plusThanOneYear(ms){ const d=new Date(ms); d.setUTCFullYear(d.getUTCFullYear()+1); return d.getTime()+1; }
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
-
     // ====== Fetch helpers
     async function fetchJSON(url){
       const r = await fetch(url);
       if(!r.ok) throw new Error(`HTTP ${r.status} — ${await r.text()}`);
       return r.json();
     }
-
     async function mapLimit(items, limit, worker){
       const ret = []; let i=0, active=0, done=0;
       return new Promise(resolve=>{
@@ -226,7 +196,6 @@
         next();
       });
     }
-
     function getTzOffsetMinutesEuropeBrussels(ms){
       const dtf = new Intl.DateTimeFormat('en-US',{timeZone:'Europe/Brussels',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
       const parts = dtf.formatToParts(new Date(ms));
@@ -242,12 +211,10 @@
       const k = Math.floor(minutesUtcFromMidnight/30);
       return openTimeN_utc + k * 30*60*1000;
     }
-
     async function fetch30mPct(sym, openTimeN, minutesBrussels){
       if(openTimeN==null) return { pct30m:null, m30Display:'—' };
       const m30Utc = m30UtcFromDailyOpen(openTimeN, minutesBrussels);
       if(m30Utc==null) return { pct30m:null, m30Display:'—' };
-
       const u = new URL('https://fapi.binance.com/fapi/v1/klines');
       u.searchParams.set('symbol', sym);
       u.searchParams.set('interval', '30m');
@@ -261,7 +228,6 @@
         return { pct30m, m30Display: formatBrusselsDateTime(m30Utc) };
       }catch{ return { pct30m:null, m30Display:'—' }; }
     }
-
     // ====== Rendering
     function renderTable(rows){
       tbody.innerHTML='';
@@ -282,7 +248,6 @@
       });
       tbody.appendChild(frag);
     }
-
     function updateBannerOnly(){
       const n = parseInt(candleSel.value,10);
       const ms = BANNER_BASE_MS + (n-20)*dayMs;
@@ -303,7 +268,6 @@
       updateNCalendar(); updateBannerOnly();
     }
     const markDirty = () => { statusEl.textContent = 'Paramètres modifiés — cliquez sur Run (premier chargement seulement)'; };
-
     // ====== Cache warmers
     async function getSymbolsOnce(){
       if (CACHE.symbols) return CACHE.symbols;
@@ -325,11 +289,9 @@
     async function warmMonth(Y,M){
       const k = keyMonth(Y,M);
       if (CACHE.monthRows.has(k)) return CACHE.monthRows.get(k);
-
       const symbols = await getSymbolsOnce();
       statusEl.textContent = `Préparation du mois ${String(M+1).padStart(2,'0')}/${Y}…`;
       progressEl.textContent = '—';
-
       const rows = await mapLimit(symbols, 8, async (sym)=>{
         try{
           const kl60 = await getDaily60(sym);
@@ -340,20 +302,16 @@
           return { sym, openTime1, daily60: kl60 };
         }catch{ return null; }
       });
-
       const kept = rows.filter(Boolean);
       CACHE.monthRows.set(k, kept);
       return kept;
     }
-
     // Calcul “rows” indépendants de 30m pour comparer les 3 mois
     async function computeRowsNo30m(Y,M,N){
       const kc = keyComputed(Y,M,N);
       if (CACHE.computed.has(kc)) return CACHE.computed.get(kc);
-
       const base = CACHE.monthRows.get(keyMonth(Y,M)) || [];
       if(!base.length){ CACHE.computed.set(kc, []); return []; }
-
       const rows = await mapLimit(base, 12, async (r)=>{
         const kl = r.daily60;
         let openTimeN=null, openTimeNPlus=null, pctN=null;
@@ -366,18 +324,15 @@
         }
         return { sym:r.sym, openTime1:r.openTime1, openTimeN, openTimeNPlus, pctN };
       });
-
       const out = rows.sort((a,b)=>{
         if (a.openTimeN && b.openTimeN) return a.openTimeN - b.openTimeN;
         if (a.openTimeN) return -1;
         if (b.openTimeN) return 1;
         return a.sym.localeCompare(b.sym);
       });
-
       CACHE.computed.set(kc, out);
       return out;
     }
-
     // Ajoute les colonnes 30m depuis un rows “no30m”
     async function enrichRowsWith30m(rows, m30Minutes){
       const out = await mapLimit(rows, 10, async (r)=>{
@@ -394,90 +349,6 @@
       });
       return out;
     }
-
-    // ====== Dupe card (Jan/Jun/Sep) — EXACTEMENT 2 dates + polarités identiques en daily ET en 30m
-    async function updateDupeCard(){
-      const Y = parseInt(yearSel.value,10);
-      const N = parseInt(candleSel.value,10);
-      const m30Minutes = parseInt(m30Sel.value,10);
-      dupeN.textContent = N;
-
-      // Pré-chauffe data des 3 mois
-      await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
-
-      // Récupère rows (daily) puis enrichit 30m pour tester la seconde condition
-      const rowsByMonth = await Promise.all(
-        ALLOWED_MONTHS.map(async m => {
-          const base = await computeRowsNo30m(Y,m,N);
-          const enriched = await enrichRowsWith30m(base, m30Minutes);
-          return enriched;
-        })
-      );
-
-      const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-
-      const report = ALLOWED_MONTHS.map((M, idx)=>{
-        const rows = rowsByMonth[idx];
-        const mapDates = new Map(); // date -> {pos:[],neg:[]}
-        rows.forEach(r=>{
-          if (r.openTimeN==null || r.pctN==null) return;
-          if (r.pctN === 0) return;               // ignore neutre daily
-          if (r.pct30m == null || r.pct30m === 0) return; // ignore neutre/absent 30m
-          const key = dateKeyBrussels(r.openTimeN);
-          if (!mapDates.has(key)) mapDates.set(key, {pos:[],neg:[]});
-          const bag = mapDates.get(key);
-          (r.pctN>0 ? bag.pos : bag.neg).push(r);
-        });
-
-        // On garde uniquement les dates où il y a EXACTEMENT 2 entrées
-        // ET où ces 2 entrées ont la même polarité daily + la même polarité 30m.
-        const dupes = [];
-        for (const [k,bag] of mapDates.entries()){
-          if (bag.pos.length === 2) {
-            const [a,b] = bag.pos;
-            if ((a.pct30m>0 && b.pct30m>0) || (a.pct30m<0 && b.pct30m<0)) {
-              dupes.push({ human: dateKeyHuman(a.openTimeN), sign:'positive', count:2, list:bag.pos.slice(0,2) });
-            }
-          }
-          if (bag.neg.length === 2) {
-            const [a,b] = bag.neg;
-            if ((a.pct30m>0 && b.pct30m>0) || (a.pct30m<0 && b.pct30m<0)) {
-              dupes.push({ human: dateKeyHuman(a.openTimeN), sign:'negative', count:2, list:bag.neg.slice(0,2) });
-            }
-          }
-        }
-        return { monthLabel: monthNamesShort[M], dupes };
-      });
-
-      // La carte n’apparaît QUE si chaque mois possède EXACTEMENT 2 dates conformes
-      const everyMonthHasExactlyTwo = report.every(block => block.dupes.length === 2);
-
-      dupeContent.innerHTML = '';
-      if (!everyMonthHasExactlyTwo){
-        dupeCard.style.display = 'none';
-        return;
-      }
-
-      // Affichage (on sait que chaque mois a exactement 2)
-      report.forEach(block=>{
-        const div = document.createElement('div');
-        div.className = 'dupe-month';
-        div.innerHTML = `<h4>${block.monthLabel}</h4>`;
-        const wrap = document.createElement('div');
-        block.dupes.forEach(d=>{
-          const pill = document.createElement('span');
-          pill.className = `dupe-pill ${d.sign==='positive'?'positive':'negative'}`;
-          const signTxt = d.sign==='positive' ? 'Haussière' : 'Baissière';
-          const syms = d.list.map(x=>x.sym).join(', ');
-          pill.innerHTML = `<b>${d.human}</b> • ${signTxt} • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
-          wrap.appendChild(pill);
-        });
-        div.appendChild(wrap);
-        dupeContent.appendChild(div);
-      });
-      dupeCard.style.display = 'block';
-    }
-
     // ====== Build & render courant
     async function buildAndRenderCurrent(Y,M,N,m30Minutes){
       const rowsNo30 = await computeRowsNo30m(Y,M,N);
@@ -487,32 +358,146 @@
       renderTable(out);
       updateLabels(); updateNCalendar();
     }
+    // ====== Test tous les créneaux 30m
+    async function testAll30mSlots(Y, M, N) {
+      const all30mSlots = [];
+      for (let totMin = 0; totMin < 24 * 60; totMin += 30) {
+        all30mSlots.push(totMin);
+      }
 
+      const validSlots = [];
+      for (const m30Minutes of all30mSlots) {
+        const rowsByMonth = await Promise.all(
+          ALLOWED_MONTHS.map(async m => {
+            const base = await computeRowsNo30m(Y, m, N);
+            const enriched = await enrichRowsWith30m(base, m30Minutes);
+            return enriched;
+          })
+        );
+
+        // Vérifie si la règle est respectée pour ce créneau 30m
+        const everyMonthHasExactlyTwo = rowsByMonth.every(rows => {
+          const mapDates = new Map();
+          rows.forEach(r => {
+            if (r.openTimeN == null || r.pctN == null || r.pct30m == null || r.pct30m === 0) return;
+            const key = dateKeyBrussels(r.openTimeN);
+            if (!mapDates.has(key)) mapDates.set(key, { pos: [], neg: [] });
+            const bag = mapDates.get(key);
+            (r.pctN > 0 ? bag.pos : bag.neg).push(r);
+          });
+
+          let count = 0;
+          for (const [k, bag] of mapDates.entries()) {
+            if (bag.pos.length === 2 && ((bag.pos[0].pct30m > 0 && bag.pos[1].pct30m > 0) || (bag.pos[0].pct30m < 0 && bag.pos[1].pct30m < 0))) count++;
+            if (bag.neg.length === 2 && ((bag.neg[0].pct30m > 0 && bag.neg[1].pct30m > 0) || (bag.neg[0].pct30m < 0 && bag.neg[1].pct30m < 0))) count++;
+          }
+          return count === 2;
+        });
+
+        if (everyMonthHasExactlyTwo) {
+          validSlots.push({ m30Minutes, rowsByMonth });
+        }
+      }
+
+      return validSlots;
+    }
+    // ====== Affichage des cartes pour chaque créneau valide
+    function renderDupeCards(validSlots, Y, N) {
+      dupeCardsContainer.innerHTML = '';
+      if (validSlots.length === 0) {
+        dupeCardsContainer.innerHTML = '<div class="muted">Aucun créneau 30m ne respecte la règle.</div>';
+        return;
+      }
+
+      validSlots.forEach(slot => {
+        const { m30Minutes, rowsByMonth } = slot;
+        const hh = String(Math.floor(m30Minutes / 60)).padStart(2, '0');
+        const mm = String(m30Minutes % 60).padStart(2, '0');
+
+        const card = document.createElement('div');
+        card.className = 'card dupe-card';
+        card.innerHTML = `
+          <div class="dupe-title">
+            🚨 <span>Dates répétées avec la même polarité — Bougie n°${N} • Créneau 30m : ${hh}:${mm}</span>
+          </div>
+          <div id="dupeContent_${m30Minutes}"></div>
+        `;
+
+        const dupeContent = card.querySelector(`#dupeContent_${m30Minutes}`);
+        const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
+        rowsByMonth.forEach((rows, idx) => {
+          const M = ALLOWED_MONTHS[idx];
+          const mapDates = new Map();
+          rows.forEach(r => {
+            if (r.openTimeN == null || r.pctN == null || r.pct30m == null || r.pct30m === 0) return;
+            const key = dateKeyBrussels(r.openTimeN);
+            if (!mapDates.has(key)) mapDates.set(key, { pos: [], neg: [] });
+            const bag = mapDates.get(key);
+            (r.pctN > 0 ? bag.pos : bag.neg).push(r);
+          });
+
+          const div = document.createElement('div');
+          div.className = 'dupe-month';
+          div.innerHTML = `<h4>${monthNamesShort[M]}</h4>`;
+          const wrap = document.createElement('div');
+
+          for (const [k, bag] of mapDates.entries()) {
+            if (bag.pos.length === 2) {
+              const [a, b] = bag.pos;
+              if ((a.pct30m > 0 && b.pct30m > 0) || (a.pct30m < 0 && b.pct30m < 0)) {
+                const pill = document.createElement('span');
+                pill.className = 'dupe-pill positive';
+                const syms = [a.sym, b.sym].join(', ');
+                pill.innerHTML = `<b>${dateKeyHuman(a.openTimeN)}</b> • Haussière • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
+                wrap.appendChild(pill);
+              }
+            }
+            if (bag.neg.length === 2) {
+              const [a, b] = bag.neg;
+              if ((a.pct30m > 0 && b.pct30m > 0) || (a.pct30m < 0 && b.pct30m < 0)) {
+                const pill = document.createElement('span');
+                pill.className = 'dupe-pill negative';
+                const syms = [a.sym, b.sym].join(', ');
+                pill.innerHTML = `<b>${dateKeyHuman(a.openTimeN)}</b> • Baissière • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
+                wrap.appendChild(pill);
+              }
+            }
+          }
+
+          div.appendChild(wrap);
+          dupeContent.appendChild(div);
+        });
+
+        dupeCardsContainer.appendChild(card);
+      });
+    }
     // ====== Run
     async function run(){
       errEl.textContent=''; tbody.innerHTML=''; progressEl.textContent='—';
       lastRows=[]; refListingMs=null;
-
       const Y = parseInt(yearSel.value,10);
       const M = parseInt(monthSel.value,10);
       const N = parseInt(candleSel.value,10);
-      const m30Minutes = parseInt(m30Sel.value,10);
 
       try{
         statusEl.textContent = 'Chargement initial (une seule fois)…';
         await warmMonth(Y,M);
-        Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
+        await Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
 
-        statusEl.textContent = `Calcul local pour N=${N}…`;
-        await buildAndRenderCurrent(Y,M,N,m30Minutes);
-        await updateDupeCard();
+        statusEl.textContent = `Test de tous les créneaux 30m pour N=${N}…`;
+        const validSlots = await testAll30mSlots(Y, M, N);
 
-        statusEl.textContent = `Terminé (cache) — ${lastRows.length} symbole(s) • Bougie n°${N} • ${String(M+1).padStart(2,'0')}/${Y} • 30m ${m30Hdr.textContent}`;
+        if (validSlots.length > 0) {
+          statusEl.textContent = `Trouvé ${validSlots.length} créneau(x) 30m valide(s) !`;
+          renderDupeCards(validSlots, Y, N);
+        } else {
+          statusEl.textContent = 'Aucun créneau 30m ne respecte la règle.';
+        }
       }catch(e){
         console.error(e); errEl.textContent='Erreur: '+e.message; statusEl.textContent='';
       }
     }
-
     // ====== Effacer (reset complet des variables & caches)
     function clearAll(){
       CACHE.symbols = null;
@@ -520,38 +505,31 @@
       CACHE.monthRows.clear();
       CACHE.pct30m.clear();
       CACHE.computed.clear();
-
       lastRows = [];
       refListingMs = null;
       tbody.innerHTML = '';
-      dupeContent.innerHTML = '';
-      dupeCard.style.display = 'none';
+      dupeCardsContainer.innerHTML = '';
       errEl.textContent = '';
       progressEl.textContent = '—';
       nCalDate.textContent = '—';
       candleDateBanner.textContent = '—';
-
       updateLabels();
       statusEl.textContent = 'Tout effacé — sélectionne tes paramètres puis clique Run.';
     }
-
     // ====== Fast re-render si cache déjà chaud
     async function tryFastRender(){
       const Y = parseInt(yearSel.value,10);
       const M = parseInt(monthSel.value,10);
       const N = parseInt(candleSel.value,10);
-      const m30Minutes = parseInt(m30Sel.value,10);
-
       if (CACHE.monthRows.has(keyMonth(Y,M))){
         statusEl.textContent = 'Recalcul rapide depuis le cache…';
-        await buildAndRenderCurrent(Y,M,N,m30Minutes);
-        await updateDupeCard();
-        statusEl.textContent = `OK (cache) • ${lastRows.length} symbole(s)`;
+        const validSlots = await testAll30mSlots(Y, M, N);
+        renderDupeCards(validSlots, Y, N);
+        statusEl.textContent = `OK (cache) • ${validSlots.length} créneau(x) valide(s)`;
       }else{
         markDirty();
       }
     }
-
     // ====== UI init
     (function initSelectors(){
       const years=[2024];
@@ -561,7 +539,6 @@
         yearSel.appendChild(o);
       });
       yearSel.value='2024';
-
       const limitedMonths=[
         {label:'01 Jan', value:0},
         {label:'06 Jun', value:5},
@@ -571,40 +548,16 @@
         const o=document.createElement('option'); o.value=value; o.textContent=label; monthSel.appendChild(o);
       });
       monthSel.value=0;
-
       for(let n=1;n<=60;n++){ const o=document.createElement('option'); o.value=n; o.textContent=String(n); candleSel.appendChild(o); }
       candleSel.value='20';
-
-      fillM30Options(); // par défaut 23:30
       updateLabels(); updateNCalendar(); updateBannerOnly();
     })();
-
-    function fillM30Options(defaultHH='23', defaultMM='30'){
-      m30Sel.innerHTML='';
-      for(let totMin=0; totMin<24*60; totMin+=30){
-        const hh=String(Math.floor(totMin/60)).padStart(2,'0');
-        const mm=String(totMin%60).padStart(2,'0');
-        const o=document.createElement('option'); o.value=String(totMin); o.textContent=`${hh}:${mm}`; m30Sel.appendChild(o);
-      }
-      const defVal=(parseInt(defaultHH,10)*60 + parseInt(defaultMM,10));
-      m30Sel.value=String(defVal); m30Hdr.textContent=`${defaultHH}:${defaultMM}`;
-    }
-
     // ====== Listeners
     candleSel.addEventListener('change', async ()=>{ updateLabels(); await tryFastRender(); });
-    m30Sel.addEventListener('change', async ()=>{
-      const totMin=parseInt(m30Sel.value,10);
-      const hh=String(Math.floor(totMin/60)).padStart(2,'0');
-      const mm=String(totMin%60).padStart(2,'0');
-      m30Hdr.textContent = `${hh}:${mm}`;
-      await tryFastRender();
-    });
     yearSel.addEventListener('change', tryFastRender);
     monthSel.addEventListener('change', tryFastRender);
-
     runBtn.addEventListener('click', run);
     clearBtn.addEventListener('click', clearAll);
-
     // ====== Header dynamique
     const h1 = document.getElementById('h1');
     const monthNames = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
