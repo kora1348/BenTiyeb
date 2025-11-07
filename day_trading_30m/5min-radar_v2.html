@@ -259,8 +259,7 @@
     function updateNCalendar(){
       const n = parseInt(candleSel.value,10);
       nCalN.textContent = n;
-      if(refListingMs==null){ nCalDate.textContent='—'; return; }
-      const ms = refListingMs + (n-1)*dayMs;
+      const ms = BANNER_BASE_MS + (n-20)*dayMs;
       nCalDate.textContent = formatLongFrDate(ms);
     }
     function updateLabels(){
