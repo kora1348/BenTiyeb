@@ -37,7 +37,7 @@
     }
     #status{font-size:11px}
     #nCalendar{font-size:12px;margin-left:auto}
-    /* Carte d’alerte “dates en double avec même polarité” */
+    /* Carte d’alerte */
     .dupe-card{margin:16px 0 10px;background:#0f1222;border:1px solid #23324a}
     .dupe-title{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700}
     .dupe-pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 10px;margin:4px 6px 0 0;font-size:12px}
@@ -108,7 +108,6 @@
   </main>
 
   <script>
-    // ====== DOM refs
     const tz='Europe/Brussels';
     const yearSel   = document.getElementById('yearSel');
     const monthSel  = document.getElementById('monthSel');
@@ -130,14 +129,12 @@
     const candleDateBanner = document.getElementById('candleDateBanner');
     const dupeCardsContainer = document.getElementById('dupeCardsContainer');
 
-    // ====== Consts
     const dayMs = 24*60*60*1000;
-    const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0); // 09/10/2025
+    const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
     const ALLOWED_MONTHS = [0,5,8]; // Jan, Jun, Sep
     let refListingMs = null;
     let lastRows = [];
 
-    // ====== Caches
     const CACHE = {
       symbols: null,
       daily60: new Map(),
@@ -149,7 +146,6 @@
     const key5m   = (sym, openTimeN, m5)=>`${sym}-${openTimeN}-${m5}`;
     const keyComputed = (Y,M,N)=>`${Y}-${M}-${N}`;
 
-    // ====== Helpers dates & formats
     function capitalizeFr(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
     function formatLongFrDate(ms){
       const d = new Date(ms);
@@ -179,7 +175,6 @@
     function plusThanOneYear(ms){ const d=new Date(ms); d.setUTCFullYear(d.getUTCFullYear()+1); return d.getTime()+1; }
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
 
-    // ====== Fetch helpers
     async function fetchJSON(url){
       const r = await fetch(url);
       if(!r.ok) throw new Error(`HTTP ${r.status} — ${await r.text()}`);
@@ -236,7 +231,6 @@
       }catch{ return { pct5m:null, m5Display:'—' }; }
     }
 
-    // ====== Rendering tableau (daily + 5m affichés, mais seule polarité 5m est utilisée dans les cartes)
     function renderTable(rows){
       tbody.innerHTML='';
       if(!rows.length){
@@ -278,7 +272,6 @@
     }
     const markDirty = () => { statusEl.textContent = 'Paramètres modifiés — cliquez sur Run (premier chargement seulement)'; };
 
-    // ====== Cache warmers
     async function getSymbolsOnce(){
       if (CACHE.symbols) return CACHE.symbols;
       const ex = await fetchJSON('https://fapi.binance.com/fapi/v1/exchangeInfo');
@@ -317,7 +310,6 @@
       return kept;
     }
 
-    // Calcul “rows” (daily calculé pour l’affichage seulement)
     async function computeRowsNo5m(Y,M,N){
       const kc = keyComputed(Y,M,N);
       if (CACHE.computed.has(kc)) return CACHE.computed.get(kc);
@@ -345,7 +337,6 @@
       return out;
     }
 
-    // Ajoute les colonnes 5m
     async function enrichRowsWith5m(rows, m5Minutes){
       const out = await mapLimit(rows, 10, async (r)=>{
         if (!r.openTimeN) return { ...r, pct5m:null, m5Display:'—' };
@@ -362,13 +353,13 @@
       return out;
     }
 
-    // ====== Test tous les créneaux 5m (polaritée basée UNIQUEMENT sur 5m)
+    // ---------- Nouvelle logique stricte : 2 dates par mois, même polarité 5m ----------
+    // Retourne un slot seulement si CHAQUE mois a exactement 2 dates ET ces 2 dates partagent la même polarité 5m.
     async function testAll5mSlots(Y, M, N) {
       const all5mSlots = [];
-      for (let totMin = 0; totMin < 24 * 60; totMin += 5) {
-        all5mSlots.push(totMin);
-      }
-      const validSlots = [];
+      for (let totMin = 0; totMin < 24 * 60; totMin += 5) all5mSlots.push(totMin);
+
+      const valid = [];
       for (let i = 0; i < all5mSlots.length; i++) {
         const m5Minutes = all5mSlots[i];
         const hh = String(Math.floor(m5Minutes / 60)).padStart(2, '0');
@@ -378,111 +369,101 @@
         const rowsByMonth = await Promise.all(
           ALLOWED_MONTHS.map(async m => {
             const base = await computeRowsNo5m(Y, m, N);
-            const enriched = await enrichRowsWith5m(base, m5Minutes);
-            return enriched;
+            return enrichRowsWith5m(base, m5Minutes);
           })
         );
 
-        // Règle: pour chaque mois, exactement 2 dates où deux symboles ont la même polarité 5m (haussière ou baissière)
-        const everyMonthHasExactlyTwo = rowsByMonth.every(rows => {
-          const mapDates = new Map();
+        // Pour chaque mois : construire les dates avec deux symboles même signe 5m
+        const perMonthSelection = [];
+        let allMonthsOk = true;
+
+        for (let idx = 0; idx < rowsByMonth.length; idx++) {
+          const rows = rowsByMonth[idx];
+          const mapDates = new Map(); // key YYYY-MM-DD -> {pos: [r,r], neg:[r,r]}
           rows.forEach(r => {
             if (r.openTimeN == null || r.pct5m == null || r.pct5m === 0) return;
             const key = dateKeyBrussels(r.openTimeN);
-            if (!mapDates.has(key)) mapDates.set(key, { pos5: [], neg5: [] });
+            if (!mapDates.has(key)) mapDates.set(key, { pos: [], neg: [] });
             const bag = mapDates.get(key);
-            (r.pct5m > 0 ? bag.pos5 : bag.neg5).push(r);
+            (r.pct5m > 0 ? bag.pos : bag.neg).push(r);
           });
-          let count = 0;
-          for (const [, bag] of mapDates.entries()) {
-            if (bag.pos5.length === 2) count++;
-            if (bag.neg5.length === 2) count++;
-          }
-          return count === 2;
-        });
 
-        if (everyMonthHasExactlyTwo) {
-          validSlots.push({ m5Minutes, rowsByMonth });
+          const posDates = [];
+          const negDates = [];
+          for (const [dateKey, bag] of mapDates.entries()) {
+            if (bag.pos.length === 2) posDates.push({ dateKey, items: bag.pos });
+            if (bag.neg.length === 2) negDates.push({ dateKey, items: bag.neg });
+          }
+
+          // Contrainte stricte : exactement 2 dates et même polarité
+          if (posDates.length === 2 && negDates.length === 0) {
+            perMonthSelection.push({ monthIndex: ALLOWED_MONTHS[idx], sign: 'pos', dates: posDates });
+          } else if (negDates.length === 2 && posDates.length === 0) {
+            perMonthSelection.push({ monthIndex: ALLOWED_MONTHS[idx], sign: 'neg', dates: negDates });
+          } else {
+            allMonthsOk = false;
+            break;
+          }
+        }
+
+        if (allMonthsOk && perMonthSelection.length === ALLOWED_MONTHS.length) {
+          valid.push({ m5Minutes, months: perMonthSelection });
         }
       }
-      return validSlots;
+      return valid;
     }
 
-    // ====== Cartes (affichage basé uniquement sur polarité 5m)
+    // ---------- Rendu des cartes depuis la sélection validée ----------
     function renderDupeCards(validSlots, Y, N) {
       dupeCardsContainer.innerHTML = '';
-      if (validSlots.length === 0) {
+      if (!validSlots.length) {
         dupeCardsContainer.innerHTML = '<div class="muted">Aucun créneau 5m ne respecte la règle.</div>';
         return;
       }
+      const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
       validSlots.forEach(slot => {
-        const { m5Minutes, rowsByMonth } = slot;
-        const hh = String(Math.floor(m5Minutes / 60)).padStart(2, '0');
-        const mm = String(m5Minutes % 60).padStart(2, '0');
+        const hh = String(Math.floor(slot.m5Minutes / 60)).padStart(2, '0');
+        const mm = String(slot.m5Minutes % 60).padStart(2, '0');
+
         const card = document.createElement('div');
         card.className = 'card dupe-card';
         card.innerHTML = `
           <div class="dupe-title">
             🚨 <span>Dates répétées avec la même polarité — Bougie n°${N} • Créneau 5m : ${hh}:${mm}</span>
           </div>
-          <div id="dupeContent_${m5Minutes}"></div>
+          <div class="dupe-body"></div>
         `;
-        const dupeContent = card.querySelector(`#dupeContent_${m5Minutes}`);
+        const body = card.querySelector('.dupe-body');
 
-        // Abréviations style exemple (Jan, Jun, Sep)
-        const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+        // Afficher exactement deux pastilles par mois, avec la polarité commune
+        slot.months
+          .sort((a,b)=>a.monthIndex-b.monthIndex)
+          .forEach(mo => {
+            const div = document.createElement('div');
+            div.className = 'dupe-month';
+            div.innerHTML = `<h4>${monthNamesShort[mo.monthIndex]}</h4>`;
+            const wrap = document.createElement('div');
 
-        rowsByMonth.forEach((rows, idx) => {
-          const M = ALLOWED_MONTHS[idx];
-          const mapDates = new Map();
-          rows.forEach(r => {
-            if (r.openTimeN == null || r.pct5m == null || r.pct5m === 0) return;
-            const key = dateKeyBrussels(r.openTimeN);
-            if (!mapDates.has(key)) mapDates.set(key, { pos5: [], neg5: [] });
-            const bag = mapDates.get(key);
-            (r.pct5m > 0 ? bag.pos5 : bag.neg5).push(r);
+            mo.dates.forEach(d => {
+              const [a, b] = d.items;
+              const pill = document.createElement('span');
+              pill.className = 'dupe-pill ' + (mo.sign==='pos' ? 'positive' : 'negative');
+              const syms = [a.sym, b.sym].join(', ');
+              pill.innerHTML =
+                `<b>${dateKeyHuman(a.openTimeN)}</b> • ${mo.sign==='pos'?'Haussière':'Baissière'} • x2
+                 <span class="muted" style="margin-left:6px">${syms}</span>`;
+              wrap.appendChild(pill);
+            });
+
+            div.appendChild(wrap);
+            body.appendChild(div);
           });
-
-          const div = document.createElement('div');
-          div.className = 'dupe-month';
-          div.innerHTML = `<h4>${monthNamesShort[M]}</h4>`;
-          const wrap = document.createElement('div');
-
-          for (const [k, bag] of mapDates.entries()) {
-            if (bag.pos5.length === 2) {
-              const [a, b] = bag.pos5;
-              const pill = document.createElement('span');
-              pill.className = 'dupe-pill positive';
-              const syms = [a.sym, b.sym].join(', ');
-              pill.innerHTML = `<b>${dateKeyHuman(a.openTimeN)}</b> • Haussière • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
-              wrap.appendChild(pill);
-            }
-            if (bag.neg5.length === 2) {
-              const [a, b] = bag.neg5;
-              const pill = document.createElement('span');
-              pill.className = 'dupe-pill negative';
-              const syms = [a.sym, b.sym].join(', ');
-              pill.innerHTML = `<b>${dateKeyHuman(a.openTimeN)}</b> • Baissière • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
-              wrap.appendChild(pill);
-            }
-          }
-
-          if (!wrap.childNodes.length) {
-            const empty = document.createElement('div');
-            empty.className = 'dupe-empty';
-            empty.textContent = '—';
-            wrap.appendChild(empty);
-          }
-
-          div.appendChild(wrap);
-          dupeContent.appendChild(div);
-        });
 
         dupeCardsContainer.appendChild(card);
       });
     }
 
-    // ====== Run
     async function run(){
       errEl.textContent=''; tbody.innerHTML=''; progressEl.textContent='—';
       lastRows=[]; refListingMs=null;
@@ -507,7 +488,6 @@
       }
     }
 
-    // ====== Effacer (reset complet)
     function clearAll(){
       CACHE.symbols = null;
       CACHE.daily60.clear();
@@ -526,7 +506,6 @@
       statusEl.textContent = 'Tout effacé — sélectionne tes paramètres puis clique Run.';
     }
 
-    // ====== Fast re-render si cache déjà chaud
     async function tryFastRender(){
       const Y = parseInt(yearSel.value,10);
       const M = parseInt(monthSel.value,10);
@@ -541,7 +520,6 @@
       }
     }
 
-    // ====== UI init
     (function initSelectors(){
       const years=[2024];
       years.forEach(y=>{
@@ -567,14 +545,12 @@
       updateLabels(); updateNCalendar(); updateBannerOnly();
     })();
 
-    // ====== Listeners
     candleSel.addEventListener('change', async ()=>{ updateLabels(); await tryFastRender(); });
     yearSel.addEventListener('change', tryFastRender);
     monthSel.addEventListener('change', tryFastRender);
     runBtn.addEventListener('click', run);
     clearBtn.addEventListener('click', clearAll);
 
-    // ====== Header dynamique
     const h1 = document.getElementById('h1');
     const monthNames = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
     const updateHeader = () => { h1.innerHTML = `Listings en ${monthNames[+monthSel.value]} • Bougie n°<span id="nLabel">${candleSel.value}</span>`; };
