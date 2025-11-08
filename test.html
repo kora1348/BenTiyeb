@@ -5,10 +5,7 @@
   <title>Variations 5m — Sélection Binance Futures</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --bg:#0f172a; --card:#111827; --muted:#94a3b8;
-      --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b;
-    }
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; }
     body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     header{padding:18px;border-bottom:1px solid var(--border)}
     h1{margin:0;font-size:18px}
@@ -23,11 +20,12 @@
     .neg{color:var(--bad);font-variant-numeric:tabular-nums}
     .na{color:var(--muted)}
     .warn{color:var(--warn)}
+    .tag{display:inline-block;font-size:11px;border:1px solid var(--border);border-radius:6px;padding:2px 6px;color:var(--muted);margin-left:8px}
   </style>
 </head>
 <body>
   <header>
-    <h1>Variation 5m — Sélection de cryptos Futures</h1>
+    <h1>Variation 5m — Sélection de cryptos Futures <span class="tag">USDT-M PERP</span></h1>
     <div class="sub">
       07/10/2025 09:25 • 09/10/2025 10:15 • 21:35 • 22:05 • 10/10/2025 15:15<br>
       21/10/2025 05:45 • 26/10/2025 11:10 • 12:25 • 05/11/2025 05:15 • 07:00 • 13:35 • 17:30 • 21:50 •<br>
@@ -64,13 +62,15 @@
     const BASE = "https://fapi.binance.com";
     const INTERVAL = "5m";
 
-    const symbols = [
+    // --- Ta sélection (mise en MAJ + trim automatiquement) ---
+    const symbolsInput = [
       "AGTUSDT",
       "INUSDT",
       "QUSDT",
       "STOUSDT",
-    ];
+    ].map(s => s.toUpperCase().trim());
 
+    // --- Timestamps (heure Bruxelles) ---
     const points = [
       { label:"07/10 09:25", y:2025, m:10, d:7,  h:9,  min:25 },
       { label:"09/10 10:15", y:2025, m:10, d:9,  h:10, min:15 },
@@ -85,7 +85,6 @@
       { label:"05/11 13:35", y:2025, m:11, d:5,  h:13, min:35 },
       { label:"05/11 17:30", y:2025, m:11, d:5,  h:17, min:30 },
       { label:"05/11 21:50", y:2025, m:11, d:5,  h:21, min:50 },
-      // ✅ nouvelles dates ajoutées
       { label:"06/11 04:15", y:2025, m:11, d:6,  h:4,  min:15 },
       { label:"06/11 09:15", y:2025, m:11, d:6,  h:9,  min:15 },
       { label:"09/11 12:15", y:2025, m:11, d:9,  h:12, min:15 },
@@ -97,34 +96,56 @@
     const totalRow = document.getElementById("total-row");
     const progress = document.getElementById("progress");
 
+    // En-têtes colonnes
     for (const p of points) {
       const th = document.createElement("th");
       th.textContent = p.label;
       theadRow.appendChild(th);
     }
 
-    function brusselsLocalToUtcMs(y,m,d,h,min){
-      const fmt = new Intl.DateTimeFormat('en-US',{
-        timeZone:'Europe/Brussels',
+    // --------- Conversion Brussels -> UTC (DST OK) ----------
+    function tzOffsetMsAt(date, tz) {
+      const fmt = new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz,
         year:'numeric', month:'2-digit', day:'2-digit',
         hour:'2-digit', minute:'2-digit', second:'2-digit',
-        hourCycle:'h23'
+        hour12:false
       });
-      const parts = fmt.formatToParts(new Date(Date.UTC(y, m-1, d, h, min, 0)));
-      const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-      return Date.UTC(+map.year, +map.month-1, +map.day, +map.hour, +map.minute, +map.second);
+      const parts = Object.fromEntries(fmt.formatToParts(date).map(p => [p.type, p.value]));
+      const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+      return asUTC - date.getTime();
+    }
+    function brusselsLocalToUtcMs(y, m, d, h, min) {
+      const approxUtc = Date.UTC(y, m - 1, d, h, min, 0, 0);
+      const offset = tzOffsetMsAt(new Date(approxUtc), 'Europe/Brussels');
+      return approxUtc - offset; // clé: on soustrait l'offset
     }
 
-    const pointTimes = points.map(p => ({ label:p.label, openTimeMs: brusselsLocalToUtcMs(p.y,p.m,p.d,p.h,p.min) }));
+    const pointTimes = points.map(p => ({
+      label: p.label,
+      openTimeMs: brusselsLocalToUtcMs(p.y, p.m, p.d, p.h, p.min)
+    }));
 
+    // --------- Vérification des symboles PERP USDT-M ----------
+    async function fetchPerpSet(){
+      const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
+      if(!r.ok) throw new Error("exchangeInfo error");
+      const info = await r.json();
+      const valid = info.symbols
+        .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT" && s.status === "TRADING")
+        .map(s => s.symbol);
+      return new Set(valid);
+    }
+
+    // --------- Bougie 5m exacte ----------
     async function fetchKlinePct(symbol, openTimeMs){
       const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
       const r = await fetch(url);
       if(!r.ok) return null;
       const data = await r.json();
-      if(!data.length) return null;
-      const k = data[0];
-      if(+k[0] !== openTimeMs) return null;
+      if(!Array.isArray(data) || data.length === 0) return null;
+      const k = data[0]; // [ openTime, open, high, low, close, ... ]
+      if(+k[0] !== openTimeMs) return null; // pas la bougie exacte => ignore
       const open = parseFloat(k[1]), close = parseFloat(k[4]);
       if(!isFinite(open) || !isFinite(close) || open === 0) return null;
       return (close - open) / open * 100;
@@ -142,6 +163,10 @@
     }
 
     async function main(){
+      progress.textContent = "Validation des symboles PERP USDT-M…";
+      const perpSet = await fetchPerpSet();
+
+      // Ligne des totaux
       const totalCells = [];
       for (let i=0;i<pointTimes.length;i++){
         const td = document.createElement("td");
@@ -149,15 +174,14 @@
         totalRow.appendChild(td);
         totalCells.push(td);
       }
-
       const sums = new Array(pointTimes.length).fill(0);
       const counts = new Array(pointTimes.length).fill(0);
 
       let done = 0;
-      for(const symbol of symbols){
+      for(const sym of symbolsInput){
         const tr = document.createElement("tr");
         const tdSym = document.createElement("td");
-        tdSym.textContent = symbol;
+        tdSym.textContent = sym;
         tr.appendChild(tdSym);
 
         const tds = [];
@@ -169,21 +193,31 @@
         }
         tbody.appendChild(tr);
 
-        for(let i=0;i<pointTimes.length;i++){
-          try{
-            const pct = await fetchKlinePct(symbol, pointTimes[i].openTimeMs);
-            tds[i].innerHTML = fmtPct(pct);
-            if(pct != null){ sums[i] += pct; counts[i]++; }
-          }catch{
-            tds[i].innerHTML = `<span class="na">—</span>`;
+        if(!perpSet.has(sym)){
+          // Symbole inconnu en PERP USDT-M
+          for(let i=0;i<pointTimes.length;i++){
+            tds[i].innerHTML = `<span class="na">symbole inconnu</span>`;
           }
-          await new Promise(r=>setTimeout(r,100));
+        } else {
+          // Remplir les variations
+          for(let i=0;i<pointTimes.length;i++){
+            try{
+              const pct = await fetchKlinePct(sym, pointTimes[i].openTimeMs);
+              tds[i].innerHTML = fmtPct(pct);
+              if(pct != null){ sums[i] += pct; counts[i]++; }
+            }catch{
+              tds[i].innerHTML = `<span class="na">—</span>`;
+            }
+            // petite pause pour ménager l’API
+            await new Promise(r=>setTimeout(r,80));
+          }
         }
 
         done++;
-        if(done % 2 === 0) progress.textContent = `Progression : ${done}/${symbols.length}`;
+        if(done % 2 === 0) progress.textContent = `Progression : ${done}/${symbolsInput.length}`;
       }
 
+      // Totaux par date
       for(let i=0;i<pointTimes.length;i++){
         totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
       }
@@ -191,7 +225,10 @@
       progress.textContent = "Terminé ✅";
     }
 
-    main();
+    main().catch(e=>{
+      console.error(e);
+      progress.textContent = "Erreur : " + e.message;
+    });
   </script>
 </body>
 </html>

@@ -20,6 +20,8 @@
     .neg{color:var(--bad);font-variant-numeric:tabular-nums}
     .na{color:var(--muted)}
     .warn{color:var(--warn)}
+    .controls{margin-top:8px}
+    .btn{display:inline-block;background:#2563eb;color:#fff;text-decoration:none;border:0;border-radius:10px;padding:8px 12px;font-size:13px}
   </style>
 </head>
 <body>
@@ -35,10 +37,14 @@
     <div class="card">
       <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
         Calcul = (Close − Open) / Open × 100 sur la bougie 5m à l’heure indiquée (Europe/Brussels).
-        La ligne « Total (∑) » en bas additionne les variations (%) de toutes les lignes pour chaque date (valeurs manquantes ignorées).
+        La ligne « Total (∑) » additionne les variations (%) des symboles disponibles pour chaque date (valeurs manquantes ignorées).
       </p>
 
-      <!-- UN SEUL TABLEAU -->
+      <div class="controls">
+        <a class="btn" href="/index.html">Accueil</a>
+        <button id="reload" class="btn" type="button">Recharger</button>
+      </div>
+
       <table id="table">
         <thead>
           <tr id="thead-row">
@@ -64,15 +70,13 @@
     const INTERVAL = "5m";
     const MAX_CONCURRENCY = 8; // limiteur anti rate-limit
 
-    // Toutes les dates demandées (Europe/Brussels), dans l'ordre souhaité
+    // --- Timestamps demandés (heure locale Brussels) ---
     const points = [
-      // Ajouts "avant 21/10"
       { label:"07/10 09:25", y:2025, m:10, d:7,  h:9,  min:25 },
       { label:"09/10 10:15", y:2025, m:10, d:9,  h:10, min:15 },
       { label:"09/10 21:35", y:2025, m:10, d:9,  h:21, min:35 },
       { label:"09/10 22:05", y:2025, m:10, d:9,  h:22, min:5  },
       { label:"10/10 15:15", y:2025, m:10, d:10, h:15, min:15 },
-      // Puis les suivantes
       { label:"21/10 05:45", y:2025, m:10, d:21, h:5,  min:45 },
       { label:"26/10 11:10", y:2025, m:10, d:26, h:11, min:10 },
       { label:"26/10 12:25", y:2025, m:10, d:26, h:12, min:25 },
@@ -88,27 +92,37 @@
     const totalRow = document.getElementById("total-row");
     const progress = document.getElementById("progress");
 
-    // Injecter les en-têtes de colonnes (toutes les dates)
+    // Injecte les colonnes d'en-tête
     for (const p of points) {
       const th = document.createElement("th");
       th.textContent = p.label;
       theadRow.appendChild(th);
     }
 
-    // Europe/Brussels -> UTC (gère automatiquement CEST/CET)
-    function brusselsLocalToUtcMs(y,m,d,h,min){
-      const fmt = new Intl.DateTimeFormat('en-US',{
-        timeZone:'Europe/Brussels',
+    // --------- Conversion Brussels -> UTC (DST OK) ----------
+    function tzOffsetMsAt(date, tz) {
+      const fmt = new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz,
         year:'numeric', month:'2-digit', day:'2-digit',
-        hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'
+        hour:'2-digit', minute:'2-digit', second:'2-digit',
+        hour12:false
       });
-      const parts = fmt.formatToParts(new Date(Date.UTC(y, m-1, d, h, min, 0)));
-      const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-      return Date.UTC(+map.year, +map.month-1, +map.day, +map.hour, +map.minute, +map.second);
+      const parts = Object.fromEntries(fmt.formatToParts(date).map(p => [p.type, p.value]));
+      const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+      return asUTC - date.getTime();
     }
-    const pointTimes = points.map(p => ({ label:p.label, openTimeMs: brusselsLocalToUtcMs(p.y,p.m,p.d,p.h,p.min) }));
+    function brusselsLocalToUtcMs(y, m, d, h, min) {
+      const approxUtc = Date.UTC(y, m - 1, d, h, min, 0, 0);
+      const offset = tzOffsetMsAt(new Date(approxUtc), 'Europe/Brussels');
+      return approxUtc - offset; // clé: on soustrait l'offset
+    }
 
-    // Dynamic: toutes les paires PERPETUAL USDT TRADING
+    const pointTimes = points.map(p => ({
+      label: p.label,
+      openTimeMs: brusselsLocalToUtcMs(p.y, p.m, p.d, p.h, p.min)
+    }));
+
+    // --------- Récupère tous les symboles PERP USDT-M TRADING ----------
     async function getAllPerpUsdtSymbols(){
       const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
       if(!r.ok) throw new Error("exchangeInfo error");
@@ -119,14 +133,16 @@
         .sort();
     }
 
+    // --------- Récupère la variation de LA bougie 5m exacte ----------
     async function fetchKlinePct(symbol, openTimeMs){
+      // on demande startTime exactement sur l'ouverture de bougie
       const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
       const r = await fetch(url);
       if(!r.ok) return null;
       const data = await r.json();
       if(!Array.isArray(data) || data.length === 0) return null;
-      const k = data[0];
-      if(+k[0] !== openTimeMs) return null; // pas la bougie exacte
+      const k = data[0];               // [ openTime, open, high, low, close, ... ]
+      if(+k[0] !== openTimeMs) return null; // si ce n'est pas la bougie exacte, on ignore
       const open = parseFloat(k[1]), close = parseFloat(k[4]);
       if(!isFinite(open) || !isFinite(close) || open === 0) return null;
       return (close - open) / open * 100;
@@ -143,7 +159,7 @@
       return `<span class="${cls}">${v.toFixed(2)}%</span>`;
     }
 
-    // Limiteur de concurrence
+    // --------- Limiteur de concurrence (anti rate-limit) ----------
     async function mapWithConcurrency(items, fn, concurrency){
       const results = new Array(items.length);
       let i = 0, active = 0, done = 0;
@@ -181,7 +197,7 @@
       const sums = new Array(pointTimes.length).fill(0);
       const counts = new Array(pointTimes.length).fill(0);
 
-      // Pré-construire les lignes
+      // Pré-construire les lignes (une par symbole)
       const rows = new Map();
       for(const s of symbols){
         const tr = document.createElement("tr");
@@ -197,7 +213,7 @@
         rows.set(s, tr);
       }
 
-      // Remplir avec limiteur
+      // Remplit les valeurs avec limiteur
       await mapWithConcurrency(symbols, async (symbol) => {
         const tr = rows.get(symbol);
         for(let i=0;i<pointTimes.length;i++){
@@ -213,12 +229,14 @@
         }
       }, MAX_CONCURRENCY);
 
-      // Totaux par date (pied de tableau)
+      // Totaux par date
       for(let i=0;i<pointTimes.length;i++){
         totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
       }
       progress.textContent = `Terminé ✅ (${symbols.length} symboles)`;
     }
+
+    document.getElementById('reload').addEventListener('click', () => location.reload());
 
     main().catch(e=>{
       console.error(e);
