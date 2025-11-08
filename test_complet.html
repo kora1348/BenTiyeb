@@ -2,17 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Variations 5m — Sélection Binance Futures</title>
+  <title>Variations 5m — Binance Futures USDT-M (PERP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --bg:#0f172a; --card:#111827; --muted:#94a3b8;
-      --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b;
-    }
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; }
     body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     header{padding:18px;border-bottom:1px solid var(--border)}
     h1{margin:0;font-size:18px}
-    .sub{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.4}
+    .sub{color:var(--muted);font-size:13px;line-height:1.4;margin-top:6px}
     .wrap{padding:16px}
     .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
     table{width:100%;border-collapse:collapse;font-size:13px}
@@ -27,7 +24,7 @@
 </head>
 <body>
   <header>
-    <h1>Variation 5m — Sélection de cryptos Futures</h1>
+    <h1>Variation 5m — PERP USDT (Binance Futures)</h1>
     <div class="sub">
       07/10/2025 09:25 • 09/10/2025 10:15 • 21:35 • 22:05 • 10/10/2025 15:15<br>
       21/10/2025 05:45 • 26/10/2025 11:10 • 12:25 • 05/11/2025 05:15 • 07:00 • 13:35 • 17:30 • 21:50 (Europe/Brussels)
@@ -58,21 +55,14 @@
         </tfoot>
       </table>
 
-      <p id="progress" class="warn">Chargement…</p>
+      <p id="progress" class="warn">Préparation…</p>
     </div>
   </div>
 
   <script>
     const BASE = "https://fapi.binance.com";
     const INTERVAL = "5m";
-
-    // Symboles (comme dans tes derniers messages)
-    const symbols = [
-      "AGTUSDT",
-      "INUSDT",
-      "QUSDT",
-      "STOUSDT",
-    ];
+    const MAX_CONCURRENCY = 8; // limiteur anti rate-limit
 
     // Toutes les dates demandées (Europe/Brussels), dans l'ordre souhaité
     const points = [
@@ -82,8 +72,7 @@
       { label:"09/10 21:35", y:2025, m:10, d:9,  h:21, min:35 },
       { label:"09/10 22:05", y:2025, m:10, d:9,  h:22, min:5  },
       { label:"10/10 15:15", y:2025, m:10, d:10, h:15, min:15 },
-
-      // Dates déjà posées
+      // Puis les suivantes
       { label:"21/10 05:45", y:2025, m:10, d:21, h:5,  min:45 },
       { label:"26/10 11:10", y:2025, m:10, d:26, h:11, min:10 },
       { label:"26/10 12:25", y:2025, m:10, d:26, h:12, min:25 },
@@ -106,29 +95,38 @@
       theadRow.appendChild(th);
     }
 
-    // Conversion Europe/Brussels -> UTC (gère CEST/CET automatiquement)
+    // Europe/Brussels -> UTC (gère automatiquement CEST/CET)
     function brusselsLocalToUtcMs(y,m,d,h,min){
       const fmt = new Intl.DateTimeFormat('en-US',{
         timeZone:'Europe/Brussels',
         year:'numeric', month:'2-digit', day:'2-digit',
-        hour:'2-digit', minute:'2-digit', second:'2-digit',
-        hourCycle:'h23'
+        hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'
       });
       const parts = fmt.formatToParts(new Date(Date.UTC(y, m-1, d, h, min, 0)));
       const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
       return Date.UTC(+map.year, +map.month-1, +map.day, +map.hour, +map.minute, +map.second);
     }
-
     const pointTimes = points.map(p => ({ label:p.label, openTimeMs: brusselsLocalToUtcMs(p.y,p.m,p.d,p.h,p.min) }));
+
+    // Dynamic: toutes les paires PERPETUAL USDT TRADING
+    async function getAllPerpUsdtSymbols(){
+      const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
+      if(!r.ok) throw new Error("exchangeInfo error");
+      const info = await r.json();
+      return info.symbols
+        .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT" && s.status === "TRADING")
+        .map(s => s.symbol)
+        .sort();
+    }
 
     async function fetchKlinePct(symbol, openTimeMs){
       const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
       const r = await fetch(url);
       if(!r.ok) return null;
       const data = await r.json();
-      if(!data.length) return null;
+      if(!Array.isArray(data) || data.length === 0) return null;
       const k = data[0];
-      if(+k[0] !== openTimeMs) return null;
+      if(+k[0] !== openTimeMs) return null; // pas la bougie exacte
       const open = parseFloat(k[1]), close = parseFloat(k[4]);
       if(!isFinite(open) || !isFinite(close) || open === 0) return null;
       return (close - open) / open * 100;
@@ -145,8 +143,34 @@
       return `<span class="${cls}">${v.toFixed(2)}%</span>`;
     }
 
+    // Limiteur de concurrence
+    async function mapWithConcurrency(items, fn, concurrency){
+      const results = new Array(items.length);
+      let i = 0, active = 0, done = 0;
+      return new Promise(resolve => {
+        const next = () => {
+          while(active < concurrency && i < items.length){
+            const idx = i++, item = items[idx]; active++;
+            Promise.resolve(fn(item, idx))
+              .then(res => results[idx] = res)
+              .catch(() => results[idx] = null)
+              .finally(() => {
+                active--; done++;
+                if(done % 10 === 0) progress.textContent = `Progression : ${done}/${items.length}`;
+                if(done === items.length) resolve(results);
+                else next();
+              });
+          }
+        };
+        next();
+      });
+    }
+
     async function main(){
-      // Ligne de totaux (une cellule par date)
+      progress.textContent = "Récupération des symboles PERP USDT…";
+      const symbols = await getAllPerpUsdtSymbols();
+
+      // Ligne des totaux (une cellule par date)
       const totalCells = [];
       for (let i=0;i<pointTimes.length;i++){
         const td = document.createElement("td");
@@ -154,54 +178,52 @@
         totalRow.appendChild(td);
         totalCells.push(td);
       }
-
-      // Accumulateurs par date
       const sums = new Array(pointTimes.length).fill(0);
       const counts = new Array(pointTimes.length).fill(0);
 
-      let done = 0;
-      for(const symbol of symbols){
+      // Pré-construire les lignes
+      const rows = new Map();
+      for(const s of symbols){
         const tr = document.createElement("tr");
-        // Symbole
         const tdSym = document.createElement("td");
-        tdSym.textContent = symbol;
+        tdSym.textContent = s;
         tr.appendChild(tdSym);
-
-        // Cellules des dates
-        const tds = [];
         for(let i=0;i<pointTimes.length;i++){
           const td = document.createElement("td");
           td.innerHTML = `<span class="warn">…</span>`;
           tr.appendChild(td);
-          tds.push(td);
         }
         tbody.appendChild(tr);
+        rows.set(s, tr);
+      }
 
-        // Remplissage + accumulation
+      // Remplir avec limiteur
+      await mapWithConcurrency(symbols, async (symbol) => {
+        const tr = rows.get(symbol);
         for(let i=0;i<pointTimes.length;i++){
           try{
             const pct = await fetchKlinePct(symbol, pointTimes[i].openTimeMs);
-            tds[i].innerHTML = fmtPct(pct);
+            tr.children[i+1].innerHTML = fmtPct(pct);
             if(pct != null){ sums[i] += pct; counts[i]++; }
           }catch{
-            tds[i].innerHTML = `<span class="na">—</span>`;
+            tr.children[i+1].innerHTML = `<span class="na">—</span>`;
           }
-          await new Promise(r=>setTimeout(r,100)); // anti rate-limit
+          // mini pause entre colonnes du même symbole
+          await new Promise(r=>setTimeout(r,35));
         }
+      }, MAX_CONCURRENCY);
 
-        done++;
-        if(done % 2 === 0) progress.textContent = `Progression : ${done}/${symbols.length}`;
-      }
-
-      // Totaux par date (en bas)
+      // Totaux par date (pied de tableau)
       for(let i=0;i<pointTimes.length;i++){
         totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
       }
-
-      progress.textContent = "Terminé ✅";
+      progress.textContent = `Terminé ✅ (${symbols.length} symboles)`;
     }
 
-    main();
+    main().catch(e=>{
+      console.error(e);
+      progress.textContent = "Erreur : " + e.message;
+    });
   </script>
 </body>
 </html>
