@@ -2,13 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>26/10/2025</title>
+  <title>Variations 5 min — Multi-jours (Europe/Brussels)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
       --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#94a3b8;
       --up:#16a34a; --down:#dc2626; --zero:#64748b; --border:#1f2937; --header:#0b1220; --accent:#2563eb;
-      --total:#facc15;
     }
     *{box-sizing:border-box}
     body{margin:0;background:#0b1020;color:var(--text);font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;padding:24px}
@@ -16,23 +15,22 @@
     header h1{margin:0;font-size:20px;font-weight:700}
     .meta{color:var(--muted);font-size:14px}
     .controls{margin-left:auto;display:flex;gap:12px}
-    .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;font-size:14px}
-    .controls button a{color:#fff;text-decoration:none}
-    #variation_negative{
+    .controls a, .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;font-size:14px;text-decoration:none}
+    #totals{
       max-width:1200px;margin:8px auto 16px;
-      background:linear-gradient(180deg,rgba(220,38,38,.1),rgba(220,38,38,.04)), var(--card);
-      border:1px solid rgba(220,38,38,.35);
-      color:#fecaca; padding:10px 12px;border-radius:12px;font-size:14px;
+      background:linear-gradient(180deg,rgba(148,163,184,.08),rgba(148,163,184,.03)), var(--card);
+      border:1px solid var(--border);
+      color:#cbd5e1; padding:10px 12px;border-radius:12px;font-size:14px;
     }
-    #variation_negative .title{font-weight:700;color:#fca5a5}
-    #total_variation{display:flex;gap:10px;flex-wrap:wrap}
-    #total_variation .badge{
+    #totals .title{font-weight:700;color:#e2e8f0}
+    #totals .badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+    #totals .badge{
       background:#1f2937;border:1px solid var(--border);border-radius:999px;
       padding:4px 10px;color:#fff;font-weight:700
     }
-    #total_variation .badge.positive{color:#22c55e}
-    #total_variation .badge.negative{color:#ef4444}
-    #total_variation .badge.zero{color:#94a3b8}
+    #totals .badge.positive{color:#22c55e}
+    #totals .badge.negative{color:#ef4444}
+    #totals .badge.zero{color:#94a3b8}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:16px;max-width:1200px;margin:0 auto}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
     .card header{background:var(--header);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center}
@@ -49,50 +47,44 @@
     .loading,.error{padding:10px 12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
     .error{color:#fca5a5}
     .chip{font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#94a3b8;margin-left:8px}
-    .slots strong{font-weight:700}
   </style>
 </head>
 <body>
   <header>
-    <h1>Variation 30 min — Europe/Brussels <span class="chip">+ Spike max / min</span></h1>
-    <div class="meta" id="metaLine">
-      <!-- Injecté en JS : Date • Créneaux dynamiques • Timeframe -->
+    <h1>Variation 5 min — Europe/Brussels <span class="chip">+ Spike max / min</span></h1>
+    <div class="meta" id="metaLine"></div>
+    <div class="controls">
+      <a href="/index.html">Accueil</a>
+      <button id="reload">Recharger</button>
     </div>
-    <div class="controls"><button id="reload"><a href="/index.html">Accueil</a></button></div>
   </header>
 
-  <div id="variation_negative">
-    <span class="title">TOTAL par créneau (somme des variations de tous les symboles) : </span>
-    <div id="total_variation"></div>
+  <div id="totals">
+    <div class="title">TOTAL par timestamp (somme des variations de tous les symboles) :</div>
+    <div class="badges" id="totalsBadges"></div>
   </div>
 
   <div id="grid" class="grid"></div>
 
 <script>
 (async () => {
-  // --- Paramètres ---
+  // --------- PARAMÈTRES ---------
   const symbols = [
-    "ZKUSDT",
-    "PUMPUSDT",
-    "0GUSDT",
-  ];
+    "FISUSDT",
+    // tu peux en ajouter d'autres ici (majuscules)
+  ].map(s => s.toUpperCase().trim());
 
   const timeZone = "Europe/Brussels";
-  // Date locale voulue : 26/10/2025
-  const dateY = 2025, dateM = 10, dateD = 26;
+  const windowMinutes = 5; // timeframe
 
-  // Créneaux locaux dynamiques (HH, MM) — utilisés partout (header + tables + appels API)
-  const slotsHHMM = [
-    [11, 0],
-    [13, 0],
-    [15, 30],
-    [18, 30],
-    [19, 0],
+  // Timestamps demandés (incluant 21/10/25 05:45 et 26/10/25 11:10 & 12:25)
+  const datesAndSlots = [
+    { y:2025, m:11, d:5,  slots:[[5,15],[7,0],[13,35],[17,30],[21,50]] },
+    { y:2025, m:11, d:6,  slots:[[4,15],[9,15]] },
+    { y:2025, m:11, d:9,  slots:[[12,15],[16,55]] },
   ];
 
-  const windowMinutes = 30;  // fenêtre de 30 minutes
-
-  // --- Utils TZ (sans lib) ---
+  // --------- UTILS TZ ---------
   function tzOffsetMsAt(date, tz) {
     const dtf = new Intl.DateTimeFormat('en-GB', {
       timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit',
@@ -109,44 +101,40 @@
     const offset = tzOffsetMsAt(new Date(approxUtc), tz);
     return approxUtc - offset;
   }
-  function fmtPct(p){ return (p >= 0 ? '+' : '') + p.toFixed(3) + '%'; }
-  function clsPct(p){ return 'pct ' + (p > 0 ? 'up' : (p < 0 ? 'down' : 'zero')); }
-  function pad(n){ return String(n).padStart(2,'0'); }
-  function labelSlot(h, m){
-    const endTotal = h*60+m+windowMinutes-1;
-    return `${pad(h)}:${pad(m)}–${pad((endTotal/60)|0)}:${pad(endTotal%60)}`;
+  const pad = n => String(n).padStart(2, '0');
+  const fmtPct = p => (p >= 0 ? '+' : '') + p.toFixed(3) + '%';
+  const clsPct = p => 'pct ' + (p > 0 ? 'up' : (p < 0 ? 'down' : 'zero'));
+  function labelSlot(y,m,d,h,mi){
+    const start = `${pad(d)}/${pad(m)}/${y} ${pad(h)}:${pad(mi)}`;
+    const endTotal = h*60 + mi + windowMinutes - 1;
+    const eh = (endTotal/60)|0, em = endTotal%60;
+    return `${start} → ${pad(eh)}:${pad(em)}`;
   }
-
-  // Convertit un créneau local (h,m) en fenêtre UTC [start,end] couvrant 30 min (00s → 29:59.999)
-  function slotWindowUtc(h, m) {
-    const startUtc = localToUtcMs(dateY, dateM, dateD, h, m, 0, 0, timeZone);
+  function slotWindowUtc(y,m,d,h,mi) {
+    const startUtc = localToUtcMs(y, m, d, h, mi, 0, 0, timeZone);
     const endUtc = startUtc + windowMinutes*60*1000 - 1; // inclusif
     return { startUtc, endUtc };
   }
 
-  // --- Header dynamique (Date • Créneaux depuis slotsHHMM • Timeframe) ---
+  // --------- HEADER ---------
   (function renderHeaderMeta(){
     const meta = document.getElementById('metaLine');
-
-    // Date locale formatée en Europe/Brussels
-    const localDate = new Date(localToUtcMs(dateY, dateM, dateD, 12, 0, 0, 0, timeZone));
-    const dateFmt = new Intl.DateTimeFormat('fr-BE', { timeZone, day:'2-digit', month:'2-digit', year:'numeric' }).format(localDate);
-
-    // Liste de créneaux à partir de slotsHHMM
-    const slotsText = slotsHHMM.map(([h,m]) => `<strong>${pad(h)}:${pad(m)}</strong>`).join(', ');
-
-    meta.innerHTML = `Date : <strong>${dateFmt}</strong> • Créneaux : <span class="slots">${slotsText}</span> • Timeframe interne : <strong>1m → fenêtre ${windowMinutes} min</strong>`;
+    const lines = datesAndSlots.map(({y,m,d,slots}) => {
+      const ds = slots.map(([h,mi]) => `<strong>${pad(h)}:${pad(mi)}</strong>`).join(', ');
+      return `${pad(d)}/${pad(m)}/${y} → ${ds}`;
+    }).join(' &nbsp;•&nbsp; ');
+    meta.innerHTML = `Timestamps : ${lines} • Timeframe : <strong>${windowMinutes} min</strong>`;
   })();
 
-  // --- DOM ---
+  // --------- DOM / CARTES ---------
   const grid = document.getElementById('grid');
-  const totalsBar = document.getElementById('total_variation');
+  const totalsBadges = document.getElementById('totalsBadges');
 
   function buildCard(symbol) {
     const card = document.createElement('div'); card.className = 'card';
     const head = document.createElement('header');
     const symEl = document.createElement('div'); symEl.className = 'symbol'; symEl.textContent = symbol;
-    const status = document.createElement('div'); status.className = 'status'; status.textContent = 'Chargement…';
+    const status = document.createElement('div'); status.className = 'status'; status.textContent = 'Validation symbole…';
     head.appendChild(symEl); head.appendChild(status);
 
     const wrap = document.createElement('div'); wrap.className = 'table-wrap';
@@ -154,46 +142,37 @@
     const thead = document.createElement('thead');
     thead.innerHTML = `
       <tr>
-        <th>Créneau (Brussels)</th>
+        <th>Timestamp (Brussels)</th>
         <th class="num">Variation (${windowMinutes} min)</th>
         <th class="num">Spike max (mèche ↑)</th>
         <th class="num">Spike min (mèche ↓)</th>
       </tr>`;
     const tbody = document.createElement('tbody');
 
-    // Lignes vides pour chaque slot (depuis slotsHHMM)
-    for (const [h,m] of slotsHHMM) {
-      const tr = document.createElement('tr');
+    for (const {y,m,d,slots} of datesAndSlots) {
+      for (const [h,mi] of slots) {
+        const tr = document.createElement('tr');
+        const tdTime = document.createElement('td');
+        tdTime.className = 'time';
+        tdTime.textContent = labelSlot(y,m,d,h,mi);
 
-      const tdTime = document.createElement('td');
-      tdTime.className = 'time';
-      tdTime.textContent = labelSlot(h,m);
+        const tdVar = document.createElement('td'); tdVar.className = 'pct zero'; tdVar.textContent = '—';
+        tdVar.dataset.key = `${y}-${m}-${d} ${h}:${mi}:var`;
 
-      const tdVar = document.createElement('td');
-      tdVar.className = 'pct zero';
-      tdVar.textContent = '—';
-      tdVar.dataset.slot = `${h}:${m}:var`;
+        const tdSu  = document.createElement('td'); tdSu.className = 'pct zero'; tdSu.textContent = '—';
+        tdSu.dataset.key = `${y}-${m}-${d} ${h}:${mi}:su`;
 
-      const tdSpikeUp = document.createElement('td');
-      tdSpikeUp.className = 'pct zero';
-      tdSpikeUp.textContent = '—';
-      tdSpikeUp.dataset.slot = `${h}:${m}:su`;
+        const tdSd  = document.createElement('td'); tdSd.className = 'pct zero'; tdSd.textContent = '—';
+        tdSd.dataset.key = `${y}-${m}-${d} ${h}:${mi}:sd`;
 
-      const tdSpikeDn = document.createElement('td');
-      tdSpikeDn.className = 'pct zero';
-      tdSpikeDn.textContent = '—';
-      tdSpikeDn.dataset.slot = `${h}:${m}:sd`;
-
-      tr.appendChild(tdTime);
-      tr.appendChild(tdVar);
-      tr.appendChild(tdSpikeUp);
-      tr.appendChild(tdSpikeDn);
-      tbody.appendChild(tr);
+        tr.appendChild(tdTime); tr.appendChild(tdVar); tr.appendChild(tdSu); tr.appendChild(tdSd);
+        tbody.appendChild(tr);
+      }
     }
 
     table.appendChild(thead); table.appendChild(tbody);
     wrap.appendChild(table);
-    const loading = document.createElement('div'); loading.className = 'loading'; loading.textContent = 'Requêtes klines 1m…';
+    const loading = document.createElement('div'); loading.className = 'loading'; loading.textContent = 'En attente…';
 
     card.appendChild(head); card.appendChild(wrap); card.appendChild(loading);
     grid.appendChild(card);
@@ -201,108 +180,156 @@
     return { card, statusEl: status, loadingEl: loading, tbody };
   }
 
-  function pctChange(open, close) {
-    const o = Number(open), c = Number(close);
-    if (!isFinite(o) || o === 0 || !isFinite(c)) return null;
-    return ((c - o) / o) * 100;
-  }
+  // Helpers variation/spikes
+  const pctChange = (o,c) => {
+    const open = Number(o), close = Number(c);
+    if (!isFinite(open) || open === 0 || !isFinite(close)) return null;
+    return ((close - open) / open) * 100;
+  };
   function spikeMaxPct(open, highs) {
-    const o = Number(open);
-    if (!isFinite(o) || o === 0 || highs.length === 0) return null;
-    let maxH = -Infinity;
-    for (const h of highs) {
-      const v = Number(h);
-      if (isFinite(v) && v > maxH) maxH = v;
-    }
-    if (!isFinite(maxH)) return null;
-    return ((maxH - o) / o) * 100;
+    const o = Number(open); if (!isFinite(o) || o === 0 || highs.length === 0) return null;
+    let maxH = -Infinity; for (const h of highs){ const v=Number(h); if (isFinite(v) && v>maxH) maxH=v; }
+    if (!isFinite(maxH)) return null; return ((maxH - o)/o)*100;
   }
   function spikeMinPct(open, lows) {
-    const o = Number(open);
-    if (!isFinite(o) || o === 0 || lows.length === 0) return null;
-    let minL = Infinity;
-    for (const l of lows) {
-      const v = Number(l);
-      if (isFinite(v) && v < minL) minL = v;
-    }
-    if (!isFinite(minL)) return null;
-    return ((minL - o) / o) * 100;
+    const o = Number(open); if (!isFinite(o) || o === 0 || lows.length === 0) return null;
+    let minL = Infinity; for (const l of lows){ const v=Number(l); if (isFinite(v) && v<minL) minL=v; }
+    if (!isFinite(minL)) return null; return ((minL - o)/o)*100;
   }
 
-  async function fetchKlines1m(symbol, startUtc, endUtc) {
-    const url = new URL('https://api.binance.com/api/v3/klines');
+  // --------- DÉTECTION DE MARCHÉ (Futures vs Spot) ---------
+  async function fetchJson(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+    return r.json();
+  }
+
+  let futuresInfo = null, spotInfo = null;
+  async function loadExchangeInfos(){
+    // USDT-M Futures
+    futuresInfo = await fetchJson('https://fapi.binance.com/fapi/v1/exchangeInfo');
+    // Spot
+    spotInfo = await fetchJson('https://api.binance.com/api/v3/exchangeInfo');
+  }
+
+  function symbolExistsIn(info, symbol){
+    if (!info || !Array.isArray(info.symbols)) return false;
+    return info.symbols.some(s => s.symbol === symbol);
+  }
+
+  // Retourne { market: 'futures'|'spot'|'none' }
+  function pickMarket(symbol) {
+    const inFutures = symbolExistsIn(futuresInfo, symbol);
+    const inSpot = symbolExistsIn(spotInfo, symbol);
+    if (inFutures) return { market:'futures' };
+    if (inSpot)    return { market:'spot' };
+    return { market:'none' };
+  }
+
+  async function fetchKlines1m(symbol, startUtc, endUtc, market) {
+    const base = market === 'futures'
+      ? 'https://fapi.binance.com/fapi/v1/klines'
+      : 'https://api.binance.com/api/v3/klines';
+    const url = new URL(base);
     url.searchParams.set('symbol', symbol);
-    url.searchParams.set('interval', '1m');
+    url.searchParams.set('interval', '1m'); // on agrège sur 5m par fenêtre
     url.searchParams.set('startTime', String(startUtc));
     url.searchParams.set('endTime', String(endUtc));
     url.searchParams.set('limit', '1000');
     const res = await fetch(url.toString());
     if (!res.ok) {
-      const txt = await res.text().catch(()=> '');
-      throw new Error(`HTTP ${res.status} ${res.statusText} — ${txt}`);
+      // Renvoie vide pour ne pas casser l'UI
+      console.warn(symbol, market, '->', res.status, res.statusText);
+      return [];
     }
     const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance.');
-    return data;
+    return Array.isArray(data) ? data : [];
   }
 
-  // Préparation cartes
+  // Préparer les cartes
   const cards = symbols.map(s => {
     const built = buildCard(s);
-    const rowCells = {};
-    for (const [h,m] of slotsHHMM) {
-      rowCells[`${h}:${m}:var`] = built.tbody.querySelector(`td[data-slot="${h}:${m}:var"]`);
-      rowCells[`${h}:${m}:su`]  = built.tbody.querySelector(`td[data-slot="${h}:${m}:su"]`);
-      rowCells[`${h}:${m}:sd`]  = built.tbody.querySelector(`td[data-slot="${h}:${m}:sd"]`);
+    const cells = {};
+    for (const {y,m,d,slots} of datesAndSlots) {
+      for (const [h,mi] of slots) {
+        const kBase = `${y}-${m}-${d} ${h}:${mi}`;
+        cells[`${kBase}:var`] = built.tbody.querySelector(`td[data-key="${kBase}:var"]`);
+        cells[`${kBase}:su`]  = built.tbody.querySelector(`td[data-key="${kBase}:su"]`);
+        cells[`${kBase}:sd`]  = built.tbody.querySelector(`td[data-key="${kBase}:sd"]`);
+      }
     }
-    return { symbol: s, ...built, rowCells };
+    return { symbol: s, ...built, cells };
   });
 
-  // Suivi des totaux par créneau (variation uniquement)
-  const totals = new Map(); // key "h:m" -> {sum, count}
-  for (const [h,m] of slotsHHMM) totals.set(`${h}:${m}`, {sum:0, count:0});
+  // Totaux par timestamp
+  const totalMap = new Map();
+  for (const {y,m,d,slots} of datesAndSlots) {
+    for (const [h,mi] of slots) {
+      const key = `${y}-${pad(m)}-${pad(d)} ${pad(h)}:${pad(mi)}`;
+      totalMap.set(key, { sum:0, count:0 });
+    }
+  }
 
-  // Récupération / calculs
+  // --- RUN ---
+  try {
+    await loadExchangeInfos();
+  } catch (e) {
+    alert("Impossible de charger l'exchangeInfo Binance. Vérifie la connexion réseau.");
+    return;
+  }
+
   await Promise.all(cards.map(async (c) => {
-    c.statusEl.textContent = 'Chargement…';
+    const { market } = pickMarket(c.symbol);
+
+    if (market === 'none') {
+      c.statusEl.textContent = 'Symbole inconnu (ni Futures USDT-M, ni Spot)';
+      c.loadingEl.className = 'error';
+      c.loadingEl.textContent = 'Vérifie l’orthographe (ex: INJUSDT, STXUSDT…).';
+      return;
+    }
+
+    c.statusEl.textContent = market === 'futures' ? 'Futures USDT-M' : 'Spot';
     c.loadingEl.textContent = 'Requêtes klines 1m…';
+
     try {
-      for (const [h,m] of slotsHHMM) {
-        const { startUtc, endUtc } = slotWindowUtc(h, m);
-        const kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
+      for (const {y,m,d,slots} of datesAndSlots) {
+        for (const [h,mi] of slots) {
+          const { startUtc, endUtc } = slotWindowUtc(y,m,d,h,mi);
+          const kl = await fetchKlines1m(c.symbol, startUtc, endUtc, market);
 
-        let pVar = null, pSu = null, pSd = null;
+          let pVar = null, pSu = null, pSd = null;
+          if (kl.length > 0) {
+            const first = kl[0];
+            const last  = kl[kl.length-1];
+            const open0 = first[1];
+            const closeLast = last[4];
+            const highs = kl.map(k => k[2]);
+            const lows  = kl.map(k => k[3]);
 
-        if (kl.length > 0) {
-          // Kline: [ openTime, open, high, low, close, ... ]
-          const first = kl[0];
-          const last  = kl[kl.length-1];
-          const open0 = first[1];
-          const closeLast = last[4];
+            pVar = pctChange(open0, closeLast);
+            pSu  = spikeMaxPct(open0, highs);
+            pSd  = spikeMinPct(open0, lows);
+          }
 
-          const highs = kl.map(k => k[2]);
-          const lows  = kl.map(k => k[3]);
+          const kBase = `${y}-${m}-${d} ${h}:${mi}`;
+          const tdVar = c.cells[`${kBase}:var`];
+          const tdSu  = c.cells[`${kBase}:su`];
+          const tdSd  = c.cells[`${kBase}:sd`];
 
-          pVar = pctChange(open0, closeLast);
-          pSu  = spikeMaxPct(open0, highs);
-          pSd  = spikeMinPct(open0, lows);
+          if (pVar === null) { tdVar.textContent = 'n/a'; tdVar.className = 'pct zero'; }
+          else {
+            tdVar.textContent = fmtPct(pVar); tdVar.className = clsPct(pVar);
+            const tKey = `${y}-${pad(m)}-${pad(d)} ${pad(h)}:${pad(mi)}`;
+            const agg = totalMap.get(tKey); agg.sum += pVar; agg.count += 1;
+          }
+
+          if (pSu === null) { tdSu.textContent = 'n/a'; tdSu.className = 'pct zero'; }
+          else { tdSu.textContent = fmtPct(pSu); tdSu.className = clsPct(pSu); }
+
+          if (pSd === null) { tdSd.textContent = 'n/a'; tdSd.className = 'pct zero'; }
+          else { tdSd.textContent = fmtPct(pSd); tdSd.className = clsPct(pSd); }
         }
-
-        // Rendu cellules
-        const cVar = c.rowCells[`${h}:${m}:var`];
-        const cSu  = c.rowCells[`${h}:${m}:su`];
-        const cSd  = c.rowCells[`${h}:${m}:sd`];
-
-        if (pVar === null) { cVar.textContent = 'n/a'; cVar.className = 'pct zero'; }
-        else { cVar.textContent = fmtPct(pVar); cVar.className = clsPct(pVar); const t = totals.get(`${h}:${m}`); t.sum += pVar; t.count += 1; }
-
-        if (pSu === null) { cSu.textContent = 'n/a'; cSu.className = 'pct zero'; }
-        else { cSu.textContent = fmtPct(pSu); cSu.className = clsPct(pSu); }
-
-        if (pSd === null) { cSd.textContent = 'n/a'; cSd.className = 'pct zero'; }
-        else { cSd.textContent = fmtPct(pSd); cSd.className = clsPct(pSd); }
       }
-      c.statusEl.textContent = 'OK';
       c.loadingEl.textContent = 'Terminé.';
     } catch (e) {
       c.statusEl.textContent = 'Erreur';
@@ -311,16 +338,14 @@
     }
   }));
 
-  // Affichage des totaux par créneau (variation uniquement)
-  totalsBar.innerHTML = '';
-  for (const [h,m] of slotsHHMM) {
-    const key = `${h}:${m}`;
-    const {sum, count} = totals.get(key);
+  // Afficher les totaux
+  totalsBadges.innerHTML = '';
+  for (const [key, {sum, count}] of totalMap.entries()) {
     const badge = document.createElement('span');
     badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
     const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
-    badge.textContent = `${pad(h)}:${pad(m)} → ${txt}`;
-    totalsBar.appendChild(badge);
+    badge.textContent = `${key} → ${txt}`;
+    totalsBadges.appendChild(badge);
   }
 
   document.getElementById('reload').addEventListener('click', () => location.reload());
