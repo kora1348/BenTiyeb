@@ -18,40 +18,46 @@
     table{width:100%;border-collapse:collapse;font-size:13px}
     th,td{border-bottom:1px solid var(--border);padding:8px 10px;white-space:nowrap}
     th{position:sticky;top:0;background:var(--card);text-align:left}
-    .pos{color:var(--ok)}
-    .neg{color:var(--bad)}
+    tfoot td{font-weight:700;border-top:1px solid var(--border)}
+    .pos{color:var(--ok);font-variant-numeric:tabular-nums}
+    .neg{color:var(--bad);font-variant-numeric:tabular-nums}
     .na{color:var(--muted)}
     .warn{color:var(--warn)}
-    .sum{font-weight:600}
   </style>
 </head>
 <body>
   <header>
     <h1>Variation 5m — Sélection de cryptos Futures</h1>
-    <div class="sub">07/10/25 09:25 • 09/10/25 10:15 • 09/10/25 21:35 • 09/10/25 22:05 • 10/10/25 15:15</div>
+    <div class="sub">
+      21/10/2025 05:45 • 26/10/2025 11:10 • 26/10/2025 12:25 •
+      05/11/2025 05:15 • 07:00 • 13:35 • 17:30 • 21:50 (Europe/Brussels)
+    </div>
   </header>
 
   <div class="wrap">
     <div class="card">
       <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
-        Calcul = (Close − Open) / Open × 100 sur la bougie 5m correspondant à l’heure exacte (Europe/Brussels)
+        Calcul = (Close − Open) / Open × 100 sur la bougie 5m correspondant à l’heure exacte (Europe/Brussels).
+        Le <b>total</b> affiché en bas est la somme des variations (%) de toutes les lignes pour chaque date (valeurs manquantes ignorées).
       </p>
+
+      <!-- UN SEUL TABLEAU -->
       <table id="table">
         <thead>
-          <tr>
+          <tr id="thead-row">
             <th>Symbole</th>
-            <th>07/10 09:25</th>
-            <th>09/10 10:15</th>
-            <th>09/10 21:35</th>
-            <th>09/10 22:05</th>
-            <th>10/10 15:15</th>
-            <th>Total (∑)</th>
+            <!-- Les colonnes de dates sont injectées ci-dessous -->
           </tr>
         </thead>
-        <tbody id="tbody">
-          <!-- Lignes générées -->
-        </tbody>
+        <tbody id="tbody"></tbody>
+        <tfoot>
+          <tr id="total-row">
+            <td>Total (∑)</td>
+            <!-- Totaux par date insérés ici -->
+          </tr>
+        </tfoot>
       </table>
+
       <p id="progress" class="warn">Chargement…</p>
     </div>
   </div>
@@ -59,9 +65,8 @@
   <script>
     const BASE = "https://fapi.binance.com";
     const INTERVAL = "5m";
-    const BRUSSELS_OFFSET = 2; // UTC+2 à ces dates
 
-    // ⚠️ Liste telle que fournie dans ton dernier message
+    // Tes symboles actuels
     const symbols = [
       "JELLYJELLYUSDT",
       "MYXUSDT",
@@ -70,34 +75,56 @@
       "USTCUSDT"
     ];
 
+    // Nouveaux points (Europe/Brussels) — conversion DST auto
     const points = [
-      { label:"07/10 09:25", y:2025, m:10, d:7,  h:9,  min:25 },
-      { label:"09/10 10:15", y:2025, m:10, d:9,  h:10, min:15 },
-      { label:"09/10 21:35", y:2025, m:10, d:9,  h:21, min:35 },
-      { label:"09/10 22:05", y:2025, m:10, d:9,  h:22, min:5 },
-      { label:"10/10 15:15", y:2025, m:10, d:10, h:15, min:15 }
+      { label:"21/10 05:45", y:2025, m:10, d:21, h:5,  min:45 },
+      { label:"26/10 11:10", y:2025, m:10, d:26, h:11, min:10 },
+      { label:"26/10 12:25", y:2025, m:10, d:26, h:12, min:25 },
+      { label:"05/11 05:15", y:2025, m:11, d:5,  h:5,  min:15 },
+      { label:"05/11 07:00", y:2025, m:11, d:5,  h:7,  min:0  },
+      { label:"05/11 13:35", y:2025, m:11, d:5,  h:13, min:35 },
+      { label:"05/11 17:30", y:2025, m:11, d:5,  h:17, min:30 },
+      { label:"05/11 21:50", y:2025, m:11, d:5,  h:21, min:50 }
     ];
 
+    const theadRow = document.getElementById("thead-row");
     const tbody = document.getElementById("tbody");
+    const totalRow = document.getElementById("total-row");
     const progress = document.getElementById("progress");
 
-    function brusselsToUtcMs(y,m,d,h,min){
-      return Date.UTC(y, m-1, d, h - BRUSSELS_OFFSET, min);
+    // Ajoute les entêtes de colonnes de dates
+    for (const p of points) {
+      const th = document.createElement("th");
+      th.textContent = p.label;
+      theadRow.appendChild(th);
     }
 
-    async function fetchKline(symbol, openTimeMs){
+    // Conversion Europe/Brussels -> UTC (gère CEST/CET)
+    function brusselsLocalToUtcMs(y,m,d,h,min){
+      const fmt = new Intl.DateTimeFormat('en-US',{
+        timeZone:'Europe/Brussels',
+        year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit',
+        hourCycle:'h23'
+      });
+      const parts = fmt.formatToParts(new Date(Date.UTC(y, m-1, d, h, min, 0)));
+      const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+      return Date.UTC(+map.year, +map.month-1, +map.day, +map.hour, +map.minute, +map.second);
+    }
+
+    const pointTimes = points.map(p => ({ label:p.label, openTimeMs: brusselsLocalToUtcMs(p.y,p.m,p.d,p.h,p.min) }));
+
+    async function fetchKlinePct(symbol, openTimeMs){
       const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
       const r = await fetch(url);
       if(!r.ok) return null;
       const data = await r.json();
       if(!data.length) return null;
       const k = data[0];
-      const openTime = +k[0];
-      if(openTime !== openTimeMs) return null;
-      const open = parseFloat(k[1]);
-      const close = parseFloat(k[4]);
+      if(+k[0] !== openTimeMs) return null;
+      const open = parseFloat(k[1]), close = parseFloat(k[4]);
       if(!isFinite(open) || !isFinite(close) || open === 0) return null;
-      return ((close - open) / open) * 100;
+      return (close - open) / open * 100;
     }
 
     function fmtPct(v){
@@ -105,52 +132,69 @@
       const cls = v >= 0 ? "pos" : "neg";
       return `<span class="${cls}">${v.toFixed(2)}%</span>`;
     }
-
-    function fmtSum(v, count){
-      if(count === 0) return `<span class="na">—</span>`;
+    function fmtTotal(v){
+      if(v == null) return `<span class="na">—</span>`;
       const cls = v >= 0 ? "pos" : "neg";
-      return `<span class="sum ${cls}">${v.toFixed(2)}%</span>`;
+      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
     }
 
     async function main(){
+      // Prépare la ligne de totaux (une cellule par date)
+      const totalCells = [];
+      for (let i=0;i<pointTimes.length;i++){
+        const td = document.createElement("td");
+        td.innerHTML = `<span class="na">—</span>`;
+        totalRow.appendChild(td);
+        totalCells.push(td);
+      }
+
+      // Accumulateurs de totaux par colonne
+      const sums = new Array(pointTimes.length).fill(0);
+      const counts = new Array(pointTimes.length).fill(0);
+
       let done = 0;
       for(const symbol of symbols){
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${symbol}</td>`;
-        // cellules des 5 timestamps
-        for(let i=0;i<points.length;i++){
+        // Symbole
+        const tdSym = document.createElement("td");
+        tdSym.textContent = symbol;
+        tr.appendChild(tdSym);
+
+        // Cellules des dates
+        const tds = [];
+        for(let i=0;i<pointTimes.length;i++){
           const td = document.createElement("td");
           td.innerHTML = `<span class="warn">…</span>`;
           tr.appendChild(td);
+          tds.push(td);
         }
-        // cellule Total
-        const tdTotal = document.createElement("td");
-        tdTotal.innerHTML = `<span class="na">—</span>`;
-        tr.appendChild(tdTotal);
-
         tbody.appendChild(tr);
 
-        // calculs
-        let sum = 0;
-        let count = 0;
-
-        for(let i=0;i<points.length;i++){
-          const t = brusselsToUtcMs(points[i].y, points[i].m, points[i].d, points[i].h, points[i].min);
+        // Remplissage et accumulation
+        for(let i=0;i<pointTimes.length;i++){
           try{
-            const pct = await fetchKline(symbol, t);
-            tr.children[i+1].innerHTML = fmtPct(pct);
-            if(pct != null) { sum += pct; count++; }
+            const pct = await fetchKlinePct(symbol, pointTimes[i].openTimeMs);
+            tds[i].innerHTML = fmtPct(pct);
+            if(pct != null){ sums[i] += pct; counts[i]++; }
           }catch{
-            tr.children[i+1].innerHTML = `<span class="na">—</span>`;
+            tds[i].innerHTML = `<span class="na">—</span>`;
           }
-          // petite pause anti rate-limit
-          await new Promise(r=>setTimeout(r,100));
+          await new Promise(r=>setTimeout(r,100)); // petit throttle
         }
 
-        tdTotal.innerHTML = fmtSum(sum, count);
         done++;
         if(done % 2 === 0) progress.textContent = `Progression : ${done}/${symbols.length}`;
       }
+
+      // Affiche les totaux par date (en bas)
+      for(let i=0;i<pointTimes.length;i++){
+        if(counts[i] > 0){
+          totalCells[i].innerHTML = fmtTotal(sums[i]);
+        }else{
+          totalCells[i].innerHTML = `<span class="na">—</span>`;
+        }
+      }
+
       progress.textContent = "Terminé ✅";
     }
 
