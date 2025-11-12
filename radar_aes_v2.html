@@ -12,7 +12,7 @@
     .sub{color:var(--muted);font-size:13px;margin-top:4px}
     main{max-width:980px;margin:18px auto;padding:0 12px}
 
-    /* === Disposition des contrôles === */
+    /* === Disposition des contrôles (comme la version que tu aimes) === */
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;align-items:flex-end}
     label{font-size:12px}
     label span{display:block;margin-bottom:4px;font-size:11px}
@@ -33,6 +33,7 @@
     .error{color:var(--bad);margin-top:8px}
     .hint{font-size:11px;color:var(--muted);margin-top:8px}
     .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px}
+    /* Badge en haut à droite, “hors” de la carte comme dans ton exemple */
     .right{position:absolute;top:-70px;right:12px}
 
     /* Bouton Accueil en blanc */
@@ -46,7 +47,7 @@
       padding:10px 14px;font-weight:700;font-size:18px;letter-spacing:.5px;
     }
 
-    /* Carte d’alerte */
+    /* Carte d’alerte (garde ta logique simple avec une seule carte) */
     .dupe-card{margin:16px 0 10px;background:#0f1222;border:1px solid #23324a}
     .dupe-title{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700}
     .dupe-pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 10px;margin:4px 6px 0 0;font-size:12px}
@@ -99,6 +100,7 @@
     </div>
 
     <div class="card">
+      <!-- badge de progression positionné comme sur la maquette aimée -->
       <div class="right badge"><span id="progress">—</span></div>
 
       <table>
@@ -106,7 +108,7 @@
           <tr>
             <th style="width:160px">Symbole</th>
             <th style="width:230px">Date bougie n°<span id="thN1">20</span> (Europe/Brussels)</th>
-            <th style="width:230px">Date &gt; 1 an après (Europe/Brussels)</th>
+            <th style="width:230px">Date &gt; 3 ans après (Europe/Brussels)</th>
             <th style="width:150px">Variation bougie n°<span id="thN2">20</span></th>
           </tr>
         </thead>
@@ -119,7 +121,7 @@
         On conserve uniquement les cryptos dont le <b>jour de listing</b> est dans le mois/année choisis.<br>
         Bougie n°<span id="hintN">20</span> = jour n°<span id="hintN2">20</span> après le listing.
         Variation = (Close − Open) / Open × 100.
-        La colonne “&gt; 1 an après” = (bougie n°<span id="hintN3">20</span>) + 1 an (strictement &gt; 1 an).
+        La colonne “&gt; 2 ans après” = (bougie n°<span id="hintN3">20</span>) + 2 ans (strictement &gt; 2 ans).
       </div>
 
       <!-- Bannière de date (jaune) sous le tableau -->
@@ -168,9 +170,9 @@
     // ====== Caches
     const CACHE = {
       symbols: null,
-      daily100: new Map(),   // sym -> 1d klines (limit 100)
-      monthRows: new Map(),  // `${Y}-${M}` -> [{sym, openTime1, daily100}]
-      computed: new Map(),   // `${Y}-${M}-${N}` -> rows
+      daily60: new Map(),   // sym -> 1d klines (limit 60)
+      monthRows: new Map(), // `${Y}-${M}` -> [{sym, openTime1, daily60}]
+      computed: new Map(),  // `${Y}-${M}-${N}` -> rows
     };
     const keyMonth    = (Y,M)=>`${Y}-${M}`;
     const keyComputed = (Y,M,N)=>`${Y}-${M}-${N}`;
@@ -196,7 +198,8 @@
       const d = new Date(new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms))+'T00:00:00');
       return { y: d.getUTCFullYear(), m: d.getUTCMonth() };
     }
-    function plusThanOneYear(ms){ const d=new Date(ms); d.setUTCFullYear(d.getUTCFullYear()+1); return d.getTime()+1; }
+    // --> Passe à +2 ans (on garde le même nom pour minimiser les modifs ailleurs) *nekor
+    function plusThanOneYear(ms){ const d=new Date(ms); d.setUTCFullYear(d.getUTCFullYear()+3); return d.getTime()+1; }
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
     const dateKeyBrussels = (ms)=> new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms));
     const dateKeyHuman    = (ms)=> new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'}).format(new Date(ms));
@@ -234,13 +237,13 @@
         .map(s => s.symbol);
       return CACHE.symbols;
     }
-    async function getDaily100(sym){
-      if (CACHE.daily100.has(sym)) return CACHE.daily100.get(sym);
+    async function getDaily60(sym){
+      if (CACHE.daily60.has(sym)) return CACHE.daily60.get(sym);
       const u=new URL('https://fapi.binance.com/fapi/v1/klines');
       u.searchParams.set('symbol',sym); u.searchParams.set('interval','1d');
-      u.searchParams.set('limit','100'); u.searchParams.set('startTime','0');
+      u.searchParams.set('limit','60'); u.searchParams.set('startTime','0');
       const kl = await fetchJSON(u.toString());
-      CACHE.daily100.set(sym, kl||[]);
+      CACHE.daily60.set(sym, kl||[]);
       return kl||[];
     }
     async function warmMonth(Y,M){
@@ -253,12 +256,12 @@
 
       const rows = await mapLimit(symbols, 8, async (sym)=>{
         try{
-          const kl100 = await getDaily100(sym);
-          if(!kl100.length) return null;
-          const openTime1 = kl100[0][0];
+          const kl60 = await getDaily60(sym);
+          if(!kl60.length) return null;
+          const openTime1 = kl60[0][0];
           const {y,m} = monthYearInBrussels(openTime1);
           if (y!==Y || m!==M) return null;
-          return { sym, openTime1, daily100: kl100 };
+          return { sym, openTime1, daily60: kl60 };
         }catch{ return null; }
       });
 
@@ -275,14 +278,14 @@
       if(!base.length){ CACHE.computed.set(kc, []); return []; }
 
       const rows = await mapLimit(base, 12, async (r)=>{
-        const kl = r.daily100;
+        const kl = r.daily60;
         let openTimeN=null, openTimeNPlus=null, pctN=null;
         if (kl.length>=N){
           const kN = kl[N-1];
           openTimeN = kN[0];
           const o=parseFloat(kN[1]), c=parseFloat(kN[4]);
           pctN = o>0 ? ((c-o)/o*100) : 0;
-          openTimeNPlus = plusThanOneYear(openTimeN);
+          openTimeNPlus = plusThanOneYear(openTimeN); // maintenant +2 ans strict
         }
         return { sym:r.sym, openTime1:r.openTime1, openTimeN, openTimeNPlus, pctN };
       });
@@ -327,6 +330,7 @@
     function updateNCalendar(){
       const n = parseInt(candleSel.value,10);
       nCalN.textContent = n;
+      // même base et même format que le bandeau jaune
       const ms = BANNER_BASE_MS + (n-20)*dayMs;
       nCalDate.textContent = new Intl.DateTimeFormat('fr-BE', {
         timeZone: tz,
@@ -372,6 +376,7 @@
           if (bag.pos.length===2) dupes.push({ human: dateKeyHuman(bag.pos[0].ms), sign:'positive', count:2, list:bag.pos.slice(0,2) });
           if (bag.neg.length===2) dupes.push({ human: dateKeyHuman(bag.neg[0].ms), sign:'negative', count:2, list:bag.neg.slice(0,2) });
         }
+
         const dupesX2 = dupes.filter(d => d.count === 2);
         return { month: M, monthLabel: monthNamesShort[M], dupesX2 };
       });
@@ -443,7 +448,7 @@
     // ====== Effacer
     function clearAll(){
       CACHE.symbols = null;
-      CACHE.daily100.clear();
+      CACHE.daily60.clear();
       CACHE.monthRows.clear();
       CACHE.computed.clear();
 
@@ -479,13 +484,13 @@
 
     // ====== UI init
     (function initSelectors(){
-      const years=[2024];
+      const years=[2022]; // <-- année de base passée à 2023
       years.forEach(y=>{
         const o=document.createElement('option');
         o.value=String(y); o.textContent=String(y+1); o.dataset.realYear=y;
         yearSel.appendChild(o);
       });
-      yearSel.value='2024';
+      yearSel.value='2022';
 
       const limitedMonths=[
         {label:'01 Jan', value:0},
@@ -497,7 +502,7 @@
       });
       monthSel.value=0;
 
-      for(let n=1;n<=100;n++){ const o=document.createElement('option'); o.value=n; o.textContent=String(n); candleSel.appendChild(o); }
+      for(let n=1;n<=60;n++){ const o=document.createElement('option'); o.value=n; o.textContent=String(n); candleSel.appendChild(o); }
       candleSel.value='20';
 
       updateLabels(); updateNCalendar(); updateBannerOnly();
