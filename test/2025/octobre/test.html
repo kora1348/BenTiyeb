@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Variations 1d — Sélection Binance Futures</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; }
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    header{padding:18px;border-bottom:1px solid var(--border)}
+    h1{margin:0;font-size:18px}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.4}
+    .wrap{padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border-bottom:1px solid var(--border);padding:8px 10px;white-space:nowrap}
+    th{position:sticky;top:0;background:var(--card);text-align:left}
+    tfoot td{font-weight:700;border-top:1px solid var(--border)}
+    .pos{color:var(--ok);font-variant-numeric:tabular-nums}
+    .neg{color:var(--bad);font-variant-numeric:tabular-nums}
+    .na{color:var(--muted)}
+    .warn{color:var(--warn)}
+    .tag{display:inline-block;font-size:11px;border:1px solid var(--border);border-radius:6px;padding:2px 6px;color:var(--muted);margin-left:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Variation 1d — Sélection de cryptos Futures <span class="tag">USDT-M PERP</span></h1>
+    <div class="sub">
+      16/10/2025 • 17/10/2025 • 20/10/2025 • 21/10/2025 • 27/10/2025<br>
+      Bougies quotidiennes (interval = 1d), basées sur minuit UTC côté Binance.
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
+        Calcul = (Close − Open) / Open × 100 sur la bougie <strong>1d</strong> du jour indiqué.
+        La ligne « Total (∑) » additionne les variations (%) de toutes les lignes pour chaque date.
+      </p>
+
+      <table id="table">
+        <thead>
+          <tr id="thead-row">
+            <th>Symbole</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot>
+          <tr id="total-row">
+            <td>Total (∑)</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <p id="progress" class="warn">Chargement…</p>
+    </div>
+  </div>
+
+  <script>
+    const BASE = "https://fapi.binance.com";
+    const INTERVAL = "1d";
+
+    // --- Ta sélection (mise en MAJ + trim automatiquement) ---
+    const symbolsInput = [
+      "ARIAUSDT",
+      "NILUSDT",
+      "SOLVUSDT",
+      "SQDUSDT",
+      "VFYUSDT",
+        "YALAUSDT",
+    ].map(s => s.toUpperCase().trim());
+
+    // --- Jours demandés ---
+    const points = [
+       { label:"10/10/2025", y:2025, m:10, d:10 },
+  { label:"11/10/2025", y:2025, m:10, d:11 },
+  { label:"13/10/2025", y:2025, m:10, d:13 },
+  { label:"15/10/2025", y:2025, m:10, d:15 },
+  { label:"16/10/2025", y:2025, m:10, d:16 },
+  { label:"17/10/2025", y:2025, m:10, d:17 },
+  { label:"20/10/2025", y:2025, m:10, d:20 },
+  { label:"21/10/2025", y:2025, m:10, d:21 },
+  
+  { label:"27/10/2025", y:2025, m:10, d:27 },
+
+    ];
+
+    // openTime = minuit UTC du jour
+    const pointTimes = points.map(p => ({
+      label: p.label,
+      openTimeMs: Date.UTC(p.y, p.m - 1, p.d, 0, 0, 0, 0)
+    }));
+
+    const theadRow = document.getElementById("thead-row");
+    const tbody = document.getElementById("tbody");
+    const totalRow = document.getElementById("total-row");
+    const progress = document.getElementById("progress");
+
+    // En-têtes colonnes
+    for (const p of points) {
+      const th = document.createElement("th");
+      th.textContent = p.label;
+      theadRow.appendChild(th);
+    }
+
+    // --------- Vérification des symboles PERP USDT-M ----------
+    async function fetchPerpSet(){
+      const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
+      if(!r.ok) throw new Error("exchangeInfo error");
+      const info = await r.json();
+      const valid = info.symbols
+        .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT" && s.status === "TRADING")
+        .map(s => s.symbol);
+      return new Set(valid);
+    }
+
+    // --------- Bougie 1d ----------
+    async function fetchKlinePct(symbol, openTimeMs){
+      const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
+      const r = await fetch(url);
+      if(!r.ok) return null;
+      const data = await r.json();
+      if(!Array.isArray(data) || data.length === 0) return null;
+      const k = data[0]; // [ openTime, open, high, low, close, ... ]
+      if(+k[0] !== openTimeMs) return null; // pas la bougie exacte => ignore
+      const open = parseFloat(k[1]), close = parseFloat(k[4]);
+      if(!isFinite(open) || !isFinite(close) || open === 0) return null;
+      return (close - open) / open * 100;
+    }
+
+    function fmtPct(v){
+      if(v == null) return `<span class="na">—</span>`;
+      const cls = v >= 0 ? "pos" : "neg";
+      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
+    }
+    function fmtTotal(v){
+      if(v == null) return `<span class="na">—</span>`;
+      const cls = v >= 0 ? "pos" : "neg";
+      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
+    }
+
+    async function main(){
+      progress.textContent = "Validation des symboles PERP USDT-M…";
+      const perpSet = await fetchPerpSet();
+
+      // Ligne des totaux
+      const totalCells = [];
+      for (let i=0;i<pointTimes.length;i++){
+        const td = document.createElement("td");
+        td.innerHTML = `<span class="na">—</span>`;
+        totalRow.appendChild(td);
+        totalCells.push(td);
+      }
+      const sums = new Array(pointTimes.length).fill(0);
+      const counts = new Array(pointTimes.length).fill(0);
+
+      let done = 0;
+      for(const sym of symbolsInput){
+        const tr = document.createElement("tr");
+        const tdSym = document.createElement("td");
+        tdSym.textContent = sym;
+        tr.appendChild(tdSym);
+
+        const tds = [];
+        for(let i=0;i<pointTimes.length;i++){
+          const td = document.createElement("td");
+          td.innerHTML = `<span class="warn">…</span>`;
+          tr.appendChild(td);
+          tds.push(td);
+        }
+        tbody.appendChild(tr);
+
+        if(!perpSet.has(sym)){
+          // Symbole inconnu en PERP USDT-M
+          for(let i=0;i<pointTimes.length;i++){
+            tds[i].innerHTML = `<span class="na">symbole inconnu</span>`;
+          }
+        } else {
+          // Remplir les variations
+          for(let i=0;i<pointTimes.length;i++){
+            try{
+              const pct = await fetchKlinePct(sym, pointTimes[i].openTimeMs);
+              tds[i].innerHTML = fmtPct(pct);
+              if(pct != null){ sums[i] += pct; counts[i]++; }
+            }catch{
+              tds[i].innerHTML = `<span class="na">—</span>`;
+            }
+            // petite pause pour ménager l’API
+            await new Promise(r=>setTimeout(r,80));
+          }
+        }
+
+        done++;
+        if(done % 2 === 0) progress.textContent = `Progression : ${done}/${symbolsInput.length}`;
+      }
+
+      // Totaux par date
+      for(let i=0;i<pointTimes.length;i++){
+        totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
+      }
+
+      progress.textContent = "Terminé ✅";
+    }
+
+    main().catch(e=>{
+      console.error(e);
+      progress.textContent = "Erreur : " + e.message;
+    });
+  </script>
+</body>
+</html>
