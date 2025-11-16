@@ -70,12 +70,12 @@
 (async () => {
   // --------- PARAMÈTRES ---------
   const symbols = [
-          "ARIAUSDT",
-      "NILUSDT",
-      "SOLVUSDT",
-      "SQDUSDT",
-      "VFYUSDT",
-        "YALAUSDT",
+    "ARIAUSDT",
+    "NILUSDT",
+    "SOLVUSDT",
+    "SQDUSDT",
+    "VFYUSDT",
+    "YALAUSDT",
     // tu peux en ajouter d'autres ici (majuscules)
   ].map(s => s.toUpperCase().trim());
 
@@ -83,24 +83,22 @@
 
   // Jours d'octobre 2025 à garder
   const days = [
-    { y:2025, m:10, d:10 },
-    { y:2025, m:10, d:11 },
     { y:2025, m:10, d:12 },
-    { y:2025, m:10, d:13 },
-    { y:2025, m:10, d:15 },
-    { y:2025, m:10, d:16 },
-    { y:2025, m:10, d:17 },
-    { y:2025, m:10, d:20 },
-    { y:2025, m:10, d:21 },
     { y:2025, m:10, d:27 },
-    { y:2025, m:10, d:30 },
     { y:2025, m:10, d:31 },
   ];
 
   const pad = n => String(n).padStart(2, '0');
 
+  // JJ/MM/AAAA pour affichage
   function labelDay(y,m,d){
     return `${pad(d)}/${pad(m)}/${y}`;
+  }
+
+  // Conversion clé "YYYY-MM-DD" -> "DD/MM/YYYY" pour les badges
+  function formatKeyToFr(key){
+    const [y, m, d] = key.split('-'); // "2025-10-12"
+    return `${d}/${m}/${y}`;          // "12/10/2025"
   }
 
   const fmtPct = p => (p >= 0 ? '+' : '') + p.toFixed(3) + '%';
@@ -278,7 +276,7 @@
   // Totaux par jour
   const totalMap = new Map();
   for (const {y,m,d} of days) {
-    const key = `${y}-${pad(m)}-${pad(d)}`;
+    const key = `${y}-${pad(m)}-${pad(d)}`; // YYYY-MM-DD pour la clé interne
     totalMap.set(key, { sum:0, count:0 });
   }
 
@@ -324,7 +322,7 @@
           tdVar.textContent = 'n/a'; tdVar.className = 'pct zero';
         } else {
           tdVar.textContent = fmtPct(pVar); tdVar.className = clsPct(pVar);
-          const tKey = `${y}-${pad(m)}-${pad(d)}`;
+          const tKey = `${y}-${pad(m)}-${pad(d)}`; // même format que dans totalMap
           const agg = totalMap.get(tKey);
           agg.sum += pVar; agg.count += 1;
         }
@@ -343,13 +341,16 @@
     }
   }));
 
-  // Afficher les totaux
+  // Afficher les totaux (avec date en français)
   totalsBadges.innerHTML = '';
   for (const [key, {sum, count}] of totalMap.entries()) {
     const badge = document.createElement('span');
     badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
     const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
-    badge.textContent = `${key} → ${txt}`;
+
+    // Ici on convertit la clé "YYYY-MM-DD" en "DD/MM/YYYY"
+    badge.textContent = `${formatKeyToFr(key)} → ${txt}`;
+
     totalsBadges.appendChild(badge);
   }
 
