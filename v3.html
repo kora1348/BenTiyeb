@@ -167,7 +167,7 @@
     // ====== Caches
     const CACHE = {
       symbols: null,
-      daily60: new Map(),
+      daily110: new Map(),
       monthRows: new Map(),
       computed: new Map(),
     };
@@ -230,15 +230,15 @@
         .map(s => s.symbol);
       return CACHE.symbols;
     }
-    async function getDaily60(sym){
-      if (CACHE.daily60.has(sym)) return CACHE.daily60.get(sym);
+    async function getDaily110(sym){
+      if (CACHE.daily110.has(sym)) return CACHE.daily110.get(sym);
       const u=new URL('https://fapi.binance.com/fapi/v1/klines');
       u.searchParams.set('symbol',sym);
       u.searchParams.set('interval','1d');
-      u.searchParams.set('limit','60');
+      u.searchParams.set('limit','110');
       u.searchParams.set('startTime','0');
       const kl = await fetchJSON(u.toString());
-      CACHE.daily60.set(sym, kl||[]);
+      CACHE.daily110.set(sym, kl||[]);
       return kl||[];
     }
     async function warmMonth(Y,M){
@@ -251,12 +251,12 @@
 
       const rows = await mapLimit(symbols, 8, async (sym)=>{
         try{
-          const kl60 = await getDaily60(sym);
-          if(!kl60.length) return null;
-          const openTime1 = kl60[0][0];
+          const kl110 = await getDaily110(sym);
+          if(!kl110.length) return null;
+          const openTime1 = kl110[0][0];
           const {y,m} = monthYearInBrussels(openTime1);
           if (y!==Y || m!==M) return null;
-          return { sym, openTime1, daily60: kl60 };
+          return { sym, openTime1, daily110: kl110 };
         }catch{
           return null;
         }
@@ -275,7 +275,7 @@
       if(!base.length){ CACHE.computed.set(kc, []); return []; }
 
       const rows = await mapLimit(base, 12, async (r)=>{
-        const kl = r.daily60;
+        const kl = r.daily110;
         let openTimeN=null, openTimeNPlus=null, pctN=null;
         if (kl.length>=N){
           const kN = kl[N-1];
@@ -444,7 +444,7 @@
 
     function clearAll(){
       CACHE.symbols = null;
-      CACHE.daily60.clear();
+      CACHE.daily110.clear();
       CACHE.monthRows.clear();
       CACHE.computed.clear();
 
@@ -509,7 +509,7 @@
       });
       monthSel.value=0;
 
-      for(let n=1;n<=60;n++){
+      for(let n=1;n<=110;n++){ // changement daily nb
         const o=document.createElement('option');
         o.value=n;
         o.textContent=String(n);
