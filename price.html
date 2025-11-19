@@ -44,18 +44,51 @@
       color: red;
       font-size: 0.85rem;
     }
+
+    .controls {
+      margin-bottom: 15px;
+    }
+
+    .controls label {
+      margin-right: 8px;
+    }
+
+    .controls input {
+      width: 80px;
+      padding: 4px 6px;
+      margin-right: 8px;
+    }
+
+    .controls button {
+      padding: 4px 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h2>Futures USDT-M - Prix actuels & niveaux Long (-0.50%) / Short (+0.50%)</h2>
+  <h2 id="pageTitle">
+    Futures USDT-M - Prix actuels & niveaux Long (-1%) / Short (+1%)
+  </h2>
+
+  <div class="controls">
+    <label for="percentInput">Pourcentage (%) :</label>
+    <input
+      type="number"
+      id="percentInput"
+      value="1"
+      step="0.1"
+      min="0"
+    />
+    <button id="applyPercentBtn">Appliquer</button>
+  </div>
 
   <table id="pricesTable">
     <thead>
       <tr>
         <th>Symbole</th>
         <th>Prix actuel</th>
-        <th>Long (-0.50%)</th>
-        <th>Short (+0.50%)</th>
+        <th id="longHeader">Long (-1%)</th>
+        <th id="shortHeader">Short (+1%)</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -69,14 +102,31 @@
       "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT"
     ];
 
-    // 🔥 Endpoint FUTURES (USDT-M), pas le spot !
     const API_URL = "https://fapi.binance.com/fapi/v1/ticker/price";
+
+    // Pourcentage utilisé pour Long/Short (1% par défaut)
+    let currentPercent = 1;
+
+    function updateTexts() {
+      const pageTitle = document.getElementById("pageTitle");
+      const longHeader = document.getElementById("longHeader");
+      const shortHeader = document.getElementById("shortHeader");
+
+      pageTitle.textContent =
+        `Futures USDT-M - Prix actuels & niveaux Long (-${currentPercent}%) / Short (+${currentPercent}%)`;
+
+      longHeader.textContent = `Long (-${currentPercent}%)`;
+      shortHeader.textContent = `Short (+${currentPercent}%)`;
+    }
 
     async function loadPrices() {
       const tbody = document.querySelector("#pricesTable tbody");
       const errorMsg = document.getElementById("errorMsg");
       tbody.innerHTML = "";
       errorMsg.textContent = "";
+
+      const factorMinus = 1 - currentPercent / 100; // ex: 1 - 0.01 = 0.99
+      const factorPlus  = 1 + currentPercent / 100; // ex: 1 + 0.01 = 1.01
 
       for (const symbol of symbols) {
         try {
@@ -87,8 +137,8 @@
           const price = parseFloat(data.price);
           if (isNaN(price)) throw new Error("Prix invalide reçu pour " + symbol);
 
-          const longPrice = price * 0.995;  // -0.50%
-          const shortPrice = price * 1.005; // +0.50%
+          const longPrice = price * factorMinus;
+          const shortPrice = price * factorPlus;
 
           const tr = document.createElement("tr");
 
@@ -126,8 +176,25 @@
       }
     }
 
+    // Gestion du bouton "Appliquer"
+    document.getElementById("applyPercentBtn").addEventListener("click", () => {
+      const input = document.getElementById("percentInput");
+      const value = parseFloat(input.value.replace(",", ".")); // au cas où virgule
+
+      if (isNaN(value) || value < 0) {
+        alert("Merci d'entrer un pourcentage valide (>= 0).");
+        return;
+      }
+
+      currentPercent = value;
+      updateTexts();
+      loadPrices();
+    });
+
+    // Initialisation
+    updateTexts();
     loadPrices();
-    // setInterval(loadPrices, 15000); // Pour rafraîchir toutes les 15 secondes
+    // setInterval(loadPrices, 15000); // si tu veux auto-refresh
   </script>
 </body>
 </html>
