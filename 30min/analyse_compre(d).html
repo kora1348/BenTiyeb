@@ -279,7 +279,7 @@
       
       for (const hour of TARGET_HOURS) {
         const [h, m] = hour.split(':').map(Number);
-        const utcMs = brusselsLocalToUtcMs(2025, 10, 9, h, m);
+        const utcMs = brusselsLocalToUtcMs(2025, 10, 10, h, m);
         const openTimeMs = floorToTfOpenUtc(utcMs, TF_MS);
         
         candles.push({
