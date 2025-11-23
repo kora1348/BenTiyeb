@@ -150,13 +150,17 @@
     .time-highlight {
       background-color: rgba(220, 38, 38, 0.2);
     }
+    
+    .hidden-row {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Analyse des Cryptomonnaies Baissières - 09/10/2025</h1>
     <div class="sub">
-      Données des 6 heures sélectionnées avec mise en évidence des cryptos ayant des variations négatives sur toutes les périodes
+      Données des 6 heures sélectionnées - Uniquement les cryptos avec données complètes et négatives sur toutes les périodes
     </div>
   </header>
 
@@ -171,14 +175,15 @@
         <div class="summary-value" id="bearish-cryptos">-</div>
       </div>
       <div class="summary-item">
-        <div class="summary-label">Période d'analyse</div>
-        <div class="summary-value">6 heures</div>
+        <div class="summary-label">Données complètes</div>
+        <div class="summary-value" id="complete-data-cryptos">-</div>
       </div>
     </div>
 
     <div class="filter-controls">
       <button class="filter-btn active" data-filter="all">Toutes les cryptos</button>
       <button class="filter-btn" data-filter="bearish">Cryptos baissières (6/6)</button>
+      <button class="filter-btn" data-filter="complete">Données complètes uniquement</button>
     </div>
 
     <div class="card">
@@ -215,6 +220,7 @@
     const progress = document.getElementById("progress");
     const totalCryptosEl = document.getElementById("total-cryptos");
     const bearishCryptosEl = document.getElementById("bearish-cryptos");
+    const completeDataCryptosEl = document.getElementById("complete-data-cryptos");
     const filterBtns = document.querySelectorAll('.filter-btn');
 
     // ==============================
@@ -356,14 +362,15 @@
           const rows = document.querySelectorAll('#tbody tr');
           
           rows.forEach(row => {
+            const isBearish = row.classList.contains('highlight-row');
+            const hasCompleteData = !row.classList.contains('has-dash');
+            
             if (filter === 'all') {
               row.style.display = '';
             } else if (filter === 'bearish') {
-              if (row.classList.contains('highlight-row')) {
-                row.style.display = '';
-              } else {
-                row.style.display = 'none';
-              }
+              row.style.display = isBearish ? '' : 'none';
+            } else if (filter === 'complete') {
+              row.style.display = hasCompleteData ? '' : 'none';
             }
           });
         });
@@ -406,11 +413,13 @@
 
       // Remplit les valeurs
       const cryptoData = new Map();
+      let completeDataCount = 0;
       
       await mapWithConcurrency(symbols, async (symbol) => {
         const tr = rows.get(symbol);
         const data = [];
         let allNegative = true;
+        let hasDash = false;
 
         for(let i=0;i<points.length;i++){
           try{
@@ -418,34 +427,47 @@
             data.push(pct);
             tr.children[i+1].innerHTML = fmtPct(pct);
             
-            // Vérifie si la variation est positive
-            if (pct !== null && pct >= 0) {
+            // Vérifie si la variation est positive ou si c'est un tiret
+            if (pct === null) {
+              hasDash = true;
+              allNegative = false;
+            } else if (pct >= 0) {
               allNegative = false;
             }
           }catch{
             data.push(null);
             tr.children[i+1].innerHTML = `<span class="na">—</span>`;
-            allNegative = false; // Si on ne peut pas récupérer la donnée, on considère que ce n'est pas négatif
+            hasDash = true;
+            allNegative = false;
           }
 
           await new Promise(r=>setTimeout(r,25));
         }
         
+        // Marque les cryptos avec tirets
+        if (hasDash) {
+          tr.classList.add('has-dash');
+        } else {
+          completeDataCount++;
+        }
+        
         // Marque les cryptos avec variations négatives sur toutes les heures cibles
-        if (allNegative) {
+        if (allNegative && !hasDash) {
           tr.classList.add('highlight-row');
         }
         
-        cryptoData.set(symbol, { data, allNegative });
+        cryptoData.set(symbol, { data, allNegative, hasDash });
       }, MAX_CONCURRENCY);
 
-      // Met à jour le compteur de cryptos baissières
+      // Met à jour les compteurs
       const bearishCryptos = Array.from(cryptoData.values()).filter(
-        crypto => crypto.allNegative
+        crypto => crypto.allNegative && !crypto.hasDash
       ).length;
+      
       bearishCryptosEl.textContent = bearishCryptos;
+      completeDataCryptosEl.textContent = completeDataCount;
 
-      progress.textContent = `Terminé ✅ (${symbols.length} symboles analysés, ${bearishCryptos} cryptos baissières sur les 6 heures sélectionnées)`;
+      progress.textContent = `Terminé ✅ (${symbols.length} symboles analysés, ${bearishCryptos} cryptos baissières complètes sur les 6 heures sélectionnées)`;
       
       // Active les filtres
       setupFilters();
