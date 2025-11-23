@@ -67,16 +67,21 @@
     .error{color:#fca5a5}
     .chip{font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#94a3b8;margin-left:8px}
     .slots strong{font-weight:700}
+    .info-banner{max-width:1200px;margin:0 auto 16px;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;color:#93c5fd;font-size:14px;}
   </style>
 </head>
 <body>
   <header>
-    <h1>Variation 30 min — Europe/Brussels <span class="chip">+ Spike max / min</span></h1>
+    <h1>Variation 2h — Europe/Brussels <span class="chip">+ Spike max / min</span></h1>
     <div class="meta" id="metaLine">
       <!-- Injecté en JS : Date • Créneaux dynamiques • Timeframe -->
     </div>
     <div class="controls"><button id="reload"><a href="/index.html">Accueil</a></button></div>
   </header>
+
+  <div class="info-banner">
+    ⚠️ Les données "n/a" indiquent que le trading n'était pas actif à ces heures spécifiques
+  </div>
 
   <div class="summary-cards">
     <div id="spike_max" class="summary-card">
@@ -101,44 +106,19 @@
 (async () => {
   // --- Paramètres ---
   const symbols = [
-    "1000000MOGUSDT", "0GUSDT", "1000BONKUSDT", "1000FLOKIUSDT", "1000LUNCUSDT", "1000000BOBUSDT", 
-    "1000PEPEUSDT", "1000SHIBUSDT", "1000SATSUSDT", "2ZUSDT", "AAVEUSDT", "ACHUSDT", "ACTUSDT", 
-    "ACXUSDT", "ADAUSDT", "AEVOUSDT", "AERGOUSDT", "AEROUSDT", "AGLDUSDT", "AGTUSDT", "AIXBTUSDT", 
-    "AIUSDT", "AKTUSDT", "ALCHUSDT", "ALGOUSDT", "ALLUSDT", "ANIMEUSDT", "ALTUSDT", "ANKRUSDT", 
-    "API3USDT", "ARBUSDT", "ARKMUSDT", "ARPAUSDT", "ASTRUSDT", "ATOMUSDT", "AVAAIUSDT", "AUSDT", 
-    "AUCTIONUSDT", "AVAUSDT", "AVNTUSDT", "AWEUSDT", "B3USDT", "BANANAUSDT", "BANKUSDT", "BDXNUSDT", 
-    "BELUSDT", "BICOUSDT", "BIDUSDT", "BIGTIMEUSDT", "BMTUSDT", "BLURUSDT", "BNTUSDT", "BOMEUSDT", 
-    "BRUSDT", "BROCCOLI714USDT", "BRETTUSDT", "BTRUSDT", "C98USDT", "CGPTUSDT", "CFXUSDT", 
-    "CETUSUSDT", "CHILLGUYUSDT", "CHZUSDT", "CKBUSDT", "COAIUSDT", "COMPUSDT", "COOKIEUSDT", 
-    "COSUSDT", "COWUSDT", "CUSDT", "CVCUSDT", "CVXUSDT", "DAMUSDT", "DEEPUSDT", "DEGENUSDT", 
-    "DENTUSDT", "DFUSDT", "DIAUSDT", "DMCUSDT", "DODOXUSDT", "DOGEUSDT", "DOLOUSDT", "DOODUSDT", 
-    "DOTUSDT", "DUSKUSDT", "DYDXUSDT", "DYMUSDT", "EGLDUSDT", "ENJUSDT", "ENSUSDT", "EPICUSDT", 
-    "EPTUSDT", "ERAUSDT", "ETCUSDT", "ETHFIUSDT", "ETHWUSDT", "FARTCOINUSDT", "FETUSDT", "FFUSDT", 
-    "FHEUSDT", "FISUSDT", "FLOCKUSDT", "FORTHUSDT", "FUSDT", "FXSUSDT", "GALAUSDT", "GASUSDT", 
-    "GHSTUSDT", "GMTUSDT", "GMXUSDT", "GOATUSDT", "GRASSUSDT", "GRIFFAINUSDT", "GRTUSDT", "GUNUSDT", 
-    "GUSDT", "HAEDALUSDT", "HBARUSDT", "HEIUSDT", "HFTUSDT", "HEMIUSDT", "HIGHUSDT", "HIVEUSDT", 
-    "HMSTRUSDT", "HOLOUSDT", "HOMEUSDT", "HOTUSDT", "ICNTUSDT", "ICPUSDT", "ICXUSDT", "IDUSDT", 
-    "ILVUSDT", "INITUSDT", "INJUSDT", "IOTAUSDT", "IOTXUSDT", "IOUSDT", "JASMYUSDT", "JOEUSDT", 
-    "JSTUSDT", "JUPUSDT", "JTOUSDT", "KAIAUSDT", "KAITOUSDT", "KASUSDT", "KMNOUSDT", "KNCUSDT", 
-    "KSMUSDT", "LAYERUSDT", "LDOUSDT", "LINEAUSDT", "LINKUSDT", "LPTUSDT", "LQTYUSDT", "LRCUSDT", 
-    "LTCUSDT", "LUMIAUSDT", "LSKUSDT", "LUNA2USDT", "MAGICUSDT", "MAVUSDT", "MAVIAUSDT", 
-    "MELANIAUSDT", "MEMEUSDT", "METISUSDT", "MEWUSDT", "MEUSDT", "MILKUSDT", "MINAUSDT", "MIRAUSDT", 
-    "MOODENGUSDT", "MOVEUSDT", "MTLUSDT", "MUBARAKUSDT", "NEARUSDT", "NEIROUSDT", "NEOUSDT", 
-    "NEWTUSDT", "NKNUSDT", "NFPUSDT", "NOMUSDT", "NOTUSDT", "NTRNUSDT", "NXPCUSDT", "OBOLUSDT", 
-    "OGNUSDT", "OMUSDT", "ONDOUSDT", "ONGUSDT", "ONEUSDT", "OPENUSDT", "OPUSDT", "ORCAUSDT", 
-    "ORDIUSDT", "OXTUSDT", "PARTIUSDT", "PENDLEUSDT", "PENGUUSDT", "PEOPLEUSDT", "PHAUSDT", 
-    "PHBUSDT", "PIPPINUSDT", "PIXELUSDT", "PNUTUSDT", "POLUSDT", "POLYXUSDT", "PONKEUSDT", 
-    "POPCATUSDT", "PORTALUSDT", "POWRUSDT", "PUMPBTCUSDT", "PUNDIXUSDT", "PYTHUSDT", "RAREUSDT", 
-    "QUICKUSDT", "RAYSOLUSDT", "RDNTUSDT", "REIUSDT", "RIFUSDT", "RENDERUSDT", "RESOLVUSDT", 
-    "ROSEUSDT", "RPLUSDT", "RVNUSDT", "RUNEUSDT", "SAFEUSDT", "SAGAUSDT", "SANDUSDT", "SCRUSDT", 
-    "SEIUSDT", "SKATEUSDT", "SIGNUSDT", "SKLUSDT", "SKYUSDT", "SOLUSDT", "SNXUSDT", "SOMIUSDT", 
-    "SONICUSDT", "SPELLUSDT", "SPKUSDT", "SSVUSDT", "STXUSDT", "STORJUSDT", "SUIUSDT", "SUPERUSDT", 
-    "SUSHIUSDT", "SXPUSDT", "SWARMSUSDT", "SWELLUSDT", "SYNUSDT", "SYRUPUSDT", "SYSUSDT", 
-    "TAIKOUSDT", "TAOUSDT", "TAUSDT", "THETAUSDT", "TNSRUSDT", "TLMUSDT", "TIAUSDT", "TONUSDT", 
-    "TOSHIUSDT", "TREEUSDT", "TRUMPUSDT", "TRBUSDT", "TRUUSDT", "TURBOUSDT", "TUSDT", "USUALUSDT", 
-    "VANAUSDT", "VANRYUSDT", "VETUSDT", "VINEUSDT", "VIRTUALUSDT", "WALUSDT", "WIFUSDT", "WLDUSDT", 
-    "WLFIUSDT", "WUSDT", "XAIUSDT", "WOOUSDT", "XLMUSDT", "XNYUSDT", "XRPUSDT", "XTZUSDT", 
-    "YFIUSDT", "ZETAUSDT", "ZILUSDT", "ZKUSDT", "ZRXUSDT", "ZROUSDT"
+    'BTRUSDT',
+    'EPICUSDT',
+    'FETUSDT',
+    'ALCHUSDT',
+    'BIOUSDT',
+    'CETUSUSDT',
+    'LISTAUSDT',
+    'RESOLVUSDT',
+    'SUNUSDT',
+    'TSTUSDT',
+    'VINEUSDT',
+    'XANUSDT',
+    'XNYUSDT'
   ];
 
   const timeZone = "Europe/Brussels";
@@ -147,15 +127,11 @@
 
   // Créneaux locaux dynamiques (HH, MM) — utilisés partout (header + tables + appels API)
   const slotsHHMM = [
-    [4, 30],
     [8, 0],
-    [8, 30],
-    [9, 30],
-    [18, 30],
-    [20, 30]
+    [16, 0]
   ];
 
-  const windowMinutes = 30;  // fenêtre de 30 minutes
+  const windowMinutes = 120;  // fenêtre de 2 heures
 
   // --- Utils TZ (sans lib) ---
   function tzOffsetMsAt(date, tz) {
@@ -169,11 +145,13 @@
     const asUTC = Date.UTC(+map.year, +map.month-1, +map.day, +map.hour, +map.minute, +map.second);
     return asUTC - date.getTime();
   }
+
   function localToUtcMs(y, m, d, hh, mm, ss, ms, tz) {
     const approxUtc = Date.UTC(y, m-1, d, hh, mm, ss, ms);
     const offset = tzOffsetMsAt(new Date(approxUtc), tz);
     return approxUtc - offset;
   }
+
   function fmtPct(p){ return (p >= 0 ? '+' : '') + p.toFixed(3) + '%'; }
   function clsPct(p){ return 'pct ' + (p > 0 ? 'up' : (p < 0 ? 'down' : 'zero')); }
   function pad(n){ return String(n).padStart(2,'0'); }
@@ -182,7 +160,7 @@
     return `${pad(h)}:${pad(m)}–${pad((endTotal/60)|0)}:${pad(endTotal%60)}`;
   }
 
-  // Convertit un créneau local (h,m) en fenêtre UTC [start,end] couvrant 30 min (00s → 29:59.999)
+  // Convertit un créneau local (h,m) en fenêtre UTC [start,end] couvrant 2h (00s → 119:59.999)
   function slotWindowUtc(h, m) {
     const startUtc = localToUtcMs(dateY, dateM, dateD, h, m, 0, 0, timeZone);
     const endUtc = startUtc + windowMinutes*60*1000 - 1; // inclusif
@@ -273,6 +251,7 @@
     if (!isFinite(o) || o === 0 || !isFinite(c)) return null;
     return ((c - o) / o) * 100;
   }
+
   function spikeMaxPct(open, highs) {
     const o = Number(open);
     if (!isFinite(o) || o === 0 || highs.length === 0) return null;
@@ -284,6 +263,7 @@
     if (!isFinite(maxH)) return null;
     return ((maxH - o) / o) * 100;
   }
+
   function spikeMinPct(open, lows) {
     const o = Number(open);
     if (!isFinite(o) || o === 0 || lows.length === 0) return null;
@@ -297,6 +277,8 @@
   }
 
   async function fetchKlines1m(symbol, startUtc, endUtc) {
+    console.log(`Fetching ${symbol} from ${new Date(startUtc).toISOString()} to ${new Date(endUtc).toISOString()}`);
+    
     // Essayer d'abord l'API Futures
     try {
       const futuresUrl = new URL('https://fapi.binance.com/fapi/v1/klines');
@@ -311,10 +293,12 @@
         throw new Error(`Futures API returned ${res.status}`);
       }
       const data = await res.json();
+      console.log(`Futures API for ${symbol}:`, data.length, 'candles found');
+      
       if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Futures.');
       return data;
     } catch (futuresError) {
-      console.warn(`Futures API failed for ${symbol}, trying Spot API...`);
+      console.warn(`Futures API failed for ${symbol}:`, futuresError.message);
       
       // Fallback sur l'API spot
       try {
@@ -330,9 +314,12 @@
           throw new Error(`Spot API returned ${res.status}`);
         }
         const data = await res.json();
+        console.log(`Spot API for ${symbol}:`, data.length, 'candles found');
+        
         if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Spot.');
         return data;
       } catch (spotError) {
+        console.error(`Both APIs failed for ${symbol}:`, spotError.message);
         throw new Error(`Both Futures and Spot APIs failed: ${spotError.message}`);
       }
     }
@@ -381,18 +368,26 @@
         let pVar = null, pSu = null, pSd = null;
 
         if (kl.length > 0) {
-          // Kline: [ openTime, open, high, low, close, ... ]
+          // Vérifier que nous avons des données pour toute la fenêtre de 2 heures
           const first = kl[0];
           const last  = kl[kl.length-1];
-          const open0 = first[1];
-          const closeLast = last[4];
+          
+          // S'assurer que la première bougie correspond au début de la fenêtre
+          if (Number(first[0]) === startUtc) {
+            const open0 = first[1];
+            const closeLast = last[4];
 
-          const highs = kl.map(k => k[2]);
-          const lows  = kl.map(k => k[3]);
+            const highs = kl.map(k => k[2]);
+            const lows  = kl.map(k => k[3]);
 
-          pVar = pctChange(open0, closeLast);
-          pSu  = spikeMaxPct(open0, highs);
-          pSd  = spikeMinPct(open0, lows);
+            pVar = pctChange(open0, closeLast);
+            pSu  = spikeMaxPct(open0, highs);
+            pSd  = spikeMinPct(open0, lows);
+          } else {
+            console.log(`Données incomplètes pour ${c.symbol} à ${h}:${m}: première bougie ne correspond pas`);
+          }
+        } else {
+          console.log(`Aucune donnée pour ${c.symbol} à ${h}:${m}`);
         }
 
         // Rendu cellules
