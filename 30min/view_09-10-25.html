@@ -297,41 +297,44 @@
   }
 
   async function fetchKlines1m(symbol, startUtc, endUtc) {
-    // Utilisation de l'API Futures pour les perpétuels
-    const url = new URL('https://fapi.binance.com/fapi/v1/klines');
-    url.searchParams.set('symbol', symbol);
-    url.searchParams.set('interval', '1m');
-    url.searchParams.set('startTime', String(startUtc));
-    url.searchParams.set('endTime', String(endUtc));
-    url.searchParams.set('limit', '1000');
-    
+    // Essayer d'abord l'API Futures
     try {
-      const res = await fetch(url.toString());
+      const futuresUrl = new URL('https://fapi.binance.com/fapi/v1/klines');
+      futuresUrl.searchParams.set('symbol', symbol);
+      futuresUrl.searchParams.set('interval', '1m');
+      futuresUrl.searchParams.set('startTime', String(startUtc));
+      futuresUrl.searchParams.set('endTime', String(endUtc));
+      futuresUrl.searchParams.set('limit', '1000');
+      
+      const res = await fetch(futuresUrl.toString());
       if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
-        throw new Error(`HTTP ${res.status} ${res.statusText} — ${txt}`);
+        throw new Error(`Futures API returned ${res.status}`);
       }
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Futures.');
       return data;
-    } catch (error) {
-      console.warn(`Erreur pour ${symbol}, tentative avec API spot...`);
-      // Fallback sur l'API spot si l'API futures échoue
-      const spotUrl = new URL('https://api.binance.com/api/v3/klines');
-      spotUrl.searchParams.set('symbol', symbol);
-      spotUrl.searchParams.set('interval', '1m');
-      spotUrl.searchParams.set('startTime', String(startUtc));
-      spotUrl.searchParams.set('endTime', String(endUtc));
-      spotUrl.searchParams.set('limit', '1000');
+    } catch (futuresError) {
+      console.warn(`Futures API failed for ${symbol}, trying Spot API...`);
       
-      const res = await fetch(spotUrl.toString());
-      if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
-        throw new Error(`HTTP ${res.status} ${res.statusText} — ${txt}`);
+      // Fallback sur l'API spot
+      try {
+        const spotUrl = new URL('https://api.binance.com/api/v3/klines');
+        spotUrl.searchParams.set('symbol', symbol);
+        spotUrl.searchParams.set('interval', '1m');
+        spotUrl.searchParams.set('startTime', String(startUtc));
+        spotUrl.searchParams.set('endTime', String(endUtc));
+        spotUrl.searchParams.set('limit', '1000');
+        
+        const res = await fetch(spotUrl.toString());
+        if (!res.ok) {
+          throw new Error(`Spot API returned ${res.status}`);
+        }
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Spot.');
+        return data;
+      } catch (spotError) {
+        throw new Error(`Both Futures and Spot APIs failed: ${spotError.message}`);
       }
-      const data = await res.json();
-      if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance.');
-      return data;
     }
   }
 
@@ -358,14 +361,22 @@
     totalsSpikeMin.set(`${h}:${m}`, {sum:0, count:0});
   }
 
-  // Récupération / calculs
-  await Promise.all(cards.map(async (c) => {
+  // Récupération / calculs avec gestion d'erreur améliorée
+  await Promise.allSettled(cards.map(async (c) => {
     c.statusEl.textContent = 'Chargement…';
     c.loadingEl.textContent = 'Requêtes klines 1m…';
+    
     try {
       for (const [h,m] of slotsHHMM) {
         const { startUtc, endUtc } = slotWindowUtc(h, m);
-        const kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
+        let kl;
+        
+        try {
+          kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
+        } catch (fetchError) {
+          console.warn(`Impossible de récupérer les données pour ${c.symbol} à ${h}:${m}:`, fetchError.message);
+          kl = [];
+        }
 
         let pVar = null, pSu = null, pSd = null;
 
