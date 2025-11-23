@@ -156,7 +156,7 @@
   <header>
     <h1>Analyse des Cryptomonnaies Baissières - 09/10/2025</h1>
     <div class="sub">
-      Données des 6 heures sélectionnées avec mise en évidence des cryptos ayant des variations négatives
+      Données des 6 heures sélectionnées avec mise en évidence des cryptos ayant des variations négatives sur toutes les périodes
     </div>
   </header>
 
@@ -167,18 +167,18 @@
         <div class="summary-value" id="total-cryptos">-</div>
       </div>
       <div class="summary-item">
-        <div class="summary-label">Cryptos baissières (6h)</div>
+        <div class="summary-label">Cryptos baissières (6/6)</div>
         <div class="summary-value" id="bearish-cryptos">-</div>
       </div>
       <div class="summary-item">
         <div class="summary-label">Période d'analyse</div>
-        <div class="summary-value">04:30 - 20:30</div>
+        <div class="summary-value">6 heures</div>
       </div>
     </div>
 
     <div class="filter-controls">
       <button class="filter-btn active" data-filter="all">Toutes les cryptos</button>
-      <button class="filter-btn" data-filter="bearish">Cryptos baissières (6h)</button>
+      <button class="filter-btn" data-filter="bearish">Cryptos baissières (6/6)</button>
     </div>
 
     <div class="card">
@@ -410,7 +410,7 @@
       await mapWithConcurrency(symbols, async (symbol) => {
         const tr = rows.get(symbol);
         const data = [];
-        let targetHoursNegative = 0;
+        let allNegative = true;
 
         for(let i=0;i<points.length;i++){
           try{
@@ -418,29 +418,30 @@
             data.push(pct);
             tr.children[i+1].innerHTML = fmtPct(pct);
             
-            // Compte les variations négatives sur les heures cibles
-            if (pct !== null && pct < 0) {
-              targetHoursNegative++;
+            // Vérifie si la variation est positive
+            if (pct !== null && pct >= 0) {
+              allNegative = false;
             }
           }catch{
             data.push(null);
             tr.children[i+1].innerHTML = `<span class="na">—</span>`;
+            allNegative = false; // Si on ne peut pas récupérer la donnée, on considère que ce n'est pas négatif
           }
 
           await new Promise(r=>setTimeout(r,25));
         }
         
         // Marque les cryptos avec variations négatives sur toutes les heures cibles
-        if (targetHoursNegative === TARGET_HOURS.length) {
+        if (allNegative) {
           tr.classList.add('highlight-row');
         }
         
-        cryptoData.set(symbol, { data, targetHoursNegative });
+        cryptoData.set(symbol, { data, allNegative });
       }, MAX_CONCURRENCY);
 
       // Met à jour le compteur de cryptos baissières
       const bearishCryptos = Array.from(cryptoData.values()).filter(
-        crypto => crypto.targetHoursNegative === TARGET_HOURS.length
+        crypto => crypto.allNegative
       ).length;
       bearishCryptosEl.textContent = bearishCryptos;
 
