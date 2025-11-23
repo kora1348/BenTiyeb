@@ -32,7 +32,7 @@
   <header>
     <h1>Analyse des Cryptomonnaies Baissières</h1>
     <div class="sub">
-      Détection automatique des cryptos avec ≥80% de périodes négatives et des heures de baisse généralisée (4h)
+      Détection automatique des cryptos avec ≥80% de périodes négatives et des heures de baisse généralisée (8h)
     </div>
   </header>
 
@@ -57,7 +57,7 @@
     </div>
 
     <div class="card">
-      <h3>Données Brutes (6 périodes de 4h)</h3>
+      <h3>Données Brutes (3 périodes de 8h)</h3>
       <div style="overflow:auto;">
         <table id="table">
           <thead>
@@ -74,8 +74,8 @@
 
   <script>
     const BASE = "https://fapi.binance.com";
-    const INTERVAL = "4h";  // Changé de "2h" à "4h"
-    const TF_MS = 4 * 60 * 60 * 1000;  // Changé de 2h à 4h
+    const INTERVAL = "8h";  // Changé de "6h" à "8h"
+    const TF_MS = 8 * 60 * 60 * 1000;  // Changé de 6h à 8h
     const MAX_CONCURRENCY = 8;
     const BEARISH_THRESHOLD = 0.8; // 80%
 
@@ -123,9 +123,9 @@
     // 2) GÉNÈRE TOUTES LES BOUGIES DU 09/10/2025
     // =============================================
     function generateDayCandles() {
-      const startUtcMs = brusselsLocalToUtcMs(2025, 10, 10, 4, 0);  // Début à 4h au lieu de 2h
+      const startUtcMs = brusselsLocalToUtcMs(2025, 10, 9, 8, 0);  // Début à 8h au lieu de 6h
       const candles = [];
-      for (let i = 0; i < 6; i++) {  // 6 périodes de 4h = 24h (au lieu de 12 périodes de 2h)
+      for (let i = 0; i < 3; i++) {  // 3 périodes de 8h = 24h (au lieu de 4 périodes de 6h)
         const requestedUtcMs = startUtcMs + i * TF_MS;
         const openTimeMs = floorToTfOpenUtc(requestedUtcMs, TF_MS);
         candles.push({
@@ -166,7 +166,7 @@
     }
 
     // =============================================
-    // 4) FETCH KLINE 4h EXACTE
+    // 4) FETCH KLINE 8h EXACTE
     // =============================================
     async function fetchKlinePct(symbol, openTimeMs){
       const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;

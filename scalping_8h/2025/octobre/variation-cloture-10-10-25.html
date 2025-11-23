@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>09/10/2025</title>
+  <title>10/10/2025 - Analyse 8h</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -12,7 +12,7 @@
     }
     *{box-sizing:border-box}
     body{margin:0;background:#0b1020;color:var(--text);font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;padding:24px}
-        header h1{margin:0;font-size:20px;font-weight:700}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
     header h1{margin:0;font-size:20px;font-weight:700}
     .meta{color:var(--muted);font-size:14px}
     .controls{margin-left:auto;display:flex;gap:12px}
@@ -72,7 +72,7 @@
 </head>
 <body>
   <header>
-    <h1>Variation 2h — Europe/Brussels <span class="chip">+ Spike max / min</span></h1>
+    <h1>Variation 8h — Europe/Brussels <span class="chip">+ Spike max / min</span></h1>
     <div class="meta" id="metaLine">
       <!-- Injecté en JS : Date • Créneaux dynamiques • Timeframe -->
     </div>
@@ -106,27 +106,26 @@
 (async () => {
   // --- Paramètres ---
   const symbols = [
-    "2ZUSDT", "BTRUSDT", "EPTUSDT", "FETUSDT", "KMNOUSDT", "RESOLVUSDT", "SOMIUSDT", "SUNUSDT", "VVVUSDT", "WALUSDT",
-    "1000000BOBUSDT", "4USDT", "AIAUSDT", "AIOUSDT", "ALCHUSDT", "ALPINEUSDT", "APTUSDT", "ASTERUSDT", "ASTRUSDT", "BABYUSDT",
-    "BANANAUSDT", "BARDUSDT", "BIOUSDT", "BROCCOLI714USDT", "BROCCOLIF3BUSDT", "CARVUSDT", "CETUSUSDT", "CFXUSDT", "CHESSUSDT", "CHILLGUYUSDT",
-    "CROSSUSDT", "CUSDT", "CVXUSDT", "DEGENUSDT", "DRIFTUSDT", "EIGENUSDT", "ENAUSDT", "EPICUSDT", "FFUSDT", "FLOCKUSDT",
-    "FLUIDUSDT", "GMXUSDT", "GRASSUSDT", "HEMIUSDT", "HUMAUSDT", "ILVUSDT", "INUSDT", "IPUSDT", "JSTUSDT", "KAIAUSDT",
-    "LISTAUSDT", "LYNUSDT", "MITOUSDT", "MUBARAKUSDT", "NEIROUSDT", "OPENUSDT", "RENDERUSDT", "RIFUSDT", "SAPIENUSDT", "SIRENUSDT",
-    "SOLUSDT", "SPELLUSDT", "SQDUSDT", "STBLUSDT", "STGUSDT", "SYRUPUSDT", "TACUSDT", "TREEUSDT", "TRUUSDT", "TSTUSDT",
-    "TURBOUSDT", "UMAUSDT", "USTCUSDT", "VINEUSDT", "VIRTUALUSDT", "VOXELUSDT", "XANUSDT", "XPLUSDT", "ZEREBROUSDT", "ZKCUSDT", "ZROUSDT"
+    "0GUSDT", "2ZUSDT", "AIAUSDT", "AINUSDT", "API3USDT", "ASTRUSDT", 
+    "BLESSUSDT", "BROCCOLIF3BUSDT", "BTRUSDT", "CARVUSDT", "CELOUSDT", 
+    "CROSSUSDT", "EDENUSDT", "EPICUSDT", "EPTUSDT", "ETHFIUSDT", 
+    "FETUSDT", "IPUSDT", "JSTUSDT", "KGENUSDT", "KMNOUSDT", "LYNUSDT", 
+    "MITOUSDT", "OPENUSDT", "PUMPBTCUSDT", "RESOLVUSDT", "SAHARAUSDT", 
+    "SANTOSUSDT", "SIRENUSDT", "SOMIUSDT", "STBLUSDT", "SUNUSDT", 
+    "TSTUSDT", "TURBOUSDT", "TUTUSDT", "USDCUSDT", "VELVETUSDT", 
+    "VINEUSDT", "VVVUSDT", "WALUSDT", "XANUSDT", "YFIUSDT"
   ];
 
   const timeZone = "Europe/Brussels";
   // Date locale voulue : 
-  const dateY = 2025, dateM = 10, dateD = 9;
+  const dateY = 2025, dateM = 10, dateD = 10;
 
-  // Créneaux locaux dynamiques (HH, MM) — utilisés partout (header + tables + appels API)
+  // Créneau unique à 10h00 sur 8h
   const slotsHHMM = [
-    [6, 0],
-    [14, 0]
+    [10, 0]
   ];
 
-  const windowMinutes = 240;  // fenêtre de 4 heures
+  const windowMinutes = 480;  // fenêtre de 8 heures
 
   // --- Utils TZ (sans lib) ---
   function tzOffsetMsAt(date, tz) {
@@ -155,7 +154,7 @@
     return `${pad(h)}:${pad(m)}–${pad((endTotal/60)|0)}:${pad(endTotal%60)}`;
   }
 
-  // Convertit un créneau local (h,m) en fenêtre UTC [start,end] couvrant 4h (00s → 239:59.999)
+  // Convertit un créneau local (h,m) en fenêtre UTC [start,end] couvrant 8h (00s → 479:59.999)
   function slotWindowUtc(h, m) {
     const startUtc = localToUtcMs(dateY, dateM, dateD, h, m, 0, 0, timeZone);
     const endUtc = startUtc + windowMinutes*60*1000 - 1; // inclusif
@@ -173,7 +172,7 @@
     // Liste de créneaux à partir de slotsHHMM
     const slotsText = slotsHHMM.map(([h,m]) => `<strong>${pad(h)}:${pad(m)}</strong>`).join(', ');
 
-    meta.innerHTML = `Date : <strong>${dateFmt}</strong> • Créneaux : <span class="slots">${slotsText}</span> • Timeframe interne : <strong>1m → fenêtre ${windowMinutes} min</strong>`;
+    meta.innerHTML = `Date : <strong>${dateFmt}</strong> • Créneau : <span class="slots">${slotsText}</span> • Timeframe interne : <strong>1m → fenêtre ${windowMinutes} min</strong>`;
   })();
 
   // --- DOM ---
@@ -363,7 +362,7 @@
         let pVar = null, pSu = null, pSd = null;
 
         if (kl.length > 0) {
-          // Vérifier que nous avons des données pour toute la fenêtre de 4 heures
+          // Vérifier que nous avons des données pour toute la fenêtre de 8 heures
           const first = kl[0];
           const last  = kl[kl.length-1];
           
