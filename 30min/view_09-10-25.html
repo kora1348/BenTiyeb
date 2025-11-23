@@ -18,21 +18,38 @@
     .controls{margin-left:auto;display:flex;gap:12px}
     .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;font-size:14px}
     .controls button a{color:#fff;text-decoration:none}
-    #variation_negative{
-      max-width:1200px;margin:8px auto 16px;
-      background:linear-gradient(180deg,rgba(220,38,38,.1),rgba(220,38,38,.04)), var(--card);
-      border:1px solid rgba(220,38,38,.35);
-      color:#fecaca; padding:10px 12px;border-radius:12px;font-size:14px;
+    .summary-cards{max-width:1200px;margin:0 auto 16px;display:flex;flex-direction:column;gap:12px}
+    .summary-card{
+      padding:12px 16px;border-radius:12px;font-size:14px;
+      border:1px solid var(--border);
     }
-    #variation_negative .title{font-weight:700;color:#fca5a5}
-    #total_variation{display:flex;gap:10px;flex-wrap:wrap}
-    #total_variation .badge{
+    #variation_negative{
+      background:linear-gradient(180deg,rgba(220,38,38,.1),rgba(220,38,38,.04)), var(--card);
+      border-color:rgba(220,38,38,.35);
+      color:#fecaca;
+    }
+    #spike_max{
+      background:linear-gradient(180deg,rgba(34,197,94,.1),rgba(34,197,94,.04)), var(--card);
+      border-color:rgba(34,197,94,.35);
+      color:#dcfce7;
+    }
+    #spike_min{
+      background:linear-gradient(180deg,rgba(59,130,246,.1),rgba(59,130,246,.04)), var(--card);
+      border-color:rgba(59,130,246,.35);
+      color:#dbeafe;
+    }
+    .summary-card .title{font-weight:700;margin-bottom:8px}
+    #variation_negative .title{color:#fca5a5}
+    #spike_max .title{color:#86efac}
+    #spike_min .title{color:#93c5fd}
+    .total-badges{display:flex;gap:10px;flex-wrap:wrap}
+    .total-badges .badge{
       background:#1f2937;border:1px solid var(--border);border-radius:999px;
       padding:4px 10px;color:#fff;font-weight:700
     }
-    #total_variation .badge.positive{color:#22c55e}
-    #total_variation .badge.negative{color:#ef4444}
-    #total_variation .badge.zero{color:#94a3b8}
+    .total-badges .badge.positive{color:#22c55e}
+    .total-badges .badge.negative{color:#ef4444}
+    .total-badges .badge.zero{color:#94a3b8}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:16px;max-width:1200px;margin:0 auto}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
     .card header{background:var(--header);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center}
@@ -61,9 +78,21 @@
     <div class="controls"><button id="reload"><a href="/index.html">Accueil</a></button></div>
   </header>
 
-  <div id="variation_negative">
-    <span class="title">TOTAL par créneau (somme des variations de tous les symboles) : </span>
-    <div id="total_variation"></div>
+  <div class="summary-cards">
+    <div id="spike_max" class="summary-card">
+      <span class="title">TOTAL Spike max (mèche ↑) par créneau : </span>
+      <div id="total_spike_max" class="total-badges"></div>
+    </div>
+    
+    <div id="spike_min" class="summary-card">
+      <span class="title">TOTAL Spike min (mèche ↓) par créneau : </span>
+      <div id="total_spike_min" class="total-badges"></div>
+    </div>
+    
+    <div id="variation_negative" class="summary-card">
+      <span class="title">TOTAL par créneau (somme des variations de tous les symboles) : </span>
+      <div id="total_variation" class="total-badges"></div>
+    </div>
   </div>
 
   <div id="grid" class="grid"></div>
@@ -72,22 +101,58 @@
 (async () => {
   // --- Paramètres ---
   const symbols = [
-    "ZKUSDT",
-    "PUMPUSDT",
-    "0GUSDT",
+    "1000000MOGUSDT", "0GUSDT", "1000BONKUSDT", "1000FLOKIUSDT", "1000LUNCUSDT", "1000000BOBUSDT", 
+    "1000PEPEUSDT", "1000SHIBUSDT", "1000SATSUSDT", "2ZUSDT", "AAVEUSDT", "ACHUSDT", "ACTUSDT", 
+    "ACXUSDT", "ADAUSDT", "AEVOUSDT", "AERGOUSDT", "AEROUSDT", "AGLDUSDT", "AGTUSDT", "AIXBTUSDT", 
+    "AIUSDT", "AKTUSDT", "ALCHUSDT", "ALGOUSDT", "ALLUSDT", "ANIMEUSDT", "ALTUSDT", "ANKRUSDT", 
+    "API3USDT", "ARBUSDT", "ARKMUSDT", "ARPAUSDT", "ASTRUSDT", "ATOMUSDT", "AVAAIUSDT", "AUSDT", 
+    "AUCTIONUSDT", "AVAUSDT", "AVNTUSDT", "AWEUSDT", "B3USDT", "BANANAUSDT", "BANKUSDT", "BDXNUSDT", 
+    "BELUSDT", "BICOUSDT", "BIDUSDT", "BIGTIMEUSDT", "BMTUSDT", "BLURUSDT", "BNTUSDT", "BOMEUSDT", 
+    "BRUSDT", "BROCCOLI714USDT", "BRETTUSDT", "BTRUSDT", "C98USDT", "CGPTUSDT", "CFXUSDT", 
+    "CETUSUSDT", "CHILLGUYUSDT", "CHZUSDT", "CKBUSDT", "COAIUSDT", "COMPUSDT", "COOKIEUSDT", 
+    "COSUSDT", "COWUSDT", "CUSDT", "CVCUSDT", "CVXUSDT", "DAMUSDT", "DEEPUSDT", "DEGENUSDT", 
+    "DENTUSDT", "DFUSDT", "DIAUSDT", "DMCUSDT", "DODOXUSDT", "DOGEUSDT", "DOLOUSDT", "DOODUSDT", 
+    "DOTUSDT", "DUSKUSDT", "DYDXUSDT", "DYMUSDT", "EGLDUSDT", "ENJUSDT", "ENSUSDT", "EPICUSDT", 
+    "EPTUSDT", "ERAUSDT", "ETCUSDT", "ETHFIUSDT", "ETHWUSDT", "FARTCOINUSDT", "FETUSDT", "FFUSDT", 
+    "FHEUSDT", "FISUSDT", "FLOCKUSDT", "FORTHUSDT", "FUSDT", "FXSUSDT", "GALAUSDT", "GASUSDT", 
+    "GHSTUSDT", "GMTUSDT", "GMXUSDT", "GOATUSDT", "GRASSUSDT", "GRIFFAINUSDT", "GRTUSDT", "GUNUSDT", 
+    "GUSDT", "HAEDALUSDT", "HBARUSDT", "HEIUSDT", "HFTUSDT", "HEMIUSDT", "HIGHUSDT", "HIVEUSDT", 
+    "HMSTRUSDT", "HOLOUSDT", "HOMEUSDT", "HOTUSDT", "ICNTUSDT", "ICPUSDT", "ICXUSDT", "IDUSDT", 
+    "ILVUSDT", "INITUSDT", "INJUSDT", "IOTAUSDT", "IOTXUSDT", "IOUSDT", "JASMYUSDT", "JOEUSDT", 
+    "JSTUSDT", "JUPUSDT", "JTOUSDT", "KAIAUSDT", "KAITOUSDT", "KASUSDT", "KMNOUSDT", "KNCUSDT", 
+    "KSMUSDT", "LAYERUSDT", "LDOUSDT", "LINEAUSDT", "LINKUSDT", "LPTUSDT", "LQTYUSDT", "LRCUSDT", 
+    "LTCUSDT", "LUMIAUSDT", "LSKUSDT", "LUNA2USDT", "MAGICUSDT", "MAVUSDT", "MAVIAUSDT", 
+    "MELANIAUSDT", "MEMEUSDT", "METISUSDT", "MEWUSDT", "MEUSDT", "MILKUSDT", "MINAUSDT", "MIRAUSDT", 
+    "MOODENGUSDT", "MOVEUSDT", "MTLUSDT", "MUBARAKUSDT", "NEARUSDT", "NEIROUSDT", "NEOUSDT", 
+    "NEWTUSDT", "NKNUSDT", "NFPUSDT", "NOMUSDT", "NOTUSDT", "NTRNUSDT", "NXPCUSDT", "OBOLUSDT", 
+    "OGNUSDT", "OMUSDT", "ONDOUSDT", "ONGUSDT", "ONEUSDT", "OPENUSDT", "OPUSDT", "ORCAUSDT", 
+    "ORDIUSDT", "OXTUSDT", "PARTIUSDT", "PENDLEUSDT", "PENGUUSDT", "PEOPLEUSDT", "PHAUSDT", 
+    "PHBUSDT", "PIPPINUSDT", "PIXELUSDT", "PNUTUSDT", "POLUSDT", "POLYXUSDT", "PONKEUSDT", 
+    "POPCATUSDT", "PORTALUSDT", "POWRUSDT", "PUMPBTCUSDT", "PUNDIXUSDT", "PYTHUSDT", "RAREUSDT", 
+    "QUICKUSDT", "RAYSOLUSDT", "RDNTUSDT", "REIUSDT", "RIFUSDT", "RENDERUSDT", "RESOLVUSDT", 
+    "ROSEUSDT", "RPLUSDT", "RVNUSDT", "RUNEUSDT", "SAFEUSDT", "SAGAUSDT", "SANDUSDT", "SCRUSDT", 
+    "SEIUSDT", "SKATEUSDT", "SIGNUSDT", "SKLUSDT", "SKYUSDT", "SOLUSDT", "SNXUSDT", "SOMIUSDT", 
+    "SONICUSDT", "SPELLUSDT", "SPKUSDT", "SSVUSDT", "STXUSDT", "STORJUSDT", "SUIUSDT", "SUPERUSDT", 
+    "SUSHIUSDT", "SXPUSDT", "SWARMSUSDT", "SWELLUSDT", "SYNUSDT", "SYRUPUSDT", "SYSUSDT", 
+    "TAIKOUSDT", "TAOUSDT", "TAUSDT", "THETAUSDT", "TNSRUSDT", "TLMUSDT", "TIAUSDT", "TONUSDT", 
+    "TOSHIUSDT", "TREEUSDT", "TRUMPUSDT", "TRBUSDT", "TRUUSDT", "TURBOUSDT", "TUSDT", "USUALUSDT", 
+    "VANAUSDT", "VANRYUSDT", "VETUSDT", "VINEUSDT", "VIRTUALUSDT", "WALUSDT", "WIFUSDT", "WLDUSDT", 
+    "WLFIUSDT", "WUSDT", "XAIUSDT", "WOOUSDT", "XLMUSDT", "XNYUSDT", "XRPUSDT", "XTZUSDT", 
+    "YFIUSDT", "ZETAUSDT", "ZILUSDT", "ZKUSDT", "ZRXUSDT", "ZROUSDT"
   ];
 
   const timeZone = "Europe/Brussels";
-  // Date locale voulue : 26/10/2025
-  const dateY = 2025, dateM = 10, dateD = 26;
+  // Date locale voulue : 
+  const dateY = 2025, dateM = 10, dateD = 9;
 
   // Créneaux locaux dynamiques (HH, MM) — utilisés partout (header + tables + appels API)
   const slotsHHMM = [
-    [11, 0],
-    [13, 0],
-    [15, 30],
+    [4, 30],
+    [8, 0],
+    [8, 30],
+    [9, 30],
     [18, 30],
-    [19, 0],
+    [20, 30]
   ];
 
   const windowMinutes = 30;  // fenêtre de 30 minutes
@@ -141,6 +206,8 @@
   // --- DOM ---
   const grid = document.getElementById('grid');
   const totalsBar = document.getElementById('total_variation');
+  const totalsSpikeMaxBar = document.getElementById('total_spike_max');
+  const totalsSpikeMinBar = document.getElementById('total_spike_min');
 
   function buildCard(symbol) {
     const card = document.createElement('div'); card.className = 'card';
@@ -230,20 +297,42 @@
   }
 
   async function fetchKlines1m(symbol, startUtc, endUtc) {
-    const url = new URL('https://api.binance.com/api/v3/klines');
+    // Utilisation de l'API Futures pour les perpétuels
+    const url = new URL('https://fapi.binance.com/fapi/v1/klines');
     url.searchParams.set('symbol', symbol);
     url.searchParams.set('interval', '1m');
     url.searchParams.set('startTime', String(startUtc));
     url.searchParams.set('endTime', String(endUtc));
     url.searchParams.set('limit', '1000');
-    const res = await fetch(url.toString());
-    if (!res.ok) {
-      const txt = await res.text().catch(()=> '');
-      throw new Error(`HTTP ${res.status} ${res.statusText} — ${txt}`);
+    
+    try {
+      const res = await fetch(url.toString());
+      if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        throw new Error(`HTTP ${res.status} ${res.statusText} — ${txt}`);
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Futures.');
+      return data;
+    } catch (error) {
+      console.warn(`Erreur pour ${symbol}, tentative avec API spot...`);
+      // Fallback sur l'API spot si l'API futures échoue
+      const spotUrl = new URL('https://api.binance.com/api/v3/klines');
+      spotUrl.searchParams.set('symbol', symbol);
+      spotUrl.searchParams.set('interval', '1m');
+      spotUrl.searchParams.set('startTime', String(startUtc));
+      spotUrl.searchParams.set('endTime', String(endUtc));
+      spotUrl.searchParams.set('limit', '1000');
+      
+      const res = await fetch(spotUrl.toString());
+      if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        throw new Error(`HTTP ${res.status} ${res.statusText} — ${txt}`);
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance.');
+      return data;
     }
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance.');
-    return data;
   }
 
   // Préparation cartes
@@ -258,9 +347,16 @@
     return { symbol: s, ...built, rowCells };
   });
 
-  // Suivi des totaux par créneau (variation uniquement)
-  const totals = new Map(); // key "h:m" -> {sum, count}
-  for (const [h,m] of slotsHHMM) totals.set(`${h}:${m}`, {sum:0, count:0});
+  // Suivi des totaux par créneau pour chaque type
+  const totalsVar = new Map(); // key "h:m" -> {sum, count}
+  const totalsSpikeMax = new Map(); // key "h:m" -> {sum, count}
+  const totalsSpikeMin = new Map(); // key "h:m" -> {sum, count}
+  
+  for (const [h,m] of slotsHHMM) {
+    totalsVar.set(`${h}:${m}`, {sum:0, count:0});
+    totalsSpikeMax.set(`${h}:${m}`, {sum:0, count:0});
+    totalsSpikeMin.set(`${h}:${m}`, {sum:0, count:0});
+  }
 
   // Récupération / calculs
   await Promise.all(cards.map(async (c) => {
@@ -293,14 +389,38 @@
         const cSu  = c.rowCells[`${h}:${m}:su`];
         const cSd  = c.rowCells[`${h}:${m}:sd`];
 
-        if (pVar === null) { cVar.textContent = 'n/a'; cVar.className = 'pct zero'; }
-        else { cVar.textContent = fmtPct(pVar); cVar.className = clsPct(pVar); const t = totals.get(`${h}:${m}`); t.sum += pVar; t.count += 1; }
+        if (pVar === null) { 
+          cVar.textContent = 'n/a'; 
+          cVar.className = 'pct zero'; 
+        } else { 
+          cVar.textContent = fmtPct(pVar); 
+          cVar.className = clsPct(pVar); 
+          const t = totalsVar.get(`${h}:${m}`); 
+          t.sum += pVar; 
+          t.count += 1; 
+        }
 
-        if (pSu === null) { cSu.textContent = 'n/a'; cSu.className = 'pct zero'; }
-        else { cSu.textContent = fmtPct(pSu); cSu.className = clsPct(pSu); }
+        if (pSu === null) { 
+          cSu.textContent = 'n/a'; 
+          cSu.className = 'pct zero'; 
+        } else { 
+          cSu.textContent = fmtPct(pSu); 
+          cSu.className = clsPct(pSu); 
+          const t = totalsSpikeMax.get(`${h}:${m}`); 
+          t.sum += pSu; 
+          t.count += 1; 
+        }
 
-        if (pSd === null) { cSd.textContent = 'n/a'; cSd.className = 'pct zero'; }
-        else { cSd.textContent = fmtPct(pSd); cSd.className = clsPct(pSd); }
+        if (pSd === null) { 
+          cSd.textContent = 'n/a'; 
+          cSd.className = 'pct zero'; 
+        } else { 
+          cSd.textContent = fmtPct(pSd); 
+          cSd.className = clsPct(pSd); 
+          const t = totalsSpikeMin.get(`${h}:${m}`); 
+          t.sum += pSd; 
+          t.count += 1; 
+        }
       }
       c.statusEl.textContent = 'OK';
       c.loadingEl.textContent = 'Terminé.';
@@ -311,17 +431,23 @@
     }
   }));
 
-  // Affichage des totaux par créneau (variation uniquement)
-  totalsBar.innerHTML = '';
-  for (const [h,m] of slotsHHMM) {
-    const key = `${h}:${m}`;
-    const {sum, count} = totals.get(key);
-    const badge = document.createElement('span');
-    badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
-    const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
-    badge.textContent = `${pad(h)}:${pad(m)} → ${txt}`;
-    totalsBar.appendChild(badge);
+  // Affichage des totaux par créneau pour chaque type
+  function renderTotals(totalsMap, container) {
+    container.innerHTML = '';
+    for (const [h,m] of slotsHHMM) {
+      const key = `${h}:${m}`;
+      const {sum, count} = totalsMap.get(key);
+      const badge = document.createElement('span');
+      badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
+      const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
+      badge.textContent = `${pad(h)}:${pad(m)} → ${txt}`;
+      container.appendChild(badge);
+    }
   }
+
+  renderTotals(totalsVar, totalsBar);
+  renderTotals(totalsSpikeMax, totalsSpikeMaxBar);
+  renderTotals(totalsSpikeMin, totalsSpikeMinBar);
 
   document.getElementById('reload').addEventListener('click', () => location.reload());
 })();
