@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyse Cryptos Baissières - 09/10/25</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --ok: #10b981;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --border: #1f2937;
+      --warn: #f59e0b;
+      --highlight: #dc2626;
+    }
+    
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.5;
+    }
+    
+    header {
+      padding: 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+    
+    .wrap {
+      padding: 16px;
+    }
+    
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 6px 8px;
+      white-space: nowrap;
+    }
+    
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--card);
+      text-align: left;
+      z-index: 1;
+    }
+    
+    .pos {
+      color: var(--ok);
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .neg {
+      color: var(--bad);
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .na {
+      color: var(--muted);
+    }
+    
+    .warn {
+      color: var(--warn);
+    }
+    
+    .highlight-row {
+      background-color: rgba(220, 38, 38, 0.1);
+      border-left: 3px solid var(--highlight);
+    }
+    
+    .summary {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    
+    .summary-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .summary-value {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+    
+    .summary-label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .filter-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .filter-btn.active {
+      background: var(--highlight);
+      border-color: var(--highlight);
+    }
+    
+    .time-highlight {
+      background-color: rgba(220, 38, 38, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Analyse des Cryptomonnaies Baissières - 09/10/2025</h1>
+    <div class="sub">
+      Données des 6 heures sélectionnées avec mise en évidence des cryptos ayant des variations négatives
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="summary">
+      <div class="summary-item">
+        <div class="summary-label">Cryptos analysées</div>
+        <div class="summary-value" id="total-cryptos">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Cryptos baissières (6h)</div>
+        <div class="summary-value" id="bearish-cryptos">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Période d'analyse</div>
+        <div class="summary-value">04:30 - 20:30</div>
+      </div>
+    </div>
+
+    <div class="filter-controls">
+      <button class="filter-btn active" data-filter="all">Toutes les cryptos</button>
+      <button class="filter-btn" data-filter="bearish">Cryptos baissières (6h)</button>
+    </div>
+
+    <div class="card">
+      <h3>Données des 6 heures sélectionnées</h3>
+      <div style="overflow:auto; max-height:75vh;">
+        <table id="table">
+          <thead>
+            <tr id="thead-row">
+              <th>Symbole</th>
+              <!-- colonnes injectées ici -->
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <p id="progress" class="warn">Préparation…</p>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const BASE = "https://fapi.binance.com";
+    const INTERVAL = "30m";
+    const TF_MS = 30 * 60 * 1000;
+    const MAX_CONCURRENCY = 8;
+    const TZ = "Europe/Brussels";
+
+    // Heures spécifiques demandées
+    const TARGET_HOURS = ["04:30", "08:00", "08:30", "09:30", "18:30", "20:30"];
+    
+    // DOM refs
+    const theadRow = document.getElementById("thead-row");
+    const tbody = document.getElementById("tbody");
+    const progress = document.getElementById("progress");
+    const totalCryptosEl = document.getElementById("total-cryptos");
+    const bearishCryptosEl = document.getElementById("bearish-cryptos");
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    // ==============================
+    // 1) OUTILS TZ Brussels <-> UTC
+    // ==============================
+    function tzOffsetMsAt(date, tz) {
+      const fmt = new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz,
+        year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit',
+        hour12:false
+      });
+      const parts = Object.fromEntries(fmt.formatToParts(date).map(p => [p.type, p.value]));
+      const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+      return asUTC - date.getTime();
+    }
+
+    function brusselsLocalToUtcMs(y, m, d, h, min) {
+      const approxUtc = Date.UTC(y, m - 1, d, h, min, 0, 0);
+      const offset = tzOffsetMsAt(new Date(approxUtc), TZ);
+      return approxUtc - offset;
+    }
+
+    function floorToTfOpenUtc(msUtc, tfMs) {
+      return msUtc - (msUtc % tfMs);
+    }
+
+    // =============================================
+    // 2) GÉNÈRE LES 6 BOUGIES SPÉCIFIQUES
+    // =============================================
+    function generateTargetCandles() {
+      const candles = [];
+      
+      for (const hour of TARGET_HOURS) {
+        const [h, m] = hour.split(':').map(Number);
+        const utcMs = brusselsLocalToUtcMs(2025, 10, 9, h, m);
+        const openTimeMs = floorToTfOpenUtc(utcMs, TF_MS);
+        
+        candles.push({
+          openTimeMs,
+          label: hour,
+          isTargetHour: true
+        });
+      }
+      
+      return candles;
+    }
+
+    const points = generateTargetCandles();
+
+    // =============================================
+    // 3) SYMBOLS PERP USDT TRADING
+    // =============================================
+    async function getAllPerpUsdtSymbols(){
+      try {
+        const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
+        if(!r.ok) throw new Error("exchangeInfo error");
+        const info = await r.json();
+        return info.symbols
+          .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT" && s.status === "TRADING")
+          .map(s => s.symbol)
+          .sort();
+      } catch (error) {
+        console.error("Erreur lors de la récupération des symboles:", error);
+        // Retourne une liste de symboles populaires en cas d'erreur
+        return [
+          "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", 
+          "XRPUSDT", "DOTUSDT", "DOGEUSDT", "AVAXUSDT", "MATICUSDT",
+          "LINKUSDT", "LTCUSDT", "BCHUSDT", "UNIUSDT", "ATOMUSDT"
+        ];
+      }
+    }
+
+    // =============================================
+    // 4) FETCH KLINE 30m EXACTE
+    // =============================================
+    async function fetchKlinePct(symbol, openTimeMs){
+      try {
+        const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
+        const r = await fetch(url);
+        if(!r.ok) return null;
+        const data = await r.json();
+        if(!Array.isArray(data) || data.length === 0) return null;
+
+        const k = data[0];
+        if(+k[0] !== openTimeMs) return null;
+
+        const open = parseFloat(k[1]), close = parseFloat(k[4]);
+        if(!isFinite(open) || !isFinite(close) || open === 0) return null;
+
+        return (close - open) / open * 100;
+      } catch (error) {
+        console.error(`Erreur pour ${symbol} à ${openTimeMs}:`, error);
+        return null;
+      }
+    }
+
+    function fmtPct(v){
+      if(v == null) return `<span class="na">—</span>`;
+      const cls = v >= 0 ? "pos" : "neg";
+      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
+    }
+
+    // =============================================
+    // 5) LIMITER CONCURRENCE
+    // =============================================
+    async function mapWithConcurrency(items, fn, concurrency){
+      const results = new Array(items.length);
+      let i = 0, active = 0, done = 0;
+      return new Promise(resolve => {
+        const next = () => {
+          while(active < concurrency && i < items.length){
+            const idx = i++, item = items[idx]; active++;
+            Promise.resolve(fn(item, idx))
+              .then(res => results[idx] = res)
+              .catch(() => results[idx] = null)
+              .finally(() => {
+                active--; done++;
+                if(done % 10 === 0) progress.textContent = `Progression : ${done}/${items.length}`;
+                if(done === items.length) resolve(results);
+                else next();
+              });
+          }
+        };
+        next();
+      });
+    }
+
+    // =============================================
+    // 6) GESTION DES FILTRES
+    // =============================================
+    function setupFilters() {
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          const filter = btn.dataset.filter;
+          const rows = document.querySelectorAll('#tbody tr');
+          
+          rows.forEach(row => {
+            if (filter === 'all') {
+              row.style.display = '';
+            } else if (filter === 'bearish') {
+              if (row.classList.contains('highlight-row')) {
+                row.style.display = '';
+              } else {
+                row.style.display = 'none';
+              }
+            }
+          });
+        });
+      });
+    }
+
+    // =============================================
+    // 7) MAIN
+    // =============================================
+    async function main(){
+      progress.textContent = "Récupération des symboles PERP USDT…";
+      const symbols = await getAllPerpUsdtSymbols();
+      totalCryptosEl.textContent = symbols.length;
+      
+      // Injecte les colonnes d'en-tête
+      for (const p of points) {
+        const th = document.createElement("th");
+        th.textContent = p.label;
+        th.classList.add('time-highlight');
+        theadRow.appendChild(th);
+      }
+
+      // Crée les lignes
+      const rows = new Map();
+      for(const s of symbols){
+        const tr = document.createElement("tr");
+        const tdSym = document.createElement("td");
+        tdSym.textContent = s;
+        tr.appendChild(tdSym);
+
+        for(let i=0;i<points.length;i++){
+          const td = document.createElement("td");
+          td.innerHTML = `<span class="warn">…</span>`;
+          td.classList.add('time-highlight');
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+        rows.set(s, tr);
+      }
+
+      // Remplit les valeurs
+      const cryptoData = new Map();
+      
+      await mapWithConcurrency(symbols, async (symbol) => {
+        const tr = rows.get(symbol);
+        const data = [];
+        let targetHoursNegative = 0;
+
+        for(let i=0;i<points.length;i++){
+          try{
+            const pct = await fetchKlinePct(symbol, points[i].openTimeMs);
+            data.push(pct);
+            tr.children[i+1].innerHTML = fmtPct(pct);
+            
+            // Compte les variations négatives sur les heures cibles
+            if (pct !== null && pct < 0) {
+              targetHoursNegative++;
+            }
+          }catch{
+            data.push(null);
+            tr.children[i+1].innerHTML = `<span class="na">—</span>`;
+          }
+
+          await new Promise(r=>setTimeout(r,25));
+        }
+        
+        // Marque les cryptos avec variations négatives sur toutes les heures cibles
+        if (targetHoursNegative === TARGET_HOURS.length) {
+          tr.classList.add('highlight-row');
+        }
+        
+        cryptoData.set(symbol, { data, targetHoursNegative });
+      }, MAX_CONCURRENCY);
+
+      // Met à jour le compteur de cryptos baissières
+      const bearishCryptos = Array.from(cryptoData.values()).filter(
+        crypto => crypto.targetHoursNegative === TARGET_HOURS.length
+      ).length;
+      bearishCryptosEl.textContent = bearishCryptos;
+
+      progress.textContent = `Terminé ✅ (${symbols.length} symboles analysés, ${bearishCryptos} cryptos baissières sur les 6 heures sélectionnées)`;
+      
+      // Active les filtres
+      setupFilters();
+    }
+
+    main().catch(e=>{
+      console.error(e);
+      progress.textContent = "Erreur : " + e.message;
+    });
+  </script>
+</body>
+</html>
