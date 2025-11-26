@@ -115,7 +115,7 @@
         2. On garde les PERP dont le <b>jour de listing</b> (en Europe/Brussels) est dans le mois/année choisis.<br>
         3. <b>Jour n°<span id="hintN">20</span></b> = bougie daily n°<span id="hintN2">20</span> après le listing.<br>
         4. Pour ce jour n°<span id="hintN3">20</span>, on récupère <b>toutes les bougies 5 minutes de la journée</b> et on affiche leur variation 5m.<br>
-        5. La carte 🚨 affiche, par mois, les heures (13:05, 14:10, …) qui apparaissent sur au moins 2 dates différentes avec la même polarité.
+        5. La carte 🚨 est basée sur les bougies 5m du jour N avec exactement deux contrats (x2).
       </div>
 
       <div id="candleDateBanner" class="candle-date-banner">—</div>
@@ -151,7 +151,7 @@
 
     // ====== Consts
     const dayMs = 24*60*60*1000;
-    // Base fixe pour la bannière (jour 20 = 09/10/2025 Europe/Brussels)
+    // Base fixe pour la bannière (jour 20 = 09/10/2025 Europe/Brussels, comme ton ancien script)
     const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
     const ALLOWED_MONTHS = [0,5,8]; // Jan, Jun, Sep
 
@@ -161,12 +161,12 @@
     // ====== Caches
     const CACHE = {
       symbols: null,
-      daily100: new Map(),
-      monthRows: new Map(),
-      dailyComputed: new Map(),
-      fiveMByDay: new Map(),
-      fiveMComputed: new Map(),
-      fiveMByDayPlusOneYear: new Map(),
+      daily100: new Map(),      // sym -> 1d klines depuis startTime=0
+      monthRows: new Map(),     // `${Y}-${M}` -> [{sym, openTime1, daily}]
+      dailyComputed: new Map(), // `${Y}-${M}-${N}` -> rows daily (pour la carte)
+      fiveMByDay: new Map(),    // `${sym}-${openTimeN}` -> klines 5m pour ce jour N
+      fiveMComputed: new Map(), // `${Y}-${M}-${N}` -> rows détaillées 5m (pour tableau)
+      fiveMByDayPlusOneYear: new Map(), // `${sym}-${openTimeNPlusOneYear}` -> klines 5m pour le jour N +1 an
     };
 
     const keyMonth       = (Y,M)=>`${Y}-${M}`;
@@ -223,7 +223,7 @@
       day:'2-digit'
     }).format(new Date(ms));
 
-    const dateKeyHuman = (ms)=> new Intl.DateTimeFormat('fr-BE',{
+    const dateKeyHuman    = (ms)=> new Intl.DateTimeFormat('fr-BE',{
       timeZone:tz,
       year:'2-digit',
       month:'2-digit',
@@ -267,7 +267,7 @@
       return CACHE.symbols;
     }
 
-    // ====== Daily klines
+    // ====== Daily klines (détection listing)
     async function getDaily100(sym){
       if (CACHE.daily100.has(sym)) return CACHE.daily100.get(sym);
       const u=new URL('https://fapi.binance.com/fapi/v1/klines');
@@ -280,7 +280,7 @@
       return kl||[];
     }
 
-    // ====== 5m klines jour N
+    // ====== 5m klines pour un jour N (start = openTimeN, end = openTimeN + 24h)
     async function getFiveMForDay(sym, openTimeN){
       const key = `${sym}-${openTimeN}`;
       if (CACHE.fiveMByDay.has(key)) return CACHE.fiveMByDay.get(key);
@@ -288,7 +288,7 @@
       const u=new URL('https://fapi.binance.com/fapi/v1/klines');
       u.searchParams.set('symbol',sym);
       u.searchParams.set('interval','5m');
-      u.searchParams.set('limit','300');
+      u.searchParams.set('limit','300'); // > 288 bougies de 5m / jour
       u.searchParams.set('startTime', String(openTimeN));
       u.searchParams.set('endTime',   String(end));
       const kl = await fetchJSON(u.toString());
@@ -296,7 +296,7 @@
       return kl||[];
     }
 
-    // ====== 5m klines jour N + 1 an
+    // ====== 5m klines pour un jour N +1 an
     async function getFiveMForDayPlusOneYear(sym, openTimeNPlusOneYear){
       const key = `${sym}-${openTimeNPlusOneYear}`;
       if (CACHE.fiveMByDayPlusOneYear.has(key)) return CACHE.fiveMByDayPlusOneYear.get(key);
@@ -312,7 +312,7 @@
       return kl||[];
     }
 
-    // ====== Préparation du mois (daily)
+    // ====== Préparation du mois : détecte les listings (en daily)
     async function warmMonth(Y,M){
       const k = keyMonth(Y,M);
       if (CACHE.monthRows.has(k)) return CACHE.monthRows.get(k);
@@ -325,7 +325,7 @@
         try{
           const kl100 = await getDaily100(sym);
           if(!kl100.length) return null;
-          const openTime1 = kl100[0][0];
+          const openTime1 = kl100[0][0]; // 1ère daily = jour de listing
           const {y,m} = monthYearInBrussels(openTime1);
           if (y!==Y || m!==M) return null;
           return { sym, openTime1, daily: kl100 };
@@ -339,7 +339,7 @@
       return kept;
     }
 
-    // ====== Lignes daily pour jour N
+    // ====== Lignes daily pour un jour N
     async function computeDailyRows(Y,M,N){
       const kc = keyDailyKey(Y,M,N);
       if (CACHE.dailyComputed.has(kc)) return CACHE.dailyComputed.get(kc);
@@ -379,7 +379,7 @@
       return rows;
     }
 
-    // ====== Lignes 5m pour jour N
+    // ====== Lignes détaillées 5m pour le jour N (pour le tableau)
     async function computeFiveMRows(Y,M,N){
       const kc = keyFiveMKey(Y,M,N);
       if (CACHE.fiveMComputed.has(kc)) return CACHE.fiveMComputed.get(kc);
@@ -396,16 +396,18 @@
         if (!dr.openTimeN) return;
         try{
           const kl5 = await getFiveMForDay(dr.sym, dr.openTimeN);
-          const openTimeNPlusOneYear = plusThanOneYear(dr.openTimeN);
+          const openTimeNPlusOneYear = plusThanOneYear(dr.openTimeN); // basé sur le jour N daily
           const kl5PlusOneYear = await getFiveMForDayPlusOneYear(dr.sym, openTimeNPlusOneYear);
 
+          // Bougies 5m du jour N
           (kl5||[]).forEach(k=>{
             const openTime5m = k[0];
-            if (openTime5m >= dr.openTimeN + dayMs) return;
+            if (openTime5m >= dr.openTimeN + dayMs) return; // reste dans la journée
             const o = parseFloat(k[1]);
             const c = parseFloat(k[4]);
             const pct = o>0 ? ((c-o)/o*100) : 0;
 
+            // Bougie 5m correspondante +1 an (même heure/minute UTC)
             const fiveMPlusOneYear = (kl5PlusOneYear||[]).find(k2 => {
               const date1 = new Date(openTime5m);
               const date2 = new Date(k2[0]);
@@ -450,21 +452,21 @@
       tbody.innerHTML='';
       if(!rows.length){
         tbody.innerHTML = `<tr><td colspan="5" class="muted">Aucun nouveau PERP USDT-M listé pour les critères choisis.</td></tr>`;
-      } else {
-        const frag = document.createDocumentFragment();
-        rows.forEach(r=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${r.sym}</td>
-            <td>${toBrusselsDate(r.openTime5m)}</td>
-            <td><span class="${r.pct5m>=0?'up':'down'}">${fmtPct(r.pct5m)}</span></td>
-            <td>${r.openTime5mPlusOneYear ? toBrusselsDate(r.openTime5mPlusOneYear) : '—'}</td>
-            <td>${r.pct5mPlusOneYear !== null ? `<span class="${r.pct5mPlusOneYear>=0?'up':'down'}">${fmtPct(r.pct5mPlusOneYear)}</span>` : '—'}</td>
-          `;
-          frag.appendChild(tr);
-        });
-        tbody.appendChild(frag);
+        return;
       }
+      const frag = document.createDocumentFragment();
+      rows.forEach(r=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.sym}</td>
+          <td>${toBrusselsDate(r.openTime5m)}</td>
+          <td><span class="${r.pct5m>=0?'up':'down'}">${fmtPct(r.pct5m)}</span></td>
+          <td>${r.openTime5mPlusOneYear ? toBrusselsDate(r.openTime5mPlusOneYear) : '—'}</td>
+          <td>${r.pct5mPlusOneYear !== null ? `<span class="${r.pct5mPlusOneYear>=0?'up':'down'}">${fmtPct(r.pct5mPlusOneYear)}</span>` : '—'}</td>
+        `;
+        frag.appendChild(tr);
+      });
+      tbody.appendChild(frag);
     }
 
     function updateBannerOnly(){
@@ -496,10 +498,135 @@
       updateBannerOnly();
     }
 
-    // ====== Dupe card : heures récurrentes (même polarité, ≥ 2 dates)
-    
+    // ====== Dupe card (basée sur 5m, uniquement x2)
+    async function updateDupeCard(){
+      const Y = parseInt(yearSel.value,10);
+      const N = parseInt(candleSel.value,10);
+      dupeN.textContent = N;
 
-    // ====== Build & render courant
+      // prépare les mois autorisés
+      await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
+      
+      const monthNamesShort = ['Janv','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sept','Oct','Nov','Déc'];
+      const monthNamesLong = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+      const report = [];
+
+      for (const M of ALLOWED_MONTHS) {
+        const fiveMRows = await computeFiveMRows(Y, M, N);
+        if (!fiveMRows.length) continue;
+
+        // Regrouper par date + heure (Brussels) + polarité
+        const mapDates = new Map(); // dateKey -> {heure -> {pos:[], neg:[]}}
+        
+        fiveMRows.forEach(row => {
+          if (row.pct5m === null) return;
+          
+          const dateKey = dateKeyBrussels(row.openTime5m);
+
+          const d = new Date(row.openTime5m);
+          const hm = d.getUTCHours().toString().padStart(2,'0') + ':' +
+                     d.getUTCMinutes().toString().padStart(2,'0');
+          
+          if (!mapDates.has(dateKey)) {
+            mapDates.set(dateKey, new Map());
+          }
+          const hourMap = mapDates.get(dateKey);
+          
+          if (!hourMap.has(hm)) {
+            hourMap.set(hm, { pos: [], neg: [] });
+          }
+          
+          const bag = hourMap.get(hm);
+          (row.pct5m > 0 ? bag.pos : bag.neg).push({ 
+            sym: row.sym, 
+            pct: row.pct5m, 
+            ms: row.openTime5m,
+            hourMin: hm
+          });
+        });
+
+        // On garde UNIQUEMENT les cas avec EXACTEMENT 2 symboles (x2)
+        const dupes = [];
+        
+        for (const [dateKey, hourMap] of mapDates.entries()) {
+          for (const [hourMin, bag] of hourMap.entries()) {
+
+            // Haussière x2
+            if (bag.pos.length === 2) {
+              dupes.push({
+                human: dateKeyHuman(new Date(dateKey + 'T00:00:00').getTime()),
+                hourMin: hourMin,
+                sign: 'positive',
+                count: 2,
+                list: bag.pos
+              });
+            }
+
+            // Baissière x2
+            if (bag.neg.length === 2) {
+              dupes.push({
+                human: dateKeyHuman(new Date(dateKey + 'T00:00:00').getTime()),
+                hourMin: hourMin,
+                sign: 'negative',
+                count: 2,
+                list: bag.neg
+              });
+            }
+          }
+        }
+
+        // Trier par date puis par heure
+        dupes.sort((a, b) => {
+          if (a.human !== b.human) return a.human.localeCompare(b.human);
+          return a.hourMin.localeCompare(b.hourMin);
+        });
+
+        report.push({ 
+          month: M, 
+          monthLabel: monthNamesLong[M],
+          monthShort: monthNamesShort[M],
+          dupes 
+        });
+      }
+
+      dupeContent.innerHTML = '';
+      
+      if (report.every(r => r.dupes.length === 0)) {
+        dupeCard.style.display = 'none';
+        return;
+      }
+
+      // Affichage des pastilles (uniquement x2)
+      report.forEach(block => {
+        if (block.dupes.length === 0) return;
+        
+        const div = document.createElement('div');
+        div.className = 'dupe-month';
+        div.innerHTML = `<h4>${block.monthLabel}</h4>`;
+        const wrap = document.createElement('div');
+        
+        block.dupes.forEach(d => {
+          const pill = document.createElement('span');
+          pill.className = `dupe-pill ${d.sign === 'positive' ? 'positive' : 'negative'}`;
+          const signTxt = d.sign === 'positive' ? 'Haussière' : 'Baissière';
+          const syms = d.list.map(x => x.sym).join(', ');
+
+          // pastille toujours "x2"
+          pill.innerHTML = `<b>${d.human} ${d.hourMin}</b> • ${signTxt} • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
+          pill.title = `${d.list.length} symboles : ${syms}`;
+
+          wrap.appendChild(pill);
+        });
+        
+        div.appendChild(wrap);
+        dupeContent.appendChild(div);
+      });
+      
+      dupeCard.style.display = 'block';
+    }
+
+    // ====== Build & render courant (5m intraday)
     async function buildAndRenderCurrent(Y,M,N){
       const rows5m = await computeFiveMRows(Y,M,N);
       if (rows5m.length){
