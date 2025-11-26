@@ -115,7 +115,7 @@
         2. On garde les PERP dont le <b>jour de listing</b> (en Europe/Brussels) est dans le mois/année choisis.<br>
         3. <b>Jour n°<span id="hintN">20</span></b> = bougie daily n°<span id="hintN2">20</span> après le listing.<br>
         4. Pour ce jour n°<span id="hintN3">20</span>, on récupère <b>toutes les bougies 5 minutes de la journée</b> et on affiche leur variation 5m.<br>
-        5. La carte 🚨 est maintenant basée sur la variation 5m du jour N.
+        5. La carte 🚨 est basée sur les bougies 5m du jour N avec exactement deux contrats (x2).
       </div>
 
       <div id="candleDateBanner" class="candle-date-banner">—</div>
@@ -136,8 +136,6 @@
     const errEl     = document.getElementById('err');
 
     const nLabel = document.getElementById('nLabel');
-    const thN1   = document.getElementById('thN1'); // plus utilisé: supprimé du thead
-    const thN2   = document.getElementById('thN2'); // plus utilisé
     const hintN  = document.getElementById('hintN');
     const hintN2 = document.getElementById('hintN2');
     const hintN3 = document.getElementById('hintN3');
@@ -298,7 +296,7 @@
       return kl||[];
     }
 
-    // ====== 5m klines pour un jour N +1 an (start = openTimeNPlusOneYear, end = openTimeNPlusOneYear + 24h)
+    // ====== 5m klines pour un jour N +1 an
     async function getFiveMForDayPlusOneYear(sym, openTimeNPlusOneYear){
       const key = `${sym}-${openTimeNPlusOneYear}`;
       if (CACHE.fiveMByDayPlusOneYear.has(key)) return CACHE.fiveMByDayPlusOneYear.get(key);
@@ -341,7 +339,7 @@
       return kept;
     }
 
-    // ====== Lignes daily pour un jour N (pour la carte, et pour repère jour N)
+    // ====== Lignes daily pour un jour N
     async function computeDailyRows(Y,M,N){
       const kc = keyDailyKey(Y,M,N);
       if (CACHE.dailyComputed.has(kc)) return CACHE.dailyComputed.get(kc);
@@ -401,16 +399,15 @@
           const openTimeNPlusOneYear = plusThanOneYear(dr.openTimeN); // basé sur le jour N daily
           const kl5PlusOneYear = await getFiveMForDayPlusOneYear(dr.sym, openTimeNPlusOneYear);
 
-          // Traitement des bougies 5m du jour N
+          // Bougies 5m du jour N
           (kl5||[]).forEach(k=>{
             const openTime5m = k[0];
-            // on reste dans la journée N (au cas où API renverrait plus large)
-            if (openTime5m >= dr.openTimeN + dayMs) return;
+            if (openTime5m >= dr.openTimeN + dayMs) return; // reste dans la journée
             const o = parseFloat(k[1]);
             const c = parseFloat(k[4]);
             const pct = o>0 ? ((c-o)/o*100) : 0;
 
-            // Trouver la bougie 5m correspondante pour +1 an (même heure/minute)
+            // Bougie 5m correspondante +1 an (même heure/minute UTC)
             const fiveMPlusOneYear = (kl5PlusOneYear||[]).find(k2 => {
               const date1 = new Date(openTime5m);
               const date2 = new Date(k2[0]);
@@ -441,7 +438,6 @@
         }
       });
 
-      // Tri : d'abord par symbole, puis par heure
       allRows.sort((a,b)=>{
         if (a.sym !== b.sym) return a.sym.localeCompare(b.sym);
         return a.openTime5m - b.openTime5m;
@@ -502,12 +498,13 @@
       updateBannerOnly();
     }
 
-    // ====== Dupe card (MAINTENANT BASÉE SUR 5m)
+    // ====== Dupe card (basée sur 5m, uniquement x2)
     async function updateDupeCard(){
       const Y = parseInt(yearSel.value,10);
       const N = parseInt(candleSel.value,10);
       dupeN.textContent = N;
 
+      // prépare les mois autorisés
       await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
       
       const monthNamesShort = ['Janv','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sept','Oct','Nov','Déc'];
@@ -517,57 +514,62 @@
 
       for (const M of ALLOWED_MONTHS) {
         const fiveMRows = await computeFiveMRows(Y, M, N);
-        
         if (!fiveMRows.length) continue;
 
-        // Regrouper par date et heure (juste la date pour la détection de doublons)
+        // Regrouper par date + heure (Brussels) + polarité
         const mapDates = new Map(); // dateKey -> {heure -> {pos:[], neg:[]}}
         
         fiveMRows.forEach(row => {
           if (row.pct5m === null) return;
           
           const dateKey = dateKeyBrussels(row.openTime5m);
-          const hourMin = new Date(row.openTime5m).getUTCHours().toString().padStart(2, '0') + ':' + 
-                         new Date(row.openTime5m).getUTCMinutes().toString().padStart(2, '0');
+
+          const d = new Date(row.openTime5m);
+          const hm = d.getUTCHours().toString().padStart(2,'0') + ':' +
+                     d.getUTCMinutes().toString().padStart(2,'0');
           
           if (!mapDates.has(dateKey)) {
             mapDates.set(dateKey, new Map());
           }
           const hourMap = mapDates.get(dateKey);
           
-          if (!hourMap.has(hourMin)) {
-            hourMap.set(hourMin, { pos: [], neg: [] });
+          if (!hourMap.has(hm)) {
+            hourMap.set(hm, { pos: [], neg: [] });
           }
           
-          const bag = hourMap.get(hourMin);
+          const bag = hourMap.get(hm);
           (row.pct5m > 0 ? bag.pos : bag.neg).push({ 
             sym: row.sym, 
             pct: row.pct5m, 
             ms: row.openTime5m,
-            hourMin: hourMin
+            hourMin: hm
           });
         });
 
-        // Trouver les doublons (même date, même heure, même polarité, au moins 1 symbole)
+        // On garde UNIQUEMENT les cas avec EXACTEMENT 2 symboles (x2)
         const dupes = [];
         
         for (const [dateKey, hourMap] of mapDates.entries()) {
           for (const [hourMin, bag] of hourMap.entries()) {
-            if (bag.pos.length >= 1) {
+
+            // Haussière x2
+            if (bag.pos.length === 2) {
               dupes.push({
                 human: dateKeyHuman(new Date(dateKey + 'T00:00:00').getTime()),
                 hourMin: hourMin,
                 sign: 'positive',
-                count: bag.pos.length,
+                count: 2,
                 list: bag.pos
               });
             }
-            if (bag.neg.length >= 1) {
+
+            // Baissière x2
+            if (bag.neg.length === 2) {
               dupes.push({
                 human: dateKeyHuman(new Date(dateKey + 'T00:00:00').getTime()),
                 hourMin: hourMin,
-                sign: 'negative', 
-                count: bag.neg.length,
+                sign: 'negative',
+                count: 2,
                 list: bag.neg
               });
             }
@@ -595,7 +597,7 @@
         return;
       }
 
-      // Afficher toutes les occurrences, pas seulement les doublons exacts
+      // Affichage des pastilles (uniquement x2)
       report.forEach(block => {
         if (block.dupes.length === 0) return;
         
@@ -609,7 +611,11 @@
           pill.className = `dupe-pill ${d.sign === 'positive' ? 'positive' : 'negative'}`;
           const signTxt = d.sign === 'positive' ? 'Haussière' : 'Baissière';
           const syms = d.list.map(x => x.sym).join(', ');
-          pill.innerHTML = `<b>${d.human} ${d.hourMin}</b> • ${signTxt} • x${d.count}<span class="muted" style="margin-left:6px">${syms}</span>`;
+
+          // pastille toujours "x2"
+          pill.innerHTML = `<b>${d.human} ${d.hourMin}</b> • ${signTxt} • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
+          pill.title = `${d.list.length} symboles : ${syms}`;
+
           wrap.appendChild(pill);
         });
         
@@ -624,7 +630,6 @@
     async function buildAndRenderCurrent(Y,M,N){
       const rows5m = await computeFiveMRows(Y,M,N);
       if (rows5m.length){
-        // ref = plus petit openTime1 (listing) parmi les symboles retenus
         const dailyRows = await computeDailyRows(Y,M,N);
         if (dailyRows.length){
           refListingMs = dailyRows.reduce(
