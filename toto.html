@@ -497,7 +497,137 @@
     }
 
     // ====== Dupe card : heures récurrentes (même polarité, ≥ 2 dates)
-    
+    async function updateDupeCard(){
+  const Y = parseInt(yearSel.value,10);
+  const N = parseInt(candleSel.value,10);
+  dupeN.textContent = N;
+
+  // Préparer les mois (janvier, juin, septembre)
+  await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
+  
+  const monthNamesLong = [
+    'janvier','février','mars','avril','mai','juin',
+    'juillet','août','septembre','octobre','novembre','décembre'
+  ];
+
+  const report = [];
+
+  for (const M of ALLOWED_MONTHS) {
+    const fiveMRows = await computeFiveMRows(Y, M, N);
+    if (!fiveMRows.length) continue;
+
+    // mapTimes : "13:05" -> { pos:Set(dates), neg:Set(dates) }
+    const mapTimes = new Map();
+
+    fiveMRows.forEach(row => {
+      if (row.pct5m === null) return;
+
+      const d = new Date(row.openTime5m);
+
+      // Heure/minute en Europe/Brussels (ex "13:05")
+      const hm = new Intl.DateTimeFormat('fr-BE',{
+        timeZone: tz,
+        hour:'2-digit',
+        minute:'2-digit',
+        hour12:false
+      }).format(d);
+
+      // Date en 06/02/24, 13/02/24, etc.
+      const dateStr = dateKeyHuman(row.openTime5m);
+
+      if (!mapTimes.has(hm)) {
+        mapTimes.set(hm, { pos:new Set(), neg:new Set() });
+      }
+      const bag = mapTimes.get(hm);
+
+      if (row.pct5m > 0) {
+        bag.pos.add(dateStr);
+      } else if (row.pct5m < 0) {
+        bag.neg.add(dateStr);
+      }
+    });
+
+    const dupes = [];
+
+    // Règle dans chaque mois :
+    // - au moins 2 dates pour UNE polarité
+    // - et 0 date pour l'autre polarité
+    //   (si les deux polarités ont des doublons, on ignore complètement cette heure)
+    for (const [hm, bag] of mapTimes.entries()) {
+      const posCount = bag.pos.size;
+      const negCount = bag.neg.size;
+
+      // Uniquement haussière (>=2 dates, aucune baissière)
+      if (posCount >= 2 && negCount === 0) {
+        dupes.push({
+          hourMin: hm,
+          sign: 'positive',
+          dates: [...bag.pos]
+        });
+      }
+      // Uniquement baissière (>=2 dates, aucune haussière)
+      else if (negCount >= 2 && posCount === 0) {
+        dupes.push({
+          hourMin: hm,
+          sign: 'negative',
+          dates: [...bag.neg]
+        });
+      }
+      // Sinon : on ne garde pas cette heure pour ce mois.
+    }
+
+    // Tri par heure
+    dupes.sort((a,b)=> a.hourMin.localeCompare(b.hourMin));
+
+    report.push({
+      month: M,
+      monthLabel: monthNamesLong[M],
+      dupes
+    });
+  }
+
+  dupeContent.innerHTML = '';
+
+  // 👉 Condition globale :
+  // si dans janvier, juin ou septembre il n'y a AUCUNE heure
+  // qui respecte la règle, on NE montre PAS la carte.
+  const hasAnyHour = report.some(block => block.dupes && block.dupes.length > 0);
+  if (!hasAnyHour) {
+    dupeCard.style.display = 'none';
+    return;
+  }
+
+  // Rendu : on écrit seulement l'heure, couleur = polarité
+  report.forEach(block => {
+    if (!block.dupes || !block.dupes.length) return;
+
+    const div = document.createElement('div');
+    div.className = 'dupe-month';
+    div.innerHTML = `<h4>${block.monthLabel}</h4>`;
+    const wrap = document.createElement('div');
+
+    block.dupes.forEach(d => {
+      const pill = document.createElement('span');
+      pill.className = `dupe-pill ${d.sign === 'positive' ? 'positive' : 'negative'}`;
+      const signTxt = d.sign === 'positive' ? 'Haussière' : 'Baissière';
+      const datesStr = d.dates.join(', ');
+
+      // Affichage visuel : uniquement "13:05"
+      pill.textContent = d.hourMin;
+
+      // Détail au survol (dates + polarité)
+      pill.title = `${signTxt} • ${d.hourMin} • ${d.dates.length} dates : ${datesStr}`;
+
+      wrap.appendChild(pill);
+    });
+
+    div.appendChild(wrap);
+    dupeContent.appendChild(div);
+  });
+
+  dupeCard.style.display = 'block';
+}
+
 
     // ====== Build & render courant
     async function buildAndRenderCurrent(Y,M,N){
