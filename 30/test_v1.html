@@ -28,7 +28,7 @@
   <header>
     <h1>Variation 30m — PERP USDT (Binance Futures)</h1>
     <div class="sub">
-      09/10/2025 21:45 • 10/10/2025 23:00 • 11/10/2025 23:45 • 13/10/2025 23:45 (Europe/Brussels)
+      09/10/2025 10:00 • 10/10/2025 23:00 (Europe/Brussels)
     </div>
   </header>
 
@@ -36,7 +36,7 @@
     <div class="card">
       <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
         Calcul = (Close − Open) / Open × 100 sur la bougie 30m à l'heure indiquée (Europe/Brussels).
-        La ligne « Total (∑) » additionne les variations (%) des symboles disponibles pour chaque date (valeurs manquantes ignorées).
+        La ligne « Total (∑) » additionne les variations (%) des symboles disponibles pour chaque horaire (valeurs manquantes ignorées).
       </p>
 
       <div class="controls">
@@ -48,14 +48,14 @@
         <thead>
           <tr id="thead-row">
             <th>Symbole</th>
-            <!-- colonnes de dates injectées ici -->
+            <!-- colonnes d'horaires injectées ici -->
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
         <tfoot>
           <tr id="total-row">
             <td>Total (∑)</td>
-            <!-- totaux par date injectés ici -->
+            <!-- totaux par horaire injectés ici -->
           </tr>
         </tfoot>
       </table>
@@ -71,10 +71,8 @@
 
     // --- Timestamps (heure locale Brussels) ---
     const points = [
-      { label:"09/10 21:45", y:2025, m:10, d:9,  h:21, min:45 },
-      { label:"10/10 23:00", y:2025, m:10, d:10, h:23, min:0  },
-      { label:"11/10 23:45", y:2025, m:10, d:11, h:23, min:45 },
-      { label:"13/10 23:45", y:2025, m:10, d:13, h:23, min:45 }
+      { label:"09/10 10:00", y:2025, m:10, d:9,  h:10, min:0 },
+      { label:"10/10 23:00", y:2025, m:10, d:10, h:23, min:0 }
     ];
 
     const theadRow = document.getElementById("thead-row");
@@ -101,10 +99,11 @@
       const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
       return asUTC - date.getTime();
     }
+
     function brusselsLocalToUtcMs(y, m, d, h, min) {
       const approxUtc = Date.UTC(y, m - 1, d, h, min, 0, 0);
       const offset = tzOffsetMsAt(new Date(approxUtc), 'Europe/Brussels');
-      return approxUtc - offset; // clé: on soustrait l'offset
+      return approxUtc - offset; // on soustrait l'offset
     }
 
     const pointTimes = points.map(p => ({
@@ -125,7 +124,6 @@
 
     // --------- Récupère la variation de LA bougie 30m exacte ----------
     async function fetchKlinePct(symbol, openTimeMs){
-      // on demande startTime exactement sur l'ouverture de bougie
       const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
       const r = await fetch(url);
       if(!r.ok) return null;
@@ -143,6 +141,7 @@
       const cls = v >= 0 ? "pos" : "neg";
       return `<span class="${cls}">${v.toFixed(2)}%</span>`;
     }
+
     function fmtTotal(v){
       if(v == null) return `<span class="na">—</span>`;
       const cls = v >= 0 ? "pos" : "neg";
@@ -176,7 +175,7 @@
       progress.textContent = "Récupération des symboles PERP USDT…";
       const symbols = await getAllPerpUsdtSymbols();
 
-      // Ligne des totaux (une cellule par date)
+      // Ligne des totaux (une cellule par horaire)
       const totalCells = [];
       for (let i=0;i<pointTimes.length;i++){
         const td = document.createElement("td");
@@ -214,12 +213,11 @@
           }catch{
             tr.children[i+1].innerHTML = `<span class="na">—</span>`;
           }
-          // mini pause entre colonnes du même symbole
           await new Promise(r=>setTimeout(r,35));
         }
       }, MAX_CONCURRENCY);
 
-      // Totaux par date
+      // Totaux par horaire
       for(let i=0;i<pointTimes.length;i++){
         totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
       }

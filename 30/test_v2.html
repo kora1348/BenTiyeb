@@ -1,224 +1,480 @@
-<!doctype html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <title>Variations 15m — Sélection Binance Futures</title>
+  <meta charset="UTF-8" />
+  <title>Multi-dates — 30 min</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; }
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    header{padding:18px;border-bottom:1px solid var(--border)}
-    h1{margin:0;font-size:18px}
-    .sub{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.4}
-    .wrap{padding:16px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{border-bottom:1px solid var(--border);padding:8px 10px;white-space:nowrap}
-    th{position:sticky;top:0;background:var(--card);text-align:left}
-    tfoot td{font-weight:700;border-top:1px solid var(--border)}
-    .pos{color:var(--ok);font-variant-numeric:tabular-nums}
-    .neg{color:var(--bad);font-variant-numeric:tabular-nums}
-    .na{color:var(--muted)}
-    .warn{color:var(--warn)}
-    .tag{display:inline-block;font-size:11px;border:1px solid var(--border);border-radius:6px;padding:2px 6px;color:var(--muted);margin-left:8px}
+    :root{
+      --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#94a3b8;
+      --up:#16a34a; --down:#dc2626; --zero:#64748b; --border:#1f2937; --header:#0b1220; --accent:#2563eb;
+      --total:#facc15;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b1020;color:var(--text);font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;padding:24px}
+    header{max-width:1200px;margin:0 auto 16px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+    header h1{margin:0;font-size:20px;font-weight:700}
+    .meta{color:var(--muted);font-size:14px}
+    .controls{margin-left:auto;display:flex;gap:12px}
+    .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;font-size:14px}
+    .controls button a{color:#fff;text-decoration:none}
+    .summary-cards{max-width:1200px;margin:0 auto 16px;display:flex;flex-direction:column;gap:12px}
+    .summary-card{
+      padding:12px 16px;border-radius:12px;font-size:14px;
+      border:1px solid var(--border);
+    }
+    #variation_negative{
+      background:linear-gradient(180deg,rgba(220,38,38,.1),rgba(220,38,38,.04)), var(--card);
+      border-color:rgba(220,38,38,.35);
+      color:#fecaca;
+    }
+    #spike_max{
+      background:linear-gradient(180deg,rgba(34,197,94,.1),rgba(34,197,94,.04)), var(--card);
+      border-color:rgba(34,197,94,.35);
+      color:#dcfce7;
+    }
+    #spike_min{
+      background:linear-gradient(180deg,rgba(59,130,246,.1),rgba(59,130,246,.04)), var(--card);
+      border-color:rgba(59,130,246,.35);
+      color:#dbeafe;
+    }
+    .summary-card .title{font-weight:700;margin-bottom:8px}
+    #variation_negative .title{color:#fca5a5}
+    #spike_max .title{color:#86efac}
+    #spike_min .title{color:#93c5fd}
+    .total-badges{display:flex;gap:10px;flex-wrap:wrap}
+    .total-badges .badge{
+      background:#1f2937;border:1px solid var(--border);border-radius:999px;
+      padding:4px 10px;color:#fff;font-weight:700
+    }
+    .total-badges .badge.positive{color:#22c55e}
+    .total-badges .badge.negative{color:#ef4444}
+    .total-badges .badge.zero{color:#94a3b8}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+    .card header{background:var(--header);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center}
+    .symbol{font-weight:700;letter-spacing:.3px}
+    .status{margin-left:auto;font-size:12px;color:var(--muted)}
+    .table-wrap{max-height:70vh;overflow:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+    thead th{position:sticky;top:0;background:var(--header);border-bottom:1px solid var(--border);padding:6px 8px;font-size:12px;color:var(--muted);text-align:left}
+    thead th.num, tbody td.pct{text-align:right}
+    tbody td, tbody th{border-bottom:1px solid rgba(255,255,255,.06);padding:6px 8px;font-size:12px}
+    tbody td.time{color:var(--muted)}
+    .pct{font-weight:600}
+    .up{color:var(--up)} .down{color:var(--down)} .zero{color:var(--zero)}
+    .loading,.error{padding:10px 12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+    .error{color:#fca5a5}
+    .chip{font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#94a3b8;margin-left:8px}
+    .slots strong{font-weight:700}
+    .info-banner{max-width:1200px;margin:0 auto 16px;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;color:#93c5fd;font-size:14px;}
   </style>
 </head>
 <body>
   <header>
-    <h1>Variation 15m — Sélection de cryptos Futures <span class="tag">USDT-M PERP</span></h1>
-    <div class="sub">
-      14/10/2025 21:00 • 15/10/2025 23:30 • 16/10/2025 23:00 • 17/10/2025 22:45 (Europe/Brussels)
+    <h1>Variation 30 min — Europe/Brussels <span class="chip">Multi-dates + Spike max / min</span></h1>
+    <div class="meta" id="metaLine">
+      <!-- Injecté en JS : Période • Liste des dates • Timeframe -->
     </div>
+    <div class="controls"><button id="reload"><a href="/index.html">Accueil</a></button></div>
   </header>
 
-  <div class="wrap">
-    <div class="card">
-      <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
-        Calcul = (Close − Open) / Open × 100 sur la bougie 15m à l'heure indiquée (Europe/Brussels).
-        La ligne « Total (∑) » additionne les variations (%) de toutes les lignes pour chaque date.
-      </p>
+  <div class="info-banner">
+    ⚠️ Les données "n/a" indiquent que le trading n'était pas actif à ces dates ou heures spécifiques
+  </div>
 
-      <table id="table">
-        <thead>
-          <tr id="thead-row">
-            <th>Symbole</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-        <tfoot>
-          <tr id="total-row">
-            <td>Total (∑)</td>
-          </tr>
-        </tfoot>
-      </table>
-
-      <p id="progress" class="warn">Chargement…</p>
+  <div class="summary-cards">
+    <div id="spike_max" class="summary-card">
+      <span class="title">TOTAL Spike max (mèche ↑) par date &amp; heure :</span>
+      <div id="total_spike_max" class="total-badges"></div>
+    </div>
+    
+    <div id="spike_min" class="summary-card">
+      <span class="title">TOTAL Spike min (mèche ↓) par date &amp; heure :</span>
+      <div id="total_spike_min" class="total-badges"></div>
+    </div>
+    
+    <div id="variation_negative" class="summary-card">
+      <span class="title">TOTAL (somme des variations de tous les symboles) par date &amp; heure :</span>
+      <div id="total_variation" class="total-badges"></div>
     </div>
   </div>
 
-  <script>
-    const BASE = "https://fapi.binance.com";
-    const INTERVAL = "15m";
+  <div id="grid" class="grid"></div>
 
-    // --- Nouveaux symboles ---
-    const symbolsInput = [
-      "0GUSDT", "A2ZUSDT", "AIAUSDT", "AIOTUSDT", "ALPINEUSDT", "ARKMUSDT", "ARKUSDT", "ARPAUSDT", 
-      "ASTERUSDT", "ASTRUSDT", "B3USDT", "BARDUSDT", "BASUSDT", "BCHUSDT", "BNBUSDT", "BRUSDT", 
-      "BTCUSDT", "CAKEUSDT", "CROSSUSDT", "DEEPUSDT", "DEXEUSDT", "DIAUSDT", "FHEUSDT", "FORMUSDT", 
-      "GRASSUSDT", "GUNUSDT", "IOTXUSDT", "LTCUSDT", "MBOXUSDT", "MIRAUSDT", "MUBARAKUSDT", "NOMUSDT", 
-      "ONTUSDT", "PLAYUSDT", "PONKEUSDT", "QUSDT", "RSRUSDT", "SKATEUSDT", "SOONUSDT", "SUIUSDT", 
-      "TANSSIUSDT", "TAOUSDT", "TOSHIUSDT", "TWTUSDT", "VTHOUSDT", "XPINUSDT", "YALAUSDT", "ZECUSDT", "ZKJUSDT"
-    ].map(s => s.toUpperCase().trim());
+<script>
+(async () => {
+  // --- Utils ---
+  function fmtPct(p){ return (p >= 0 ? '+' : '') + p.toFixed(3) + '%'; }
+  function clsPct(p){ return 'pct ' + (p > 0 ? 'up' : (p < 0 ? 'down' : 'zero')); }
+  function pad(n){ return String(n).padStart(2,'0'); }
 
-    // --- Nouvelles dates (heure Bruxelles) ---
-    const points = [
-      { label:"9/10 21:45", y:2025, m:10, d:9, h:21, min:45 },
-      { label:"10/10 23:00", y:2025, m:10, d:10, h:23, min:0 },
-      { label:"21/10 19:45", y:2025, m:10, d:21, h:19, min:45 },
-      { label:"26/10 23:45", y:2025, m:10, d:26, h:23, min:45 },
-      { label:"05/11 21:45", y:2025, m:11, d:5, h:21, min:45 },
-      { label:"09/11 23:30", y:2025, m:11, d:9, h:23, min:30 },
+  function tzOffsetMsAt(date, tz) {
+    const dtf = new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false
+    });
+    const parts = dtf.formatToParts(date);
+    const map = {};
+    for (const p of parts) map[p.type] = p.value;
+    const asUTC = Date.UTC(+map.year, +map.month-1, +map.day, +map.hour, +map.minute, +map.second);
+    return asUTC - date.getTime();
+  }
 
-    ];
+  function localToUtcMs(y, m, d, hh, mm, ss, ms, tz) {
+    const approxUtc = Date.UTC(y, m-1, d, hh, mm, ss, ms);
+    const offset = tzOffsetMsAt(new Date(approxUtc), tz);
+    return approxUtc - offset;
+  }
 
-    const theadRow = document.getElementById("thead-row");
-    const tbody = document.getElementById("tbody");
-    const totalRow = document.getElementById("total-row");
-    const progress = document.getElementById("progress");
+  // --- Paramètres globaux ---
+  const timeZone = "Europe/Brussels";
+  const windowMinutes = 30; // CHANGEMENT : timeframe 30 min
 
-    // En-têtes colonnes
-    for (const p of points) {
-      const th = document.createElement("th");
-      th.textContent = p.label;
-      theadRow.appendChild(th);
+  // Liste des symboles (inchangée)
+  const symbols = [
+        "1000WHYUSDT",
+  "BASUSDT",
+  "BROCCOLIF3BUSDT",
+  "GPSUSDT",
+  "LYNUSDT",
+  "MUSDT",
+  "OGUSDT",
+  "PAXGUSDT",
+  "SOONUSDT",
+  "TWTUSDT",
+  "XMRUSDT"
+  ];
+
+  // --- Dates & heures (SEULEMENT celles demandées) ---
+  const rawTargets = [
+    { y:2025, m:10, d:9,  h:10, min:0 },  // 09/10/2025 10:00
+    { y:2025, m:10, d:10, h:23, min:0 }   // 10/10/2025 23:00
+  ];
+
+  const targets = rawTargets.map(t => ({
+    ...t,
+    key: `${t.y}-${pad(t.m)}-${pad(t.d)}_${pad(t.h)}-${pad(t.min)}`,
+    label: `${pad(t.d)}/${pad(t.m)}/${t.y} ${pad(t.h)}:${pad(t.min)}`
+  }));
+
+  const targetsWithUtc = targets.map(t => {
+    const startUtc = localToUtcMs(t.y, t.m, t.d, t.h, t.min, 0, 0, timeZone);
+    const endUtc = startUtc + windowMinutes * 60 * 1000 - 1; // fenêtre 30 minutes
+    return { ...t, startUtc, endUtc };
+  });
+
+  // --- Header dynamique ---
+  (function renderHeaderMeta(){
+    const meta = document.getElementById('metaLine');
+    const df = new Intl.DateTimeFormat('fr-BE', {
+      timeZone,
+      day:'2-digit', month:'2-digit', year:'numeric'
+    });
+
+    const sorted = [...targetsWithUtc].sort((a,b) => a.startUtc - b.startUtc);
+    const startLabel = df.format(new Date(sorted[0].startUtc));
+    const endLabel   = df.format(new Date(sorted[sorted.length-1].startUtc));
+
+    const list = targetsWithUtc
+      .map(t => `<strong>${t.label}</strong>`)
+      .join(', ');
+
+    meta.innerHTML = `Période : <strong>${startLabel}</strong> → <strong>${endLabel}</strong> • Dates &amp; heures suivies : ${list} • Timeframe interne : <strong>1m → fenêtre ${windowMinutes} min</strong>`;
+  })();
+
+  // --- DOM ---
+  const grid = document.getElementById('grid');
+  const totalsBar = document.getElementById('total_variation');
+  const totalsSpikeMaxBar = document.getElementById('total_spike_max');
+  const totalsSpikeMinBar = document.getElementById('total_spike_min');
+
+  function buildCard(symbol) {
+    const card = document.createElement('div'); 
+    card.className = 'card';
+
+    const head = document.createElement('header');
+    const symEl = document.createElement('div'); 
+    symEl.className = 'symbol'; 
+    symEl.textContent = symbol;
+
+    const status = document.createElement('div'); 
+    status.className = 'status'; 
+    status.textContent = 'Chargement…';
+
+    head.appendChild(symEl); 
+    head.appendChild(status);
+
+    const wrap = document.createElement('div'); 
+    wrap.className = 'table-wrap';
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th>Date &amp; heure (Brussels)</th>
+        <th class="num">Variation (30 min)</th>
+        <th class="num">Spike max (mèche ↑)</th>
+        <th class="num">Spike min (mèche ↓)</th>
+      </tr>`;
+    const tbody = document.createElement('tbody');
+
+    // Lignes pour chaque date/heure
+    for (const t of targetsWithUtc) {
+      const tr = document.createElement('tr');
+
+      const tdTime = document.createElement('td');
+      tdTime.className = 'time';
+      tdTime.textContent = t.label;
+
+      const tdVar = document.createElement('td');
+      tdVar.className = 'pct zero';
+      tdVar.textContent = '—';
+      tdVar.dataset.target = `${t.key}:var`;
+
+      const tdSpikeUp = document.createElement('td');
+      tdSpikeUp.className = 'pct zero';
+      tdSpikeUp.textContent = '—';
+      tdSpikeUp.dataset.target = `${t.key}:su`;
+
+      const tdSpikeDn = document.createElement('td');
+      tdSpikeDn.className = 'pct zero';
+      tdSpikeDn.textContent = '—';
+      tdSpikeDn.dataset.target = `${t.key}:sd`;
+
+      tr.appendChild(tdTime);
+      tr.appendChild(tdVar);
+      tr.appendChild(tdSpikeUp);
+      tr.appendChild(tdSpikeDn);
+      tbody.appendChild(tr);
     }
 
-    // --------- Conversion Brussels -> UTC (DST OK) ----------
-    function tzOffsetMsAt(date, tz) {
-      const fmt = new Intl.DateTimeFormat('en-GB', {
-        timeZone: tz,
-        year:'numeric', month:'2-digit', day:'2-digit',
-        hour:'2-digit', minute:'2-digit', second:'2-digit',
-        hour12:false
-      });
-      const parts = Object.fromEntries(fmt.formatToParts(date).map(p => [p.type, p.value]));
-      const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
-      return asUTC - date.getTime();
-    }
-    function brusselsLocalToUtcMs(y, m, d, h, min) {
-      const approxUtc = Date.UTC(y, m - 1, d, h, min, 0, 0);
-      const offset = tzOffsetMsAt(new Date(approxUtc), 'Europe/Brussels');
-      return approxUtc - offset; // clé: on soustrait l'offset
-    }
+    table.appendChild(thead); 
+    table.appendChild(tbody);
+    wrap.appendChild(table);
 
-    const pointTimes = points.map(p => ({
-      label: p.label,
-      openTimeMs: brusselsLocalToUtcMs(p.y, p.m, p.d, p.h, p.min)
-    }));
+    const loading = document.createElement('div'); 
+    loading.className = 'loading'; 
+    loading.textContent = 'Requêtes klines 1m…';
 
-    // --------- Vérification des symboles PERP USDT-M ----------
-    async function fetchPerpSet(){
-      const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
-      if(!r.ok) throw new Error("exchangeInfo error");
-      const info = await r.json();
-      const valid = info.symbols
-        .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT" && s.status === "TRADING")
-        .map(s => s.symbol);
-      return new Set(valid);
+    card.appendChild(head); 
+    card.appendChild(wrap); 
+    card.appendChild(loading);
+    grid.appendChild(card);
+
+    return { card, statusEl: status, loadingEl: loading, tbody };
+  }
+
+  function pctChange(open, close) {
+    const o = Number(open), c = Number(close);
+    if (!isFinite(o) || o === 0 || !isFinite(c)) return null;
+    return ((c - o) / o) * 100;
+  }
+
+  function spikeMaxPct(open, highs) {
+    const o = Number(open);
+    if (!isFinite(o) || o === 0 || highs.length === 0) return null;
+    let maxH = -Infinity;
+    for (const h of highs) {
+      const v = Number(h);
+      if (isFinite(v) && v > maxH) maxH = v;
     }
+    if (!isFinite(maxH)) return null;
+    return ((maxH - o) / o) * 100;
+  }
 
-    // --------- Bougie 15m exacte ----------
-    async function fetchKlinePct(symbol, openTimeMs){
-      const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
-      const r = await fetch(url);
-      if(!r.ok) return null;
-      const data = await r.json();
-      if(!Array.isArray(data) || data.length === 0) return null;
-      const k = data[0]; // [ openTime, open, high, low, close, ... ]
-      if(+k[0] !== openTimeMs) return null; // pas la bougie exacte => ignore
-      const open = parseFloat(k[1]), close = parseFloat(k[4]);
-      if(!isFinite(open) || !isFinite(close) || open === 0) return null;
-      return (close - open) / open * 100;
+  function spikeMinPct(open, lows) {
+    const o = Number(open);
+    if (!isFinite(o) || o === 0 || lows.length === 0) return null;
+    let minL = Infinity;
+    for (const l of lows) {
+      const v = Number(l);
+      if (isFinite(v) && v < minL) minL = v;
     }
+    if (!isFinite(minL)) return null;
+    return ((minL - o) / o) * 100;
+  }
 
-    function fmtPct(v){
-      if(v == null) return `<span class="na">—</span>`;
-      const cls = v >= 0 ? "pos" : "neg";
-      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
-    }
-    function fmtTotal(v){
-      if(v == null) return `<span class="na">—</span>`;
-      const cls = v >= 0 ? "pos" : "neg";
-      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
-    }
-
-    async function main(){
-      progress.textContent = "Validation des symboles PERP USDT-M…";
-      const perpSet = await fetchPerpSet();
-
-      // Ligne des totaux
-      const totalCells = [];
-      for (let i=0;i<pointTimes.length;i++){
-        const td = document.createElement("td");
-        td.innerHTML = `<span class="na">—</span>`;
-        totalRow.appendChild(td);
-        totalCells.push(td);
+  async function fetchKlines1m(symbol, startUtc, endUtc) {
+    console.log(`Fetching ${symbol} from ${new Date(startUtc).toISOString()} to ${new Date(endUtc).toISOString()}`);
+    
+    // Essayer d'abord l'API Futures
+    try {
+      const futuresUrl = new URL('https://fapi.binance.com/fapi/v1/klines');
+      futuresUrl.searchParams.set('symbol', symbol);
+      futuresUrl.searchParams.set('interval', '1m'); // 1m interne
+      futuresUrl.searchParams.set('startTime', String(startUtc));
+      futuresUrl.searchParams.set('endTime', String(endUtc));
+      futuresUrl.searchParams.set('limit', '40'); // 30 min max ≈ 30 bougies, marge de sécurité
+      
+      const res = await fetch(futuresUrl.toString());
+      if (!res.ok) {
+        throw new Error(`Futures API returned ${res.status}`);
       }
-      const sums = new Array(pointTimes.length).fill(0);
-      const counts = new Array(pointTimes.length).fill(0);
-
-      let done = 0;
-      for(const sym of symbolsInput){
-        const tr = document.createElement("tr");
-        const tdSym = document.createElement("td");
-        tdSym.textContent = sym;
-        tr.appendChild(tdSym);
-
-        const tds = [];
-        for(let i=0;i<pointTimes.length;i++){
-          const td = document.createElement("td");
-          td.innerHTML = `<span class="warn">…</span>`;
-          tr.appendChild(td);
-          tds.push(td);
+      const data = await res.json();
+      console.log(`Futures API for ${symbol}:`, data.length, 'candles found');
+      
+      if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Futures.');
+      return data;
+    } catch (futuresError) {
+      console.warn(`Futures API failed for ${symbol}:`, futuresError.message);
+      
+      // Fallback sur l'API spot
+      try {
+        const spotUrl = new URL('https://api.binance.com/api/v3/klines');
+        spotUrl.searchParams.set('symbol', symbol);
+        spotUrl.searchParams.set('interval', '1m');
+        spotUrl.searchParams.set('startTime', String(startUtc));
+        spotUrl.searchParams.set('endTime', String(endUtc));
+        spotUrl.searchParams.set('limit', '40'); // idem pour 30 min
+        
+        const res = await fetch(spotUrl.toString());
+        if (!res.ok) {
+          throw new Error(`Spot API returned ${res.status}`);
         }
-        tbody.appendChild(tr);
+        const data = await res.json();
+        console.log(`Spot API for ${symbol}:`, data.length, 'candles found');
+        
+        if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Spot.');
+        return data;
+      } catch (spotError) {
+        console.error(`Both APIs failed for ${symbol}:`, spotError.message);
+        throw new Error(`Both Futures and Spot APIs failed: ${spotError.message}`);
+      }
+    }
+  }
 
-        if(!perpSet.has(sym)){
-          // Symbole inconnu en PERP USDT-M
-          for(let i=0;i<pointTimes.length;i++){
-            tds[i].innerHTML = `<span class="na">symbole inconnu</span>`;
+  // Préparation cartes
+  const cards = symbols.map(s => {
+    const built = buildCard(s);
+    const rowCells = {};
+    for (const t of targetsWithUtc) {
+      rowCells[`${t.key}:var`] = built.tbody.querySelector(`td[data-target="${t.key}:var"]`);
+      rowCells[`${t.key}:su`]  = built.tbody.querySelector(`td[data-target="${t.key}:su"]`);
+      rowCells[`${t.key}:sd`]  = built.tbody.querySelector(`td[data-target="${t.key}:sd"]`);
+    }
+    return { symbol: s, ...built, rowCells };
+  });
+
+  // Suivi des totaux par target
+  const totalsVar = new Map();       // key = target.key
+  const totalsSpikeMax = new Map();
+  const totalsSpikeMin = new Map();
+  
+  for (const t of targetsWithUtc) {
+    totalsVar.set(t.key, {sum:0, count:0});
+    totalsSpikeMax.set(t.key, {sum:0, count:0});
+    totalsSpikeMin.set(t.key, {sum:0, count:0});
+  }
+
+  // Récupération / calculs
+  await Promise.allSettled(cards.map(async (c) => {
+    c.statusEl.textContent = 'Chargement…';
+    c.loadingEl.textContent = 'Requêtes klines 1m…';
+    
+    try {
+      for (const t of targetsWithUtc) {
+        const { startUtc, endUtc, key } = t;
+        let kl;
+        
+        try {
+          kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
+        } catch (fetchError) {
+          console.warn(`Impossible de récupérer les données pour ${c.symbol} à ${t.label}:`, fetchError.message);
+          kl = [];
+        }
+
+        let pVar = null, pSu = null, pSd = null;
+
+        if (kl.length > 0) {
+          const first = kl[0];
+          const last  = kl[kl.length-1];
+          
+          // s'assurer que la première bougie correspond bien au début de la fenêtre 30 min
+          if (Number(first[0]) === startUtc) {
+            const open0 = first[1];
+            const closeLast = last[4];
+
+            const highs = kl.map(k => k[2]);
+            const lows  = kl.map(k => k[3]);
+
+            pVar = pctChange(open0, closeLast);
+            pSu  = spikeMaxPct(open0, highs);
+            pSd  = spikeMinPct(open0, lows);
+          } else {
+            console.log(`Données incomplètes pour ${c.symbol} à ${t.label}: première bougie ne correspond pas`);
           }
         } else {
-          // Remplir les variations
-          for(let i=0;i<pointTimes.length;i++){
-            try{
-              const pct = await fetchKlinePct(sym, pointTimes[i].openTimeMs);
-              tds[i].innerHTML = fmtPct(pct);
-              if(pct != null){ sums[i] += pct; counts[i]++; }
-            }catch{
-              tds[i].innerHTML = `<span class="na">—</span>`;
-            }
-            // petite pause pour ménager l'API
-            await new Promise(r=>setTimeout(r,80));
-          }
+          console.log(`Aucune donnée pour ${c.symbol} à ${t.label}`);
         }
 
-        done++;
-        if(done % 2 === 0) progress.textContent = `Progression : ${done}/${symbolsInput.length}`;
-      }
+        // Rendu cellules
+        const cVar = c.rowCells[`${key}:var`];
+        const cSu  = c.rowCells[`${key}:su`];
+        const cSd  = c.rowCells[`${key}:sd`];
 
-      // Totaux par date
-      for(let i=0;i<pointTimes.length;i++){
-        totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
-      }
+        if (pVar === null) { 
+          cVar.textContent = 'n/a'; 
+          cVar.className = 'pct zero'; 
+        } else { 
+          cVar.textContent = fmtPct(pVar); 
+          cVar.className = clsPct(pVar); 
+          const tv = totalsVar.get(key); 
+          tv.sum += pVar; 
+          tv.count += 1; 
+        }
 
-      progress.textContent = "Terminé ✅";
+        if (pSu === null) { 
+          cSu.textContent = 'n/a'; 
+          cSu.className = 'pct zero'; 
+        } else { 
+          cSu.textContent = fmtPct(pSu); 
+          cSu.className = clsPct(pSu); 
+          const tsu = totalsSpikeMax.get(key); 
+          tsu.sum += pSu; 
+          tsu.count += 1; 
+        }
+
+        if (pSd === null) { 
+          cSd.textContent = 'n/a'; 
+          cSd.className = 'pct zero'; 
+        } else { 
+          cSd.textContent = fmtPct(pSd); 
+          cSd.className = clsPct(pSd); 
+          const tsd = totalsSpikeMin.get(key); 
+          tsd.sum += pSd; 
+          tsd.count += 1; 
+        }
+      }
+      c.statusEl.textContent = 'OK';
+      c.loadingEl.textContent = 'Terminé.';
+    } catch (e) {
+      c.statusEl.textContent = 'Erreur';
+      c.loadingEl.className = 'error';
+      c.loadingEl.textContent = 'Échec: ' + (e?.message || e);
     }
+  }));
 
-    main().catch(e=>{
-      console.error(e);
-      progress.textContent = "Erreur : " + e.message;
-    });
-  </script>
+  // Affichage des totaux
+  function renderTotals(totalsMap, container) {
+    container.innerHTML = '';
+    for (const t of targetsWithUtc) {
+      const { key, label } = t;
+      const { sum, count } = totalsMap.get(key);
+      const badge = document.createElement('span');
+      badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
+      const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
+      badge.textContent = `${label} → ${txt}`;
+      container.appendChild(badge);
+    }
+  }
+
+  renderTotals(totalsVar, totalsBar);
+  renderTotals(totalsSpikeMax, totalsSpikeMaxBar);
+  renderTotals(totalsSpikeMin, totalsSpikeMinBar);
+
+  document.getElementById('reload').addEventListener('click', () => location.reload());
+})();
+</script>
 </body>
 </html>
