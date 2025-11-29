@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Listings — Jour n°20 (5m intraday) (Binance Futures USDT-M PERP)</title>
+  <title>Listings — Jour n°20 (30m intraday) (Binance Futures USDT-M PERP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; --ink:#111827;}
@@ -54,7 +54,7 @@
 </head>
 <body>
   <header>
-    <h1 id="h1">Listings en janvier • Jour n°<span id="nLabel">20</span> (5m intraday)</h1>
+    <h1 id="h1">Listings en janvier • Jour n°<span id="nLabel">20</span> (30m intraday)</h1>
     <div class="sub">Marché analysé : <b>Binance Futures — USDT-M PERP</b></div>
   </header>
 
@@ -88,7 +88,7 @@
     <!-- Carte d'alerte -->
     <div id="dupeCard" class="card dupe-card" style="display:none">
       <div class="dupe-title">
-        🚨 <span>Dates répétées avec la même polarité — Jour n°<span id="dupeN">—</span> (5m)</span>
+        🚨 <span>Dates répétées avec la même polarité — Jour n°<span id="dupeN">—</span> (30m)</span>
       </div>
       <div id="dupeContent"></div>
     </div>
@@ -100,10 +100,10 @@
         <thead>
           <tr>
             <th style="width:160px">Symbole</th>
-            <th style="width:230px">Date & heure (bougies 5m du jour N) (Europe/Brussels)</th>
-            <th style="width:150px">Taux de Variation de la bougie 5m</th>
-            <th style="width:230px">Date & heure (bougies 5m du jour N) &gt; 1 an après</th>
-            <th style="width:150px">Variation de la bougie 5m &gt; 1 an après</th>
+            <th style="width:230px">Date &amp; heure (bougies 30m du jour N) (Europe/Brussels)</th>
+            <th style="width:150px">Taux de Variation de la bougie 30m</th>
+            <th style="width:230px">Date &amp; heure (bougies 30m du jour N) &gt; 1 an après</th>
+            <th style="width:150px">Variation de la bougie 30m &gt; 1 an après</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -114,8 +114,8 @@
         1. On détecte les listings avec les <b>bougies daily (1d)</b> depuis <code>startTime=0</code>.<br>
         2. On garde les PERP dont le <b>jour de listing</b> (en Europe/Brussels) est dans le mois/année choisis.<br>
         3. <b>Jour n°<span id="hintN">20</span></b> = bougie daily n°<span id="hintN2">20</span> après le listing.<br>
-        4. Pour ce jour n°<span id="hintN3">20</span>, on récupère <b>toutes les bougies 5 minutes de la journée</b> et on affiche leur variation 5m.<br>
-        5. La carte 🚨 est basée sur les bougies 5m du jour N avec exactement deux contrats (x2).
+        4. Pour ce jour n°<span id="hintN3">20</span>, on récupère <b>toutes les bougies 30 minutes de la journée</b> et on affiche leur variation 30m.<br>
+        5. La carte 🚨 affiche, par mois, les heures (13:05, 14:10, …) qui apparaissent sur au moins 2 dates différentes avec la même polarité (en 30m).
       </div>
 
       <div id="candleDateBanner" class="candle-date-banner">—</div>
@@ -151,7 +151,6 @@
 
     // ====== Consts
     const dayMs = 24*60*60*1000;
-    // Base fixe pour la bannière (jour 20 = 09/10/2025 Europe/Brussels, comme ton ancien script)
     const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
     const ALLOWED_MONTHS = [0,5,8]; // Jan, Jun, Sep
 
@@ -161,12 +160,12 @@
     // ====== Caches
     const CACHE = {
       symbols: null,
-      daily100: new Map(),      // sym -> 1d klines depuis startTime=0
-      monthRows: new Map(),     // `${Y}-${M}` -> [{sym, openTime1, daily}]
-      dailyComputed: new Map(), // `${Y}-${M}-${N}` -> rows daily (pour la carte)
-      fiveMByDay: new Map(),    // `${sym}-${openTimeN}` -> klines 5m pour ce jour N
-      fiveMComputed: new Map(), // `${Y}-${M}-${N}` -> rows détaillées 5m (pour tableau)
-      fiveMByDayPlusOneYear: new Map(), // `${sym}-${openTimeNPlusOneYear}` -> klines 5m pour le jour N +1 an
+      daily100: new Map(),
+      monthRows: new Map(),
+      dailyComputed: new Map(),
+      fiveMByDay: new Map(),
+      fiveMComputed: new Map(),
+      fiveMByDayPlusOneYear: new Map(),
     };
 
     const keyMonth       = (Y,M)=>`${Y}-${M}`;
@@ -223,7 +222,7 @@
       day:'2-digit'
     }).format(new Date(ms));
 
-    const dateKeyHuman    = (ms)=> new Intl.DateTimeFormat('fr-BE',{
+    const dateKeyHuman = (ms)=> new Intl.DateTimeFormat('fr-BE',{
       timeZone:tz,
       year:'2-digit',
       month:'2-digit',
@@ -267,7 +266,7 @@
       return CACHE.symbols;
     }
 
-    // ====== Daily klines (détection listing)
+    // ====== Daily klines
     async function getDaily100(sym){
       if (CACHE.daily100.has(sym)) return CACHE.daily100.get(sym);
       const u=new URL('https://fapi.binance.com/fapi/v1/klines');
@@ -280,15 +279,15 @@
       return kl||[];
     }
 
-    // ====== 5m klines pour un jour N (start = openTimeN, end = openTimeN + 24h)
+    // ====== 30m klines jour N
     async function getFiveMForDay(sym, openTimeN){
       const key = `${sym}-${openTimeN}`;
       if (CACHE.fiveMByDay.has(key)) return CACHE.fiveMByDay.get(key);
       const end = openTimeN + dayMs;
       const u=new URL('https://fapi.binance.com/fapi/v1/klines');
       u.searchParams.set('symbol',sym);
-      u.searchParams.set('interval','5m');
-      u.searchParams.set('limit','300'); // > 288 bougies de 5m / jour
+      u.searchParams.set('interval','30m');
+      u.searchParams.set('limit','300');
       u.searchParams.set('startTime', String(openTimeN));
       u.searchParams.set('endTime',   String(end));
       const kl = await fetchJSON(u.toString());
@@ -296,14 +295,14 @@
       return kl||[];
     }
 
-    // ====== 5m klines pour un jour N +1 an
+    // ====== 30m klines jour N + 1 an
     async function getFiveMForDayPlusOneYear(sym, openTimeNPlusOneYear){
       const key = `${sym}-${openTimeNPlusOneYear}`;
       if (CACHE.fiveMByDayPlusOneYear.has(key)) return CACHE.fiveMByDayPlusOneYear.get(key);
       const end = openTimeNPlusOneYear + dayMs;
       const u=new URL('https://fapi.binance.com/fapi/v1/klines');
       u.searchParams.set('symbol',sym);
-      u.searchParams.set('interval','5m');
+      u.searchParams.set('interval','30m');
       u.searchParams.set('limit','300');
       u.searchParams.set('startTime', String(openTimeNPlusOneYear));
       u.searchParams.set('endTime',   String(end));
@@ -312,7 +311,7 @@
       return kl||[];
     }
 
-    // ====== Préparation du mois : détecte les listings (en daily)
+    // ====== Préparation du mois (daily)
     async function warmMonth(Y,M){
       const k = keyMonth(Y,M);
       if (CACHE.monthRows.has(k)) return CACHE.monthRows.get(k);
@@ -325,7 +324,7 @@
         try{
           const kl100 = await getDaily100(sym);
           if(!kl100.length) return null;
-          const openTime1 = kl100[0][0]; // 1ère daily = jour de listing
+          const openTime1 = kl100[0][0];
           const {y,m} = monthYearInBrussels(openTime1);
           if (y!==Y || m!==M) return null;
           return { sym, openTime1, daily: kl100 };
@@ -339,7 +338,7 @@
       return kept;
     }
 
-    // ====== Lignes daily pour un jour N
+    // ====== Lignes daily pour jour N
     async function computeDailyRows(Y,M,N){
       const kc = keyDailyKey(Y,M,N);
       if (CACHE.dailyComputed.has(kc)) return CACHE.dailyComputed.get(kc);
@@ -379,7 +378,7 @@
       return rows;
     }
 
-    // ====== Lignes détaillées 5m pour le jour N (pour le tableau)
+    // ====== Lignes 30m pour jour N
     async function computeFiveMRows(Y,M,N){
       const kc = keyFiveMKey(Y,M,N);
       if (CACHE.fiveMComputed.has(kc)) return CACHE.fiveMComputed.get(kc);
@@ -396,18 +395,16 @@
         if (!dr.openTimeN) return;
         try{
           const kl5 = await getFiveMForDay(dr.sym, dr.openTimeN);
-          const openTimeNPlusOneYear = plusThanOneYear(dr.openTimeN); // basé sur le jour N daily
+          const openTimeNPlusOneYear = plusThanOneYear(dr.openTimeN);
           const kl5PlusOneYear = await getFiveMForDayPlusOneYear(dr.sym, openTimeNPlusOneYear);
 
-          // Bougies 5m du jour N
           (kl5||[]).forEach(k=>{
             const openTime5m = k[0];
-            if (openTime5m >= dr.openTimeN + dayMs) return; // reste dans la journée
+            if (openTime5m >= dr.openTimeN + dayMs) return;
             const o = parseFloat(k[1]);
             const c = parseFloat(k[4]);
             const pct = o>0 ? ((c-o)/o*100) : 0;
 
-            // Bougie 5m correspondante +1 an (même heure/minute UTC)
             const fiveMPlusOneYear = (kl5PlusOneYear||[]).find(k2 => {
               const date1 = new Date(openTime5m);
               const date2 = new Date(k2[0]);
@@ -452,21 +449,21 @@
       tbody.innerHTML='';
       if(!rows.length){
         tbody.innerHTML = `<tr><td colspan="5" class="muted">Aucun nouveau PERP USDT-M listé pour les critères choisis.</td></tr>`;
-        return;
+      } else {
+        const frag = document.createDocumentFragment();
+        rows.forEach(r=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.sym}</td>
+            <td>${toBrusselsDate(r.openTime5m)}</td>
+            <td><span class="${r.pct5m>=0?'up':'down'}">${fmtPct(r.pct5m)}</span></td>
+            <td>${r.openTime5mPlusOneYear ? toBrusselsDate(r.openTime5mPlusOneYear) : '—'}</td>
+            <td>${r.pct5mPlusOneYear !== null ? `<span class="${r.pct5mPlusOneYear>=0?'up':'down'}">${fmtPct(r.pct5mPlusOneYear)}</span>` : '—'}</td>
+          `;
+          frag.appendChild(tr);
+        });
+        tbody.appendChild(frag);
       }
-      const frag = document.createDocumentFragment();
-      rows.forEach(r=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.sym}</td>
-          <td>${toBrusselsDate(r.openTime5m)}</td>
-          <td><span class="${r.pct5m>=0?'up':'down'}">${fmtPct(r.pct5m)}</span></td>
-          <td>${r.openTime5mPlusOneYear ? toBrusselsDate(r.openTime5mPlusOneYear) : '—'}</td>
-          <td>${r.pct5mPlusOneYear !== null ? `<span class="${r.pct5mPlusOneYear>=0?'up':'down'}">${fmtPct(r.pct5mPlusOneYear)}</span>` : '—'}</td>
-        `;
-        frag.appendChild(tr);
-      });
-      tbody.appendChild(frag);
     }
 
     function updateBannerOnly(){
@@ -493,22 +490,24 @@
       if (hintN)  hintN.textContent  = n;
       if (hintN2) hintN2.textContent = n;
       if (hintN3) hintN3.textContent = n;
-      document.title = `Listings — Jour n°${n} (5m intraday) (Binance Futures USDT-M PERP)`;
+      document.title = `Listings — Jour n°${n} (30m intraday) (Binance Futures USDT-M PERP)`;
       updateNCalendar();
       updateBannerOnly();
     }
 
-    // ====== Dupe card (basée sur 5m, uniquement x2)
+    // ====== Dupe card : heures récurrentes (même polarité, ≥ 2 dates)
     async function updateDupeCard(){
       const Y = parseInt(yearSel.value,10);
       const N = parseInt(candleSel.value,10);
       dupeN.textContent = N;
 
-      // prépare les mois autorisés
+      // Préparer les mois (janvier, juin, septembre)
       await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
       
-      const monthNamesShort = ['Janv','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sept','Oct','Nov','Déc'];
-      const monthNamesLong = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+      const monthNamesLong = [
+        'janvier','février','mars','avril','mai','juin',
+        'juillet','août','septembre','octobre','novembre','décembre'
+      ];
 
       const report = [];
 
@@ -516,117 +515,149 @@
         const fiveMRows = await computeFiveMRows(Y, M, N);
         if (!fiveMRows.length) continue;
 
-        // Regrouper par date + heure (Brussels) + polarité
-        const mapDates = new Map(); // dateKey -> {heure -> {pos:[], neg:[]}}
-        
+        // mapTimes : "13:05" -> { pos:Map(dateStr -> Set(symbols)), neg:Map(dateStr -> Set(symbols)) }
+        const mapTimes = new Map();
+
         fiveMRows.forEach(row => {
           if (row.pct5m === null) return;
-          
-          const dateKey = dateKeyBrussels(row.openTime5m);
 
           const d = new Date(row.openTime5m);
-          const hm = d.getUTCHours().toString().padStart(2,'0') + ':' +
-                     d.getUTCMinutes().toString().padStart(2,'0');
-          
-          if (!mapDates.has(dateKey)) {
-            mapDates.set(dateKey, new Map());
+
+          // Heure/minute en Europe/Brussels (ex "13:05")
+          const hm = new Intl.DateTimeFormat('fr-BE',{
+            timeZone: tz,
+            hour:'2-digit',
+            minute:'2-digit',
+            hour12:false
+          }).format(d);
+
+          // Date en 06/02/24, 13/02/24, etc.
+          const dateStr = dateKeyHuman(row.openTime5m);
+
+          if (!mapTimes.has(hm)) {
+            mapTimes.set(hm, { 
+              pos: new Map(),  // Map: dateStr -> Set(symbols)
+              neg: new Map()   // Map: dateStr -> Set(symbols)
+            });
           }
-          const hourMap = mapDates.get(dateKey);
-          
-          if (!hourMap.has(hm)) {
-            hourMap.set(hm, { pos: [], neg: [] });
+          const bag = mapTimes.get(hm);
+
+          if (row.pct5m > 0) {
+            if (!bag.pos.has(dateStr)) bag.pos.set(dateStr, new Set());
+            bag.pos.get(dateStr).add(row.sym);
+          } else if (row.pct5m < 0) {
+            if (!bag.neg.has(dateStr)) bag.neg.set(dateStr, new Set());
+            bag.neg.get(dateStr).add(row.sym);
           }
-          
-          const bag = hourMap.get(hm);
-          (row.pct5m > 0 ? bag.pos : bag.neg).push({ 
-            sym: row.sym, 
-            pct: row.pct5m, 
-            ms: row.openTime5m,
-            hourMin: hm
-          });
         });
 
-        // On garde UNIQUEMENT les cas avec EXACTEMENT 2 symboles (x2)
         const dupes = [];
-        
-        for (const [dateKey, hourMap] of mapDates.entries()) {
-          for (const [hourMin, bag] of hourMap.entries()) {
 
-            // Haussière x2
-            if (bag.pos.length === 2) {
-              dupes.push({
-                human: dateKeyHuman(new Date(dateKey + 'T00:00:00').getTime()),
-                hourMin: hourMin,
-                sign: 'positive',
-                count: 2,
-                list: bag.pos
-              });
-            }
+        // Règle dans chaque mois :
+        // - au moins 2 dates pour UNE polarité
+        // - et 0 date pour l'autre polarité
+        for (const [hm, bag] of mapTimes.entries()) {
+          const posDates = [...bag.pos.keys()];
+          const negDates = [...bag.neg.keys()];
 
-            // Baissière x2
-            if (bag.neg.length === 2) {
-              dupes.push({
-                human: dateKeyHuman(new Date(dateKey + 'T00:00:00').getTime()),
-                hourMin: hourMin,
-                sign: 'negative',
-                count: 2,
-                list: bag.neg
-              });
-            }
+          // Uniquement haussière (>=2 dates, aucune baissière)
+          if (posDates.length >= 2 && negDates.length === 0) {
+            const dateSymbols = posDates.map(dateStr => ({
+              date: dateStr,
+              symbols: [...bag.pos.get(dateStr)]
+            }));
+            
+            dateSymbols.sort((a, b) => {
+              const [dayA, monthA, yearA] = a.date.split('/').map(Number);
+              const [dayB, monthB, yearB] = b.date.split('/').map(Number);
+              const dateA = new Date(2000 + yearA, monthA - 1, dayA);
+              const dateB = new Date(2000 + yearB, monthB - 1, dayB);
+              return dateA - dateB;
+            });
+
+            dupes.push({
+              hourMin: hm,
+              sign: 'positive',
+              dateSymbols: dateSymbols
+            });
+          }
+          // Uniquement baissière (>=2 dates, aucune haussière)
+          else if (negDates.length >= 2 && posDates.length === 0) {
+            const dateSymbols = negDates.map(dateStr => ({
+              date: dateStr,
+              symbols: [...bag.neg.get(dateStr)]
+            }));
+            
+            dateSymbols.sort((a, b) => {
+              const [dayA, monthA, yearA] = a.date.split('/').map(Number);
+              const [dayB, monthB, yearB] = b.date.split('/').map(Number);
+              const dateA = new Date(2000 + yearA, monthA - 1, dayA);
+              const dateB = new Date(2000 + yearB, monthB - 1, dayB);
+              return dateA - dateB;
+            });
+
+            dupes.push({
+              hourMin: hm,
+              sign: 'negative',
+              dateSymbols: dateSymbols
+            });
           }
         }
 
-        // Trier par date puis par heure
-        dupes.sort((a, b) => {
-          if (a.human !== b.human) return a.human.localeCompare(b.human);
-          return a.hourMin.localeCompare(b.hourMin);
-        });
+        dupes.sort((a,b)=> a.hourMin.localeCompare(b.hourMin));
 
-        report.push({ 
-          month: M, 
+        report.push({
+          month: M,
           monthLabel: monthNamesLong[M],
-          monthShort: monthNamesShort[M],
-          dupes 
+          dupes
         });
       }
 
       dupeContent.innerHTML = '';
-      
-      if (report.every(r => r.dupes.length === 0)) {
+
+      const hasAnyHour = report.some(block => block.dupes && block.dupes.length > 0);
+      if (!hasAnyHour) {
         dupeCard.style.display = 'none';
         return;
       }
 
-      // Affichage des pastilles (uniquement x2)
       report.forEach(block => {
-        if (block.dupes.length === 0) return;
-        
+        if (!block.dupes || !block.dupes.length) return;
+
         const div = document.createElement('div');
         div.className = 'dupe-month';
         div.innerHTML = `<h4>${block.monthLabel}</h4>`;
         const wrap = document.createElement('div');
-        
+
+        let displayedCount = 0;
+
         block.dupes.forEach(d => {
-          const pill = document.createElement('span');
-          pill.className = `dupe-pill ${d.sign === 'positive' ? 'positive' : 'negative'}`;
-          const signTxt = d.sign === 'positive' ? 'Haussière' : 'Baissière';
-          const syms = d.list.map(x => x.sym).join(', ');
+          d.dateSymbols.forEach(dateSymbol => {
+            if (dateSymbol.symbols.length >= 2) {
+              const pill = document.createElement('span');
+              pill.className = `dupe-pill ${d.sign === 'positive' ? 'positive' : 'negative'}`;
+              
+              const symbolCount = dateSymbol.symbols.length;
+              const symbolText = dateSymbol.symbols.join(', ');
+              pill.textContent = `${dateSymbol.date} ${d.hourMin} • ${d.sign === 'positive' ? 'Haussière' : 'Baissière'} • x${symbolCount} ${symbolText}`;
+              pill.title = `${dateSymbol.date} ${d.hourMin} • ${d.sign === 'positive' ? 'Haussière' : 'Baissière'} • ${symbolCount} symboles`;
 
-          // pastille toujours "x2"
-          pill.innerHTML = `<b>${d.human} ${d.hourMin}</b> • ${signTxt} • x2<span class="muted" style="margin-left:6px">${syms}</span>`;
-          pill.title = `${d.list.length} symboles : ${syms}`;
-
-          wrap.appendChild(pill);
+              wrap.appendChild(pill);
+              displayedCount++;
+            }
+          });
         });
-        
-        div.appendChild(wrap);
-        dupeContent.appendChild(div);
+
+        if (displayedCount > 0) {
+          div.appendChild(wrap);
+          dupeContent.appendChild(div);
+        }
       });
-      
+
       dupeCard.style.display = 'block';
     }
 
-    // ====== Build & render courant (5m intraday)
+    // ====== Build & render courant
     async function buildAndRenderCurrent(Y,M,N){
       const rows5m = await computeFiveMRows(Y,M,N);
       if (rows5m.length){
@@ -663,11 +694,11 @@
         await warmMonth(Y,M);
         Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
 
-        statusEl.textContent = `Calcul local pour jour N=${N} (5m)…`;
+        statusEl.textContent = `Calcul local pour jour N=${N} (30m)…`;
         await buildAndRenderCurrent(Y,M,N);
         await updateDupeCard();
 
-        statusEl.textContent = `Terminé (cache) — ${lastRows.length} bougie(s) 5m • Jour n°${N} • ${String(M+1).padStart(2,'0')}/${Y}`;
+        statusEl.textContent = `Terminé (cache) — ${lastRows.length} bougie(s) 30m • Jour n°${N} • ${String(M+1).padStart(2,'0')}/${Y}`;
       }catch(e){
         console.error(e);
         errEl.textContent='Erreur: '+e.message;
@@ -709,7 +740,7 @@
         statusEl.textContent = 'Recalcul rapide depuis le cache…';
         await buildAndRenderCurrent(Y,M,N);
         await updateDupeCard();
-        statusEl.textContent = `OK (cache) • ${lastRows.length} bougie(s) 5m`;
+        statusEl.textContent = `OK (cache) • ${lastRows.length} bougie(s) 30m`;
       }else{
         statusEl.textContent = 'Paramètres modifiés — cliquez sur Run (premier chargement seulement)';
       }
@@ -768,7 +799,7 @@
     const h1 = document.getElementById('h1');
     const monthNames = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
     const updateHeader = () => {
-      h1.innerHTML = `Listings en ${monthNames[+monthSel.value]} • Jour n°<span id="nLabel">${candleSel.value}</span> (5m intraday)`;
+      h1.innerHTML = `Listings en ${monthNames[+monthSel.value]} • Jour n°<span id="nLabel">${candleSel.value}</span> (30m intraday)`;
     };
     monthSel.addEventListener('change', updateHeader);
     candleSel.addEventListener('change', updateHeader);

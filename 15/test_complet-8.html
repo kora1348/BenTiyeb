@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Variations 15m — Binance Futures USDT-M (PERP)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; }
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    header{padding:18px;border-bottom:1px solid var(--border)}
+    h1{margin:0;font-size:18px}
+    .sub{color:var(--muted);font-size:13px;line-height:1.4;margin-top:6px}
+    .wrap{padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border-bottom:1px solid var(--border);padding:8px 10px;white-space:nowrap}
+    th{position:sticky;top:0;background:var(--card);text-align:left}
+    tfoot td{font-weight:700;border-top:1px solid var(--border)}
+    .pos{color:var(--ok);font-variant-numeric:tabular-nums}
+    .neg{color:var(--bad);font-variant-numeric:tabular-nums}
+    .na{color:var(--muted)}
+    .warn{color:var(--warn)}
+    .controls{margin-top:8px}
+    .btn{display:inline-block;background:#2563eb;color:#fff;text-decoration:none;border:0;border-radius:10px;padding:8px 12px;font-size:13px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Variation 15m — PERP USDT (Binance Futures)</h1>
+    <div class="sub">
+      09/10/2025 21:45 • 10/10/2025 23:00 • 11/10/2025 23:45 • 13/10/2025 23:45 (Europe/Brussels)
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
+        Calcul = (Close − Open) / Open × 100 sur la bougie 15m à l'heure indiquée (Europe/Brussels).
+        La ligne « Total (∑) » additionne les variations (%) des symboles disponibles pour chaque date (valeurs manquantes ignorées).
+      </p>
+
+      <div class="controls">
+        <a class="btn" href="/index.html">Accueil</a>
+        <button id="reload" class="btn" type="button">Recharger</button>
+      </div>
+
+      <table id="table">
+        <thead>
+          <tr id="thead-row">
+            <th>Symbole</th>
+            <!-- colonnes de dates injectées ici -->
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot>
+          <tr id="total-row">
+            <td>Total (∑)</td>
+            <!-- totaux par date injectés ici -->
+          </tr>
+        </tfoot>
+      </table>
+
+      <p id="progress" class="warn">Préparation…</p>
+    </div>
+  </div>
+
+  <script>
+    const BASE = "https://fapi.binance.com";
+    const INTERVAL = "15m";
+    const MAX_CONCURRENCY = 8; // limiteur anti rate-limit
+
+    // --- NOUVEAUX Timestamps demandés (heure locale Brussels) ---
+    const points = [
+      { label:"09/10 21:45", y:2025, m:10, d:9,  h:21, min:45 },
+      { label:"10/10 23:00", y:2025, m:10, d:10, h:23, min:0  },
+      { label:"11/10 23:45", y:2025, m:10, d:11, h:23, min:45 },
+      { label:"13/10 23:45", y:2025, m:10, d:13, h:23, min:45 }
+    ];
+
+    const theadRow = document.getElementById("thead-row");
+    const tbody = document.getElementById("tbody");
+    const totalRow = document.getElementById("total-row");
+    const progress = document.getElementById("progress");
+
+    // Injecte les colonnes d'en-tête
+    for (const p of points) {
+      const th = document.createElement("th");
+      th.textContent = p.label;
+      theadRow.appendChild(th);
+    }
+
+    // --------- Conversion Brussels -> UTC (DST OK) ----------
+    function tzOffsetMsAt(date, tz) {
+      const fmt = new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz,
+        year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit',
+        hour12:false
+      });
+      const parts = Object.fromEntries(fmt.formatToParts(date).map(p => [p.type, p.value]));
+      const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+      return asUTC - date.getTime();
+    }
+    function brusselsLocalToUtcMs(y, m, d, h, min) {
+      const approxUtc = Date.UTC(y, m - 1, d, h, min, 0, 0);
+      const offset = tzOffsetMsAt(new Date(approxUtc), 'Europe/Brussels');
+      return approxUtc - offset; // clé: on soustrait l'offset
+    }
+
+    const pointTimes = points.map(p => ({
+      label: p.label,
+      openTimeMs: brusselsLocalToUtcMs(p.y, p.m, p.d, p.h, p.min)
+    }));
+
+    // --------- Récupère tous les symboles PERP USDT-M TRADING ----------
+    async function getAllPerpUsdtSymbols(){
+      const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
+      if(!r.ok) throw new Error("exchangeInfo error");
+      const info = await r.json();
+      return info.symbols
+        .filter(s => s.contractType === "PERPETUAL" && s.quoteAsset === "USDT" && s.status === "TRADING")
+        .map(s => s.symbol)
+        .sort();
+    }
+
+    // --------- Récupère la variation de LA bougie 15m exacte ----------
+    async function fetchKlinePct(symbol, openTimeMs){
+      // on demande startTime exactement sur l'ouverture de bougie
+      const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
+      const r = await fetch(url);
+      if(!r.ok) return null;
+      const data = await r.json();
+      if(!Array.isArray(data) || data.length === 0) return null;
+      const k = data[0];               // [ openTime, open, high, low, close, ... ]
+      if(+k[0] !== openTimeMs) return null; // si ce n'est pas la bougie exacte, on ignore
+      const open = parseFloat(k[1]), close = parseFloat(k[4]);
+      if(!isFinite(open) || !isFinite(close) || open === 0) return null;
+      return (close - open) / open * 100;
+    }
+
+    function fmtPct(v){
+      if(v == null) return `<span class="na">—</span>`;
+      const cls = v >= 0 ? "pos" : "neg";
+      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
+    }
+    function fmtTotal(v){
+      if(v == null) return `<span class="na">—</span>`;
+      const cls = v >= 0 ? "pos" : "neg";
+      return `<span class="${cls}">${v.toFixed(2)}%</span>`;
+    }
+
+    // --------- Limiteur de concurrence (anti rate-limit) ----------
+    async function mapWithConcurrency(items, fn, concurrency){
+      const results = new Array(items.length);
+      let i = 0, active = 0, done = 0;
+      return new Promise(resolve => {
+        const next = () => {
+          while(active < concurrency && i < items.length){
+            const idx = i++, item = items[idx]; active++;
+            Promise.resolve(fn(item, idx))
+              .then(res => results[idx] = res)
+              .catch(() => results[idx] = null)
+              .finally(() => {
+                active--; done++;
+                if(done % 10 === 0) progress.textContent = `Progression : ${done}/${items.length}`;
+                if(done === items.length) resolve(results);
+                else next();
+              });
+          }
+        };
+        next();
+      });
+    }
+
+    async function main(){
+      progress.textContent = "Récupération des symboles PERP USDT…";
+      const symbols = await getAllPerpUsdtSymbols();
+
+      // Ligne des totaux (une cellule par date)
+      const totalCells = [];
+      for (let i=0;i<pointTimes.length;i++){
+        const td = document.createElement("td");
+        td.innerHTML = `<span class="na">—</span>`;
+        totalRow.appendChild(td);
+        totalCells.push(td);
+      }
+      const sums = new Array(pointTimes.length).fill(0);
+      const counts = new Array(pointTimes.length).fill(0);
+
+      // Pré-construire les lignes (une par symbole)
+      const rows = new Map();
+      for(const s of symbols){
+        const tr = document.createElement("tr");
+        const tdSym = document.createElement("td");
+        tdSym.textContent = s;
+        tr.appendChild(tdSym);
+        for(let i=0;i<pointTimes.length;i++){
+          const td = document.createElement("td");
+          td.innerHTML = `<span class="warn">…</span>`;
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+        rows.set(s, tr);
+      }
+
+      // Remplit les valeurs avec limiteur
+      await mapWithConcurrency(symbols, async (symbol) => {
+        const tr = rows.get(symbol);
+        for(let i=0;i<pointTimes.length;i++){
+          try{
+            const pct = await fetchKlinePct(symbol, pointTimes[i].openTimeMs);
+            tr.children[i+1].innerHTML = fmtPct(pct);
+            if(pct != null){ sums[i] += pct; counts[i]++; }
+          }catch{
+            tr.children[i+1].innerHTML = `<span class="na">—</span>`;
+          }
+          // mini pause entre colonnes du même symbole
+          await new Promise(r=>setTimeout(r,35));
+        }
+      }, MAX_CONCURRENCY);
+
+      // Totaux par date
+      for(let i=0;i<pointTimes.length;i++){
+        totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
+      }
+      progress.textContent = `Terminé ✅ (${symbols.length} symboles)`;
+    }
+
+    document.getElementById('reload').addEventListener('click', () => location.reload());
+
+    main().catch(e=>{
+      console.error(e);
+      progress.textContent = "Erreur : " + e.message;
+    });
+  </script>
+</body>
+</html>
