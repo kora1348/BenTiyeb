@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Multi-dates — 15 min</title>
+  <title>Multi-dates — 4h</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -72,7 +72,7 @@
 </head>
 <body>
   <header>
-    <h1>Variation 15 min — Europe/Brussels <span class="chip">Multi-dates + Spike max / min</span></h1>
+    <h1>Variation 4h — Europe/Brussels <span class="chip">Multi-dates + Spike max / min</span></h1>
     <div class="meta" id="metaLine">
       <!-- Injecté en JS : Période • Liste des dates • Timeframe -->
     </div>
@@ -129,22 +129,30 @@
 
   // --- Paramètres globaux ---
   const timeZone = "Europe/Brussels";
-  const windowMinutes = 15; // CHANGEMENT ICI : timeframe 15 min
+  const windowMinutes = 240; // timeframe 4h (4 × 60)
 
   // Liste des symboles (inchangée)
   const symbols = [
-       "0GUSDT", "A2ZUSDT", "AIAUSDT", "AIOTUSDT", "ALPINEUSDT", "ARKMUSDT", "ARKUSDT", "ARPAUSDT", 
-      "ASTERUSDT", "ASTRUSDT", "B3USDT", "BARDUSDT", "BASUSDT", "BCHUSDT", "BNBUSDT", "BRUSDT", 
-      "BTCUSDT", "CAKEUSDT", "CROSSUSDT", "DEEPUSDT", "DEXEUSDT", "DIAUSDT", "FHEUSDT", "FORMUSDT", 
-      "GRASSUSDT", "GUNUSDT", "IOTXUSDT", "LTCUSDT", "MBOXUSDT", "MIRAUSDT", "MUBARAKUSDT", "NOMUSDT", 
-      "ONTUSDT", "PLAYUSDT", "PONKEUSDT", "QUSDT", "RSRUSDT", "SKATEUSDT", "SOONUSDT", "SUIUSDT", 
-      "TANSSIUSDT", "TAOUSDT", "TOSHIUSDT", "TWTUSDT", "VTHOUSDT", "XPINUSDT", "YALAUSDT", "ZECUSDT", "ZKJUSDT"
+    "1000CHEEMSUSDT", "API3USDT", "BULLAUSDT", "SCRTUSDT", "WLDUSDT", "XVGUSDT"
   ];
 
-  // --- Dates & heures (SEULEMENT celles demandées) ---
+  // --- Dates & heures 4h demandées (Europe/Brussels, octobre 2025) ---
   const rawTargets = [
-         {  y:2025, m:10, d:9, h:21, min:45 },
-      { y:2025, m:10, d:10, h:23, min:0 },
+    { y:2025, m:10, d:7,  h:22, min:0 },
+    { y:2025, m:10, d:10, h:14, min:0 },
+    { y:2025, m:10, d:11, h:14, min:0 },
+    { y:2025, m:10, d:13, h:18, min:0 },
+    { y:2025, m:10, d:15, h:10, min:0 },
+    { y:2025, m:10, d:18, h:22, min:0 },
+    { y:2025, m:10, d:19, h:14, min:0 },
+    { y:2025, m:10, d:23, h:2,  min:0 },
+    { y:2025, m:10, d:24, h:2,  min:0 },
+    { y:2025, m:10, d:25, h:10, min:0 },
+    { y:2025, m:10, d:27, h:6,  min:0 },
+    { y:2025, m:10, d:28, h:2,  min:0 },
+    { y:2025, m:10, d:29, h:2,  min:0 },
+    { y:2025, m:10, d:30, h:5,  min:0 },
+    { y:2025, m:10, d:31, h:22, min:0 }
   ];
 
   const targets = rawTargets.map(t => ({
@@ -155,7 +163,7 @@
 
   const targetsWithUtc = targets.map(t => {
     const startUtc = localToUtcMs(t.y, t.m, t.d, t.h, t.min, 0, 0, timeZone);
-    const endUtc = startUtc + windowMinutes * 60 * 1000 - 1; // CHANGEMENT ICI : 15 minutes
+    const endUtc = startUtc + windowMinutes * 60 * 1000 - 1; // fenêtre 4h (en 1m)
     return { ...t, startUtc, endUtc };
   });
 
@@ -175,7 +183,7 @@
       .map(t => `<strong>${t.label}</strong>`)
       .join(', ');
 
-    meta.innerHTML = `Période : <strong>${startLabel}</strong> → <strong>${endLabel}</strong> • Dates &amp; heures suivies : ${list} • Timeframe interne : <strong>1m → fenêtre ${windowMinutes} min</strong>`;
+    meta.innerHTML = `Période : <strong>${startLabel}</strong> → <strong>${endLabel}</strong> • Dates &amp; heures suivies : ${list} • Timeframe interne : <strong>1m → fenêtre ${windowMinutes} min (4h)</strong>`;
   })();
 
   // --- DOM ---
@@ -208,7 +216,7 @@
     thead.innerHTML = `
       <tr>
         <th>Date &amp; heure (Brussels)</th>
-        <th class="num">Variation (15 min)</th>
+        <th class="num">Variation (4h)</th>
         <th class="num">Spike max (mèche ↑)</th>
         <th class="num">Spike min (mèche ↓)</th>
       </tr>`;
@@ -300,7 +308,7 @@
       futuresUrl.searchParams.set('interval', '1m'); // 1m interne
       futuresUrl.searchParams.set('startTime', String(startUtc));
       futuresUrl.searchParams.set('endTime', String(endUtc));
-      futuresUrl.searchParams.set('limit', '20'); // CHANGEMENT ICI : augmenté à 20 pour couvrir 15 min
+      futuresUrl.searchParams.set('limit', '300'); // couvre largement 4h (240 bougies 1m)
       
       const res = await fetch(futuresUrl.toString());
       if (!res.ok) {
@@ -321,7 +329,7 @@
         spotUrl.searchParams.set('interval', '1m');
         spotUrl.searchParams.set('startTime', String(startUtc));
         spotUrl.searchParams.set('endTime', String(endUtc));
-        spotUrl.searchParams.set('limit', '20'); // CHANGEMENT ICI : augmenté à 20 pour couvrir 15 min
+        spotUrl.searchParams.set('limit', '300');
         
         const res = await fetch(spotUrl.toString());
         if (!res.ok) {
@@ -352,7 +360,7 @@
   });
 
   // Suivi des totaux par target
-  const totalsVar = new Map();       // key = target.key
+  const totalsVar = new Map();       
   const totalsSpikeMax = new Map();
   const totalsSpikeMin = new Map();
   
@@ -385,7 +393,7 @@
           const first = kl[0];
           const last  = kl[kl.length-1];
           
-          // s'assurer que la première bougie correspond bien au début de la fenêtre 15 min
+          // s'assurer que la première bougie correspond bien au début de la fenêtre
           if (Number(first[0]) === startUtc) {
             const open0 = first[1];
             const closeLast = last[4];
