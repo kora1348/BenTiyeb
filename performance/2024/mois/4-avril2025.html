@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Multi-dates — 1M (Janvier 2024 & 2025)</title>
+  <title>Multi-dates — 1M (Avril 2024 & 2025)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -72,7 +72,7 @@
 </head>
 <body>
   <header>
-    <h1>Variation 1M — Janvier 2024 & 2025 <span class="chip">Filtre Δ ≥ +50% ou Δ ≤ −50%</span></h1>
+    <h1>Variation 1M — Avril 2024 & 2025 <span class="chip">Filtre basé sur avril 2024</span></h1>
     <div class="meta" id="metaLine">
       <!-- Injecté en JS : Périodes & Timeframe -->
     </div>
@@ -80,22 +80,23 @@
   </header>
 
   <div class="info-banner">
-    ⚠️ Seules les cryptos dont la variation mensuelle est ≥ +50% ou ≤ −50% pour au moins un des deux mois (janvier 2024 ou janvier 2025) sont affichées.
+    ⚠️ Seules les cryptos dont la variation mensuelle d'<strong>avril 2024</strong> est ≥ +50% ou ≤ −50% sont affichées.
+    Les valeurs d'avril 2025 sont montrées uniquement pour ces mêmes cryptos.
   </div>
 
   <div class="summary-cards">
     <div id="spike_max" class="summary-card">
-      <span class="title">TOTAL Spike max (mèche ↑) — uniquement mois &amp; cryptos avec variation ≥ +50% :</span>
+      <span class="title">TOTAL Spike max (mèche ↑) — cryptos avec Δ avril&nbsp;2024 ≥ +50% :</span>
       <div id="total_spike_max" class="total-badges"></div>
     </div>
     
     <div id="spike_min" class="summary-card">
-      <span class="title">TOTAL Spike min (mèche ↓) — uniquement mois &amp; cryptos avec variation ≤ −50% :</span>
+      <span class="title">TOTAL Spike min (mèche ↓) — cryptos avec Δ avril&nbsp;2024 ≤ −50% :</span>
       <div id="total_spike_min" class="total-badges"></div>
     </div>
     
     <div id="variation_negative" class="summary-card">
-      <span class="title">TOTAL (somme des variations, filtrées sur variation ≥ +50% ou ≤ −50%) :</span>
+      <span class="title">TOTAL (somme des variations, cryptos filtrées sur avril&nbsp;2024 ≥ +50% ou ≤ −50%) :</span>
       <div id="total_variation" class="total-badges"></div>
     </div>
   </div>
@@ -142,32 +143,31 @@
   // --- Paramètres globaux ---
 
   const symbols = [
-    "AIUSDT",
-    "ALTUSDT",
-    "JUPUSDT",
-    "LSKUSDT",
-    "MANTAUSDT",
-    "ONDOUSDT",
-    "WIFUSDT",
-    "XAIUSDT"
+    "AEVOUSDT",
+    "AXLUSDT",
+    "BOMEUSDT",
+    "ETHFIUSDT",
+    "METISUSDT",
+    "TONUSDT",
+    "VANRYUSDT",
   ];
 
   const periods = [
     {
-      key: "2024-01",
-      label: "Janvier 2024",
-      startUtc: Date.UTC(2024, 0, 1, 0, 0, 0, 0),
-      endUtc:   Date.UTC(2024, 1, 1, 0, 0, 0, 0) - 1
+      key: "2024-04",
+      label: "Avril 2024",
+      startUtc: Date.UTC(2024, 3, 1, 0, 0, 0, 0),   // 1er avril 2024
+      endUtc:   Date.UTC(2024, 4, 1, 0, 0, 0, 0) - 1 // jusqu'au 30 avril 2024
     },
     {
-      key: "2025-01",
-      label: "Janvier 2025",
-      startUtc: Date.UTC(2025, 0, 1, 0, 0, 0, 0),
-      endUtc:   Date.UTC(2025, 1, 1, 0, 0, 0, 0) - 1
+      key: "2025-04",
+      label: "Avril 2025",
+      startUtc: Date.UTC(2025, 3, 1, 0, 0, 0, 0),   // 1er avril 2025
+      endUtc:   Date.UTC(2025, 4, 1, 0, 0, 0, 0) - 1 // jusqu'au 30 avril 2025
     }
   ];
 
-  const VAR_THRESHOLD = 50; // seuil 50%
+  const VAR_THRESHOLD = 50; // seuil 50% (utilisé UNIQUEMENT sur avril 2024)
 
   // --- Header dynamique ---
   (function renderHeaderMeta(){
@@ -181,7 +181,7 @@
 
     const list = periods.map(p => `<strong>${p.label}</strong>`).join(', ');
 
-    meta.innerHTML = `Période globale : <strong>${startLabel}</strong> → <strong>${endLabel}</strong> • Périodes suivies : ${list} • Timeframe Binance : <strong>1M (bougies mensuelles)</strong> • Filtre : variation ≥ +50% ou ≤ −50%`;
+    meta.innerHTML = `Période globale : <strong>${startLabel}</strong> → <strong>${endLabel}</strong> • Périodes suivies : ${list} • Timeframe Binance : <strong>1M (bougies mensuelles)</strong> • Filtre appliqué uniquement sur <strong>avril 2024</strong> (Δ ≥ +50% ou Δ ≤ −50%)`;
   })();
 
   // --- DOM ---
@@ -329,14 +329,16 @@
     totalsSpikeMin.set(p.key, {sum:0, count:0});
   }
 
+  const APR_2024_KEY = "2024-04";
+
   await Promise.allSettled(cards.map(async (c) => {
     c.statusEl.textContent = 'Chargement…';
     c.loadingEl.textContent = 'Requêtes klines 1M (mensuelles)…';
     
-    let hasExtreme = false; 
     const perPeriodResults = {};
 
     try {
+      // 1. Récupérer toutes les périodes pour ce symbole
       for (const p of periods) {
         const { startUtc, endUtc, key } = p;
         let kl;
@@ -360,10 +362,6 @@
           pVar = pctChange(open, close);
           pSu  = spikeMaxPct(open, [high]);
           pSd  = spikeMinPct(open, [low]);
-
-          if (pVar !== null && (pVar >= VAR_THRESHOLD || pVar <= -VAR_THRESHOLD)) {
-            hasExtreme = true;
-          }
         } else {
           console.log(`Aucune bougie 1M pour ${c.symbol} sur ${p.label}`);
         }
@@ -371,12 +369,21 @@
         perPeriodResults[key] = { pVar, pSu, pSd };
       }
 
-      if (!hasExtreme) {
+      // 2. Filtre GLOBAL basé uniquement sur avril 2024
+      const apr2024 = perPeriodResults[APR_2024_KEY];
+      const aprVar = apr2024 ? apr2024.pVar : null;
+      const passesFilter = aprVar !== null && (aprVar >= VAR_THRESHOLD || aprVar <= -VAR_THRESHOLD);
+
+      if (!passesFilter) {
         c.card.style.display = 'none';
-        c.statusEl.textContent = 'Filtré (Δ entre -50% et +50%)';
-        c.loadingEl.textContent = 'Aucun mois avec variation ≥ +50% ou ≤ −50%.';
+        c.statusEl.textContent = 'Filtré (avril 2024 entre -50% et +50%)';
+        c.loadingEl.textContent = 'Aucune variation ≥ +50% ou ≤ −50% en avril 2024.';
         return;
       }
+
+      // 3. Si la crypto passe le filtre 2024, on affiche toutes les périodes
+      const aprIsPump = aprVar >= VAR_THRESHOLD;
+      const aprIsDump = aprVar <= -VAR_THRESHOLD;
 
       for (const p of periods) {
         const { key } = p;
@@ -386,6 +393,7 @@
         const cSu  = c.rowCells[`${key}:su`];
         const cSd  = c.rowCells[`${key}:sd`];
 
+        // Variation affichée telle quelle
         if (pVar === null) {
           cVar.textContent = 'n/a';
           cVar.className = 'pct zero';
@@ -393,46 +401,47 @@
           cVar.textContent = fmtPct(pVar);
           cVar.className = clsPct(pVar);
 
-          // TOTAL variation : on compte si Δ ≥ +50% OU Δ ≤ −50%
-          if (pVar >= VAR_THRESHOLD || pVar <= -VAR_THRESHOLD) {
-            const tv = totalsVar.get(key);
-            tv.sum += pVar;
-            tv.count += 1;
-          }
-
-          // TOTAL Spike max : uniquement si Δ ≥ +50%
-          if (pVar >= VAR_THRESHOLD && pSu !== null) {
-            const tsu = totalsSpikeMax.get(key);
-            tsu.sum += pSu;
-            tsu.count += 1;
-          }
-
-          // TOTAL Spike min : uniquement si Δ ≤ −50%
-          if (pVar <= -VAR_THRESHOLD && pSd !== null) {
-            const tsd = totalsSpikeMin.get(key);
-            tsd.sum += pSd;
-            tsd.count += 1;
-          }
+          // TOTAL variation : on additionne TOUTES les variations
+          // mais uniquement pour les cryptos qui ont passé le filtre sur avril 2024
+          const tv = totalsVar.get(key);
+          tv.sum += pVar;
+          tv.count += 1;
         }
 
+        // Spike max affiché
         if (pSu === null) {
           cSu.textContent = 'n/a';
           cSu.className = 'pct zero';
         } else {
           cSu.textContent = fmtPct(pSu);
           cSu.className = clsPct(pSu);
+
+          // TOTAL Spike max : uniquement si avril 2024 ≥ +50%
+          if (aprIsPump) {
+            const tsu = totalsSpikeMax.get(key);
+            tsu.sum += pSu;
+            tsu.count += 1;
+          }
         }
 
+        // Spike min affiché
         if (pSd === null) {
           cSd.textContent = 'n/a';
           cSd.className = 'pct zero';
         } else {
           cSd.textContent = fmtPct(pSd);
           cSd.className = clsPct(pSd);
+
+          // TOTAL Spike min : uniquement si avril 2024 ≤ −50%
+          if (aprIsDump) {
+            const tsd = totalsSpikeMin.get(key);
+            tsd.sum += pSd;
+            tsd.count += 1;
+          }
         }
       }
 
-      c.statusEl.textContent = 'OK (filtre Δ ≥ +50% ou ≤ −50%)';
+      c.statusEl.textContent = 'OK (filtre basé sur avril 2024)';
       c.loadingEl.textContent = 'Terminé.';
     } catch (e) {
       c.statusEl.textContent = 'Erreur';
