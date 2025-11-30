@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Multi-dates — 4h</title>
+  <title>Variation 1D — 15/10/2025 10:00 → 16/10/2025 09:59</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -66,36 +66,33 @@
     .loading,.error{padding:10px 12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
     .error{color:#fca5a5}
     .chip{font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#94a3b8;margin-left:8px}
-    .slots strong{font-weight:700}
     .info-banner{max-width:1200px;margin:0 auto 16px;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;color:#93c5fd;font-size:14px;}
   </style>
 </head>
 <body>
   <header>
-    <h1>Variation 4h — Europe/Brussels <span class="chip">Multi-dates + Spike max / min</span></h1>
-    <div class="meta" id="metaLine">
-      <!-- Injecté en JS : Période • Liste des dates • Timeframe -->
-    </div>
+    <h1>Variation 1D — Europe/Brussels <span class="chip">15/10/2025 10:00 → 16/10/2025 09:59</span></h1>
+    <div class="meta" id="metaLine"></div>
     <div class="controls"><button id="reload"><a href="/index.html">Accueil</a></button></div>
   </header>
 
   <div class="info-banner">
-    ⚠️ Les données "n/a" indiquent que le trading n'était pas actif à ces dates ou heures spécifiques
+    ⚠️ Les données "n/a" indiquent que le trading n'était pas actif sur toute la fenêtre 15/10/2025 10:00 → 16/10/2025 09:59 (Europe/Brussels)
   </div>
 
   <div class="summary-cards">
     <div id="spike_max" class="summary-card">
-      <span class="title">TOTAL Spike max (mèche ↑) par date &amp; heure :</span>
+      <span class="title">TOTAL Spike max (mèche ↑) — fenêtre 24h :</span>
       <div id="total_spike_max" class="total-badges"></div>
     </div>
     
     <div id="spike_min" class="summary-card">
-      <span class="title">TOTAL Spike min (mèche ↓) par date &amp; heure :</span>
+      <span class="title">TOTAL Spike min (mèche ↓) — fenêtre 24h :</span>
       <div id="total_spike_min" class="total-badges"></div>
     </div>
     
     <div id="variation_negative" class="summary-card">
-      <span class="title">TOTAL (somme des variations de tous les symboles) par date &amp; heure :</span>
+      <span class="title">TOTAL (somme des variations de tous les symboles) — fenêtre 24h :</span>
       <div id="total_variation" class="total-badges"></div>
     </div>
   </div>
@@ -129,61 +126,30 @@
 
   // --- Paramètres globaux ---
   const timeZone = "Europe/Brussels";
-  const windowMinutes = 240; // timeframe 4h (4 × 60)
+  const windowMinutes = 24 * 60; // 1D = 24h
 
-  // Liste des symboles (inchangée)
+  // Liste des symboles (à adapter si tu veux)
   const symbols = [
     "1000CHEEMSUSDT", "API3USDT", "BULLAUSDT", "SCRTUSDT", "WLDUSDT", "XVGUSDT"
   ];
 
-  // --- Nouvelles dates & heures 4h (Europe/Brussels, novembre 2025) ---
-  // 10/11/2025 14:00
-  // 12/11/2025 22:00
-  // 14/11/2025 18:00
-  // 17/11/2025 18:00
-  // 18/11/2025 06:00
-  const rawTargets = [
-    { y:2025, m:11, d:10, h:13, min:0 }, // 10/11/25 14:00
-    { y:2025, m:11, d:12, h:21, min:0 }, // 12/11/25 22:00
-    { y:2025, m:11, d:14, h:17, min:0 }, // 14/11/25 18:00
-    { y:2025, m:11, d:17, h:17, min:0 }, // 17/11/25 18:00
-    { y:2025, m:11, d:18, h:5,  min:0 }  // 18/11/25 06:00
-  ];
+  // Fenêtre unique : 15/10/2025 10:00 → 16/10/2025 09:59 (Heure Belgique)
+  const startUtc = localToUtcMs(2025, 10, 15, 10, 0, 0, 0, timeZone);
+  const endUtc   = startUtc + windowMinutes * 60 * 1000 - 1; // 24h en 1m
 
-  const targets = rawTargets.map(t => ({
-    ...t,
-    key: `${t.y}-${pad(t.m)}-${pad(t.d)}_${pad(t.h)}-${pad(t.min)}`,
-    label: `${pad(t.d)}/${pad(t.m)}/${t.y} ${pad(t.h)}:${pad(t.min)}`
-  }));
+  const labelStart = "15/10/2025 10:00";
+  const labelEnd   = "16/10/2025 09:59";
+  const labelInterval = `${labelStart} → ${labelEnd}`;
 
-  const targetsWithUtc = targets.map(t => {
-    const startUtc = localToUtcMs(t.y, t.m, t.d, t.h, t.min, 0, 0, timeZone);
-    const endUtc = startUtc + windowMinutes * 60 * 1000 - 1; // fenêtre 4h (en 1m)
-    return { ...t, startUtc, endUtc };
-  });
-
-  // --- Header dynamique ---
+  // Header dynamique
   (function renderHeaderMeta(){
     const meta = document.getElementById('metaLine');
-    const df = new Intl.DateTimeFormat('fr-BE', {
-      timeZone,
-      day:'2-digit', month:'2-digit', year:'numeric'
-    });
-
-    const sorted = [...targetsWithUtc].sort((a,b) => a.startUtc - b.startUtc);
-    const startLabel = df.format(new Date(sorted[0].startUtc));
-    const endLabel   = df.format(new Date(sorted[sorted.length-1].startUtc));
-
-    const list = targetsWithUtc
-      .map(t => `<strong>${t.label}</strong>`)
-      .join(', ');
-
-    meta.innerHTML = `Période : <strong>${startLabel}</strong> → <strong>${endLabel}</strong> • Dates &amp; heures suivies : ${list} • Timeframe interne : <strong>1m → fenêtre ${windowMinutes} min (4h)</strong>`;
+    meta.innerHTML = `Intervalle : <strong>${labelStart}</strong> → <strong>${labelEnd}</strong> • Timeframe interne : <strong>1m (fenêtre 24h)</strong> • Fuseau : <strong>${timeZone}</strong>`;
   })();
 
   // --- DOM ---
   const grid = document.getElementById('grid');
-  const totalsBar = document.getElementById('total_variation');
+  const totalsBar      = document.getElementById('total_variation');
   const totalsSpikeMaxBar = document.getElementById('total_spike_max');
   const totalsSpikeMinBar = document.getElementById('total_spike_min');
 
@@ -210,42 +176,36 @@
     const thead = document.createElement('thead');
     thead.innerHTML = `
       <tr>
-        <th>Date &amp; heure (Brussels)</th>
-        <th class="num">Variation (4h)</th>
+        <th>Période (Brussels)</th>
+        <th class="num">Variation (24h)</th>
         <th class="num">Spike max (mèche ↑)</th>
         <th class="num">Spike min (mèche ↓)</th>
       </tr>`;
     const tbody = document.createElement('tbody');
 
-    // Lignes pour chaque date/heure
-    for (const t of targetsWithUtc) {
-      const tr = document.createElement('tr');
+    const tr = document.createElement('tr');
 
-      const tdTime = document.createElement('td');
-      tdTime.className = 'time';
-      tdTime.textContent = t.label;
+    const tdTime = document.createElement('td');
+    tdTime.className = 'time';
+    tdTime.textContent = labelInterval;
 
-      const tdVar = document.createElement('td');
-      tdVar.className = 'pct zero';
-      tdVar.textContent = '—';
-      tdVar.dataset.target = `${t.key}:var`;
+    const tdVar = document.createElement('td');
+    tdVar.className = 'pct zero';
+    tdVar.textContent = '—';
 
-      const tdSpikeUp = document.createElement('td');
-      tdSpikeUp.className = 'pct zero';
-      tdSpikeUp.textContent = '—';
-      tdSpikeUp.dataset.target = `${t.key}:su`;
+    const tdSpikeUp = document.createElement('td');
+    tdSpikeUp.className = 'pct zero';
+    tdSpikeUp.textContent = '—';
 
-      const tdSpikeDn = document.createElement('td');
-      tdSpikeDn.className = 'pct zero';
-      tdSpikeDn.textContent = '—';
-      tdSpikeDn.dataset.target = `${t.key}:sd`;
+    const tdSpikeDn = document.createElement('td');
+    tdSpikeDn.className = 'pct zero';
+    tdSpikeDn.textContent = '—';
 
-      tr.appendChild(tdTime);
-      tr.appendChild(tdVar);
-      tr.appendChild(tdSpikeUp);
-      tr.appendChild(tdSpikeDn);
-      tbody.appendChild(tr);
-    }
+    tr.appendChild(tdTime);
+    tr.appendChild(tdVar);
+    tr.appendChild(tdSpikeUp);
+    tr.appendChild(tdSpikeDn);
+    tbody.appendChild(tr);
 
     table.appendChild(thead); 
     table.appendChild(tbody);
@@ -260,7 +220,7 @@
     card.appendChild(loading);
     grid.appendChild(card);
 
-    return { card, statusEl: status, loadingEl: loading, tbody };
+    return { card, statusEl: status, loadingEl: loading, tdVar, tdSpikeUp, tdSpikeDn };
   }
 
   function pctChange(open, close) {
@@ -303,7 +263,7 @@
       futuresUrl.searchParams.set('interval', '1m'); // 1m interne
       futuresUrl.searchParams.set('startTime', String(startUtc));
       futuresUrl.searchParams.set('endTime', String(endUtc));
-      futuresUrl.searchParams.set('limit', '300'); // couvre largement 4h (240 bougies 1m)
+      futuresUrl.searchParams.set('limit', '2000'); // couvre largement 24h (1440 bougies 1m)
       
       const res = await fetch(futuresUrl.toString());
       if (!res.ok) {
@@ -324,7 +284,7 @@
         spotUrl.searchParams.set('interval', '1m');
         spotUrl.searchParams.set('startTime', String(startUtc));
         spotUrl.searchParams.set('endTime', String(endUtc));
-        spotUrl.searchParams.set('limit', '300');
+        spotUrl.searchParams.set('limit', '2000');
         
         const res = await fetch(spotUrl.toString());
         if (!res.ok) {
@@ -343,27 +303,12 @@
   }
 
   // Préparation cartes
-  const cards = symbols.map(s => {
-    const built = buildCard(s);
-    const rowCells = {};
-    for (const t of targetsWithUtc) {
-      rowCells[`${t.key}:var`] = built.tbody.querySelector(`td[data-target="${t.key}:var"]`);
-      rowCells[`${t.key}:su`]  = built.tbody.querySelector(`td[data-target="${t.key}:su"]`);
-      rowCells[`${t.key}:sd`]  = built.tbody.querySelector(`td[data-target="${t.key}:sd"]`);
-    }
-    return { symbol: s, ...built, rowCells };
-  });
+  const cards = symbols.map(s => ({ symbol: s, ...buildCard(s) }));
 
-  // Suivi des totaux par target
-  const totalsVar = new Map();       
-  const totalsSpikeMax = new Map();
-  const totalsSpikeMin = new Map();
-  
-  for (const t of targetsWithUtc) {
-    totalsVar.set(t.key, {sum:0, count:0});
-    totalsSpikeMax.set(t.key, {sum:0, count:0});
-    totalsSpikeMin.set(t.key, {sum:0, count:0});
-  }
+  // Totaux sur la fenêtre 24h
+  const totalsVar      = { sum:0, count:0 };
+  const totalsSpikeMax = { sum:0, count:0 };
+  const totalsSpikeMin = { sum:0, count:0 };
 
   // Récupération / calculs
   await Promise.allSettled(cards.map(async (c) => {
@@ -371,79 +316,65 @@
     c.loadingEl.textContent = 'Requêtes klines 1m…';
     
     try {
-      for (const t of targetsWithUtc) {
-        const { startUtc, endUtc, key } = t;
-        let kl;
-        
-        try {
-          kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
-        } catch (fetchError) {
-          console.warn(`Impossible de récupérer les données pour ${c.symbol} à ${t.label}:`, fetchError.message);
-          kl = [];
-        }
-
-        let pVar = null, pSu = null, pSd = null;
-
-        if (kl.length > 0) {
-          const first = kl[0];
-          const last  = kl[kl.length-1];
-          
-          // s'assurer que la première bougie correspond bien au début de la fenêtre
-          if (Number(first[0]) === startUtc) {
-            const open0 = first[1];
-            const closeLast = last[4];
-
-            const highs = kl.map(k => k[2]);
-            const lows  = kl.map(k => k[3]);
-
-            pVar = pctChange(open0, closeLast);
-            pSu  = spikeMaxPct(open0, highs);
-            pSd  = spikeMinPct(open0, lows);
-          } else {
-            console.log(`Données incomplètes pour ${c.symbol} à ${t.label}: première bougie ne correspond pas`);
-          }
-        } else {
-          console.log(`Aucune donnée pour ${c.symbol} à ${t.label}`);
-        }
-
-        // Rendu cellules
-        const cVar = c.rowCells[`${key}:var`];
-        const cSu  = c.rowCells[`${key}:su`];
-        const cSd  = c.rowCells[`${key}:sd`];
-
-        if (pVar === null) { 
-          cVar.textContent = 'n/a'; 
-          cVar.className = 'pct zero'; 
-        } else { 
-          cVar.textContent = fmtPct(pVar); 
-          cVar.className = clsPct(pVar); 
-          const tv = totalsVar.get(key); 
-          tv.sum += pVar; 
-          tv.count += 1; 
-        }
-
-        if (pSu === null) { 
-          cSu.textContent = 'n/a'; 
-          cSu.className = 'pct zero'; 
-        } else { 
-          cSu.textContent = fmtPct(pSu); 
-          cSu.className = clsPct(pSu); 
-          const tsu = totalsSpikeMax.get(key); 
-          tsu.sum += pSu; 
-          tsu.count += 1; 
-        }
-
-        if (pSd === null) { 
-          cSd.textContent = 'n/a'; 
-          cSd.className = 'pct zero'; 
-        } else { 
-          cSd.textContent = fmtPct(pSd); 
-          cSd.className = clsPct(pSd); 
-          const tsd = totalsSpikeMin.get(key); 
-          tsd.sum += pSd; 
-          tsd.count += 1; 
-        }
+      let kl;
+      try {
+        kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
+      } catch (fetchError) {
+        console.warn(`Impossible de récupérer les données pour ${c.symbol}:`, fetchError.message);
+        kl = [];
       }
+
+      let pVar = null, pSu = null, pSd = null;
+
+      if (kl.length > 0) {
+        const first = kl[0];
+        const last  = kl[kl.length-1];
+
+        // idéalement la première bougie doit être proche du début de fenêtre
+        const open0 = first[1];
+        const closeLast = last[4];
+
+        const highs = kl.map(k => k[2]);
+        const lows  = kl.map(k => k[3]);
+
+        pVar = pctChange(open0, closeLast);
+        pSu  = spikeMaxPct(open0, highs);
+        pSd  = spikeMinPct(open0, lows);
+      } else {
+        console.log(`Aucune donnée pour ${c.symbol} sur la fenêtre 24h`);
+      }
+
+      // Rendu cellules
+      if (pVar === null) { 
+        c.tdVar.textContent = 'n/a'; 
+        c.tdVar.className = 'pct zero'; 
+      } else { 
+        c.tdVar.textContent = fmtPct(pVar); 
+        c.tdVar.className = clsPct(pVar); 
+        totalsVar.sum += pVar; 
+        totalsVar.count += 1; 
+      }
+
+      if (pSu === null) { 
+        c.tdSpikeUp.textContent = 'n/a'; 
+        c.tdSpikeUp.className = 'pct zero'; 
+      } else { 
+        c.tdSpikeUp.textContent = fmtPct(pSu); 
+        c.tdSpikeUp.className = clsPct(pSu); 
+        totalsSpikeMax.sum += pSu; 
+        totalsSpikeMax.count += 1; 
+      }
+
+      if (pSd === null) { 
+        c.tdSpikeDn.textContent = 'n/a'; 
+        c.tdSpikeDn.className = 'pct zero'; 
+      } else { 
+        c.tdSpikeDn.textContent = fmtPct(pSd); 
+        c.tdSpikeDn.className = clsPct(pSd); 
+        totalsSpikeMin.sum += pSd; 
+        totalsSpikeMin.count += 1; 
+      }
+
       c.statusEl.textContent = 'OK';
       c.loadingEl.textContent = 'Terminé.';
     } catch (e) {
@@ -454,22 +385,31 @@
   }));
 
   // Affichage des totaux
-  function renderTotals(totalsMap, container) {
-    container.innerHTML = '';
-    for (const t of targetsWithUtc) {
-      const { key, label } = t;
-      const { sum, count } = totalsMap.get(key);
-      const badge = document.createElement('span');
-      badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
-      const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
-      badge.textContent = `${label} → ${txt}`;
-      container.appendChild(badge);
-    }
+  function renderTotals() {
+    totalsBar.innerHTML = '';
+    totalsSpikeMaxBar.innerHTML = '';
+    totalsSpikeMinBar.innerHTML = '';
+
+    const badgeVar = document.createElement('span');
+    badgeVar.className = 'badge ' + (totalsVar.count === 0 ? 'zero' : (totalsVar.sum >= 0 ? 'positive' : 'negative'));
+    const txtVar = totalsVar.count === 0 ? 'n/a' : ((totalsVar.sum>=0?'+':'') + totalsVar.sum.toFixed(3) + '%');
+    badgeVar.textContent = `${labelInterval} → ${txtVar}`;
+    totalsBar.appendChild(badgeVar);
+
+    const badgeSu = document.createElement('span');
+    badgeSu.className = 'badge ' + (totalsSpikeMax.count === 0 ? 'zero' : (totalsSpikeMax.sum >= 0 ? 'positive' : 'negative'));
+    const txtSu = totalsSpikeMax.count === 0 ? 'n/a' : ((totalsSpikeMax.sum>=0?'+':'') + totalsSpikeMax.sum.toFixed(3) + '%');
+    badgeSu.textContent = `${labelInterval} → ${txtSu}`;
+    totalsSpikeMaxBar.appendChild(badgeSu);
+
+    const badgeSd = document.createElement('span');
+    badgeSd.className = 'badge ' + (totalsSpikeMin.count === 0 ? 'zero' : (totalsSpikeMin.sum >= 0 ? 'positive' : 'negative'));
+    const txtSd = totalsSpikeMin.count === 0 ? 'n/a' : ((totalsSpikeMin.sum>=0?'+':'') + totalsSpikeMin.sum.toFixed(3) + '%');
+    badgeSd.textContent = `${labelInterval} → ${txtSd}`;
+    totalsSpikeMinBar.appendChild(badgeSd);
   }
 
-  renderTotals(totalsVar, totalsBar);
-  renderTotals(totalsSpikeMax, totalsSpikeMaxBar);
-  renderTotals(totalsSpikeMin, totalsSpikeMinBar);
+  renderTotals();
 
   document.getElementById('reload').addEventListener('click', () => location.reload());
 })();

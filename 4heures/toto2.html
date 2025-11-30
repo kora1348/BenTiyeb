@@ -131,23 +131,25 @@
   const timeZone = "Europe/Brussels";
   const windowMinutes = 240; // timeframe 4h (4 × 60)
 
-  // Liste des symboles (inchangée)
+  // Liste des symboles (à adapter si tu veux)
   const symbols = [
     "1000CHEEMSUSDT", "API3USDT", "BULLAUSDT", "SCRTUSDT", "WLDUSDT", "XVGUSDT"
   ];
 
-  // --- Nouvelles dates & heures 4h (Europe/Brussels, novembre 2025) ---
-  // 10/11/2025 14:00
-  // 12/11/2025 22:00
-  // 14/11/2025 18:00
-  // 17/11/2025 18:00
-  // 18/11/2025 06:00
+  // --- Nouvelles dates & heures 4h (Europe/Brussels, octobre & novembre 2025) ---
+  // 15/10/2025 17:00
+  // 25/10/2025 17:00
+  // 31/10/2025 05:00
+  // 07/11/2025 21:00
+  // 18/11/2025 13:00
+  // 25/11/2025 17:00
   const rawTargets = [
-    { y:2025, m:11, d:10, h:13, min:0 }, // 10/11/25 14:00
-    { y:2025, m:11, d:12, h:21, min:0 }, // 12/11/25 22:00
-    { y:2025, m:11, d:14, h:17, min:0 }, // 14/11/25 18:00
-    { y:2025, m:11, d:17, h:17, min:0 }, // 17/11/25 18:00
-    { y:2025, m:11, d:18, h:5,  min:0 }  // 18/11/25 06:00
+    { y:2025, m:10, d:15, h:17, min:0 }, // 15/10/25 17:00
+    { y:2025, m:10, d:25, h:17, min:0 }, // 25/10/25 17:00
+    { y:2025, m:10, d:31, h: 5, min:0 }, // 31/10/25 05:00
+    { y:2025, m:11, d: 7, h:21, min:0 }, // 07/11/25 21:00
+    { y:2025, m:11, d:18, h:13, min:0 }, // 18/11/25 13:00
+    { y:2025, m:11, d:25, h:17, min:0 }  // 25/11/25 17:00
   ];
 
   const targets = rawTargets.map(t => ({
