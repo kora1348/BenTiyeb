@@ -1,51 +1,140 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
+<head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Ben Tiyeb</title>
-    <link rel="stylesheet" href="../../../style.css" />
-  </head>
-  <body>
-    <h2>Day Trading — 1d</h2>
-    <hr />
-    <ul>
-      <li><a href="/price.html">Prix</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/radar_aes_v2.html">Scanning</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/decembre/19-12-25/variation-cloture-2025.html">19/12/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/decembre/18-12-25/variation-cloture-2025.html">18/12/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/decembre/15-12-25/variation-cloture-2025.html">15/12/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/decembre/09-12-25/variation-cloture-2025.html">09/12/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/novembre/20-11-25/variation-cloture-2025.html">20/11/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/novembre/09-11-25/variation-cloture-2025.html">09/11/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/novembre/06-11-25/variation-cloture-2025.html">06/11/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/novembre/05-11-25/variation-cloture-2025.html">05/11/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/octobre/26-10-25/variation-cloture-2025.html">26/10/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/octobre/21-10-25/variation-cloture-2025.html">21/10/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/octobre/10-10-25/variation-cloture-2025.html">10/10/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/octobre/09-10-25/variation-cloture-2025.html">09/10/25</a></li>
-      <li>-</li>
-      <li><a href="/day_trading/2025/octobre/07-10-25/variation-cloture-2025.html">07/10/25</a></li>
-    </ul>
-    <hr />
-    <hr>
-    <ul>
-      <li><a href="/toto.html">Test</a></li>
-       <li>-</li>
-      <li><a href="/5m3.html">View</a></li>
-    </ul>
-    <hr />
-  </body>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        .nav-link {
+            padding: 8px 12px;
+            color: #0d6efd;
+            text-decoration: none;
+        }
+        .separator {
+            color: #6c757d;
+            padding: 0 5px;
+        }
+        .mobile-nav {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .desktop-nav {
+                display: none;
+            }
+            .mobile-nav {
+                display: block;
+            }
+            .mobile-link {
+                display: block;
+                padding: 10px 15px;
+                margin: 5px 0;
+                background: white;
+                border-radius: 8px;
+                text-decoration: none;
+                color: #0d6efd;
+                border: 1px solid #dee2e6;
+            }
+            hr {
+                margin: 20px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h2 class="h4 fw-bold">Day Trading — 1d</h2>
+            </div>
+        </div>
+        
+        <hr class="my-3">
+        
+        <!-- Navigation desktop (visible sur écrans larges) -->
+        <div class="desktop-nav">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <div class="d-flex flex-wrap justify-content-center align-items-center">
+                        <a href="/price.html" class="nav-link">Prix</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/radar_aes_v2.html" class="nav-link">Scanning</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/decembre/19-12-25/variation-cloture-2025.html" class="nav-link">19/12/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/decembre/18-12-25/variation-cloture-2025.html" class="nav-link">18/12/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/decembre/15-12-25/variation-cloture-2025.html" class="nav-link">15/12/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/decembre/09-12-25/variation-cloture-2025.html" class="nav-link">09/12/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/novembre/20-11-25/variation-cloture-2025.html" class="nav-link">20/11/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/novembre/09-11-25/variation-cloture-2025.html" class="nav-link">09/11/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/novembre/06-11-25/variation-cloture-2025.html" class="nav-link">06/11/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/novembre/05-11-25/variation-cloture-2025.html" class="nav-link">05/11/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/octobre/26-10-25/variation-cloture-2025.html" class="nav-link">26/10/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/octobre/21-10-25/variation-cloture-2025.html" class="nav-link">21/10/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/octobre/10-10-25/variation-cloture-2025.html" class="nav-link">10/10/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/octobre/09-10-25/variation-cloture-2025.html" class="nav-link">09/10/25</a>
+                        <span class="separator">-</span>
+                        <a href="/day_trading/2025/octobre/07-10-25/variation-cloture-2025.html" class="nav-link">07/10/25</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation mobile (visible sur petits écrans) -->
+        <div class="mobile-nav">
+            <div class="row">
+                <div class="col-12">
+                    <a href="/price.html" class="mobile-link">Prix</a>
+                    <a href="/day_trading/radar_aes_v2.html" class="mobile-link">Scanning</a>
+                    <a href="/day_trading/2025/decembre/19-12-25/variation-cloture-2025.html" class="mobile-link">19/12/25</a>
+                    <a href="/day_trading/2025/decembre/18-12-25/variation-cloture-2025.html" class="mobile-link">18/12/25</a>
+                    <a href="/day_trading/2025/decembre/15-12-25/variation-cloture-2025.html" class="mobile-link">15/12/25</a>
+                    <a href="/day_trading/2025/decembre/09-12-25/variation-cloture-2025.html" class="mobile-link">09/12/25</a>
+                    <a href="/day_trading/2025/novembre/20-11-25/variation-cloture-2025.html" class="mobile-link">20/11/25</a>
+                    <a href="/day_trading/2025/novembre/09-11-25/variation-cloture-2025.html" class="mobile-link">09/11/25</a>
+                    <a href="/day_trading/2025/novembre/06-11-25/variation-cloture-2025.html" class="mobile-link">06/11/25</a>
+                    <a href="/day_trading/2025/novembre/05-11-25/variation-cloture-2025.html" class="mobile-link">05/11/25</a>
+                    <a href="/day_trading/2025/octobre/26-10-25/variation-cloture-2025.html" class="mobile-link">26/10/25</a>
+                    <a href="/day_trading/2025/octobre/21-10-25/variation-cloture-2025.html" class="mobile-link">21/10/25</a>
+                    <a href="/day_trading/2025/octobre/10-10-25/variation-cloture-2025.html" class="mobile-link">10/10/25</a>
+                    <a href="/day_trading/2025/octobre/09-10-25/variation-cloture-2025.html" class="mobile-link">09/10/25</a>
+                    <a href="/day_trading/2025/octobre/07-10-25/variation-cloture-2025.html" class="mobile-link">07/10/25</a>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+        
+        <!-- Menu secondaire -->
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-center align-items-center">
+                    <a href="/toto.html" class="nav-link">Test</a>
+                    <span class="separator">-</span>
+                    <a href="/5m3.html" class="nav-link">View</a>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+    </div>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
