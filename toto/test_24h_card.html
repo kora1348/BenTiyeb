@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Variation 4h — 27/11/2025 21:00 — Binance Futures USDT-M (PERP)</title>
+  <title>Variations 24h (bougies 4h) — Binance Futures USDT-M (PERP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; }
@@ -26,19 +26,19 @@
 </head>
 <body>
   <header>
-    <h1>Variation 4h — PERP USDT (Binance Futures)</h1>
+    <h1>Variation 24h (bougies 4h) — PERP USDT (Binance Futures)</h1>
     <div class="sub">
-      Bougie 4h ancrée sur : <strong>27/11/2025 21:00</strong> (Europe/Brussels)<br>
-      Calcul = (Close − Open) / Open × 100 sur cette bougie 4h.
+      Fenêtre 24h ancrée sur : <strong>27/11/2025 21:00</strong> (Europe/Brussels)<br>
+      Période couverte : du <strong>27/11/2025 21:00</strong> au <strong>28/11/2025 20:59</strong>
     </div>
   </header>
 
   <div class="wrap">
     <div class="card">
       <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
-        Chaque ligne = un symbole PERP/USDT (TRADING).<br>
-        La colonne affiche la variation en % sur la bougie 4h qui commence à 27/11/2025 21:00 (heure de Bruxelles).<br>
-        La ligne « Total (∑) » additionne les variations (%) pour tous les symboles disponibles (valeurs manquantes ignorées).
+        Calcul = (Close<sub>fin 24h</sub> − Open<sub>début 24h</sub>) / Open<sub>début 24h</sub> × 100<br>
+        Fenêtre = 24 heures composées de bougies 4h, à partir de l'heure indiquée (Europe/Brussels).<br>
+        La ligne « Total (∑) » additionne les variations (%) des symboles disponibles pour cette fenêtre (valeurs manquantes ignorées).
       </p>
 
       <div class="controls">
@@ -50,14 +50,14 @@
         <thead>
           <tr id="thead-row">
             <th>Symbole</th>
-            <!-- colonne date injectée ici -->
+            <!-- colonnes de dates injectées ici -->
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
         <tfoot>
           <tr id="total-row">
             <td>Total (∑)</td>
-            <!-- total injecté ici -->
+            <!-- totaux par date injectés ici -->
           </tr>
         </tfoot>
       </table>
@@ -71,7 +71,7 @@
     const INTERVAL = "4h";
     const MAX_CONCURRENCY = 8;
 
-    // ✅ Une seule bougie : 27/11/2025 22:00 heure de Bruxelles
+    // ❗ On garde uniquement 27/11/2025 21:00 (heure locale Bruxelles)
     const points = [
       { label:"27/11 21:00", y:2025, m:11, d:27, h:21, min:0 }
     ];
@@ -81,14 +81,14 @@
     const totalRow = document.getElementById("total-row");
     const progress = document.getElementById("progress");
 
-    // Une seule colonne
+    // Création de la colonne (une seule, pour 27/11 21:00)
     for (const p of points) {
       const th = document.createElement("th");
-      th.textContent = p.label;
+      th.textContent = p.label + " (24h)";
       theadRow.appendChild(th);
     }
 
-    // Gestion horaire Europe/Brussels (été/hiver)
+    // Gestion DST Europe/Brussels
     function tzOffsetMsAt(date, tz) {
       const fmt = new Intl.DateTimeFormat('en-GB', {
         timeZone: tz,
@@ -107,11 +107,16 @@
       return approxUtc - offset;
     }
 
-    // Ici : openTimeMs = début de la bougie 4h
-    const pointTimes = points.map(p => ({
-      label: p.label,
-      openTimeMs: brusselsLocalToUtcMs(p.y, p.m, p.d, p.h, p.min)
-    }));
+    // Chaque point = début de fenêtre 24h
+    const pointTimes = points.map(p => {
+      const openTimeMs = brusselsLocalToUtcMs(p.y, p.m, p.d, p.h, p.min);
+      const endTimeMs = openTimeMs + 24 * 60 * 60 * 1000 - 1; // 24h - 1ms
+      return {
+        label: p.label,
+        openTimeMs,
+        endTimeMs
+      };
+    });
 
     async function getAllPerpUsdtSymbols(){
       const r = await fetch(`${BASE}/fapi/v1/exchangeInfo`);
@@ -123,16 +128,21 @@
         .sort();
     }
 
-    // Variation sur UNE bougie 4h
-    async function fetchKlinePct(symbol, openTimeMs){
-      const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}&startTime=${openTimeMs}&limit=1`;
+    // 🔥 Variation sur 24h : open de la première bougie, close de la dernière dans la fenêtre
+    async function fetchKline24hPct(symbol, window){
+      const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}` +
+                  `&startTime=${window.openTimeMs}&endTime=${window.endTimeMs}&limit=500`;
       const r = await fetch(url);
       if(!r.ok) return null;
       const data = await r.json();
       if(!Array.isArray(data) || data.length === 0) return null;
-      const k = data[0];
-      if(+k[0] !== openTimeMs) return null; // on vérifie qu'on est bien sur la bougie exacte
-      const open = parseFloat(k[1]), close = parseFloat(k[4]);
+
+      const first = data[0];
+      const last  = data[data.length - 1];
+
+      const open = parseFloat(first[1]);
+      const close = parseFloat(last[4]);
+
       if(!isFinite(open) || !isFinite(close) || open === 0) return null;
       return (close - open) / open * 100;
     }
@@ -174,7 +184,7 @@
       progress.textContent = "Récupération des symboles PERP USDT…";
       const symbols = await getAllPerpUsdtSymbols();
 
-      // Une seule cellule de total (une date)
+      // Une cellule de total par fenêtre (ici 1)
       const totalCells = [];
       for (let i=0;i<pointTimes.length;i++){
         const td = document.createElement("td");
@@ -204,7 +214,7 @@
         const tr = rows.get(symbol);
         for(let i=0;i<pointTimes.length;i++){
           try{
-            const pct = await fetchKlinePct(symbol, pointTimes[i].openTimeMs);
+            const pct = await fetchKline24hPct(symbol, pointTimes[i]);
             tr.children[i+1].innerHTML = fmtPct(pct);
             if(pct != null){ sums[i] += pct; counts[i]++; }
           }catch{
