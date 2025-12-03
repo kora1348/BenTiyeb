@@ -798,42 +798,56 @@
     }
 
     // ====== UI init
-    (function initSelectors(){
-      const years=[2024];
-      years.forEach(y=>{
-        const o=document.createElement('option');
-        o.value=String(y);
-        o.textContent=String(y+1);
-        o.dataset.realYear=y;
-        yearSel.appendChild(o);
-      });
-      yearSel.value='2024';
+(function initSelectors(){
+  const years=[2024];
+  years.forEach(y=>{
+    const o=document.createElement('option');
+    o.value=String(y);
+    o.textContent=String(y+1);
+    o.dataset.realYear=y;
+    yearSel.appendChild(o);
+  });
+  yearSel.value='2024';
 
-      const limitedMonths=[
-        {label:'01 Jan', value:0},
-        {label:'06 Jun', value:5},
-        {label:'09 Sep', value:8},
-      ];
-      limitedMonths.forEach(({label,value})=>{
-        const o=document.createElement('option');
-        o.value=value;
-        o.textContent=label;
-        monthSel.appendChild(o);
-      });
-      monthSel.value=0;
+  const limitedMonths=[
+    {label:'01 Jan', value:0},
+    {label:'06 Jun', value:5},
+    {label:'09 Sep', value:8},
+  ];
+  limitedMonths.forEach(({label,value})=>{
+    const o=document.createElement('option');
+    o.value=value;
+    o.textContent=label;
+    monthSel.appendChild(o);
+  });
+  monthSel.value=0;
 
-      for(let n=1;n<=100;n++){
-        const o=document.createElement('option');
-        o.value=n;
-        o.textContent=String(n);
-        candleSel.appendChild(o);
-      }
-      candleSel.value='20';
+  // === MODIFICATION ICI : calcul automatique du N° de bougie ===
+  const today = new Date();
+  const todayMs = today.getTime();
+  // Calculer le numéro de bougie basé sur la date de référence (09/10/2025)
+  const diffDays = Math.round((todayMs - BANNER_BASE_MS) / dayMs);
+  const nFromDate = 20 + diffDays; // 20 est le numéro de référence pour le 09/10/2025
+  
+  // Limiter entre 1 et 100
+  const defaultN = Math.max(1, Math.min(100, nFromDate));
 
-      updateLabels();
-      updateNCalendar();
-      updateBannerOnly();
-    })();
+  for(let n=1;n<=100;n++){
+    const o=document.createElement('option');
+    o.value=n;
+    o.textContent=String(n);
+    candleSel.appendChild(o);
+  }
+  
+  // Définir la valeur par défaut calculée
+  candleSel.value = String(defaultN);
+  // === FIN DE LA MODIFICATION ===
+
+  updateLabels();
+  updateNCalendar();
+  updateBannerOnly();
+})();
+    
 
     // ====== Listeners
     candleSel.addEventListener('change', async ()=>{
