@@ -24,8 +24,8 @@
     th,td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;vertical-align:top}
     th:first-child,td:first-child{text-align:left}
     th,td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;vertical-align:top}
-th:first-child,td:first-child{text-align:left}
-th:nth-child(2),td:nth-child(2){text-align:center;}
+    th:first-child,td:first-child{text-align:left}
+    th:nth-child(2),td:nth-child(2){text-align:center;}
     .up{color:var(--ok);font-weight:600}
     .down{color:var(--bad);font-weight:600}
     .muted{color:var(--muted)}
@@ -152,7 +152,7 @@ th:nth-child(2),td:nth-child(2){text-align:center;}
 
     const CACHE = {
       symbols: null,
-      daily100: new Map(),
+      dailyKlines: new Map(),
       monthRows: new Map(),
       computed: new Map(),
     };
@@ -215,17 +215,18 @@ th:nth-child(2),td:nth-child(2){text-align:center;}
         .map(s => s.symbol);
       return CACHE.symbols;
     }
-    async function getDaily100(sym){
-  if (CACHE.daily100.has(sym)) return CACHE.daily100.get(sym);
-  const u=new URL('https://fapi.binance.com/fapi/v1/klines');
-  u.searchParams.set('symbol',sym); 
-  u.searchParams.set('interval','1d');
-  u.searchParams.set('limit','500');  // ⬅️ METS 500 ICI
-  u.searchParams.set('startTime','0');
-  const kl = await fetchJSON(u.toString());
-  CACHE.daily100.set(sym, kl||[]);
-  return kl||[];
-}
+
+    async function getDailyKlines(sym){
+      if (CACHE.dailyKlines.has(sym)) return CACHE.dailyKlines.get(sym);
+      const u=new URL('https://fapi.binance.com/fapi/v1/klines');
+      u.searchParams.set('symbol',sym);
+      u.searchParams.set('interval','1d');
+      u.searchParams.set('limit','500');
+      u.searchParams.set('startTime','0');
+      const klines = await fetchJSON(u.toString());
+      CACHE.dailyKlines.set(sym, klines||[]);
+      return klines||[];
+    }
 
     async function warmMonth(Y,M){
       const k = keyMonth(Y,M);
@@ -237,12 +238,12 @@ th:nth-child(2),td:nth-child(2){text-align:center;}
 
       const rows = await mapLimit(symbols, 8, async (sym)=>{
         try{
-          const kl100 = await getDaily100(sym);
-          if(!kl100.length) return null;
-          const openTime1 = kl100[0][0];
+          const klines = await getDailyKlines(sym);
+          if(!klines.length) return null;
+          const openTime1 = klines[0][0];
           const {y,m} = monthYearInBrussels(openTime1);
           if (y!==Y || m!==M) return null;
-          return { sym, openTime1, daily100: kl100 };
+          return { sym, openTime1, dailyKlines: klines };
         }catch{ return null; }
       });
 
@@ -259,12 +260,12 @@ th:nth-child(2),td:nth-child(2){text-align:center;}
       if(!base.length){ CACHE.computed.set(kc, []); return []; }
 
       const rows = await mapLimit(base, 12, async (r)=>{
-        const kl = r.daily100;
+        const kl = r.dailyKlines;
         let openTimeN=null, pctN=null;
         if (kl.length>=N){
-          const kN = kl[N-1];
-          openTimeN = kN[0];
-          const o=parseFloat(kN[1]), c=parseFloat(kN[4]);
+          const candle = kl[N-1];
+          openTimeN = candle[0];
+          const o=parseFloat(candle[1]), c=parseFloat(candle[4]);
           pctN = o>0 ? ((c-o)/o*100) : 0;
         }
         return { sym:r.sym, openTime1:r.openTime1, openTimeN, pctN };
@@ -419,7 +420,7 @@ th:nth-child(2),td:nth-child(2){text-align:center;}
 
     function clearAll(){
       CACHE.symbols = null;
-      CACHE.daily100.clear();
+      CACHE.dailyKlines.clear();
       CACHE.monthRows.clear();
       CACHE.computed.clear();
 
