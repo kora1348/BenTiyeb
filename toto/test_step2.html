@@ -5,23 +5,112 @@
   <title>Variations 24h (bougies 4h) — Binance Futures USDT-M (PERP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --warn:#f59e0b; }
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    header{padding:18px;border-bottom:1px solid var(--border)}
+    :root { 
+      --bg:#0f172a; 
+      --card:#111827; 
+      --muted:#94a3b8; 
+      --ok:#10b981; 
+      --bad:#ef4444; 
+      --text:#e5e7eb; 
+      --border:#1f2937; 
+      --warn:#f59e0b; 
+    }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif
+    }
+    header{
+      padding:18px;
+      border-bottom:1px solid var(--border)
+    }
     h1{margin:0;font-size:18px}
     .sub{color:var(--muted);font-size:13px;line-height:1.4;margin-top:6px}
     .wrap{padding:16px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{border-bottom:1px solid var(--border);padding:8px 10px;white-space:nowrap}
-    th{position:sticky;top:0;background:var(--card);text-align:left}
-    tfoot td{font-weight:700;border-top:1px solid var(--border)}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px
+    }
+    th,td{
+      border-bottom:1px solid var(--border);
+      padding:8px 10px;
+      white-space:nowrap
+    }
+    th{
+      position:sticky;
+      top:0;
+      background:var(--card);
+      text-align:left
+    }
+    tfoot td{
+      font-weight:700;
+      border-top:1px solid var(--border)
+    }
     .pos{color:var(--ok);font-variant-numeric:tabular-nums}
     .neg{color:var(--bad);font-variant-numeric:tabular-nums}
     .na{color:var(--muted)}
     .warn{color:var(--warn)}
     .controls{margin-top:8px}
-    .btn{display:inline-block;background:#2563eb;color:#fff;text-decoration:none;border:0;border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+    .btn{
+      display:inline-block;
+      background:#2563eb;
+      color:#fff;
+      text-decoration:none;
+      border:0;
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:13px;
+      cursor:pointer
+    }
+
+    /* 🔻 Card des cryptos ≤ -3% */
+    .loss-card{
+      margin-top:10px;
+      margin-bottom:12px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(239,68,68,0.5);
+      background:rgba(239,68,68,0.06);
+    }
+    .loss-title{
+      font-size:13px;
+      font-weight:600;
+      margin-bottom:6px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .loss-title span.badge{
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid rgba(239,68,68,0.7);
+      color:var(--bad);
+    }
+    .loss-list{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      font-size:12px;
+    }
+    .loss-chip{
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(239,68,68,0.4);
+      background:rgba(15,23,42,0.8);
+    }
+    .loss-chip strong{
+      font-weight:600;
+      margin-right:4px;
+    }
   </style>
 </head>
 <body>
@@ -44,6 +133,17 @@
       <div class="controls">
         <a class="btn" href="/index.html">Accueil</a>
         <button id="reload" class="btn" type="button">Recharger</button>
+      </div>
+
+      <!-- 🔻 Card des cryptos <= -3% -->
+      <div id="losers-card" class="loss-card">
+        <div class="loss-title">
+          Cryptos ≤ -3% (24h)
+          <span id="losers-count" class="badge">0</span>
+        </div>
+        <div id="losers-list" class="loss-list">
+          <span class="na">En cours de calcul…</span>
+        </div>
       </div>
 
       <table id="table">
@@ -71,15 +171,26 @@
     const INTERVAL = "4h";
     const MAX_CONCURRENCY = 8;
 
-    // ❗ On garde uniquement 27/11/2025 21:00 (heure locale Bruxelles)
-    const points = [
-      { label:"27/11 21:00", y:2025, m:11, d:27, h:21, min:0 }
-    ];
+    // Seuil pour la card : variation <= -3%
+    const NEG_THRESHOLD = -3;
 
+    // ❗ On garde uniquement 27/11/2025 21:00 (heure locale Bruxelles)
+        const points = [
+  { label:"29/09 22:00", y:2025, m:9,  d:29, h:22, min:0 },  // 24h
+  { label:"02/10 18:00", y:2025, m:10, d:2,  h:18, min:0 }, // 24h
+  { label:"10/10 14:00", y:2025, m:10, d:10, h:14, min:0 }, // 24h
+  { label:"07/11 13:00", y:2025, m:11, d:7, h:13, min:0 },
+  { label:"27/11 21:00", y:2025, m:11, d:27, h:21, min:0 }  // fenêtre déjà existante
+];
     const theadRow = document.getElementById("thead-row");
     const tbody = document.getElementById("tbody");
     const totalRow = document.getElementById("total-row");
     const progress = document.getElementById("progress");
+
+    // éléments card losers
+    const losersList = document.getElementById("losers-list");
+    const losersCount = document.getElementById("losers-count");
+    const losers = []; // {symbol, pct}
 
     // Création de la colonne (une seule, pour 27/11 21:00)
     for (const p of points) {
@@ -180,6 +291,20 @@
       });
     }
 
+    function updateLosersCard(){
+      if(losers.length === 0){
+        losersCount.textContent = "0";
+        losersList.innerHTML = `<span class="na">Aucune crypto ≤ -3% sur cette fenêtre.</span>`;
+        return;
+      }
+      // Trier par variation (plus négative en premier)
+      losers.sort((a,b) => a.pct - b.pct);
+      losersCount.textContent = String(losers.length);
+      losersList.innerHTML = losers
+        .map(l => `<span class="loss-chip"><strong>${l.symbol}</strong><span class="neg">${l.pct.toFixed(2)}%</span></span>`)
+        .join("");
+    }
+
     async function main(){
       progress.textContent = "Récupération des symboles PERP USDT…";
       const symbols = await getAllPerpUsdtSymbols();
@@ -216,7 +341,15 @@
           try{
             const pct = await fetchKline24hPct(symbol, pointTimes[i]);
             tr.children[i+1].innerHTML = fmtPct(pct);
-            if(pct != null){ sums[i] += pct; counts[i]++; }
+            if(pct != null){ 
+              sums[i] += pct; 
+              counts[i]++; 
+
+              // ➕ Ajout dans la card si <= -3%
+              if(pct <= NEG_THRESHOLD){
+                losers.push({ symbol, pct });
+              }
+            }
           }catch{
             tr.children[i+1].innerHTML = `<span class="na">—</span>`;
           }
@@ -227,6 +360,10 @@
       for(let i=0;i<pointTimes.length;i++){
         totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
       }
+
+      // Mise à jour de la card des cryptos ≤ -3%
+      updateLosersCard();
+
       progress.textContent = `Terminé ✅ (${symbols.length} symboles)`;
     }
 

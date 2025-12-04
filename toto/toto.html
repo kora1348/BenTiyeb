@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Multi-fenêtres 24h — 1m interne</title>
+  <title>Variation 24h — Futures & Spot 1m</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -71,28 +71,29 @@
 </head>
 <body>
   <header>
-    <h1>Variations 24h — Europe/Brussels <span class="chip">Multi-fenêtres 1m interne</span></h1>
+    <h1>Variation 24h — Multi-symboles <span class="chip">Fenêtre 24h 1m interne</span></h1>
     <div class="meta" id="metaLine"></div>
     <div class="controls"><button id="reload"><a href="/index.html">Accueil</a></button></div>
   </header>
 
   <div class="info-banner">
-    ⚠️ Les données "n/a" indiquent que le trading n'était pas actif sur toute la fenêtre concernée ou que l'API ne renvoie pas assez de bougies 1m.
+    ⚠️ Les valeurs "n/a" signifient que le trading n'était pas actif sur toute la fenêtre 24h ou que l'API ne renvoie pas assez de bougies 1m.
+    ⚠️ API utilisée : <strong>Binance Futures (prioritaire) + Spot (fallback)</strong>
   </div>
 
   <div class="summary-cards">
     <div id="spike_max" class="summary-card">
-      <span class="title">TOTAL Spike max (mèche ↑) par fenêtre 24h :</span>
+      <span class="title">TOTAL Spike max (mèche ↑) — fenêtre 24h :</span>
       <div id="total_spike_max" class="total-badges"></div>
     </div>
     
     <div id="spike_min" class="summary-card">
-      <span class="title">TOTAL Spike min (mèche ↓) par fenêtre 24h :</span>
+      <span class="title">TOTAL Spike min (mèche ↓) — fenêtre 24h :</span>
       <div id="total_spike_min" class="total-badges"></div>
     </div>
     
     <div id="variation_negative" class="summary-card">
-      <span class="title">TOTAL (somme des variations de tous les symboles) par fenêtre 24h :</span>
+      <span class="title">TOTAL (somme des variations de tous les symboles) — fenêtre 24h :</span>
       <div id="total_variation" class="total-badges"></div>
     </div>
   </div>
@@ -125,16 +126,37 @@
 
   const timeZone = "Europe/Brussels";
 
+  // 🔹 Symboles à analyser
   const symbols = [
     "1000CHEEMSUSDT", "API3USDT", "BULLAUSDT", "SCRTUSDT", "WLDUSDT", "XVGUSDT"
   ];
 
-  // 🔹 Une seule fenêtre 24h : 02/10/2024 18:00 → 03/10/2024 17:59
+  // 🔹 Vos fenêtres 24h (exactement comme dans votre premier message)
   const rawWindows = [
     {
       id: "W1",
-      start: { y:2025, m:10, d:2, h:18, min:0 },
-      end:   { y:2025, m:10, d:3, h:17, min:59 }
+      start: { y:2024, m:9, d:29, h:22, min:0 },
+      end:   { y:2024, m:9, d:30, h:21, min:59 }
+    },
+    {
+      id: "W2",
+      start: { y:2024, m:10, d:2, h:18, min:0 },
+      end:   { y:2024, m:10, d:3, h:17, min:59 }
+    },
+    {
+      id: "W3",
+      start: { y:2024, m:10, d:10, h:14, min:0 },
+      end:   { y:2024, m:10, d:11, h:13, min:59 }
+    },
+    {
+      id: "W4",
+      start: { y:2024, m:11, d:7, h:13, min:0 },
+      end:   { y:2024, m:11, d:8, h:12, min:59 }
+    },
+    {
+      id: "W5",
+      start: { y:2024, m:11, d:27, h:21, min:0 },
+      end:   { y:2024, m:11, d:28, h:20, min:59 }
     }
   ];
 
@@ -150,6 +172,7 @@
     return { id:w.id, key, label, startUtc, endUtc, start:s, end:e };
   });
 
+  // Meta header
   (function renderHeaderMeta(){
     const meta = document.getElementById('metaLine');
     const df = new Intl.DateTimeFormat('fr-BE', {
@@ -158,18 +181,12 @@
       hour:'2-digit', minute:'2-digit', hour12:false
     });
 
-    const sortedByStart = [...windows].sort((a,b) => a.startUtc - b.startUtc);
-    const globalStart = df.format(new Date(sortedByStart[0].startUtc));
-    const globalEnd   = df.format(new Date(sortedByStart[sortedByStart.length-1].endUtc));
-
-    const list = windows
-      .map(w => `<strong>${w.label}</strong>`)
-      .join(' • ');
-
+    const firstWindow = windows[0];
+    const lastWindow = windows[windows.length - 1];
+    
     meta.innerHTML = `
-      Période globale : <strong>${globalStart}</strong> → <strong>${globalEnd}</strong>
-      • Fenêtres 24h suivies : ${list}
-      • Timeframe interne : <strong>1m</strong>
+      ${windows.length} fenêtres 24h analysées • De <strong>${firstWindow.label}</strong> à <strong>${lastWindow.label}</strong>
+      • Timeframe interne : <strong>1m</strong> • API : <strong>Futures + Spot</strong>
       • Fuseau : <strong>${timeZone}</strong>
     `;
   })();
@@ -285,22 +302,30 @@
   }
 
   async function fetchKlines1m(symbol, startUtc, endUtc) {
+    console.log(`Fetching ${symbol} from ${new Date(startUtc).toISOString()} to ${new Date(endUtc).toISOString()}`);
+    
+    // Essayer d'abord l'API Futures (comme dans votre code qui marche)
     try {
       const futuresUrl = new URL('https://fapi.binance.com/fapi/v1/klines');
       futuresUrl.searchParams.set('symbol', symbol);
-      futuresUrl.searchParams.set('interval', '1m'); 
+      futuresUrl.searchParams.set('interval', '1m');
       futuresUrl.searchParams.set('startTime', String(startUtc));
       futuresUrl.searchParams.set('endTime', String(endUtc));
-      futuresUrl.searchParams.set('limit', '2000'); 
+      futuresUrl.searchParams.set('limit', '2000'); // Pour 24h de données 1m (1440 bougies)
       
       const res = await fetch(futuresUrl.toString());
       if (!res.ok) {
         throw new Error(`Futures API returned ${res.status}`);
       }
       const data = await res.json();
+      console.log(`Futures API for ${symbol}:`, data.length, 'candles found');
+      
       if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Futures.');
       return data;
     } catch (futuresError) {
+      console.warn(`Futures API failed for ${symbol}:`, futuresError.message);
+      
+      // Fallback sur l'API spot (important pour les symboles qui n'existent que sur Spot)
       try {
         const spotUrl = new URL('https://api.binance.com/api/v3/klines');
         spotUrl.searchParams.set('symbol', symbol);
@@ -314,10 +339,14 @@
           throw new Error(`Spot API returned ${res.status}`);
         }
         const data = await res.json();
+        console.log(`Spot API for ${symbol}:`, data.length, 'candles found');
+        
         if (!Array.isArray(data)) throw new Error('Réponse inattendue de Binance Spot.');
         return data;
       } catch (spotError) {
-        throw new Error(`Both Futures and Spot APIs failed: ${spotError.message}`);
+        console.error(`Both APIs failed for ${symbol}:`, spotError.message);
+        // Retourner un tableau vide au lieu de throw pour continuer
+        return [];
       }
     }
   }
@@ -349,11 +378,13 @@
     
     try {
       for (const w of windows) {
+        const { startUtc, endUtc, key, label } = w;
         let kl = [];
+        
         try {
-          kl = await fetchKlines1m(c.symbol, w.startUtc, w.endUtc);
+          kl = await fetchKlines1m(c.symbol, startUtc, endUtc);
         } catch (fetchError) {
-          console.warn(`Impossible de récupérer les données pour ${c.symbol} sur ${w.label}:`, fetchError.message);
+          console.warn(`Impossible de récupérer les données pour ${c.symbol} sur ${label}:`, fetchError.message);
         }
 
         let pVar = null, pSu = null, pSd = null;
@@ -371,19 +402,24 @@
           pVar = pctChange(open0, closeLast);
           pSu  = spikeMaxPct(open0, highs);
           pSd  = spikeMinPct(open0, lows);
+          
+          console.log(`${c.symbol} ${label}: Var=${pVar?.toFixed(2)}%, Spike↑=${pSu?.toFixed(2)}%, Spike↓=${pSd?.toFixed(2)}%`);
+        } else {
+          console.log(`${c.symbol} ${label}: Aucune donnée disponible`);
         }
 
-        const cVar = c.rowCells[`${w.key}:var`];
-        const cSu  = c.rowCells[`${w.key}:su`];
-        const cSd  = c.rowCells[`${w.key}:sd`];
+        const cVar = c.rowCells[`${key}:var`];
+        const cSu  = c.rowCells[`${key}:su`];
+        const cSd  = c.rowCells[`${key}:sd`];
 
         if (pVar === null) {
           cVar.textContent = 'n/a';
           cVar.className = 'pct zero';
+          cVar.title = 'Données non disponibles (Futures ou Spot)';
         } else {
           cVar.textContent = fmtPct(pVar);
           cVar.className = clsPct(pVar);
-          const tv = totalsVar.get(w.key);
+          const tv = totalsVar.get(key);
           tv.sum += pVar;
           tv.count += 1;
         }
@@ -391,10 +427,11 @@
         if (pSu === null) {
           cSu.textContent = 'n/a';
           cSu.className = 'pct zero';
+          cSu.title = 'Données non disponibles (Futures ou Spot)';
         } else {
           cSu.textContent = fmtPct(pSu);
           cSu.className = clsPct(pSu);
-          const tsu = totalsSpikeMax.get(w.key);
+          const tsu = totalsSpikeMax.get(key);
           tsu.sum += pSu;
           tsu.count += 1;
         }
@@ -402,17 +439,18 @@
         if (pSd === null) {
           cSd.textContent = 'n/a';
           cSd.className = 'pct zero';
+          cSd.title = 'Données non disponibles (Futures ou Spot)';
         } else {
           cSd.textContent = fmtPct(pSd);
           cSd.className = clsPct(pSd);
-          const tsd = totalsSpikeMin.get(w.key);
+          const tsd = totalsSpikeMin.get(key);
           tsd.sum += pSd;
           tsd.count += 1;
         }
       }
 
       c.statusEl.textContent = 'OK';
-      c.loadingEl.textContent = 'Terminé.';
+      c.loadingEl.textContent = 'Terminé. Données Futures/Spot.';
     } catch (e) {
       c.statusEl.textContent = 'Erreur';
       c.loadingEl.className = 'error';
@@ -429,6 +467,7 @@
       badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
       const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
       badge.textContent = `${label} → ${txt}`;
+      badge.title = count > 0 ? `${count} symboles avec données` : 'Aucune donnée disponible';
       container.appendChild(badge);
     }
   }
@@ -437,7 +476,10 @@
   renderTotals(totalsSpikeMax, totalsSpikeMaxBar);
   renderTotals(totalsSpikeMin, totalsSpikeMinBar);
 
-  document.getElementById('reload').addEventListener('click', () => location.reload());
+  document.getElementById('reload').addEventListener('click', (e) => {
+    e.preventDefault();
+    location.reload();
+  });
 })();
 </script>
 </body>

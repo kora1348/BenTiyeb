@@ -2,18 +2,18 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Variations 24h (bougies 4h) — Binance Futures USDT-M (PERP)</title>
+  <title>Variations 1d (bougies daily) — Binance Futures USDT-M (PERP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { 
-      --bg:#0f172a; 
-      --card:#111827; 
-      --muted:#94a3b8; 
-      --ok:#10b981; 
-      --bad:#ef4444; 
-      --text:#e5e7eb; 
-      --border:#1f2937; 
-      --warn:#f59e0b; 
+    :root {
+      --bg:#0f172a;
+      --card:#111827;
+      --muted:#94a3b8;
+      --ok:#10b981;
+      --bad:#ef4444;
+      --text:#e5e7eb;
+      --border:#1f2937;
+      --warn:#f59e0b;
     }
     body{
       margin:0;
@@ -25,9 +25,19 @@
       padding:18px;
       border-bottom:1px solid var(--border)
     }
-    h1{margin:0;font-size:18px}
-    .sub{color:var(--muted);font-size:13px;line-height:1.4;margin-top:6px}
-    .wrap{padding:16px}
+    h1{
+      margin:0;
+      font-size:18px
+    }
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+      margin-top:6px
+    }
+    .wrap{
+      padding:16px
+    }
     .card{
       background:var(--card);
       border:1px solid var(--border);
@@ -54,11 +64,23 @@
       font-weight:700;
       border-top:1px solid var(--border)
     }
-    .pos{color:var(--ok);font-variant-numeric:tabular-nums}
-    .neg{color:var(--bad);font-variant-numeric:tabular-nums}
-    .na{color:var(--muted)}
-    .warn{color:var(--warn)}
-    .controls{margin-top:8px}
+    .pos{
+      color:var(--ok);
+      font-variant-numeric:tabular-nums
+    }
+    .neg{
+      color:var(--bad);
+      font-variant-numeric:tabular-nums
+    }
+    .na{
+      color:var(--muted)
+    }
+    .warn{
+      color:var(--warn)
+    }
+    .controls{
+      margin-top:8px
+    }
     .btn{
       display:inline-block;
       background:#2563eb;
@@ -70,80 +92,33 @@
       font-size:13px;
       cursor:pointer
     }
-
-    /* 🔻 Card des cryptos ≤ -3% */
-    .loss-card{
-      margin-top:10px;
-      margin-bottom:12px;
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid rgba(239,68,68,0.5);
-      background:rgba(239,68,68,0.06);
-    }
-    .loss-title{
-      font-size:13px;
-      font-weight:600;
-      margin-bottom:6px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-    .loss-title span.badge{
-      font-size:11px;
-      padding:2px 6px;
-      border-radius:999px;
-      border:1px solid rgba(239,68,68,0.7);
-      color:var(--bad);
-    }
-    .loss-list{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      font-size:12px;
-    }
-    .loss-chip{
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid rgba(239,68,68,0.4);
-      background:rgba(15,23,42,0.8);
-    }
-    .loss-chip strong{
-      font-weight:600;
-      margin-right:4px;
-    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Variation 24h (bougies 4h) — PERP USDT (Binance Futures)</h1>
+    <h1>Variations 1d (bougies daily) — PERP USDT (Binance Futures)</h1>
     <div class="sub">
-      Fenêtre 24h ancrée sur : <strong>27/11/2025 21:00</strong> (Europe/Brussels)<br>
-      Période couverte : du <strong>27/11/2025 21:00</strong> au <strong>28/11/2025 20:59</strong>
+      Timeframe : <strong>1d</strong> (bougies journalières Binance Futures USDT-M)<br>
+      Dates analysées (Europe/Brussels) :
+      <strong>29/09/2025</strong>,
+      <strong>02/10/2025</strong>,
+      <strong>10/10/2025</strong>,
+      <strong>07/11/2025</strong>,
+      <strong>27/11/2025</strong>
     </div>
   </header>
 
   <div class="wrap">
     <div class="card">
       <p style="color:var(--muted);font-size:13px;margin-bottom:8px">
-        Calcul = (Close<sub>fin 24h</sub> − Open<sub>début 24h</sub>) / Open<sub>début 24h</sub> × 100<br>
-        Fenêtre = 24 heures composées de bougies 4h, à partir de l'heure indiquée (Europe/Brussels).<br>
-        La ligne « Total (∑) » additionne les variations (%) des symboles disponibles pour cette fenêtre (valeurs manquantes ignorées).
+        Calcul = (Close<sub>1d</sub> − Open<sub>1d</sub>) / Open<sub>1d</sub> × 100<br>
+        Chaque colonne correspond à la variation de la bougie <strong>1d</strong> pour la date indiquée (référence Europe/Brussels).<br>
+        La ligne « Total (∑) » additionne les variations (%) des symboles disponibles pour chaque date (valeurs manquantes ignorées).
       </p>
 
       <div class="controls">
         <a class="btn" href="/index.html">Accueil</a>
         <button id="reload" class="btn" type="button">Recharger</button>
-      </div>
-
-      <!-- 🔻 Card des cryptos <= -3% -->
-      <div id="losers-card" class="loss-card">
-        <div class="loss-title">
-          Cryptos ≤ -3% (24h)
-          <span id="losers-count" class="badge">0</span>
-        </div>
-        <div id="losers-list" class="loss-list">
-          <span class="na">En cours de calcul…</span>
-        </div>
       </div>
 
       <table id="table">
@@ -168,15 +143,16 @@
 
   <script>
     const BASE = "https://fapi.binance.com";
-    const INTERVAL = "4h";
+    const INTERVAL = "1d";          // ❗ timeframe daily
     const MAX_CONCURRENCY = 8;
 
-    // Seuil pour la card : variation <= -3%
-    const NEG_THRESHOLD = -3;
-
-    // ❗ On garde uniquement 27/11/2025 21:00 (heure locale Bruxelles)
+    // ❗ Uniquement ces dates (Europe/Brussels), en daily
     const points = [
-      { label:"27/11 21:00", y:2025, m:11, d:27, h:21, min:0 }
+      { label:"29/09/2025", y:2025, m:9,  d:29, h:0,  min:0 },
+      { label:"02/10/2025", y:2025, m:10, d:2,  h:0,  min:0 },
+      { label:"10/10/2025", y:2025, m:10, d:10, h:0,  min:0 },
+      { label:"07/11/2025", y:2025, m:11, d:7,  h:0,  min:0 },
+      { label:"27/11/2025", y:2025, m:11, d:27, h:0,  min:0 }
     ];
 
     const theadRow = document.getElementById("thead-row");
@@ -184,19 +160,14 @@
     const totalRow = document.getElementById("total-row");
     const progress = document.getElementById("progress");
 
-    // éléments card losers
-    const losersList = document.getElementById("losers-list");
-    const losersCount = document.getElementById("losers-count");
-    const losers = []; // {symbol, pct}
-
-    // Création de la colonne (une seule, pour 27/11 21:00)
+    // Création des colonnes (une par date)
     for (const p of points) {
       const th = document.createElement("th");
-      th.textContent = p.label + " (24h)";
+      th.textContent = p.label + " (1d)";
       theadRow.appendChild(th);
     }
 
-    // Gestion DST Europe/Brussels
+    // Gestion DST Europe/Brussels (comme dans ton ancien code)
     function tzOffsetMsAt(date, tz) {
       const fmt = new Intl.DateTimeFormat('en-GB', {
         timeZone: tz,
@@ -215,8 +186,8 @@
       return approxUtc - offset;
     }
 
-    // Chaque point = début de fenêtre 24h
-    const pointTimes = points.map(p => {
+    // Chaque point = journée (minuit → +24h - 1ms) en heure locale Bruxelles
+    const dayTimes = points.map(p => {
       const openTimeMs = brusselsLocalToUtcMs(p.y, p.m, p.d, p.h, p.min);
       const endTimeMs = openTimeMs + 24 * 60 * 60 * 1000 - 1; // 24h - 1ms
       return {
@@ -236,20 +207,19 @@
         .sort();
     }
 
-    // 🔥 Variation sur 24h : open de la première bougie, close de la dernière dans la fenêtre
-    async function fetchKline24hPct(symbol, window){
+    // 🔥 Variation daily : open et close de la bougie 1d comprise dans la fenêtre
+    async function fetchKlineDailyPct(symbol, day){
       const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=${INTERVAL}` +
-                  `&startTime=${window.openTimeMs}&endTime=${window.endTimeMs}&limit=500`;
+                  `&startTime=${day.openTimeMs}&endTime=${day.endTimeMs}&limit=500`;
       const r = await fetch(url);
       if(!r.ok) return null;
       const data = await r.json();
       if(!Array.isArray(data) || data.length === 0) return null;
 
+      // En daily, on s'attend à une seule bougie dans cette fenêtre
       const first = data[0];
-      const last  = data[data.length - 1];
-
       const open = parseFloat(first[1]);
-      const close = parseFloat(last[4]);
+      const close = parseFloat(first[4]);
 
       if(!isFinite(open) || !isFinite(close) || open === 0) return null;
       return (close - open) / open * 100;
@@ -288,34 +258,20 @@
       });
     }
 
-    function updateLosersCard(){
-      if(losers.length === 0){
-        losersCount.textContent = "0";
-        losersList.innerHTML = `<span class="na">Aucune crypto ≤ -3% sur cette fenêtre.</span>`;
-        return;
-      }
-      // Trier par variation (plus négative en premier)
-      losers.sort((a,b) => a.pct - b.pct);
-      losersCount.textContent = String(losers.length);
-      losersList.innerHTML = losers
-        .map(l => `<span class="loss-chip"><strong>${l.symbol}</strong><span class="neg">${l.pct.toFixed(2)}%</span></span>`)
-        .join("");
-    }
-
     async function main(){
       progress.textContent = "Récupération des symboles PERP USDT…";
       const symbols = await getAllPerpUsdtSymbols();
 
-      // Une cellule de total par fenêtre (ici 1)
+      // Une cellule de total par date
       const totalCells = [];
-      for (let i=0;i<pointTimes.length;i++){
+      for (let i=0;i<dayTimes.length;i++){
         const td = document.createElement("td");
         td.innerHTML = `<span class="na">—</span>`;
         totalRow.appendChild(td);
         totalCells.push(td);
       }
-      const sums = new Array(pointTimes.length).fill(0);
-      const counts = new Array(pointTimes.length).fill(0);
+      const sums = new Array(dayTimes.length).fill(0);
+      const counts = new Array(dayTimes.length).fill(0);
 
       const rows = new Map();
       for(const s of symbols){
@@ -323,7 +279,7 @@
         const tdSym = document.createElement("td");
         tdSym.textContent = s;
         tr.appendChild(tdSym);
-        for(let i=0;i<pointTimes.length;i++){
+        for(let i=0;i<dayTimes.length;i++){
           const td = document.createElement("td");
           td.innerHTML = `<span class="warn">…</span>`;
           tr.appendChild(td);
@@ -334,33 +290,25 @@
 
       await mapWithConcurrency(symbols, async (symbol) => {
         const tr = rows.get(symbol);
-        for(let i=0;i<pointTimes.length;i++){
+        for(let i=0;i<dayTimes.length;i++){
           try{
-            const pct = await fetchKline24hPct(symbol, pointTimes[i]);
+            const pct = await fetchKlineDailyPct(symbol, dayTimes[i]);
             tr.children[i+1].innerHTML = fmtPct(pct);
-            if(pct != null){ 
-              sums[i] += pct; 
-              counts[i]++; 
-
-              // ➕ Ajout dans la card si <= -3%
-              if(pct <= NEG_THRESHOLD){
-                losers.push({ symbol, pct });
-              }
+            if(pct != null){
+              sums[i] += pct;
+              counts[i]++;
             }
           }catch{
             tr.children[i+1].innerHTML = `<span class="na">—</span>`;
           }
+          // petit throttle pour éviter de spam l'API
           await new Promise(r=>setTimeout(r,35));
         }
       }, MAX_CONCURRENCY);
 
-      for(let i=0;i<pointTimes.length;i++){
+      for(let i=0;i<dayTimes.length;i++){
         totalCells[i].innerHTML = counts[i] > 0 ? fmtTotal(sums[i]) : `<span class="na">—</span>`;
       }
-
-      // Mise à jour de la card des cryptos ≤ -3%
-      updateLosersCard();
-
       progress.textContent = `Terminé ✅ (${symbols.length} symboles)`;
     }
 
