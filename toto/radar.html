@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <title>Listings — Bougie n°20 (Binance Futures USDT-M PERP)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg:#0f172a;
+            --card:#111827;
+            --muted:#94a3b8;
+            --ok:#10b981;
+            --bad:#ef4444;
+            --text:#e5e7eb;
+            --border:#1f2937;
+            --warn:#f59e0b;
+            --ink:#111827;
+        }
+        html,body{
+            margin:0;
+            background:var(--bg);
+            color:var(--text);
+            font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+            font-size:13px;
+        }
+        header{
+            padding:18px 16px;
+            border-bottom:1px solid var(--border);
+        }
+        h1{
+            margin:0;
+            font-size:20px;
+        }
+        .sub{
+            color:var(--muted);
+            font-size:13px;
+            margin-top:4px;
+        }
+        main{
+            max-width:980px;
+            margin:18px auto;
+            padding:0 12px;
+        }
+        /* === Disposition des contrôles === */
+        .controls{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            margin:16px 0;
+            align-items:flex-end;
+        }
+        label{
+            font-size:12px;
+        }
+        label span{
+            display:block;
+            margin-bottom:4px;
+            font-size:11px;
+        }
+        select,button{
+            background:#0b1220;
+            color:var(--text);
+            border:1px solid var(--border);
+            border-radius:8px;
+            padding:8px 10px;
+            font-size:12px;
+        }
+        button{
+            cursor:pointer;
+        }
+        .btn-danger{
+            border-color:#3b1d1d;
+            background:#1a0e0e;
+        }
+        #status{
+            font-size:11px;
+        }
+        #nCalendar{
+            font-size:12px;
+            margin-left:auto;
+        }
+
+        /* On cache complètement la liste déroulante des mois */
+        .month-wrapper{
+            display:none;
+        }
+
+        /* === Cartes / tableau === */
+        .card{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:12px;
+            position:relative;
+        }
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:6px;
+        }
+        th,td{
+            padding:10px;
+            border-bottom:1px solid var(--border);
+            font-size:13px;
+            text-align:right;
+            vertical-align:top;
+        }
+        th:first-child,td:first-child{
+            text-align:left;
+        }
+        .up{
+            color:var(--ok);
+            font-weight:600;
+        }
+        .down{
+            color:var(--bad);
+            font-weight:600;
+        }
+        .muted{
+            color:var(--muted);
+        }
+        .error{
+            color:var(--bad);
+            margin-top:8px;
+        }
+        .hint{
+            font-size:11px;
+            color:var(--muted);
+            margin-top:8px;
+        }
+        .badge{
+            border:1px solid var(--border);
+            border-radius:999px;
+            padding:6px 10px;
+            font-size:12px;
+        }
+        .right{
+            position:absolute;
+            top:-70px;
+            right:12px;
+        }
+        /* Bouton Accueil en blanc */
+        #homeBtn {
+            color:white!important;
+            border:1px solid var(--border);
+        }
+        #homeBtn a {
+            color:white!important;
+            text-decoration:none;
+            display:block;
+        }
+        /* Bannière date de la bougie (sous le tableau) */
+        .candle-date-banner{
+            margin:16px 0 6px;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:#facc15;
+            color:#111827;
+            border:1px solid #f59e0b;
+            border-radius:12px;
+            padding:10px 14px;
+            font-weight:700;
+            font-size:18px;
+            letter-spacing:.5px;
+        }
+        /* Carte pattern */
+        .dupe-card{
+            margin:16px 0 10px;
+            background:#0f1222;
+            border:1px solid #23324a;
+        }
+        .dupe-title{
+            display:flex;
+            gap:8px;
+            align-items:center;
+            margin-bottom:8px;
+            font-weight:700;
+        }
+        .dupe-pill{
+            display:inline-flex;
+            gap:6px;
+            align-items:center;
+            border:1px solid var(--border);
+            border-radius:999px;
+            padding:6px 10px;
+            margin:4px 6px 0 0;
+            font-size:12px;
+        }
+
+        /* Pastille verte = pattern - / + / - / + / - */
+        .dupe-pill.pattern-neg-pos{
+            border-color:rgba(16,185,129,.8);
+            background:rgba(16,185,129,.18);
+            box-shadow:0 0 0 1px rgba(15,23,42,.7);
+            font-weight:500;
+        }
+
+        /* Pastille rouge = pattern + / - / + / - / + */
+        .dupe-pill.pattern-pos-neg{
+            border-color:rgba(239,68,68,.9);
+            background:rgba(239,68,68,.18);
+            box-shadow:0 0 0 1px rgba(15,23,42,.7);
+            font-weight:500;
+        }
+
+        .dupe-month{
+            margin-top:8px;
+        }
+        .dupe-empty{
+            font-size:12px;
+            color:var(--muted);
+        }
+        .dupe-month h4{
+            margin:8px 0 6px;
+            font-size:13px;
+            color:#d1d5db;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 id="h1">Listings en janvier • Bougie n°<span id="nLabel">20</span></h1>
+        <div class="sub">Marché analysé : <b>Binance Futures — USDT-M PERP</b></div>
+    </header>
+    <main>
+        <div class="controls">
+            <label>
+                <span class="muted">Année (affichée +1)</span>
+                <select id="yearSel"></select>
+            </label>
+
+            <!-- Mois caché, inutile pour l'utilisateur -->
+            <label class="month-wrapper">
+                <span class="muted">Mois</span>
+                <select id="monthSel"></select>
+            </label>
+
+            <label>
+                <span class="muted">N° de bougie (daily)</span>
+                <select id="candleSel"></select>
+            </label>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button id="runBtn">Run</button>
+                <button id="clearBtn" class="btn-danger">??? Effacer</button>
+                <button id="homeBtn"><a href="/index.html">Accueil</a></button>
+                <span id="status" class="muted"></span>
+            </div>
+            <div class="muted" id="nCalendar">
+                Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
+            </div>
+        </div>
+
+        <!-- Carte pattern zigzag -->
+        <div id="dupeCard" class="card dupe-card" style="display:none">
+            <div class="dupe-title">
+                ? <span>Pattern zigzag détecté — Bougie n°<span id="dupeN">—</span></span>
+            </div>
+            <div id="dupeContent"></div>
+        </div>
+
+        <div class="card">
+            <div class="right badge"><span id="progress">—</span></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:160px">Symbole</th>
+                        <th style="width:230px">Date bougie n°<span id="thN1">20</span> (Europe/Brussels)</th>
+                        <th style="width:150px">Variation bougie n°<span id="thN2">20</span></th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+            <div id="err" class="error"></div>
+            <div class="hint" id="hint">
+                On n'affiche plus tous les nouveaux listings 2024, mais uniquement :
+                <b>BTCUSDT, ETHUSDT, XRPUSDT, SOLUSDT, ADAUSDT</b>.<br>
+                Bougies 1D à partir de 2024. Bougie n°<span id="hintN">20</span> = jour n°<span id="hintN2">20</span> dans la série 1D de 2024.<br>
+                Variation = (Close - Open) / Open × 100.
+            </div>
+            <!-- Bannière de date (jaune) sous le tableau -->
+            <div id="candleDateBanner" class="candle-date-banner">—</div>
+        </div>
+    </main>
+    <script>
+        // ====== DOM refs
+        const tz='Europe/Brussels';
+        const yearSel = document.getElementById('yearSel');
+        const monthSel = document.getElementById('monthSel');
+        const candleSel = document.getElementById('candleSel');
+        const runBtn = document.getElementById('runBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusEl = document.getElementById('status');
+        const progressEl = document.getElementById('progress');
+        const tbody = document.getElementById('tbody');
+        const errEl = document.getElementById('err');
+        const nLabel = document.getElementById('nLabel');
+        const thN1 = document.getElementById('thN1');
+        const thN2 = document.getElementById('thN2');
+        const hintN = document.getElementById('hintN');
+        const hintN2 = document.getElementById('hintN2');
+        const nCalN = document.getElementById('nCalN');
+        const nCalDate = document.getElementById('nCalDate');
+        const candleDateBanner = document.getElementById('candleDateBanner');
+        const dupeCard = document.getElementById('dupeCard');
+        const dupeContent = document.getElementById('dupeContent');
+        const dupeN = document.getElementById('dupeN');
+
+        // ====== Consts
+        const dayMs = 24*60*60*1000;
+        // NE PAS TOUCHER : garde la correspondance bougie 20 = 09/10/2025 => 18 = 07/10/25
+        const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
+
+        // On garde ce tableau mais il n'est plus utilisé pour la card
+        const ALLOWED_MONTHS = [0,5,8]; // Jan, Jun, Sep
+
+        // === travail uniquement sur ces 5 symboles
+        const FIXED_SYMBOLS = [
+            'BTCUSDT',
+            'ETHUSDT',
+            'XRPUSDT',
+            'SOLUSDT',
+            'ADAUSDT'
+        ];
+
+        // === bougies 1D à partir du 01/01/2024
+        const YEAR_2024_START = Date.UTC(2024, 0, 1, 0, 0, 0);
+
+        let refListingMs = null;
+        let lastRows = [];
+
+        // ====== Caches
+        const CACHE = {
+            symbols: null,
+            daily100: new Map(), // sym -> 1d klines (limit 100)
+            monthRows: new Map(), // ${Y}-${M} -> [{sym, openTime1, daily100}]
+            computed: new Map(), // ${Y}-${M}-${N} -> rows
+        };
+        const keyMonth = (Y,M)=>`${Y}-${M}`;
+        const keyComputed = (Y,M,N)=>`${Y}-${M}-${N}`;
+
+        // ====== Helpers
+        function capitalizeFr(s){
+            return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+        function formatShortFrDate(ms){
+            const d = new Date(ms);
+            return new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'}).format(d);
+        }
+        function toBrusselsDate(ms){
+            const d = new Date(ms);
+            return new Intl.DateTimeFormat('fr-BE',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(d);
+        }
+        const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
+
+        async function fetchJSON(url){
+            const r = await fetch(url);
+            if(!r.ok) throw new Error(`HTTP ${r.status} — ${await r.text()}`);
+            return r.json();
+        }
+        async function mapLimit(items, limit, worker){
+            const ret=[];
+            let i=0, active=0, done=0;
+            return new Promise(resolve=>{
+                const next=()=>{
+                    while(active<limit && i<items.length){
+                        const idx=i++, it=items[idx];
+                        active++;
+                        Promise.resolve(worker(it,idx))
+                            .then(res=>{ ret[idx]=res; })
+                            .catch(()=>{ ret[idx]=null; })
+                            .finally(()=>{
+                                active--;
+                                done++;
+                                progressEl.textContent = `${done}/${items.length}`;
+                                if(done===items.length) resolve(ret);
+                                else next();
+                            });
+                    }
+                };
+                next();
+            });
+        }
+
+        // ====== Cache warmers
+        async function getSymbolsOnce(){
+            if (CACHE.symbols) return CACHE.symbols;
+            CACHE.symbols = FIXED_SYMBOLS.slice();
+            return CACHE.symbols;
+        }
+
+        async function getDaily100(sym){
+            if (CACHE.daily100.has(sym)) return CACHE.daily100.get(sym);
+            const u=new URL('https://fapi.binance.com/fapi/v1/klines');
+            u.searchParams.set('symbol',sym);
+            u.searchParams.set('interval','1d');
+            u.searchParams.set('limit','100');
+            u.searchParams.set('startTime', String(YEAR_2024_START));
+            const kl = await fetchJSON(u.toString());
+            CACHE.daily100.set(sym, kl||[]);
+            return kl||[];
+        }
+
+        async function warmMonth(Y,M){
+            const k = keyMonth(Y,M);
+            if (CACHE.monthRows.has(k)) return CACHE.monthRows.get(k);
+            const symbols = await getSymbolsOnce();
+            statusEl.textContent = `Préparation du mois ${String(M+1).padStart(2,'0')}/${Y}…`;
+            progressEl.textContent = '—';
+            const rows = await mapLimit(symbols, 5, async (sym)=>{
+                try{
+                    const kl100 = await getDaily100(sym);
+                    if(!kl100.length) return null;
+                    const openTime1 = kl100[0][0]; // 1er jour 1D de 2024
+                    return { sym, openTime1, daily100: kl100 };
+                }catch{ return null; }
+            });
+            const kept = rows.filter(Boolean);
+            CACHE.monthRows.set(k, kept);
+            return kept;
+        }
+
+        async function computeRows(Y,M,N){
+            const kc = keyComputed(Y,M,N);
+            if (CACHE.computed.has(kc)) return CACHE.computed.get(kc);
+            const base = CACHE.monthRows.get(keyMonth(Y,M)) || [];
+            if(!base.length){
+                CACHE.computed.set(kc, []);
+                return [];
+            }
+            const rows = await mapLimit(base, 12, async (r)=>{
+                const kl = r.daily100;
+                let openTimeN=null, pctN=null;
+                if (kl.length>=N){
+                    const kN = kl[N-1];
+                    openTimeN = kN[0];
+                    const o=parseFloat(kN[1]), c=parseFloat(kN[4]);
+                    pctN = o>0 ? ((c-o)/o*100) : 0;
+                }
+                return { sym:r.sym, openTime1:r.openTime1, openTimeN, pctN };
+            });
+            const out = rows.sort((a,b)=>{
+                if (a.openTimeN && b.openTimeN) return a.openTimeN - b.openTimeN;
+                if (a.openTimeN) return -1;
+                if (b.openTimeN) return 1;
+                return a.sym.localeCompare(b.sym);
+            });
+            CACHE.computed.set(kc, out);
+            return out;
+        }
+
+        // ====== Rendering
+        function renderTable(rows){
+            tbody.innerHTML='';
+            if(!rows.length){
+                tbody.innerHTML = `<tr><td colspan="3" class="muted">Aucune donnée trouvée pour ces paramètres.</td></tr>`;
+                return;
+            }
+            const frag = document.createDocumentFragment();
+            rows.forEach(r=>{
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${r.sym}</td>
+                    <td>${r.openTimeN===null ? '<span class="muted">—</span>' : toBrusselsDate(r.openTimeN)}</td>
+                    <td>${r.pctN===null ? '<span class="muted">—</span>' : `<span class="${r.pctN>=0?'up':'down'}">${fmtPct(r.pctN)}</span>`}</td>
+                `;
+                frag.appendChild(tr);
+            });
+            tbody.appendChild(frag);
+        }
+        function updateBannerOnly(){
+            const n = parseInt(candleSel.value,10);
+            const ms = BANNER_BASE_MS + (n-20)*dayMs;
+            candleDateBanner.textContent = formatShortFrDate(ms);
+        }
+        function updateNCalendar(){
+            const n = parseInt(candleSel.value,10);
+            nCalN.textContent = n;
+            const ms = BANNER_BASE_MS + (n-20)*dayMs;
+            nCalDate.textContent = new Intl.DateTimeFormat('fr-BE', {
+                timeZone: tz,
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+            }).format(ms);
+        }
+        function updateLabels(){
+            const n = parseInt(candleSel.value,10);
+            nLabel.textContent = n;
+            thN1.textContent = n;
+            thN2.textContent = n;
+            hintN.textContent = n;
+            hintN2.textContent = n;
+            document.title = `Listings — Bougie n°${n} (Binance Futures USDT-M PERP)`;
+            updateNCalendar();
+            updateBannerOnly();
+        }
+        const markDirty = () => {
+            statusEl.textContent = 'Paramètres modifiés — cliquez sur Run (premier chargement seulement)';
+        };
+
+        // ====== Nouvelle logique de card : deux patterns
+        // 1) - / + / - / + / -  -> pastille verte
+        // 2) + / - / + / - / +  -> pastille rouge
+        async function updateDupeCard(){
+            const N = parseInt(candleSel.value,10);
+            dupeN.textContent = N;
+
+            const rows = lastRows || [];
+            if (rows.length < 5){
+                dupeCard.style.display = 'none';
+                dupeContent.innerHTML = '';
+                return;
+            }
+
+            const first5 = rows.slice(0,5);
+
+            // On construit la séquence des signes : -1 ou +1, 0 si invalide
+            const signs = [];
+            for (let i=0;i<5;i++){
+                const r = first5[i];
+                if (!r || r.pctN === null || r.pctN === 0){
+                    dupeCard.style.display = 'none';
+                    dupeContent.innerHTML = '';
+                    return;
+                }
+                signs.push(r.pctN > 0 ? 1 : -1);
+            }
+
+            const negPosPattern = signs.every((s,idx)=> s === (idx%2===0 ? -1 : 1)); // - + - + -
+            const posNegPattern = signs.every((s,idx)=> s === (idx%2===0 ?  1 : -1)); // + - + - +
+
+            if (!negPosPattern && !posNegPattern){
+                dupeCard.style.display = 'none';
+                dupeContent.innerHTML = '';
+                return;
+            }
+
+            dupeContent.innerHTML = '';
+            const pill = document.createElement('span');
+
+            let label;
+            if (negPosPattern){
+                pill.className = 'dupe-pill pattern-neg-pos';
+                label = '- / + / - / + / -';
+            }else{
+                pill.className = 'dupe-pill pattern-pos-neg';
+                label = '+ / - / + / - / +';
+            }
+
+            const details = first5
+                .map(r => `${r.sym} ${fmtPct(r.pctN)}`)
+                .join(' • ');
+
+            pill.innerHTML = `<b>${label}</b><span class="muted" style="margin-left:8px">${details}</span>`;
+            dupeContent.appendChild(pill);
+            dupeCard.style.display = 'block';
+        }
+
+        // ====== Build & render courant (1d)
+        async function buildAndRenderCurrent(Y,M,N){
+            const rows = await computeRows(Y,M,N);
+            if (rows.length){
+                refListingMs = rows.reduce((min, r) => Math.min(min, r.openTime1), Number.POSITIVE_INFINITY);
+            }else{
+                refListingMs = null;
+            }
+            lastRows = rows;
+            renderTable(rows);
+            updateLabels();
+            updateNCalendar();
+        }
+
+        // ====== Run
+        async function run(){
+            errEl.textContent='';
+            tbody.innerHTML='';
+            progressEl.textContent='—';
+            lastRows=[];
+            refListingMs=null;
+            const Y = parseInt(yearSel.value,10);
+            const M = parseInt(monthSel.value,10);
+            const N = parseInt(candleSel.value,10);
+            try{
+                statusEl.textContent = 'Chargement initial (une seule fois)…';
+                await warmMonth(Y,M);
+                Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
+                statusEl.textContent = `Calcul local pour N=${N}…`;
+                await buildAndRenderCurrent(Y,M,N);
+                await updateDupeCard();
+                statusEl.textContent = `Terminé (cache) — ${lastRows.length} symbole(s) • Bougie n°${N}`;
+            }catch(e){
+                console.error(e);
+                errEl.textContent='Erreur: '+e.message;
+                statusEl.textContent='';
+            }
+        }
+
+        // ====== Effacer
+        function clearAll(){
+            CACHE.symbols = null;
+            CACHE.daily100.clear();
+            CACHE.monthRows.clear();
+            CACHE.computed.clear();
+            lastRows = [];
+            refListingMs = null;
+            tbody.innerHTML = '';
+            dupeContent.innerHTML = '';
+            dupeCard.style.display = 'none';
+            errEl.textContent = '';
+            progressEl.textContent = '—';
+            nCalDate.textContent = '—';
+            candleDateBanner.textContent = '—';
+            updateLabels();
+            statusEl.textContent = 'Tout effacé — sélectionne tes paramètres puis clique Run.';
+        }
+
+        // ====== Fast re-render si cache déjà chaud
+        async function tryFastRender(){
+            const Y = parseInt(yearSel.value,10);
+            const M = parseInt(monthSel.value,10);
+            const N = parseInt(candleSel.value,10);
+            if (CACHE.monthRows.has(keyMonth(Y,M))){
+                statusEl.textContent = 'Recalcul rapide depuis le cache…';
+                await buildAndRenderCurrent(Y,M,N);
+                await updateDupeCard();
+                statusEl.textContent = `OK (cache) • ${lastRows.length} symbole(s)`;
+            }else{
+                statusEl.textContent = 'Paramètres modifiés — cliquez sur Run (premier chargement seulement)';
+            }
+        }
+
+        // ====== UI init
+        (function initSelectors(){
+            const years=[2024];
+            years.forEach(y=>{
+                const o=document.createElement('option');
+                o.value=String(y);
+                o.textContent=String(y+1);
+                o.dataset.realYear=y;
+                yearSel.appendChild(o);
+            });
+            yearSel.value='2024';
+
+            // Mois toujours rempli mais invisible
+            const limitedMonths=[
+                {label:'01 Jan', value:0},
+                {label:'06 Jun', value:5},
+                {label:'09 Sep', value:8},
+            ];
+            limitedMonths.forEach(({label,value})=>{
+                const o=document.createElement('option');
+                o.value=value;
+                o.textContent=label;
+                monthSel.appendChild(o);
+            });
+            monthSel.value=0;
+
+            // N par défaut basé sur BANNER_BASE_MS
+            const today = new Date();
+            const todayMs = today.getTime();
+            const diffDays = Math.round((todayMs - BANNER_BASE_MS) / dayMs);
+            const nFromDate = 20 + diffDays;
+            const defaultN = Math.max(1, Math.min(100, nFromDate));
+            for(let n=1;n<=100;n++){
+                const o=document.createElement('option');
+                o.value=n;
+                o.textContent=String(n);
+                candleSel.appendChild(o);
+            }
+            candleSel.value = String(defaultN);
+
+            updateLabels();
+            updateNCalendar();
+            updateBannerOnly();
+        })();
+
+        // ====== Listeners
+        candleSel.addEventListener('change', async ()=>{
+            updateLabels();
+            await tryFastRender();
+        });
+        yearSel.addEventListener('change', tryFastRender);
+        monthSel.addEventListener('change', tryFastRender);
+        runBtn.addEventListener('click', run);
+        clearBtn.addEventListener('click', clearAll);
+
+        // ====== Header dynamique
+        const h1 = document.getElementById('h1');
+        const monthNames = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+        const updateHeader = () => {
+            h1.innerHTML = `Listings en ${monthNames[+monthSel.value]} • Bougie n°<span id="nLabel">${candleSel.value}</span>`;
+        };
+        monthSel.addEventListener('change', updateHeader);
+        candleSel.addEventListener('change', updateHeader);
+        updateHeader();
+    </script>
+</body>
+</html>
