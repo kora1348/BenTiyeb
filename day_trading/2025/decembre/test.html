@@ -6,27 +6,12 @@
     <title></title>
     <style>
       *{margin:0;padding:0;box-sizing:border-box}
-      body{
-        font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
-        background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        min-height:100vh;display:flex;justify-content:center;align-items:center;
-        padding:20px
-      }
-      .container{
-        background:white;border-radius:20px;padding:40px;
-        box-shadow:0 20px 60px rgba(0,0,0,.3);
-        max-width:1400px;width:100%
-      }
+      body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+      .container{background:white;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:1400px;width:100%}
       h1{text-align:center;color:#333;margin-bottom:6px;font-size:28px}
       .hint{color:#6b7280;text-align:center;margin-bottom:24px;font-size:13px}
-      table{
-        width:100%;border-collapse:collapse;margin-bottom:20px;
-        background:white;border-radius:10px;overflow:hidden
-      }
-      thead{
-        background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        color:white
-      }
+      table{width:100%;border-collapse:collapse;margin-bottom:20px;background:white;border-radius:10px;overflow:hidden}
+      thead{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}
       th{padding:15px 10px;text-align:center;font-weight:bold;font-size:14px}
       td{padding:15px 10px;text-align:center;border-bottom:1px solid #eee;font-size:14px}
       tbody tr:last-child td{border-bottom:none}
@@ -35,64 +20,46 @@
       .positive{color:#22c55e;font-weight:bold}
       .negative{color:#ef4444;font-weight:bold}
       .loading{text-align:center;color:#666;padding:20px}
-      .error{
-        background:#fee;border:1px solid #fcc;color:#c33;
-        padding:15px;border-radius:10px;margin-bottom:20px
-      }
-      button{
-        width:100%;padding:15px;
-        background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        color:white;border:none;border-radius:10px;
-        font-size:16px;font-weight:bold;cursor:pointer;
-        transition:transform .2s;margin-bottom:10px
-      }
+      .error{background:#fee;border:1px solid #fcc;color:#c33;padding:15px;border-radius:10px;margin-bottom:20px}
+      button{width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform .2s;margin-bottom:10px}
       button:hover{transform:translateY(-2px)}
       button:disabled{opacity:.5;cursor:not-allowed}
-      .progress-container{
-        width:100%;background:#e5e7eb;border-radius:10px;
-        height:30px;overflow:hidden;margin-bottom:20px;
-        box-shadow:inset 0 2px 4px rgba(0,0,0,.1)
-      }
-      .progress-bar{
-        height:100%;
-        background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);
-        border-radius:10px;transition:width .3s ease;
-        display:flex;align-items:center;justify-content:center;
-        color:white;font-weight:bold;font-size:12px
-      }
-      .year-badge{
-        background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        color:white;padding:5px 15px;border-radius:20px;
-        font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px
-      }
+      .progress-container{width:100%;background:#e5e7eb;border-radius:10px;height:30px;overflow:hidden;margin-bottom:20px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
+      .progress-bar{height:100%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:10px;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:12px}
+      .year-badge{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-block;margin-bottom:10px}
       .year-badge a{color:white;text-decoration:none}
+
+      /* ✅ MODIF UNIQUEMENT ICI : 3 boutons sur 1 ligne */
       .nav-buttons{
-        display:grid;grid-template-columns:1fr 1fr;
-        gap:10px;margin-bottom:20px
+        display:grid;
+        grid-template-columns:1fr 1fr 1fr;
+        gap:10px;
+        margin-bottom:20px
       }
       .nav-btn{
-        background:linear-gradient(135deg,#10b981 0%,#059669 100%);
-        padding:12px;border-radius:10px;text-align:center;
-        text-decoration:none;color:white;font-weight:bold;
-        transition:transform .2s;display:block
+        padding:12px;
+        border-radius:10px;
+        text-align:center;
+        text-decoration:none;
+        color:white;
+        font-weight:bold;
+        transition:transform .2s;
+        display:block
       }
       .nav-btn:hover{transform:translateY(-2px)}
-      .nav-btn.spike-max{
-        background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)
-      }
-      .nav-btn.spike-min{
-        background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)
+      .nav-btn.spike-max{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)}
+      .nav-btn.spike-min{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
+      .nav-btn.variation{background:linear-gradient(135deg,#111827 0%,#000000 100%)}
+
+      @media (max-width:900px){
+        .nav-buttons{grid-template-columns:1fr; }
       }
     </style>
   </head>
   <body>
     <div class="container">
       <h1 id="pageTitle">📊 Taux de variation (Bougies Daily - ?)</h1>
-      <div class="hint">
-        🕐 Début bougie Binance (UTC+8) ≈
-        <strong>01h en hiver</strong> /
-        <strong>02h en été</strong> à Bruxelles
-      </div>
+      <div class="hint">🕐 Début bougie Binance (UTC+8) ≈ <strong>01h en hiver</strong> / <strong>02h en été</strong> à Bruxelles</div>
 
       <div style="text-align:center;">
         <span class="year-badge"><a href="/index.html">Année 2025</a></span>
@@ -102,8 +69,9 @@
       </div>
 
       <div class="nav-buttons">
-        <a id="linkSpikeMax" href="#" class="nav-btn spike-max">📈 Voir Spike Max (mèche haute)</a>
-        <a id="linkSpikeMin" href="#" class="nav-btn spike-min">📉 Voir Spike Min (mèche basse)</a>
+        <a id="btnSpikeMax" href="#" class="nav-btn spike-max">📈 Voir Spike Max (mèche haute)</a>
+        <a id="btnSpikeMin" href="#" class="nav-btn spike-min">📉 Voir Spike Min (mèche basse)</a>
+        <a id="btnVariationLink" href="#" class="nav-btn variation">↔️ Variation (Close/Open)</a>
       </div>
 
       <div id="progressContainer" style="display:none;">
@@ -114,29 +82,23 @@
 
       <div id="content"><div class="loading">Chargement des données...</div></div>
 
-      <button id="refreshBtn" onclick="fetchData()">🔄 Actualiser</button>
+      <button id="refreshBtn">🔄 Actualiser</button>
       <p>R + R + R + V + V + R</p>
     </div>
 
     <script>
-      // =========================
-      // PARAMÈTRE MODIFIABLE — ta date de référence (JJ/MM/AAAA)
-      // =========================
-      const REF_DATE_FR = '29/09/2025';
+      const REF_DATE_FR = '19/12/2025';
 
-      // =========================
-      // DATES DE BASE (seront décalées si tu changes REF_DATE_FR)
-      // =========================
-      const BASE_REF_FR = '29/09/2025';
+      const BASE_REF_FR = '19/12/2025';
       const BASE_DATES_FR = [
-        '29/09/2025',
-        '02/10/2025',
-        '10/10/2025',
-        '07/11/2025',
-        '27/11/2025'
+        '17/04/2025',
+        '24/04/2025',
+        '15/09/2025',
+        '18/09/2025',
+        '15/12/2025',
+        '19/12/2025'
       ];
 
-      // ===== Utils dates (UTC, safe) =====
       const pad2 = n => String(n).padStart(2,'0');
       function parseFR(strFR){
         const [jj,mm,aaaa] = strFR.split('/').map(Number);
@@ -160,7 +122,6 @@
         return cp;
       }
 
-      // Calcule les dates (FR pour affichage + ISO pour API)
       function computeShiftedDates(){
         const baseRef = parseFR(BASE_REF_FR);
         const refSel  = parseFR(REF_DATE_FR);
@@ -176,9 +137,6 @@
         return { datesFR, datesISO };
       }
 
-      // =========================
-      // Affichage titre, <title>, liens Spike et "Date de référence"
-      // =========================
       function ddmmyyyyToPartsFR(str){
         const [jj, mm, aaaa] = str.split('/').map(Number);
         return { jj, mm, aaaa };
@@ -188,31 +146,26 @@
       }
 
       (function applyTitleLinksAndRefDate() {
-        // 20e bougie = 09/10/2025 (référence de calcul du numéro)
         const ref20 = dateUTC(2025, 10, 9);
 
         const { jj, mm, aaaa } = ddmmyyyyToPartsFR(REF_DATE_FR);
         const refSel = dateUTC(aaaa, mm, jj);
 
-        // ---- (1) Numéro de bougie dans le H1
         const deltaDays = daysBetweenUTC(ref20, refSel);
         const numeroBougie = 20 + deltaDays;
         const h1 = document.getElementById('pageTitle');
         if (h1) h1.textContent = `📊 Taux de variation (Bougies Daily - ${numeroBougie})`;
 
-        // ---- (2) <title> automatique (format JJ-MM-AA)
         const t = document.querySelector('title');
         if (t) {
           const yy = String(aaaa).slice(-2);
           t.textContent = `${pad2(jj)}-${pad2(mm)}-${yy}`;
         }
 
-        // ---- (3) Liens Spike (corrects selon la date de référence)
         const jjStr = pad2(jj);
         const mmStr = pad2(mm);
         const yyStr = String(aaaa).slice(-2);
 
-        // Dossiers mois (sans accents, comme ton arborescence)
         const moisFR = [
           'janvier','fevrier','mars','avril','mai','juin',
           'juillet','aout','septembre','octobre','novembre','decembre'
@@ -226,23 +179,15 @@
         if (linkMax) linkMax.href = `${basePath}/futures-spike-max-${aaaa}.html`;
         if (linkMin) linkMin.href = `${basePath}/futures-spike-min-${aaaa}.html`;
 
-        // ---- (4) Affiche la date de référence en haut
         const refSpan = document.getElementById('refDateDisplay');
         if (refSpan) refSpan.textContent = `${pad2(jj)}/${pad2(mm)}/${aaaa}`;
       })();
 
-
-      // =========================
-      // Données Futures Binance
-      // =========================
       const API = 'https://fapi.binance.com';
       const U = s => s.trim().toUpperCase();
 
-      // Fenêtre daily conforme Binance (UTC+8) :
-      // Pour "YYYY-MM-DD" (UTC), début = 00:00 UTC+8 => UTC - 8h
-      // start = 16:00 UTC la veille, end = start + 24h - 1 ms
       function binanceDailyWindow(dateISO){
-        const baseUTC = new Date(dateISO + 'T00:00:00.000Z'); // minuit UTC du jour affiché
+        const baseUTC = new Date(dateISO + 'T00:00:00.000Z');
         const start = new Date(baseUTC.getTime() - 8 * 60 * 60 * 1000);
         const end   = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
         return { start, end };
@@ -263,6 +208,28 @@
         const close = parseFloat(kline[4]);
         return ((close - open) / open) * 100;
       }
+      function calculateSpikeMax(kline){
+        const open = parseFloat(kline[1]);
+        const high = parseFloat(kline[2]);
+        return ((high - open) / open) * 100;
+      }
+      function calculateSpikeMin(kline){
+        const open = parseFloat(kline[1]);
+        const low = parseFloat(kline[3]);
+        return ((low - open) / open) * 100;
+      }
+
+      let CURRENT_MODE = 'variation';
+
+      function setMode(mode){
+        CURRENT_MODE = mode;
+      }
+      function computeMetricFromKline(kline){
+        if (!kline) return null;
+        if (CURRENT_MODE === 'spike_max') return calculateSpikeMax(kline);
+        if (CURRENT_MODE === 'spike_min') return calculateSpikeMin(kline);
+        return calculateDailyVariation(kline);
+      }
 
       async function fetchData(){
         const content = document.getElementById('content');
@@ -277,20 +244,13 @@
         progressBar.textContent = '0%';
 
         try{
-          // 👉 Tes symboles (modifie librement)
           const symbols = [
-            "1000CHEEMSUSDT",
-            "API3USDT",
-            "BULLAUSDT",
-            "SCRTUSDT",
-            "WLDUSDT",
-            "XVGUSDT"
+            "AEVOUSDT","ARPAUSDT","AXLUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+            "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT","NXPCUSDT",
           ].map(U);
 
-          // 👉 Dates calculées automatiquement à partir de BASE_DATES_FR
           const { datesFR, datesISO } = computeShiftedDates();
 
-          // Progress tracking
           const totalRequests = symbols.length * datesISO.length;
           let completedRequests = 0;
 
@@ -304,7 +264,8 @@
                     const p = Math.round((completedRequests / totalRequests) * 100);
                     progressBar.style.width = p + '%';
                     progressBar.textContent = p + '%';
-                    return kline ? calculateDailyVariation(kline) : null;
+                    const v = computeMetricFromKline(kline);
+                    return (v === null || !isFinite(v)) ? null : v;
                   })
                   .catch(()=>{
                     completedRequests++;
@@ -317,17 +278,16 @@
             }
           }
 
-          const allVariations = await Promise.all(allPromises);
+          const allValues = await Promise.all(allPromises);
 
           const results = [];
           for (let i=0;i<symbols.length;i++){
-            const variations = allVariations.slice(i*datesISO.length,(i+1)*datesISO.length);
-            results.push({ symbol: symbols[i], variations });
+            const values = allValues.slice(i*datesISO.length,(i+1)*datesISO.length);
+            results.push({ symbol: symbols[i], values });
           }
 
           progressContainer.style.display = 'none';
 
-          // ===== Table dynamique =====
           let tableHTML = `
             <table>
               <thead>
@@ -344,7 +304,7 @@
 
           results.forEach(r=>{
             tableHTML += `<tr><td class="symbol">${r.symbol}</td>`;
-            r.variations.forEach((v, idx)=>{
+            r.values.forEach((v, idx)=>{
               if (v === null || !isFinite(v)){
                 tableHTML += `<td style="color:#9ca3af;">N/A</td>`;
               } else {
@@ -358,7 +318,6 @@
             tableHTML += `</tr>`;
           });
 
-          // Ligne TOTAL
           tableHTML += `<tr style="background:#f3f4f6;font-weight:bold;border-top:3px solid #667eea;">`;
           tableHTML += `<td class="symbol">TOTAL</td>`;
           totals.forEach((total, idx)=>{
@@ -383,7 +342,28 @@
         }
       }
 
-      // Go!
+      document.getElementById('btnSpikeMax').addEventListener('click', (e)=>{
+        e.preventDefault();
+        setMode('spike_max');
+        fetchData();
+      });
+
+      document.getElementById('btnSpikeMin').addEventListener('click', (e)=>{
+        e.preventDefault();
+        setMode('spike_min');
+        fetchData();
+      });
+
+      document.getElementById('btnVariationLink').addEventListener('click', (e)=>{
+        e.preventDefault();
+        setMode('variation');
+        fetchData();
+      });
+
+      document.getElementById('refreshBtn').addEventListener('click', ()=>{
+        fetchData();
+      });
+
       fetchData();
     </script>
   </body>
