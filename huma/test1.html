@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Binance Futures — Variations 1D (3 cryptos)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f172a;
+      --card:#111c33;
+      --text:#e5e7eb;
+      --muted:#93a4bf;
+      --border:#1f2b46;
+      --green:#22c55e;
+      --red:#ef4444;
+      --na:#94a3b8;
+      --shadow:0 12px 30px rgba(0,0,0,.25);
+    }
+    html,body{margin:0;background:linear-gradient(160deg,#0b1220,#0a1020 35%,#070b14);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{
+      position:sticky;top:0;z-index:5;
+      background:rgba(11,18,32,.9);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+      padding:14px 16px;
+    }
+    h1{margin:0;font-size:18px}
+    .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.35}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+    input{
+      background:var(--panel);
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:9px 10px;
+      border-radius:10px;
+      outline:none;
+      min-width:260px;
+    }
+    button{
+      background:#2563eb;
+      color:white;border:0;
+      padding:9px 12px;border-radius:10px;
+      cursor:pointer;font-weight:700;
+      box-shadow: var(--shadow);
+    }
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .pill{
+      border:1px solid var(--border);
+      background:rgba(17,28,51,.6);
+      padding:7px 10px;border-radius:999px;
+      color:var(--muted);font-size:12px;
+    }
+    main{padding:16px}
+    .card{
+      background:rgba(17,28,51,.7);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .status{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .status b{color:var(--text)}
+
+    table{width:100%;border-collapse:separate;border-spacing:0}
+
+    thead th{
+      position:sticky; top:0;
+      z-index:3;
+      background:rgba(15,23,42,.98);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+      color:#cbd5e1;
+      text-align:right;
+      font-size:12px;
+      padding:10px 10px;
+      white-space:nowrap;
+    }
+    thead th:first-child{text-align:left;padding-left:14px}
+
+    tbody td{
+      border-bottom:1px solid rgba(31,43,70,.6);
+      padding:9px 10px;
+      text-align:right;
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
+    tbody td:first-child{text-align:left;padding-left:14px}
+    tbody tr:hover{background:rgba(148,163,184,.07)}
+    .pos{color:var(--green);font-weight:800}
+    .neg{color:var(--red);font-weight:800}
+    .na{color:var(--na)}
+    .mini{color:var(--muted);font-size:12px}
+    .right{margin-left:auto}
+    .link{color:#93c5fd;text-decoration:none;font-weight:700;}
+
+    /* ? ligne TOTAL */
+    tr.total-row td{
+      background: rgba(15,23,42,.75);
+      border-top: 1px solid var(--border);
+      border-bottom: none;
+      font-weight: 900;
+    }
+    tr.total-row td:first-child{
+      letter-spacing: .4px;
+      color:#cbd5e1;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Binance Futures USDT-M PERP — Variations (1D) — 3 cryptos</h1>
+  <div class="sub">
+    Taux de variation par date = <b>(Close - Open) / Open × 100</b>.<br/>
+    Vert si positif, rouge si négatif.
+  </div>
+  <div class="row">
+    <input id="search" placeholder="Filtrer (ex: BNB, AERO, MOVE...)" />
+    <button id="btn" onclick="run()">Charger / Recharger</button>
+    <span class="pill" id="pill">Dates: 8</span>
+    <span class="pill" id="pill2">Symboles: 3</span>
+    <span class="pill" id="pill3">Chargé: 0</span>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="status" id="status">
+      <span>État: <b>prêt</b></span>
+      <span class="right mini">Source: API Binance Futures (fapi.binance.com)</span>
+    </div>
+
+    <div id="scrollBox" style="overflow:auto; max-height: 78vh;">
+      <table id="tbl">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+  // ==== CONFIG ====
+    // ==== CONFIG ====
+  const SYMBOLS = [
+  "HUMAUSDT",
+];
+
+
+  const DATES_FR = [
+    "07/10/2025",
+    "09/10/2025",
+    "10/10/2025",
+    "21/10/2025",
+    "26/10/2025",
+    "05/11/2025",
+    "06/11/2025",
+    "09/11/2025",
+  ];
+
+  const KLINES = "https://fapi.binance.com/fapi/v1/continuousKlines";
+  const CONCURRENCY = 3;
+
+  // ==== UTILS ====
+  function frToIso(fr){
+    const [dd,mm,yyyy] = fr.split("/");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function isoToStartMs(iso){
+    return Date.parse(iso + "T00:00:00.000Z");
+  }
+  function fmtPct(x){
+    if (x === null || Number.isNaN(x)) return "—";
+    const sign = x > 0 ? "+" : "";
+    return sign + x.toFixed(2) + "%";
+  }
+  function classForValue(v){
+    if (v === null || Number.isNaN(v)) return "na";
+    if (v > 0) return "pos";
+    if (v < 0) return "neg";
+    return "na";
+  }
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+  async function fetchJson(url){
+    const r = await fetch(url);
+    if(!r.ok){
+      const t = await r.text().catch(()=> "");
+      throw new Error(`HTTP ${r.status} ${r.statusText} :: ${t.slice(0,120)}`);
+    }
+    return r.json();
+  }
+  async function mapPool(items, worker, concurrency){
+    const out = new Array(items.length);
+    let i = 0;
+    async function runner(){
+      while(i < items.length){
+        const idx = i++;
+        out[idx] = await worker(items[idx], idx);
+      }
+    }
+    const runners = Array.from({length: Math.min(concurrency, items.length)}, runner);
+    await Promise.all(runners);
+    return out;
+  }
+
+  // ==== CORE ====
+  const DATES_ISO = DATES_FR.map(frToIso);
+
+  function buildHeader(){
+    document.getElementById("thead").innerHTML = `
+      <tr>
+        <th>Symbole</th>
+        ${DATES_FR.map(d => `<th>${d}</th>`).join("")}
+      </tr>
+    `;
+    document.getElementById("pill").textContent = `Dates: ${DATES_FR.length}`;
+  }
+
+  function setStatus(html){
+    document.getElementById("status").innerHTML = html;
+  }
+
+  function buildTotalRow(rows){
+    // somme par date (ignore les null)
+    const totals = {};
+    for (const iso of DATES_ISO) totals[iso] = 0;
+
+    for (const r of rows){
+      for (const iso of DATES_ISO){
+        const v = r.variations[iso];
+        if (typeof v === "number" && Number.isFinite(v)) totals[iso] += v;
+      }
+    }
+
+    const tds = DATES_ISO.map(iso => {
+      const v = totals[iso];
+      const cls = classForValue(v);
+      return `<td class="${cls}">${fmtPct(v)}</td>`;
+    }).join("");
+
+    return `
+      <tr class="total-row">
+        <td>TOTAL</td>
+        ${tds}
+      </tr>
+    `;
+  }
+
+  function renderRows(rows){
+    const bodyRowsHtml = rows.map(r => {
+      const tds = DATES_ISO.map(iso => {
+        const v = r.variations[iso];
+        return `<td class="${classForValue(v)}">${fmtPct(v)}</td>`;
+      }).join("");
+
+      const link = `https://www.binance.com/en/futures/${r.symbol}`;
+      return `
+        <tr>
+          <td><a class="link" href="${link}" target="_blank" rel="noreferrer">${r.symbol}</a></td>
+          ${tds}
+        </tr>
+      `;
+    }).join("");
+
+    // ? total en bas
+    const totalRowHtml = buildTotalRow(rows);
+
+    document.getElementById("tbody").innerHTML = bodyRowsHtml + totalRowHtml;
+  }
+
+  async function getVariationForDate(symbol, isoDate){
+    const start = isoToStartMs(isoDate);
+    const end = start + 24*60*60*1000;
+
+    const url = `${KLINES}?pair=${encodeURIComponent(symbol)}&contractType=PERPETUAL&interval=1d&startTime=${start}&endTime=${end}&limit=2`;
+
+    for(let attempt=0; attempt<3; attempt++){
+      try{
+        const data = await fetchJson(url);
+        const k = (data || []).find(x => x && x[0] === start) || (data && data[0]);
+        if(!k) return null;
+
+        const open = parseFloat(k[1]);
+        const close = parseFloat(k[4]);
+        if(!Number.isFinite(open) || open === 0 || !Number.isFinite(close)) return null;
+
+        return ((close - open) / open) * 100;
+      }catch(e){
+        const msg = String(e.message || e);
+        if(msg.includes("HTTP 429") && attempt < 2){
+          await sleep(400 * (attempt+1));
+          continue;
+        }
+        return null;
+      }
+    }
+    return null;
+  }
+
+  async function run(){
+    const btn = document.getElementById("btn");
+    btn.disabled = true;
+
+    buildHeader();
+    document.getElementById("pill2").textContent = `Symboles: ${SYMBOLS.length}`;
+    document.getElementById("pill3").textContent = `Chargé: 0`;
+
+    setStatus(`<span>État: <b>calcul des variations…</b></span>
+               <span class="mini">(${SYMBOLS.length * DATES_ISO.length} bougies à lire)</span>`);
+
+    try{
+      const rows = SYMBOLS.map(sym => ({
+        symbol: sym,
+        variations: Object.fromEntries(DATES_ISO.map(d => [d, null]))
+      }));
+
+      let done = 0;
+      const total = SYMBOLS.length * DATES_ISO.length;
+
+      const jobs = [];
+      for(const sym of SYMBOLS){
+        for(const iso of DATES_ISO){
+          jobs.push({sym, iso});
+        }
+      }
+
+      const rowIndex = new Map(rows.map((r, i) => [r.symbol, i]));
+
+      await mapPool(jobs, async (job) => {
+        const v = await getVariationForDate(job.sym, job.iso);
+        const idx = rowIndex.get(job.sym);
+        rows[idx].variations[job.iso] = v;
+
+        done++;
+        document.getElementById("pill3").textContent = `Chargé: ${done}/${total}`;
+      }, CONCURRENCY);
+
+      renderRows(rows);
+      setStatus(`<span>État: <b>terminé ?</b></span>
+                 <span class="mini">Vert = positif, Rouge = négatif</span>
+                 <span class="right mini">Clique un symbole pour ouvrir Binance Futures</span>`);
+
+      // Filtre (cache/affiche aussi la ligne TOTAL automatiquement)
+      const search = document.getElementById("search");
+      search.oninput = () => {
+        const q = (search.value || "").trim().toUpperCase();
+        const filtered = q ? rows.filter(r => r.symbol.includes(q)) : rows;
+        renderRows(filtered);
+      };
+
+    }catch(e){
+      setStatus(`<span>État: <b style="color:var(--red)">erreur</b></span>
+                 <span class="mini">${String(e.message || e)}</span>`);
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  // Auto-start
+  window.addEventListener("DOMContentLoaded", () => {
+    buildHeader();
+    run();
+  });
+</script>
+</body>
+</html>
