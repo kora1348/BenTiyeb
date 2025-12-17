@@ -18,6 +18,7 @@
     .controls{margin-left:auto;display:flex;gap:12px}
     .controls button{background:var(--accent);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;font-size:14px}
     .controls button a{color:#fff;text-decoration:none}
+
     .summary-cards{max-width:1200px;margin:0 auto 16px;display:flex;flex-direction:column;gap:12px}
     .summary-card{padding:12px 16px;border-radius:12px;font-size:14px;border:1px solid var(--border);}
     #variation_negative{
@@ -44,6 +45,7 @@
     .total-badges .badge.positive{color:#22c55e}
     .total-badges .badge.negative{color:#ef4444}
     .total-badges .badge.zero{color:#94a3b8}
+
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:16px;max-width:1200px;margin:0 auto}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
     .card header{background:var(--header);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center}
@@ -53,7 +55,7 @@
     table{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
     thead th{position:sticky;top:0;background:var(--header);border-bottom:1px solid var(--border);padding:6px 8px;font-size:12px;color:var(--muted);text-align:left}
     thead th.num, tbody td.pct{text-align:right}
-    tbody td, tbody th{border-bottom:1px solid rgba(255,255,255,.06);padding:6px 8px;font-size:12px}
+    tbody td, tbody th{border-bottom:1px solid rgba(255,255,255,.06);padding:6px 8px;font-size:12px;vertical-align:top}
     tbody td.time{color:var(--muted)}
     .pct{font-weight:600}
     .up{color:var(--up)} .down{color:var(--down)} .zero{color:var(--zero)}
@@ -61,6 +63,44 @@
     .error{color:#fca5a5}
     .chip{font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#94a3b8;margin-left:8px}
     .info-banner{max-width:1200px;margin:0 auto 16px;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;color:#93c5fd;font-size:14px;}
+
+    /* Sous-table (heures) */
+    .hours-wrap{
+      padding:10px 10px 12px;
+      background:rgba(255,255,255,.02);
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius:12px;
+      margin:6px 0 2px;
+    }
+    .hours-title{
+      display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+      margin:0 0 8px;font-size:12px;color:var(--muted)
+    }
+    .hours-title strong{color:#e5e7eb}
+    .hours-table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      font-variant-numeric:tabular-nums;
+      overflow:hidden;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .hours-table thead th{
+      position:sticky; top:0;
+      background:rgba(11,18,32,.9);
+      padding:6px 8px;
+      font-size:11px;
+      color:var(--muted);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .hours-table tbody td{
+      padding:6px 8px;
+      font-size:11px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .hours-table td.num{text-align:right}
+    .hours-table td.time{color:var(--muted)}
   </style>
 </head>
 <body>
@@ -71,23 +111,23 @@
   </header>
 
   <div class="info-banner">
-    ⚠️ "n/a" = pas assez de bougies sur la fenêtre 01:00 → 00:59 (jour+1) ou symbole indisponible.<br/>
+    ⚠️ "n/a" = pas assez de bougies sur la fenêtre ou symbole indisponible.<br/>
     ⚠️ API utilisée : <strong>Binance Futures (prioritaire) + Spot (fallback)</strong>
   </div>
 
   <div class="summary-cards">
     <div id="spike_max" class="summary-card">
-      <span class="title">TOTAL Spike max (mèche ↑) — fenêtre 01:00 → 00:59 :</span>
+      <span class="title">TOTAL Spike max (mèche ↑) — fenêtre :</span>
       <div id="total_spike_max" class="total-badges"></div>
     </div>
 
     <div id="spike_min" class="summary-card">
-      <span class="title">TOTAL Spike min (mèche ↓) — fenêtre 01:00 → 00:59 :</span>
+      <span class="title">TOTAL Spike min (mèche ↓) — fenêtre :</span>
       <div id="total_spike_min" class="total-badges"></div>
     </div>
 
     <div id="variation_negative" class="summary-card">
-      <span class="title">TOTAL (somme des variations de tous les symboles) — fenêtre 01:00 → 00:59 :</span>
+      <span class="title">TOTAL (somme des variations de tous les symboles) — fenêtre :</span>
       <div id="total_variation" class="total-badges"></div>
     </div>
   </div>
@@ -102,9 +142,7 @@
 
   const timeZone = "Europe/Brussels";
 
-  // ✅ 01:00 -> 00:59 = 24h glissantes (900 minutes + 60 minutes = 1440 minutes)
-  // Avec 1m ça ferait 1440 bougies => >1000 limit. Donc on met 5m par défaut (288 bougies).
-  // Si tu veux absolument 1m, je te ferai la version "pagination" (plusieurs requêtes).
+  // 24h (01:00 -> 00:59) en 1m = 1440 bougies > 1000 limit => on garde 5m (288 bougies)
   const INTERVAL = "5m";
   document.getElementById('chipInterval').textContent = `Timeframe interne : ${INTERVAL}`;
 
@@ -113,35 +151,33 @@
     "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT",
   ];
 
+  // ✅ uniquement tes 2 fenêtres demandées
   const DATE_STRINGS = [
     "09/12/2025",
     "15/12/2025",
   ];
 
   function tzOffsetMsAt(date, tz) {
-  const dtf = new Intl.DateTimeFormat('en-GB', {
-    timeZone: tz,
-    year:'numeric', month:'2-digit', day:'2-digit',
-    hour:'2-digit', minute:'2-digit', second:'2-digit',
-    hour12:false
-  });
+    const dtf = new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz,
+      year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', second:'2-digit',
+      hour12:false
+    });
+    const parts = dtf.formatToParts(date);
+    const map = {};
+    for (const p of parts) map[p.type] = p.value;
 
-  const parts = dtf.formatToParts(date);
-  const map = {};
-  for (const p of parts) map[p.type] = p.value;
-
-  const asUTC = Date.UTC(
-    Number(map.year),
-    Number(map.month) - 1,
-    Number(map.day),
-    Number(map.hour),
-    Number(map.minute),
-    Number(map.second)
-  );
-
-  return asUTC - date.getTime();
-}
-
+    const asUTC = Date.UTC(
+      Number(map.year),
+      Number(map.month) - 1,
+      Number(map.day),
+      Number(map.hour),
+      Number(map.minute),
+      Number(map.second)
+    );
+    return asUTC - date.getTime();
+  }
 
   function localToUtcMs(y, m, d, hh, mm, ss, ms, tz) {
     const approxUtc = Date.UTC(y, m-1, d, hh, mm, ss, ms);
@@ -155,32 +191,55 @@
   }
 
   function addDays(y,m,d, add){
-    const dt = new Date(Date.UTC(y, m-1, d, 12, 0, 0)); // midi UTC pour éviter effets DST
+    const dt = new Date(Date.UTC(y, m-1, d, 12, 0, 0)); // midi UTC pour éviter DST
     dt.setUTCDate(dt.getUTCDate() + add);
     return { y: dt.getUTCFullYear(), m: dt.getUTCMonth()+1, d: dt.getUTCDate() };
   }
 
-  // ✅ Fenêtres: jour J 01:00 -> jour J+1 00:59 (Brussels)
+  // ✅ Fenêtres: jour J 01:00 -> jour J+1 00:59
   const windows = DATE_STRINGS.map((ds, idx) => {
     const s0 = parseDMY(ds);
     const e0 = addDays(s0.y, s0.m, s0.d, 1);
 
     const startUtc = localToUtcMs(s0.y, s0.m, s0.d, 1, 0, 0, 0, timeZone);
-    const endUtc   = localToUtcMs(e0.y, e0.m, e0.d, 0, 59, 0, 0, timeZone) + 60*1000 - 1; // jusqu'à 00:59:59.999
+    const endUtc   = localToUtcMs(e0.y, e0.m, e0.d, 0, 59, 0, 0, timeZone) + 60*1000 - 1;
 
     const label = `${pad(s0.d)}/${pad(s0.m)}/${s0.y} 01:00 → ${pad(e0.d)}/${pad(e0.m)}/${e0.y} 00:59`;
     const key = `${s0.y}-${pad(s0.m)}-${pad(s0.d)}`;
-    const id  = `D${idx+1}`;
 
-    return { id, key, label, startUtc, endUtc, start:s0, end:e0 };
+    return { key, label, startUtc, endUtc, start:s0, end:e0 };
   });
+
+  // Construire les 24 segments horaires attendus (Brussels) pour une fenêtre
+  function buildHourlySegments(w){
+    const segs = [];
+    // Jour 0 : 01..23
+    for (let hh = 1; hh <= 23; hh++){
+      const sUtc = localToUtcMs(w.start.y, w.start.m, w.start.d, hh, 0, 0, 0, timeZone);
+      const eUtc = sUtc + 60*60*1000 - 1;
+      segs.push({
+        label: `${pad(w.start.d)}/${pad(w.start.m)}/${w.start.y} ${pad(hh)}:00 → ${pad(hh)}:59`,
+        startUtc: sUtc,
+        endUtc: eUtc
+      });
+    }
+    // Jour 1 : 00:00..00:59
+    {
+      const sUtc = localToUtcMs(w.end.y, w.end.m, w.end.d, 0, 0, 0, 0, timeZone);
+      const eUtc = sUtc + 60*60*1000 - 1;
+      segs.push({
+        label: `${pad(w.end.d)}/${pad(w.end.m)}/${w.end.y} 00:00 → 00:59`,
+        startUtc: sUtc,
+        endUtc: eUtc
+      });
+    }
+    return segs; // 24 segments
+  }
 
   (function renderHeaderMeta(){
     const meta = document.getElementById('metaLine');
-    const firstWindow = windows[0];
-    const lastWindow = windows[windows.length - 1];
     meta.innerHTML = `
-      ${windows.length} fenêtres analysées • De <strong>${firstWindow.label}</strong> à <strong>${lastWindow.label}</strong>
+      ${windows.length} fenêtres analysées • <strong>${windows[0].label}</strong> et <strong>${windows[1].label}</strong>
       • Timeframe interne : <strong>${INTERVAL}</strong> • API : <strong>Futures + Spot</strong>
       • Fuseau : <strong>${timeZone}</strong>
     `;
@@ -190,81 +249,6 @@
   const totalsBar         = document.getElementById('total_variation');
   const totalsSpikeMaxBar = document.getElementById('total_spike_max');
   const totalsSpikeMinBar = document.getElementById('total_spike_min');
-
-  function buildCard(symbol) {
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    const head = document.createElement('header');
-    const symEl = document.createElement('div');
-    symEl.className = 'symbol';
-    symEl.textContent = symbol;
-
-    const status = document.createElement('div');
-    status.className = 'status';
-    status.textContent = 'Chargement…';
-
-    head.appendChild(symEl);
-    head.appendChild(status);
-
-    const wrap = document.createElement('div');
-    wrap.className = 'table-wrap';
-
-    const table = document.createElement('table');
-    const thead = document.createElement('thead');
-    thead.innerHTML = `
-      <tr>
-        <th>Fenêtre (Brussels)</th>
-        <th class="num">Variation</th>
-        <th class="num">Spike max (mèche ↑)</th>
-        <th class="num">Spike min (mèche ↓)</th>
-      </tr>`;
-    const tbody = document.createElement('tbody');
-
-    for (const w of windows) {
-      const tr = document.createElement('tr');
-
-      const tdTime = document.createElement('td');
-      tdTime.className = 'time';
-      tdTime.textContent = w.label;
-
-      const tdVar = document.createElement('td');
-      tdVar.className = 'pct zero';
-      tdVar.textContent = '—';
-      tdVar.dataset.target = `${w.key}:var`;
-
-      const tdSpikeUp = document.createElement('td');
-      tdSpikeUp.className = 'pct zero';
-      tdSpikeUp.textContent = '—';
-      tdSpikeUp.dataset.target = `${w.key}:su`;
-
-      const tdSpikeDn = document.createElement('td');
-      tdSpikeDn.className = 'pct zero';
-      tdSpikeDn.textContent = '—';
-      tdSpikeDn.dataset.target = `${w.key}:sd`;
-
-      tr.appendChild(tdTime);
-      tr.appendChild(tdVar);
-      tr.appendChild(tdSpikeUp);
-      tr.appendChild(tdSpikeDn);
-      tbody.appendChild(tr);
-    }
-
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-
-    const loading = document.createElement('div');
-    loading.className = 'loading';
-    loading.textContent = `Requêtes klines ${INTERVAL}…`;
-
-    card.appendChild(head);
-    card.appendChild(wrap);
-    card.appendChild(loading);
-    grid.appendChild(card);
-
-    return { card, statusEl: status, loadingEl: loading, tbody };
-  }
 
   function pctChange(open, close) {
     const o = Number(open), c = Number(close);
@@ -306,13 +290,201 @@
     }
   }
 
+  function buildCard(symbol) {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const head = document.createElement('header');
+    const symEl = document.createElement('div');
+    symEl.className = 'symbol';
+    symEl.textContent = symbol;
+
+    const status = document.createElement('div');
+    status.className = 'status';
+    status.textContent = 'Chargement…';
+
+    head.appendChild(symEl);
+    head.appendChild(status);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th>Fenêtre (Brussels)</th>
+        <th class="num">Variation</th>
+        <th class="num">Spike max (mèche ↑)</th>
+        <th class="num">Spike min (mèche ↓)</th>
+      </tr>`;
+    const tbody = document.createElement('tbody');
+
+    for (const w of windows) {
+      // Ligne principale fenêtre
+      const tr = document.createElement('tr');
+
+      const tdTime = document.createElement('td');
+      tdTime.className = 'time';
+      tdTime.textContent = w.label;
+
+      const tdVar = document.createElement('td');
+      tdVar.className = 'pct zero';
+      tdVar.textContent = '—';
+      tdVar.dataset.target = `${w.key}:var`;
+
+      const tdSpikeUp = document.createElement('td');
+      tdSpikeUp.className = 'pct zero';
+      tdSpikeUp.textContent = '—';
+      tdSpikeUp.dataset.target = `${w.key}:su`;
+
+      const tdSpikeDn = document.createElement('td');
+      tdSpikeDn.className = 'pct zero';
+      tdSpikeDn.textContent = '—';
+      tdSpikeDn.dataset.target = `${w.key}:sd`;
+
+      tr.appendChild(tdTime);
+      tr.appendChild(tdVar);
+      tr.appendChild(tdSpikeUp);
+      tr.appendChild(tdSpikeDn);
+      tbody.appendChild(tr);
+
+      // ✅ Ligne “en dessous” : détails horaires
+      const trHours = document.createElement('tr');
+      const tdHours = document.createElement('td');
+      tdHours.colSpan = 4;
+      tdHours.innerHTML = `
+        <div class="hours-wrap">
+          <div class="hours-title">
+            <strong>Détails par heure</strong>
+            <span>• Var(heure) = open→close de l’heure</span>
+            <span>• Var cumulée = open(01:00) → close de l’heure</span>
+          </div>
+          <div data-target="${w.key}:hours">Chargement des bougies horaires…</div>
+        </div>
+      `;
+      trHours.appendChild(tdHours);
+      tbody.appendChild(trHours);
+    }
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+
+    const loading = document.createElement('div');
+    loading.className = 'loading';
+    loading.textContent = `Requêtes klines ${INTERVAL}…`;
+
+    card.appendChild(head);
+    card.appendChild(wrap);
+    card.appendChild(loading);
+    grid.appendChild(card);
+
+    return { card, statusEl: status, loadingEl: loading, tbody };
+  }
+
+  function computeSpikeMaxPct(open, highs){
+    const o = Number(open);
+    if (!isFinite(o) || o === 0 || !highs.length) return null;
+    let maxH = -Infinity;
+    for (const h of highs){ const v = Number(h); if (isFinite(v) && v > maxH) maxH = v; }
+    if (!isFinite(maxH)) return null;
+    return ((maxH - o) / o) * 100;
+  }
+
+  function computeSpikeMinPct(open, lows){
+    const o = Number(open);
+    if (!isFinite(o) || o === 0 || !lows.length) return null;
+    let minL = Infinity;
+    for (const l of lows){ const v = Number(l); if (isFinite(v) && v < minL) minL = v; }
+    if (!isFinite(minL)) return null;
+    return ((minL - o) / o) * 100;
+  }
+
+  function renderHourlyTable(w, windowOpen, klines){
+    const segs = buildHourlySegments(w);
+
+    // indexer rapidement les klines par openTime
+    // (on filtrera par range, c’est suffisant avec 288 bougies)
+    const rows = [];
+
+    for (const seg of segs) {
+      const segK = klines.filter(k => {
+        const t = Number(k[0]); // open time
+        return isFinite(t) && t >= seg.startUtc && t <= seg.endUtc;
+      });
+
+      if (segK.length === 0) {
+        rows.push({
+          time: seg.label,
+          varH: null,
+          varCum: null,
+          su: null,
+          sd: null,
+          note: 'n/a'
+        });
+        continue;
+      }
+
+      const first = segK[0];
+      const last  = segK[segK.length - 1];
+
+      const openH  = Number(first[1]);
+      const closeH = Number(last[4]);
+
+      const highs = segK.map(k => k[2]);
+      const lows  = segK.map(k => k[3]);
+
+      const varH   = pctChange(openH, closeH);
+      const varCum = pctChange(windowOpen, closeH);
+
+      const su = computeSpikeMaxPct(openH, highs);
+      const sd = computeSpikeMinPct(openH, lows);
+
+      rows.push({ time: seg.label, varH, varCum, su, sd, note: null });
+    }
+
+    const html = `
+      <table class="hours-table">
+        <thead>
+          <tr>
+            <th>Heure (Brussels)</th>
+            <th class="num">Var (heure)</th>
+            <th class="num">Var cumulée</th>
+            <th class="num">Spike ↑ (heure)</th>
+            <th class="num">Spike ↓ (heure)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => {
+            const vH  = r.varH   === null ? `<span class="zero">n/a</span>` : `<span class="${clsPct(r.varH)}">${fmtPct(r.varH)}</span>`;
+            const vC  = r.varCum === null ? `<span class="zero">n/a</span>` : `<span class="${clsPct(r.varCum)}">${fmtPct(r.varCum)}</span>`;
+            const sU  = r.su     === null ? `<span class="zero">n/a</span>` : `<span class="${clsPct(r.su)}">${fmtPct(r.su)}</span>`;
+            const sD  = r.sd     === null ? `<span class="zero">n/a</span>` : `<span class="${clsPct(r.sd)}">${fmtPct(r.sd)}</span>`;
+            return `
+              <tr>
+                <td class="time">${r.time}</td>
+                <td class="num">${vH}</td>
+                <td class="num">${vC}</td>
+                <td class="num">${sU}</td>
+                <td class="num">${sD}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+    return html;
+  }
+
   const cards = symbols.map(s => {
     const built = buildCard(s);
     const rowCells = {};
     for (const w of windows) {
-      rowCells[`${w.key}:var`] = built.tbody.querySelector(`td[data-target="${w.key}:var"]`);
-      rowCells[`${w.key}:su`]  = built.tbody.querySelector(`td[data-target="${w.key}:su"]`);
-      rowCells[`${w.key}:sd`]  = built.tbody.querySelector(`td[data-target="${w.key}:sd"]`);
+      rowCells[`${w.key}:var`]   = built.tbody.querySelector(`td[data-target="${w.key}:var"]`);
+      rowCells[`${w.key}:su`]    = built.tbody.querySelector(`td[data-target="${w.key}:su"]`);
+      rowCells[`${w.key}:sd`]    = built.tbody.querySelector(`td[data-target="${w.key}:sd"]`);
+      rowCells[`${w.key}:hours`] = built.tbody.querySelector(`[data-target="${w.key}:hours"]`);
     }
     return { symbol: s, ...built, rowCells };
   });
@@ -333,11 +505,10 @@
 
     try {
       for (const w of windows) {
-        const { startUtc, endUtc, key, label } = w;
-
-        const kl = await fetchKlines(c.symbol, startUtc, endUtc);
+        const kl = await fetchKlines(c.symbol, w.startUtc, w.endUtc);
 
         let pVar = null, pSu = null, pSd = null;
+        let windowOpen = null;
 
         if (kl.length >= 2) {
           const first = kl[0];
@@ -345,6 +516,7 @@
 
           const open0  = Number(first[1]);
           const closeL = Number(last[4]);
+          windowOpen = open0;
 
           if (isFinite(open0) && open0 !== 0 && isFinite(closeL)) {
             pVar = pctChange(open0, closeL);
@@ -362,41 +534,47 @@
           }
         }
 
-        const cVar = c.rowCells[`${key}:var`];
-        const cSu  = c.rowCells[`${key}:su`];
-        const cSd  = c.rowCells[`${key}:sd`];
+        const cVar   = c.rowCells[`${w.key}:var`];
+        const cSu    = c.rowCells[`${w.key}:su`];
+        const cSd    = c.rowCells[`${w.key}:sd`];
+        const cHours = c.rowCells[`${w.key}:hours`];
 
         if (pVar === null) {
           cVar.textContent = 'n/a';
           cVar.className = 'pct zero';
-          cVar.title = `Pas assez de bougies sur ${label}`;
+          cVar.title = `Pas assez de bougies sur ${w.label}`;
         } else {
           cVar.textContent = fmtPct(pVar);
           cVar.className = clsPct(pVar);
-          const tv = totalsVar.get(key);
+          const tv = totalsVar.get(w.key);
           tv.sum += pVar; tv.count += 1;
         }
 
         if (pSu === null) {
           cSu.textContent = 'n/a';
           cSu.className = 'pct zero';
-          cSu.title = `Pas assez de bougies sur ${label}`;
         } else {
           cSu.textContent = fmtPct(pSu);
           cSu.className = clsPct(pSu);
-          const tsu = totalsSpikeMax.get(key);
+          const tsu = totalsSpikeMax.get(w.key);
           tsu.sum += pSu; tsu.count += 1;
         }
 
         if (pSd === null) {
           cSd.textContent = 'n/a';
           cSd.className = 'pct zero';
-          cSd.title = `Pas assez de bougies sur ${label}`;
         } else {
           cSd.textContent = fmtPct(pSd);
           cSd.className = clsPct(pSd);
-          const tsd = totalsSpikeMin.get(key);
+          const tsd = totalsSpikeMin.get(w.key);
           tsd.sum += pSd; tsd.count += 1;
+        }
+
+        // ✅ Détails horaires “en dessous”
+        if (!windowOpen || !Array.isArray(kl) || kl.length === 0) {
+          cHours.innerHTML = `<div class="zero">n/a (pas de données intraday)</div>`;
+        } else {
+          cHours.innerHTML = renderHourlyTable(w, windowOpen, kl);
         }
       }
 
@@ -412,12 +590,11 @@
   function renderTotals(totalsMap, container) {
     container.innerHTML = '';
     for (const w of windows) {
-      const { label, key } = w;
-      const { sum, count } = totalsMap.get(key);
+      const { sum, count } = totalsMap.get(w.key);
       const badge = document.createElement('span');
       badge.className = 'badge ' + (count === 0 ? 'zero' : (sum >= 0 ? 'positive' : 'negative'));
       const txt = count === 0 ? 'n/a' : ((sum>=0?'+':'') + sum.toFixed(3) + '%');
-      badge.textContent = `${label} → ${txt}`;
+      badge.textContent = `${w.label} → ${txt}`;
       badge.title = count > 0 ? `${count} symboles avec données` : 'Aucune donnée disponible';
       container.appendChild(badge);
     }
