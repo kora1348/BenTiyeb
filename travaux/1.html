@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Binance Futures — Variations bougie 22h00 (3 dates)</title>
+  <title>Binance Futures — Variations bougie 22h00 (7 dates)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body{
@@ -125,11 +125,9 @@
 
   <table id="cryptoTable">
     <thead>
-      <tr>
+      <tr id="headerRow">
         <th>Crypto</th>
-        <th>07/10/2025 — 22:00</th>
-        <th>09/10/2025 — 22:00</th>
-        <th>10/10/2025 — 22:00</th>
+        <!-- dates ajoutées dynamiquement -->
       </tr>
     </thead>
     <tbody id="tableBody"></tbody>
@@ -137,20 +135,24 @@
 
 <script>
 /**
- * Interprétation des dates demandées:
- * - on considère "22h00" comme heure locale Europe/Brussels.
- * - en octobre 2025, Bruxelles est en heure d'été (CEST, UTC+2) jusqu'au 26/10/2025.
- * => 22:00 Brussels = 20:00 UTC.
+ * Ici on veut EXACTEMENT la bougie qui ouvre à 22h00 (Europe/Brussels).
+ * Mais Bruxelles change d'offset (DST):
+ * - Octobre 2025 (07/10, 09/10, 10/10): CEST = UTC+2
+ * - Décembre 2025 (09/12, 15/12, 18/12, 19/12): CET = UTC+1
  *
- * Si tu veux forcer UTC (au lieu de Brussels), mets USE_BRUSSELS_TZ = false.
+ * Du coup chaque date a son offsetHours.
  */
-const USE_BRUSSELS_TZ = true;
-
-// 3 dates à afficher
 const TARGETS = [
-  { key: "2025-10-07 22:00", label: "07/10/2025 — 22:00", y:2025, m:10, d:7,  hh:22, mm:0 },
-  { key: "2025-10-09 22:00", label: "09/10/2025 — 22:00", y:2025, m:10, d:9,  hh:22, mm:0 },
-  { key: "2025-10-10 22:00", label: "10/10/2025 — 22:00", y:2025, m:10, d:10, hh:22, mm:0 },
+  // Octobre 2025 (UTC+2)
+  { key:"2025-10-07 22:00", label:"07/10/2025 — 22:00", y:2025, m:10, d:7,  hh:22, mm:0, offsetHours:2 },
+  { key:"2025-10-09 22:00", label:"09/10/2025 — 22:00", y:2025, m:10, d:9,  hh:22, mm:0, offsetHours:2 },
+  { key:"2025-10-10 22:00", label:"10/10/2025 — 22:00", y:2025, m:10, d:10, hh:22, mm:0, offsetHours:2 },
+
+  // Décembre 2025 (UTC+1)
+  { key:"2025-12-09 22:00", label:"09/12/2025 — 22:00", y:2025, m:12, d:9,  hh:22, mm:0, offsetHours:1 },
+  { key:"2025-12-15 22:00", label:"15/12/2025 — 22:00", y:2025, m:12, d:15, hh:22, mm:0, offsetHours:1 },
+  { key:"2025-12-18 22:00", label:"18/12/2025 — 22:00", y:2025, m:12, d:18, hh:22, mm:0, offsetHours:1 },
+  { key:"2025-12-19 22:00", label:"19/12/2025 — 22:00", y:2025, m:12, d:19, hh:22, mm:0, offsetHours:1 },
 ];
 
 // futures exchangeInfo + klines endpoints
@@ -169,6 +171,7 @@ const pctEl = document.getElementById("pct");
 const barFill = document.getElementById("barFill");
 const countsPill = document.getElementById("countsPill");
 const tbody = document.getElementById("tableBody");
+const headerRow = document.getElementById("headerRow");
 
 // progress tracking
 let totalSymbols = 0;
@@ -182,30 +185,22 @@ function setStatus(main, sub=""){
 }
 
 function setProgress(){
-  // on affiche un % basé sur "requêtes klines" (plus réaliste)
   const pct = totalRequests ? Math.min(100, Math.round((doneRequests / totalRequests) * 100)) : 0;
   pctEl.textContent = pct + "%";
   barFill.style.width = pct + "%";
-
-  // on affiche aussi symbole traités
   countsPill.textContent = `${doneSymbols} / ${totalSymbols}`;
 }
 
-// util: sleep
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// fetch avec retry/backoff (gère 429/418/5xx)
 async function fetchJsonWithRetry(url, tries = RETRIES){
   let attempt = 0;
   while(true){
     try{
       const res = await fetch(url, { cache: "no-store" });
 
-      // rate limit / ban protection (Binance peut répondre 418/429)
       if(!res.ok){
         const status = res.status;
-
-        // retryable statuses
         if((status === 418 || status === 429 || status >= 500) && attempt < tries){
           const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt) + Math.floor(Math.random()*250);
           attempt++;
@@ -228,22 +223,16 @@ async function fetchJsonWithRetry(url, tries = RETRIES){
   }
 }
 
-// convertit la date cible (Brussels 22:00) en timestamp UTC (ms) pour startTime Binance
-function toUtcMsForBinance(target){
-  // target.m est 1..12
-  // Si on veut Brussels: en octobre => UTC+2 -> on enlève 2h pour obtenir UTC
-  const utcOffsetHours = USE_BRUSSELS_TZ ? 2 : 0;
-
-  // Date.UTC attend mois 0..11
-  const utcMs = Date.UTC(target.y, target.m - 1, target.d, target.hh - utcOffsetHours, target.mm, 0, 0);
-  return utcMs;
+// convertit "22:00 Brussels" en timestamp UTC (ms) pour startTime Binance
+function toUtcMsForBinance(t){
+  // Date.UTC: mois 0..11
+  return Date.UTC(t.y, t.m - 1, t.d, t.hh - t.offsetHours, t.mm, 0, 0);
 }
 
 function formatPct(x){
   if(x === null || Number.isNaN(x)) return "-";
   const v = Number(x);
-  const s = (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
-  return s;
+  return (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
 }
 
 function tdWithValue(value){
@@ -258,13 +247,11 @@ function tdWithValue(value){
   return td;
 }
 
-// récupère tous les symboles Futures USDT-M PERP "TRADING"
 async function fetchAllUsdtPerpSymbols(){
   setStatus("Récupération des symboles Futures…");
   const info = await fetchJsonWithRetry(EXCHANGE_INFO_URL);
 
-  // Binance futures exchangeInfo: info.symbols[]
-  const syms = (info.symbols || [])
+  return (info.symbols || [])
     .filter(s =>
       s.status === "TRADING" &&
       s.contractType === "PERPETUAL" &&
@@ -273,13 +260,9 @@ async function fetchAllUsdtPerpSymbols(){
     )
     .map(s => s.symbol)
     .sort((a,b) => a.localeCompare(b));
-
-  return syms;
 }
 
-// récupère la bougie 1h qui ouvre à startTime (ms)
 async function fetchOneHourCandle(symbol, startTimeMs){
-  // interval=1h, limit=1, startTime exact
   const url = `${KLINES_URL}?symbol=${encodeURIComponent(symbol)}&interval=1h&startTime=${startTimeMs}&limit=1`;
   const data = await fetchJsonWithRetry(url);
 
@@ -289,16 +272,13 @@ async function fetchOneHourCandle(symbol, startTimeMs){
   if(!Array.isArray(data) || !data.length) return null;
   const c = data[0];
 
-  // kline fields: [ openTime, open, high, low, close, volume, closeTime, ...]
   const open = parseFloat(c[1]);
   const close = parseFloat(c[4]);
   if(!open || Number.isNaN(open) || Number.isNaN(close)) return null;
 
-  const variation = ((close - open) / open) * 100;
-  return variation;
+  return ((close - open) / open) * 100;
 }
 
-// pool concurrency
 async function runPool(items, worker, concurrency){
   let i = 0;
   const workers = new Array(concurrency).fill(0).map(async () => {
@@ -310,7 +290,7 @@ async function runPool(items, worker, concurrency){
   await Promise.all(workers);
 }
 
-function createRowPlaceholder(symbol){
+function createRowPlaceholder(symbol, cols){
   const tr = document.createElement("tr");
   tr.dataset.symbol = symbol;
 
@@ -318,8 +298,7 @@ function createRowPlaceholder(symbol){
   tdName.textContent = symbol;
   tr.appendChild(tdName);
 
-  // 3 colonnes initialement "-"
-  for(let k=0;k<3;k++){
+  for(let k=0;k<cols;k++){
     const td = document.createElement("td");
     td.textContent = "…";
     td.className = "na";
@@ -331,20 +310,28 @@ function createRowPlaceholder(symbol){
 }
 
 function updateRow(tr, values){
-  // values length = 3
-  for(let k=0;k<3;k++){
+  for(let k=0;k<values.length;k++){
     tr.children[k+1].replaceWith(tdWithValue(values[k]));
   }
+}
+
+function buildHeaders(){
+  // ajoute dynamiquement les headers (7 dates)
+  TARGETS.forEach(t => {
+    const th = document.createElement("th");
+    th.textContent = t.label;
+    headerRow.appendChild(th);
+  });
 }
 
 async function buildTable(){
   try{
     setStatus("Initialisation…");
+    buildHeaders();
 
     const symbols = await fetchAllUsdtPerpSymbols();
     totalSymbols = symbols.length;
 
-    // total requêtes = nb symboles * 3 dates
     totalRequests = totalSymbols * TARGETS.length;
     doneSymbols = 0;
     doneRequests = 0;
@@ -352,34 +339,27 @@ async function buildTable(){
     setStatus("Préparation du tableau…", `${totalSymbols} symboles détectés (USDT-M PERP)`);
     setProgress();
 
-    // Créer toutes les lignes (placeholders) pour un rendu immédiat
     const rowMap = new Map();
     for(const s of symbols){
-      rowMap.set(s, createRowPlaceholder(s));
+      rowMap.set(s, createRowPlaceholder(s, TARGETS.length));
     }
 
-    setStatus("Chargement des bougies 1h…", "On calcule la variation (close-open) / open * 100 pour 22h00");
+    setStatus("Chargement des bougies 1h…", "Variation = (close-open) / open * 100 — bougie qui ouvre à 22h00 Brussels");
 
-    // Pré-calcul des startTime (ms) pour les 3 dates
     const startTimes = TARGETS.map(t => toUtcMsForBinance(t));
 
-    // Worker par symbole
     await runPool(symbols, async (symbol) => {
-      const vals = [null,null,null];
+      const vals = new Array(TARGETS.length).fill(null);
 
-      // 3 requêtes klines
       for(let k=0;k<TARGETS.length;k++){
         try{
           vals[k] = await fetchOneHourCandle(symbol, startTimes[k]);
         }catch(e){
-          // Si un symbole échoue, on laisse "-"
           vals[k] = null;
         }
       }
 
-      // update UI
-      const tr = rowMap.get(symbol);
-      updateRow(tr, vals);
+      updateRow(rowMap.get(symbol), vals);
 
       doneSymbols++;
       setProgress();
