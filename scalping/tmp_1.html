@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Variations — Binance Futures</title>
+</head>
+<body>
+
+  <h2>Tableau 1 — AIUSDT</h2>
+  <table width="100%" border="1" cellpadding="8">
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th>08/04/2024</th>
+        <th>08/04/2025</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="tbody1">
+      <tr>
+        <td>AIUSDT</td>
+        <td id="ai_2024">Chargement...</td>
+        <td id="ai_2025">Chargement...</td>
+        <td id="ai_total">Chargement...</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <br />
+
+  <h2>Tableau 2 — Variations du 20/12/2025</h2>
+  <table width="100%" border="1" cellpadding="8">
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th>20/12/2025</th>
+      </tr>
+    </thead>
+    <tbody id="tbody2">
+      <!-- rempli en JS -->
+    </tbody>
+  </table>
+
+  <script>
+    const BASE = "https://fapi.binance.com";
+
+    function dayUtcRangeMs(yyyyMmDd) {
+      const [y, m, d] = yyyyMmDd.split("-").map(Number);
+      const start = Date.UTC(y, m - 1, d, 0, 0, 0, 0);
+      const end = Date.UTC(y, m - 1, d, 23, 59, 59, 999);
+      return { start, end };
+    }
+
+    async function fetchDailyPct(symbol, yyyyMmDd) {
+      const { start, end } = dayUtcRangeMs(yyyyMmDd);
+
+      const url =
+        `${BASE}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=1d&startTime=${start}&endTime=${end}&limit=3`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${symbol} ${yyyyMmDd} -> HTTP ${res.status}`);
+
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error(`${symbol} ${yyyyMmDd} -> aucune bougie`);
+      }
+
+      const candle = data.find(k => k[0] >= start && k[0] <= end) || data[0];
+      const open = Number(candle[1]);
+      const close = Number(candle[4]);
+
+      if (!isFinite(open) || !isFinite(close) || open <= 0) {
+        throw new Error(`${symbol} ${yyyyMmDd} -> open/close invalide`);
+      }
+
+      return ((close - open) / open) * 100;
+    }
+
+    function fmtPct(x) {
+      if (!isFinite(x)) return "—";
+      const sign = x > 0 ? "+" : "";
+      return `${sign}${x.toFixed(2)}%`;
+    }
+
+    function applyColor(cell, value) {
+      if (!isFinite(value)) return;
+      if (value > 0) cell.style.color = "green";
+      else if (value < 0) cell.style.color = "red";
+    }
+
+    async function loadTable1_AIUSDT() {
+      const td2024 = document.getElementById("ai_2024");
+      const td2025 = document.getElementById("ai_2025");
+      const tdTotal = document.getElementById("ai_total");
+
+      try {
+        const [v2024, v2025] = await Promise.all([
+          fetchDailyPct("AIUSDT", "2024-04-08"),
+          fetchDailyPct("AIUSDT", "2025-04-08"),
+        ]);
+
+        const total = v2024 + v2025;
+
+        td2024.textContent = fmtPct(v2024);
+        td2025.textContent = fmtPct(v2025);
+        tdTotal.textContent = fmtPct(total);
+
+        applyColor(td2024, v2024);
+        applyColor(td2025, v2025);
+        applyColor(tdTotal, total);
+      } catch (e) {
+        td2024.textContent = "Erreur";
+        td2025.textContent = "Erreur";
+        tdTotal.textContent = (e && e.message) ? e.message : String(e);
+        console.error(e);
+      }
+    }
+
+    function addRowTable2(symbol) {
+      const tr = document.createElement("tr");
+
+      const tdSym = document.createElement("td");
+      tdSym.textContent = symbol;
+      tr.appendChild(tdSym);
+
+      const tdVal = document.createElement("td");
+      tdVal.textContent = "Chargement...";
+      tr.appendChild(tdVal);
+
+      document.getElementById("tbody2").appendChild(tr);
+
+      return tdVal;
+    }
+
+    async function loadTable2(dateYmd) {
+      const symbols = [
+        "AEVOUSDT","ARPAUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+        "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT"
+      ];
+
+      // Crée toutes les lignes d'abord (tableau direct, large)
+      const rows = symbols.map(sym => ({ sym, cell: addRowTable2(sym) }));
+
+      // Charge en parallèle
+      await Promise.all(rows.map(async r => {
+        try {
+          const v = await fetchDailyPct(r.sym, dateYmd);
+          r.cell.textContent = fmtPct(v);
+          applyColor(r.cell, v);
+        } catch (e) {
+          r.cell.textContent = "Erreur";
+          console.error(e);
+        }
+      }));
+    }
+
+    async function main() {
+      await loadTable1_AIUSDT();
+      await loadTable2("2025-12-20");
+    }
+
+    main();
+  </script>
+
+</body>
+</html>
