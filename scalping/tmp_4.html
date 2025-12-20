@@ -12,6 +12,21 @@
   <p>
     <button class="prevBtn">Précédant</button>
     <button class="nextBtn">Suivant</button>
+
+    &nbsp;|&nbsp;
+
+    <label>
+      Date :
+      <input
+        type="text"
+        class="dateInput"
+        placeholder="JJ/MM/AAAA"
+        inputmode="numeric"
+        style="width:120px"
+      />
+    </label>
+
+    <button class="goDateBtn">OK</button>
   </p>
 
   <table width="100%" border="1" cellpadding="8">
@@ -31,6 +46,21 @@
   <p>
     <button class="prevBtn">Précédant</button>
     <button class="nextBtn">Suivant</button>
+
+    &nbsp;|&nbsp;
+
+    <label>
+      Date :
+      <input
+        type="text"
+        class="dateInput"
+        placeholder="JJ/MM/AAAA"
+        inputmode="numeric"
+        style="width:120px"
+      />
+    </label>
+
+    <button class="goDateBtn">OK</button>
   </p>
 
   <h2 id="titleTable2">Tableau 2 — Variations du —</h2>
@@ -95,6 +125,27 @@ function dayUtcRangeMs(ymd){
     start: Date.UTC(y,m-1,d,0,0,0,0),
     end:   Date.UTC(y,m-1,d,23,59,59,999)
   };
+}
+
+// ✅ parse "JJ/MM/AAAA" -> Date UTC (00:00)
+function frToUtcDate(fr){
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(fr || "").trim());
+  if(!m) return null;
+
+  const dd = Number(m[1]);
+  const mm = Number(m[2]);
+  const yy = Number(m[3]);
+
+  // validation simple
+  if(mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+  const dt = new Date(Date.UTC(yy, mm-1, dd));
+  if(isNaN(dt.getTime())) return null;
+
+  // check que la date existe vraiment (ex: 31/02)
+  if(dt.getUTCFullYear() !== yy || (dt.getUTCMonth()+1) !== mm || dt.getUTCDate() !== dd) return null;
+
+  return dt;
 }
 
 /* ================= API ================= */
@@ -262,6 +313,42 @@ document.querySelectorAll(".nextBtn").forEach(btn => {
     await refresh();
   });
 });
+
+/* ✅ Input date FR (JJ/MM/AAAA) : OK recharge comme la pagination */
+document.querySelectorAll(".goDateBtn").forEach(btn => {
+  btn.addEventListener("click", async ()=>{
+    const wrap = btn.parentElement;
+    const inp  = wrap.querySelector(".dateInput");
+    const dt = frToUtcDate(inp.value);
+
+    if(!dt){
+      alert("Date invalide. Utilise le format JJ/MM/AAAA (ex: 20/12/2025).");
+      return;
+    }
+
+    // synchro avec la même logique que la pagination
+    aiBaseDateUtc = new Date(dt);
+    t2BaseDateUtc = new Date(dt);
+
+    // optionnel: recopie la date dans les 2 inputs pour rester cohérent
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(dt));
+
+    await refresh();
+  });
+});
+
+/* ✅ Enter dans l'input = OK */
+document.querySelectorAll(".dateInput").forEach(inp => {
+  inp.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      const btn = inp.parentElement.parentElement.querySelector(".goDateBtn");
+      if(btn) btn.click();
+    }
+  });
+});
+
+// init : pré-remplir les inputs avec la date actuelle de Table 2 (optionnel)
+document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(t2BaseDateUtc));
 
 refresh();
 </script>
