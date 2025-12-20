@@ -67,9 +67,9 @@
       }
 
       const candle = data.find(k => k[0] >= start && k[0] <= end) || data[0];
+
       const open = Number(candle[1]);
       const close = Number(candle[4]);
-
       if (!isFinite(open) || !isFinite(close) || open <= 0) {
         throw new Error(`${symbol} ${yyyyMmDd} -> open/close invalide`);
       }
@@ -89,29 +89,30 @@
       else if (value < 0) cell.style.color = "red";
     }
 
-    async function loadTable1_AIUSDT() {
-      const td2024 = document.getElementById("ai_2024");
-      const td2025 = document.getElementById("ai_2025");
+    // ✅ Table 1 now takes dates as parameters (same style as loadTable2)
+    async function loadTable1_AIUSDT(date1, date2) {
+      const td1 = document.getElementById("ai_2024");
+      const td2 = document.getElementById("ai_2025");
       const tdTotal = document.getElementById("ai_total");
 
       try {
-        const [v2024, v2025] = await Promise.all([
-          fetchDailyPct("AIUSDT", "2024-04-08"),
-          fetchDailyPct("AIUSDT", "2025-04-08"),
+        const [v1, v2] = await Promise.all([
+          fetchDailyPct("AIUSDT", date1),
+          fetchDailyPct("AIUSDT", date2),
         ]);
 
-        const total = v2024 + v2025;
+        const total = v1 + v2;
 
-        td2024.textContent = fmtPct(v2024);
-        td2025.textContent = fmtPct(v2025);
+        td1.textContent = fmtPct(v1);
+        td2.textContent = fmtPct(v2);
         tdTotal.textContent = fmtPct(total);
 
-        applyColor(td2024, v2024);
-        applyColor(td2025, v2025);
+        applyColor(td1, v1);
+        applyColor(td2, v2);
         applyColor(tdTotal, total);
       } catch (e) {
-        td2024.textContent = "Erreur";
-        td2025.textContent = "Erreur";
+        td1.textContent = "Erreur";
+        td2.textContent = "Erreur";
         tdTotal.textContent = (e && e.message) ? e.message : String(e);
         console.error(e);
       }
@@ -139,10 +140,8 @@
         "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT"
       ];
 
-      // Crée toutes les lignes d'abord (tableau direct, large)
       const rows = symbols.map(sym => ({ sym, cell: addRowTable2(sym) }));
 
-      // Charge en parallèle
       await Promise.all(rows.map(async r => {
         try {
           const v = await fetchDailyPct(r.sym, dateYmd);
@@ -156,7 +155,10 @@
     }
 
     async function main() {
-      await loadTable1_AIUSDT();
+      // ✅ Dates passed from here (same idea as loadTable2)
+      await loadTable1_AIUSDT("2024-04-08", "2025-04-08");
+
+      // ✅ Date passed here too
       await loadTable2("2025-12-20");
     }
 
