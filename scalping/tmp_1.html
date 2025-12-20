@@ -136,8 +136,8 @@
 
     async function loadTable2(dateYmd) {
       const symbols = [
-        "AEVOUSDT","ARPAUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
-        "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT"
+        "RONINUSDT",
+        "1000LUNCUSDT"
       ];
 
       const rows = symbols.map(sym => ({ sym, cell: addRowTable2(sym) }));
@@ -156,10 +156,10 @@
 
     async function main() {
       // ✅ Dates passed from here (same idea as loadTable2)
-      await loadTable1_AIUSDT("2024-04-08", "2025-04-08");
+      await loadTable1_AIUSDT("2024-04-09", "2025-04-09");
 
       // ✅ Date passed here too
-      await loadTable2("2025-12-20");
+      await loadTable2("2025-12-21");
     }
 
     main();
