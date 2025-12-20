@@ -10,8 +10,8 @@
   <h2>Tableau 1 — AIUSDT (Futures) (2 dates)</h2>
 
   <p>
-    <button id="prevBtn">Précédant</button>
-    <button id="nextBtn">Suivant</button>
+    <button class="prevBtn">Précédant</button>
+    <button class="nextBtn">Suivant</button>
   </p>
 
   <table width="100%" border="1" cellpadding="8">
@@ -28,9 +28,9 @@
 
   <br />
 
-    <p>
-    <button id="prevBtn">Précédant</button>
-    <button id="nextBtn">Suivant</button>
+  <p>
+    <button class="prevBtn">Précédant</button>
+    <button class="nextBtn">Suivant</button>
   </p>
 
   <h2 id="titleTable2">Tableau 2 — Variations du —</h2>
@@ -48,10 +48,6 @@
 /* ========= BASES ========= */
 const BASE_FUTURES = "https://fapi.binance.com";
 const BASE_SPOT    = "https://api.binance.com";
-
-/* ✅ FIX PAGINATION: ne plus dépendre des "globals by id" */
-const prevBtnEl = document.getElementById("prevBtn");
-const nextBtnEl = document.getElementById("nextBtn");
 
 /* ========= TABLE 1 (listing 2024) ========= */
 const SYMBOLS_TABLE1 = [
@@ -126,23 +122,27 @@ const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
 const applyColor = (el,v)=> { el.style.color = v>0?"green":v<0?"red":""; };
 
 /* ================= Table 1 ================= */
-async function loadRow(symbol, market, cellD1, cellD2, d1Utc, d2Utc){
+async function loadRow(symbol, market, cellD1, cellD2, cellTot, d1Utc, d2Utc){
   cellD1.textContent = "Chargement..."; cellD1.style.color = "";
   cellD2.textContent = "Chargement..."; cellD2.style.color = "";
+  cellTot.textContent = "Chargement..."; cellTot.style.color = "";
 
   try{
     const v1 = await fetchDailyPct(symbol, toYmd(d1Utc), market);
     const v2 = await fetchDailyPct(symbol, toYmd(d2Utc), market);
+    const vt = v1 + v2;
 
     cellD1.textContent = fmtPct(v1); applyColor(cellD1, v1);
     cellD2.textContent = fmtPct(v2); applyColor(cellD2, v2);
+    cellTot.textContent = fmtPct(vt); applyColor(cellTot, vt);
 
-    return { v1, v2 };
+    return { v1, v2, vt };
   }catch(e){
-    cellD1.textContent = "Erreur";
-    cellD2.textContent = "Erreur";
+    cellD1.textContent = "Erreur"; cellD1.style.color = "";
+    cellD2.textContent = "Erreur"; cellD2.style.color = "";
+    cellTot.textContent = "Erreur"; cellTot.style.color = "";
     console.error(e);
-    return { v1: 0, v2: 0, error: true };
+    return { v1: 0, v2: 0, vt: 0, error: true };
   }
 }
 
@@ -158,6 +158,7 @@ async function loadTable1(){
 
   let totalCol1 = 0;
   let totalCol2 = 0;
+  let totalGlobal = 0;
 
   const tasks = [];
 
@@ -169,26 +170,27 @@ async function loadTable1(){
 
     const td1 = document.createElement("td");
     const td2 = document.createElement("td");
+    const tdT = document.createElement("td");
 
     tr.appendChild(tdSym);
     tr.appendChild(td1);
     tr.appendChild(td2);
+    tr.appendChild(tdT);
 
     tbody1.appendChild(tr);
 
     tasks.push(
-      loadRow(sym, "futures", td1, td2, d1, d2).then(res=>{
+      loadRow(sym, "futures", td1, td2, tdT, d1, d2).then(res=>{
         if(res && !res.error){
           totalCol1 += res.v1;
           totalCol2 += res.v2;
+          totalGlobal += res.vt; // = v1+v2 par crypto
         }
       })
     );
   }
 
   await Promise.all(tasks);
-
-  const totalGlobal = totalCol1 + totalCol2;
 
   const trTotal = document.createElement("tr");
   trTotal.innerHTML = `<td><strong>TOTAL</strong></td>
@@ -244,17 +246,22 @@ async function refresh(){
   await loadTable2();
 }
 
-prevBtnEl.onclick = async ()=>{
-  aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, -1);
-  t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, -1);
-  await refresh();
-};
+/* ✅ Les deux paires de boutons fonctionnent */
+document.querySelectorAll(".prevBtn").forEach(btn => {
+  btn.addEventListener("click", async ()=>{
+    aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, -1);
+    t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, -1);
+    await refresh();
+  });
+});
 
-nextBtnEl.onclick = async ()=>{
-  aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, 1);
-  t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, 1);
-  await refresh();
-};
+document.querySelectorAll(".nextBtn").forEach(btn => {
+  btn.addEventListener("click", async ()=>{
+    aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, 1);
+    t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, 1);
+    await refresh();
+  });
+});
 
 refresh();
 </script>
