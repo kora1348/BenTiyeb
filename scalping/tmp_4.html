@@ -20,13 +20,18 @@
         <th>Symbol</th>
         <th id="thDate1">—</th>
         <th id="thDate2">—</th>
-        <th>Total</th>
+        <th>TOTAL</th>
       </tr>
     </thead>
     <tbody id="tbody1"></tbody>
   </table>
 
   <br />
+
+    <p>
+    <button id="prevBtn">Précédant</button>
+    <button id="nextBtn">Suivant</button>
+  </p>
 
   <h2 id="titleTable2">Tableau 2 — Variations du —</h2>
   <table width="100%" border="1" cellpadding="8">
@@ -44,122 +49,27 @@
 const BASE_FUTURES = "https://fapi.binance.com";
 const BASE_SPOT    = "https://api.binance.com";
 
+/* ✅ FIX PAGINATION: ne plus dépendre des "globals by id" */
+const prevBtnEl = document.getElementById("prevBtn");
+const nextBtnEl = document.getElementById("nextBtn");
+
 /* ========= TABLE 1 (listing 2024) ========= */
 const SYMBOLS_TABLE1 = [
-  "AIUSDT",
-  "ALTUSDT",
-  "JUPUSDT",
-  "LSKUSDT",
-  "MANTAUSDT",
-  "ONDOUSDT",
-  "WIFUSDT",
-  "XAIUSDT",
-  "DYMUSDT",
-  "GLMUSDT",
-  "OMUSDT",
-  "PIXELUSDT",
-  "PORTALUSDT",
-  "RONINUSDT",
-  "STRKUSDT",
-  "ZETAUSDT",
-  "AEVOUSDT",
-  "AXLUSDT",
-  "BOMEUSDT",
-  "ETHFIUSDT",
-  "METISUSDT",
-  "TONUSDT",
-  "VANRYUSDT",
-  "ENAUSDT",
-  "REZUSDT",
-  "SAGAUSDT",
-  "TAOUSDT",
-  "TNSRUSDT",
-  "WUSDT",
-  "BBUSDT",
-  "NOTUSDT",
-  "TURBOUSDT",
-  "IOUSDT",
-  "LISTAUSDT",
-  "MEWUSDT",
-  "ZKUSDT",
-  "ZROUSDT",
-  "RENDERUSDT",
-  "BANANAUSDT",
-  "BRETTUSDT",
-  "CHESSUSDT",
-  "DOGSUSDT",
-  "GUSDT",
-  "MBOXUSDT",
-  "POPCATUSDT",
-  "RAREUSDT",
-  "SUNUSDT",
-  "SYNUSDT",
-  "SYSUSDT",
-  "1MBABYDOGEUSDT",
-  "CATIUSDT",
-  "COSUSDT",
-  "FIDAUSDT",
-  "FIOUSDT",
-  "FLUXUSDT",
-  "GHSTUSDT",
-  "HMSTRUSDT",
-  "NEIROUSDT",
-  "POLUSDT",
-  "RPLUSDT",
-  "1000CATUSDT",
-  "DIAUSDT",
-  "EIGENUSDT",
-  "GOATUSDT",
-  "MOODENGUSDT",
-  "SAFEUSDT",
-  "SANTOSUSDT",
-  "SCRUSDT",
-  "1000000MOGUSDT",
-  "1000CHEEMSUSDT",
-  "1000WHYUSDT",
-  "ACTUSDT",
-  "AKTUSDT",
-  "BANUSDT",
-  "CETUSUSDT",
-  "CHILLGUYUSDT",
-  "COWUSDT",
-  "DEGENUSDT",
-  "DRIFTUSDT",
-  "GRASSUSDT",
-  "HIPPOUSDT",
-  "MORPHOUSDT",
-  "PNUTUSDT",
-  "SCRTUSDT",
-  "THEUSDT",
-  "ACXUSDT",
-  "AEROUSDT",
-  "AIXBTUSDT",
-  "AVAUSDT",
-  "CGPTUSDT",
-  "DEGOUSDT",
-  "DEXEUSDT",
-  "DFUSDT",
-  "FARTCOINUSDT",
-  "HIVEUSDT",
-  "KAIAUSDT",
-  "KMNOUSDT",
-  "KOMAUSDT",
-  "LUMIAUSDT",
-  "MEUSDT",
-  "MOCAUSDT",
-  "MOVEUSDT",
-  "ORCAUSDT",
-  "PENGUUSDT",
-  "PHAUSDT",
-  "RAYSOLUSDT",
-  "SPXUSDT",
-  "USUALUSDT",
-  "VANAUSDT",
-  "VELODROMEUSDT",
-  "VIRTUALUSDT"
+  "AIUSDT","ALTUSDT","JUPUSDT","LSKUSDT","MANTAUSDT","ONDOUSDT","WIFUSDT","XAIUSDT","DYMUSDT",
+  "GLMUSDT","OMUSDT","PIXELUSDT","PORTALUSDT","RONINUSDT","STRKUSDT","ZETAUSDT","AEVOUSDT","AXLUSDT",
+  "BOMEUSDT","ETHFIUSDT","METISUSDT","TONUSDT","VANRYUSDT","ENAUSDT","REZUSDT","SAGAUSDT","TAOUSDT",
+  "TNSRUSDT","WUSDT","BBUSDT","NOTUSDT","TURBOUSDT","IOUSDT","LISTAUSDT","MEWUSDT","ZKUSDT","ZROUSDT",
+  "RENDERUSDT","BANANAUSDT","BRETTUSDT","CHESSUSDT","DOGSUSDT","GUSDT","MBOXUSDT","POPCATUSDT","RAREUSDT",
+  "SUNUSDT","SYNUSDT","SYSUSDT","1MBABYDOGEUSDT","CATIUSDT","COSUSDT","FIDAUSDT","FIOUSDT","FLUXUSDT",
+  "GHSTUSDT","HMSTRUSDT","NEIROUSDT","POLUSDT","RPLUSUSDT","1000CATUSDT","DIAUSDT","EIGENUSDT","GOATUSDT",
+  "MOODENGUSDT","SAFEUSDT","SANTOSUSDT","SCRUSDT","1000000MOGUSDT","1000CHEEMSUSDT","1000WHYUSDT","ACTUSDT",
+  "AKTUSDT","BANUSDT","CETUSUSDT","CHILLGUYUSDT","COWUSDT","DEGENUSDT","DRIFTUSDT","GRASSUSDT","HIPPOUSDT",
+  "MORPHOUSDT","PNUTUSDT","SCRTUSDT","THEUSDT","ACXUSDT","AEROUSDT","AIXBTUSDT","AVAUSDT","CGPTUSDT","DEGOUSDT",
+  "DEXEUSDT","DFUSDT","FARTCOINUSDT","HIVEUSDT","KAIAUSDT","KMNOUSDT","KOMAUSDT","LUMIAUSDT","MEUSDT","MOCAUSDT",
+  "MOVEUSDT","ORCAUSDT","PENGUUSDT","PHAUSDT","RAYSOLUSDT","SPXUSDT","USUALUSDT","VANAUSDT","VELODROMEUSDT","VIRTUALUSDT"
 ];
 
-/* ========= TABLE 2 (tu peux laisser futures ou spot; ici je garde futures comme avant) ========= */
+/* ========= TABLE 2 ========= */
 const SYMBOLS_TABLE2 = [
   "RONINUSDT",
   "1000LUNCUSDT"
@@ -191,9 +101,7 @@ function dayUtcRangeMs(ymd){
   };
 }
 
-/* ================= API =================
-   market: "futures" | "spot"
-*/
+/* ================= API ================= */
 async function fetchDailyPct(symbol, ymd, market){
   const {start,end} = dayUtcRangeMs(ymd);
 
@@ -206,7 +114,6 @@ async function fetchDailyPct(symbol, ymd, market){
   if(!r.ok) throw new Error(`${symbol} ${ymd} -> HTTP ${r.status}`);
   const d = await r.json();
 
-  // on cherche la bougie qui correspond pile au startTime demandé
   const k = d.find(x => x[0] === start) || d.find(x => x[0]>=start && x[0]<=end) || d[0];
   if(!k) throw new Error(`${symbol} ${ymd} -> aucune bougie`);
 
@@ -219,24 +126,23 @@ const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
 const applyColor = (el,v)=> { el.style.color = v>0?"green":v<0?"red":""; };
 
 /* ================= Table 1 ================= */
-async function loadRow(symbol, market, cellD1, cellD2, cellTotal, d1Utc, d2Utc){
+async function loadRow(symbol, market, cellD1, cellD2, d1Utc, d2Utc){
   cellD1.textContent = "Chargement..."; cellD1.style.color = "";
   cellD2.textContent = "Chargement..."; cellD2.style.color = "";
-  cellTotal.textContent = "Chargement..."; cellTotal.style.color = "";
 
   try{
     const v1 = await fetchDailyPct(symbol, toYmd(d1Utc), market);
     const v2 = await fetchDailyPct(symbol, toYmd(d2Utc), market);
-    const total = v1 + v2;
 
     cellD1.textContent = fmtPct(v1); applyColor(cellD1, v1);
     cellD2.textContent = fmtPct(v2); applyColor(cellD2, v2);
-    cellTotal.textContent = fmtPct(total); applyColor(cellTotal, total);
+
+    return { v1, v2 };
   }catch(e){
     cellD1.textContent = "Erreur";
     cellD2.textContent = "Erreur";
-    cellTotal.textContent = (e && e.message) ? e.message : String(e);
     console.error(e);
+    return { v1: 0, v2: 0, error: true };
   }
 }
 
@@ -250,6 +156,9 @@ async function loadTable1(){
   const tbody1 = document.getElementById("tbody1");
   tbody1.innerHTML = "";
 
+  let totalCol1 = 0;
+  let totalCol2 = 0;
+
   const tasks = [];
 
   for(const sym of SYMBOLS_TABLE1){
@@ -260,24 +169,40 @@ async function loadTable1(){
 
     const td1 = document.createElement("td");
     const td2 = document.createElement("td");
-    const tdT = document.createElement("td");
 
     tr.appendChild(tdSym);
     tr.appendChild(td1);
     tr.appendChild(td2);
-    tr.appendChild(tdT);
 
     tbody1.appendChild(tr);
 
-    tasks.push(loadRow(sym, "futures", td1, td2, tdT, d1, d2));
+    tasks.push(
+      loadRow(sym, "futures", td1, td2, d1, d2).then(res=>{
+        if(res && !res.error){
+          totalCol1 += res.v1;
+          totalCol2 += res.v2;
+        }
+      })
+    );
   }
 
   await Promise.all(tasks);
+
+  const totalGlobal = totalCol1 + totalCol2;
+
+  const trTotal = document.createElement("tr");
+  trTotal.innerHTML = `<td><strong>TOTAL</strong></td>
+                       <td><strong>${fmtPct(totalCol1)}</strong></td>
+                       <td><strong>${fmtPct(totalCol2)}</strong></td>
+                       <td><strong>${fmtPct(totalGlobal)}</strong></td>`;
+  tbody1.appendChild(trTotal);
+
+  applyColor(trTotal.children[1], totalCol1);
+  applyColor(trTotal.children[2], totalCol2);
+  applyColor(trTotal.children[3], totalGlobal);
 }
 
-/* ================= Table 2 =================
-   (je laisse futures comme ton code d'origine)
-*/
+/* ================= Table 2 ================= */
 async function loadTable2(){
   const tbody = document.getElementById("tbody2");
   tbody.innerHTML = "";
@@ -319,13 +244,13 @@ async function refresh(){
   await loadTable2();
 }
 
-prevBtn.onclick = async ()=>{
+prevBtnEl.onclick = async ()=>{
   aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, -1);
   t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, -1);
   await refresh();
 };
 
-nextBtn.onclick = async ()=>{
+nextBtnEl.onclick = async ()=>{
   aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, 1);
   t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, 1);
   await refresh();
