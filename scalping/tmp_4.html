@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Variations — Binance Futures</title>
+</head>
+<body>
+
+  <h2>Tableau 1 — AIUSDT (2 dates)</h2>
+
+  <p>
+    <button id="prevBtn">Précédant</button>
+    <button id="nextBtn">Suivant</button>
+  </p>
+
+  <table width="100%" border="1" cellpadding="8">
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th id="thDate1">—</th>
+        <th id="thDate2">—</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>AIUSDT</td>
+        <td id="ai_d1">—</td>
+        <td id="ai_d2">—</td>
+        <td id="ai_total">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+<script>
+const BASE = "https://fapi.binance.com";
+
+// point de départ
+let baseDateUtc = new Date(Date.UTC(2025, 3, 8)); // 08/04/2025
+
+/* ================= Utils ================= */
+const pad2 = n => String(n).padStart(2, "0");
+const toYmd = d => `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`;
+const toFr  = d => `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
+
+function addDaysUtc(d, days){
+  const x = new Date(d);
+  x.setUTCDate(x.getUTCDate() + days);
+  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate()));
+}
+function addYearsUtc(d, years){
+  return new Date(Date.UTC(d.getUTCFullYear()+years, d.getUTCMonth(), d.getUTCDate()));
+}
+
+function dayUtcRangeMs(ymd){
+  const [y,m,d] = ymd.split("-").map(Number);
+  return {
+    start: Date.UTC(y,m-1,d,0,0,0,0),
+    end:   Date.UTC(y,m-1,d,23,59,59,999)
+  };
+}
+
+/* ================= API ================= */
+async function fetchDailyPct(symbol, ymd){
+  const {start,end} = dayUtcRangeMs(ymd);
+  const url = `${BASE}/fapi/v1/klines?symbol=${symbol}&interval=1d&startTime=${start}&endTime=${end}&limit=2`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  const d = await r.json();
+  const k = d[0];
+  if(!k) throw new Error("aucune bougie");
+  const o = +k[1], c = +k[4];
+  return ((c-o)/o)*100;
+}
+
+const fmt = v => `${v>0?"+":""}${v.toFixed(2)}%`;
+const color = (el,v)=> el.style.color = v>0?"green":v<0?"red":"";
+
+/* ================= Load ================= */
+async function refresh(){
+  const d2 = baseDateUtc;
+  const d1 = addYearsUtc(d2, -1);
+
+  thDate1.textContent = toFr(d1);
+  thDate2.textContent = toFr(d2);
+
+  try{
+    const v1 = await fetchDailyPct("AIUSDT", toYmd(d1));
+    const v2 = await fetchDailyPct("AIUSDT", toYmd(d2));
+    const total = v1 + v2;
+
+    ai_d1.textContent = fmt(v1); color(ai_d1, v1);
+    ai_d2.textContent = fmt(v2); color(ai_d2, v2);
+    ai_total.textContent = fmt(total); color(ai_total, total);
+  }catch(e){
+    ai_d1.textContent = ai_d2.textContent = ai_total.textContent = "Erreur";
+    console.error(e);
+  }
+}
+
+/* ================= Navigation ================= */
+prevBtn.onclick = ()=>{ baseDateUtc = addDaysUtc(baseDateUtc, -1); refresh(); };
+nextBtn.onclick = ()=>{ baseDateUtc = addDaysUtc(baseDateUtc,  1); refresh(); };
+
+refresh();
+</script>
+
+</body>
+</html>
