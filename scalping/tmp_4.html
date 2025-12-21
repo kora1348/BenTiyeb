@@ -20,11 +20,22 @@
     .wrap{max-width:1200px}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
     .small{font-size:12px}
+
+    select, input, button{font:inherit}
+    .pill{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      background:#eee;
+      font-size:12px;
+      color:#333;
+      margin-left:6px;
+    }
   </style>
 </head>
 <body class="wrap">
 
-  <!-- Contrôles (précédant / suivant) -->
+  <!-- Contrôles -->
   <div class="card">
     <div class="row">
       <div>
@@ -50,10 +61,24 @@
 
         <label class="small">
           Nombre de jours affichés :
-          <input id="daysCount" type="number" min="1" max="60" value="8" style="width:70px" />
+          <input id="daysCount" type="number" min="1" max="60" value="24" style="width:70px" />
+        </label>
+
+        &nbsp;|&nbsp;
+
+        <!-- ✅ NOUVEAU: filtre dropdown -->
+        <label class="small">
+          Filtre :
+          <select id="polarityFilter">
+            <option value="all">All</option>
+            <option value="negative">Negative</option>
+            <option value="positive">Positif</option>
+          </select>
         </label>
 
         <button id="reloadBtn">Recharger</button>
+
+        <span class="pill" id="shownCount">—</span>
       </div>
 
       <div class="muted" id="rangeInfo">—</div>
@@ -86,23 +111,22 @@ const STATUS_BY_DATE_FR = {
   "15/12/2025": { text: "negative", cls: "negative" },
   "14/12/2025": { text: "negative", cls: "negative" },
   "13/12/2025": { text: "negative", cls: "negative" },
-    "12/12/2025": { text: "negative", cls: "negative" },
-      "11/12/2025": { text: "negative", cls: "negative" },
-        "10/12/2025": { text: "negative", cls: "negative" },
-          "09/12/2025": { text: "negative", cls: "negative" },
-           "08/12/2025": { text: "positive", cls: "positive" },
-                "07/12/2025": { text: "negative", cls: "negative" },
-                        "06/12/2025": { text: "positive", cls: "positive" },
-                                "05/12/2025": { text: "positive", cls: "positive" },
-                                        "04/12/2025": { text: "positive", cls: "positive" },
-                                              "03/12/2025": { text: "negative", cls: "negative" },
-                                                    "02/12/2025": { text: "negative", cls: "negative" },
-                                                           "01/12/2025": { text: "positive", cls: "positive" },
-                                                                "30/11/2025": { text: "negative", cls: "negative" },
-                                                                                "29/11/2025": { text: "negative", cls: "negative" },
+  "12/12/2025": { text: "negative", cls: "negative" },
+  "11/12/2025": { text: "negative", cls: "negative" },
+  "10/12/2025": { text: "negative", cls: "negative" },
+  "09/12/2025": { text: "negative", cls: "negative" },
+  "08/12/2025": { text: "positive", cls: "positive" },
+  "07/12/2025": { text: "negative", cls: "negative" },
+  "06/12/2025": { text: "positive", cls: "positive" },
+  "05/12/2025": { text: "positive", cls: "positive" },
+  "04/12/2025": { text: "positive", cls: "positive" },
+  "03/12/2025": { text: "negative", cls: "negative" },
+  "02/12/2025": { text: "negative", cls: "negative" },
+  "01/12/2025": { text: "positive", cls: "positive" },
+  "30/11/2025": { text: "negative", cls: "negative" },
+  "29/11/2025": { text: "negative", cls: "negative" },
   "28/11/2025": { text: "positive", cls: "positive" },
-                                                                                                "27/11/2025": { text: "negative", cls: "negative" },
-
+  "27/11/2025": { text: "negative", cls: "negative" },
 };
 
 /* ========= UTILS DATES ========= */
@@ -180,6 +204,7 @@ function createTableCard(dateUtc){
 
   const card = document.createElement("div");
   card.className = "card";
+  card.dataset.polarity = st ? st.cls : "unknown"; // ✅ important pour filtrer
 
   const h2 = document.createElement("h2");
   h2.textContent = `Tableau — ${SYMBOL} — ${fr}`;
@@ -189,6 +214,11 @@ function createTableCard(dateUtc){
     const p = document.createElement("div");
     p.className = `status ${st.cls}`;
     p.textContent = st.text;
+    card.appendChild(p);
+  }else{
+    const p = document.createElement("div");
+    p.className = "muted small";
+    p.textContent = "(polarité non définie)";
     card.appendChild(p);
   }
 
@@ -213,7 +243,7 @@ function createTableCard(dateUtc){
   return { card, tbody: table.querySelector("tbody"), status: st };
 }
 
-/* ========= FILL TABLE (afficher seulement les heures selon polarité) ========= */
+/* ========= FILL TABLE (afficher seulement les heures selon polarité de la date) ========= */
 async function fillTableForDate(dateUtc, tbody, status){
   tbody.innerHTML = "";
 
@@ -224,10 +254,9 @@ async function fillTableForDate(dateUtc, tbody, status){
     .filter(k => k && k[0] >= start && k[0] < start + 24*60*60*1000)
     .sort((a,b)=>a[0]-b[0]);
 
-  // filtre demandé:
-  // - status negative => afficher UNIQUEMENT les heures négatives
-  // - status positive/positif => afficher UNIQUEMENT les heures positives
-  // - pas de status => afficher toutes les heures (comportement normal)
+  // - date negative => afficher UNIQUEMENT les heures négatives
+  // - date positive => afficher UNIQUEMENT les heures positives
+  // - pas de status => afficher tout
   const filterMode = status ? status.cls : null; // "negative" | "positive" | null
 
   let rows = 0;
@@ -260,7 +289,6 @@ async function fillTableForDate(dateUtc, tbody, status){
     tbody.appendChild(tr);
   }
 
-  // Si aucune heure ne correspond (ex: journée "positive" mais pas d'heures > 0)
   if(rows === 0){
     const tr = document.createElement("tr");
     const td = document.createElement("td");
@@ -275,11 +303,32 @@ async function fillTableForDate(dateUtc, tbody, status){
   }
 }
 
+/* ========= FILTRE UI (All / Negative / Positif) ========= */
+function applyPolarityFilter(){
+  const sel = document.getElementById("polarityFilter").value; // all | negative | positive
+  const cards = Array.from(document.querySelectorAll("#tables .card"));
+
+  let shown = 0;
+  for(const c of cards){
+    const pol = c.dataset.polarity; // negative | positive | unknown
+    let visible = true;
+
+    if(sel === "negative") visible = (pol === "negative");
+    else if(sel === "positive") visible = (pol === "positive");
+    else visible = true; // all
+
+    c.style.display = visible ? "" : "none";
+    if(visible) shown++;
+  }
+
+  document.getElementById("shownCount").textContent = `Affichés: ${shown}/${cards.length}`;
+}
+
 /* ========= REFRESH MULTI ========= */
 async function refreshMulti(){
   baseDateUtc = clampToFixedRange(baseDateUtc);
 
-  const days = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 8)));
+  const days = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 24)));
 
   const tablesWrap = document.getElementById("tables");
   tablesWrap.innerHTML = "";
@@ -308,6 +357,9 @@ async function refreshMulti(){
   }
 
   await Promise.all(jobs);
+
+  // ✅ appliquer le filtre après génération
+  applyPolarityFilter();
 }
 
 /* ========= NAVIGATION ========= */
@@ -357,6 +409,9 @@ document.querySelectorAll(".dateInput").forEach(inp => {
 });
 
 document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
+
+// ✅ changer le filtre => cacher/montrer sans recharger l'API
+document.getElementById("polarityFilter").addEventListener("change", applyPolarityFilter);
 
 /* ========= INIT ========= */
 document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
