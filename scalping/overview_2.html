@@ -31,6 +31,7 @@
     }
     button:hover{background:#fafafa}
     button.primary{border-color:#bbf7d0;background:#f0fdf4}
+    button.danger{border-color:#fecaca;background:#fff1f2}
 
     .pill{
       display:inline-block;
@@ -127,6 +128,7 @@
       background:#f9fafb;
       font-size:12px;
       font-weight:800;
+      white-space:nowrap;
     }
     .badge.pos{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
     .badge.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
@@ -182,7 +184,7 @@
         <button id="reloadBtn">Recharger</button>
 
         <span class="pill" id="shownCount">—</span>
-        <span class="modePill" id="modePill" style="display:none">MODE: POSITIFS + 02/14/20</span>
+        <span class="modePill" id="modePill" style="display:none"></span>
       </div>
 
       <div class="muted" id="rangeInfo">—</div>
@@ -192,18 +194,28 @@
     <div class="insights" id="globalInsights">
       <div class="insightsTitle">
         <span>📌 Heures clés (basées sur tes répétitions)</span>
-        <span class="muted small">Bouton = “positifs + 02/14/20”</span>
+        <span class="muted small">1 seul total = celui du mode actif</span>
       </div>
 
       <div class="insightsGrid">
+        <!-- 🔴 RISQUE -->
         <div class="box">
           <div class="boxHeader">
             <span>🔴 Heures à risque</span>
             <span class="tag neg">NEGATIVE</span>
           </div>
-          <div class="hoursRow" id="riskHours"></div>
+
+          <div class="hoursRow" style="margin-bottom:10px">
+            <div class="hoursRow" id="riskHours"></div>
+          </div>
+
+          <div class="hoursRow">
+            <button class="danger" id="btnShowRiskNegative">Afficher tableaux NÉGATIFS + heures 03/07/15/17/22</button>
+            <button id="btnResetModeA">Reset</button>
+          </div>
         </div>
 
+        <!-- 🟢 FAVORABLE -->
         <div class="box">
           <div class="boxHeader">
             <span>🟢 Heures favorables</span>
@@ -216,14 +228,15 @@
 
           <div class="hoursRow">
             <button class="primary" id="btnShowGoodPositive">Afficher tableaux POSITIFS + heures 02/14/20</button>
-            <button id="btnResetMode">Reset</button>
+            <button id="btnResetModeB">Reset</button>
           </div>
         </div>
       </div>
 
       <div class="muted small" style="margin-top:8px">
-        ✅ Par défaut: chaque tableau affiche <b>toutes les heures (00:00 → 23:00)</b>.<br>
-        ✅ En mode spécial: on affiche <b>uniquement</b> les tableaux <b>positifs</b> + seulement <b>02:00 / 14:00 / 20:00</b>.
+        ✅ Reset: tableaux = toutes les heures, total = Σ(24h).<br>
+        ✅ Mode “Favorable”: tableaux positifs + heures 02/14/20, total = Σ(02/14/20).<br>
+        ✅ Mode “Risque”: tableaux négatifs + heures 03/07/15/17/22, total = Σ(03/07/15/17/22).
       </div>
     </div>
   </div>
@@ -281,8 +294,8 @@ const STATUS_BY_DATE_FR = {
 const GLOBAL_RISK_HOURS = ["03:00","07:00","15:00","17:00","22:00"];
 const GLOBAL_GOOD_HOURS = ["02:00","14:00","20:00"];
 
-/* ✅ Mode spécial */
-let MODE_GOOD_POSITIVE_ONLY = false;
+/* ✅ Modes (un seul mode à la fois) */
+let MODE = "none"; // "none" | "goodPos" | "riskNeg"
 
 /* ========= UI helpers ========= */
 const pad2 = n => String(n).padStart(2, "0");
@@ -377,12 +390,12 @@ function createTableCard(dateUtc){
   h2.textContent = `Tableau — ${SYMBOL} — ${fr}`;
   card.appendChild(h2);
 
-  // ✅ Total basé uniquement sur 02/14/20
+  // ✅ UN SEUL TOTAL (mode actif)
   const meta = document.createElement("div");
   meta.className = "dayTotal";
   meta.innerHTML = `
-    <span class="badge neu" data-role="sumGood">Σ(02/14/20): —</span>
-    <span class="badge neu" data-role="foundGood">Heures trouvées: —</span>
+    <span class="badge neu" data-role="sum">Total: —</span>
+    <span class="badge neu" data-role="found">Heures trouvées: —</span>
   `;
   card.appendChild(meta);
 
@@ -416,9 +429,17 @@ function createTableCard(dateUtc){
     card,
     tbody: table.querySelector("tbody"),
     status: st,
-    elSumGood: meta.querySelector('[data-role="sumGood"]'),
-    elFoundGood: meta.querySelector('[data-role="foundGood"]')
+    elSum: meta.querySelector('[data-role="sum"]'),
+    elFound: meta.querySelector('[data-role="found"]')
   };
+}
+
+function setBadgeClass(el, value, found){
+  el.classList.remove("pos","neg","neu");
+  if(!found) el.classList.add("neu");
+  else if(value > 0) el.classList.add("pos");
+  else if(value < 0) el.classList.add("neg");
+  else el.classList.add("neu");
 }
 
 /* ========= FILL TABLE ========= */
@@ -441,31 +462,39 @@ async function fillTableForDate(dateUtc, ui){
     byHour.set(h, v);
   }
 
-  // ✅ TOTAL = Σ(02/14/20)
-  const targetHoursGood = GLOBAL_GOOD_HOURS.map(hourStrToInt); // [2,14,20]
-  let sumGood = 0;
-  let foundGood = 0;
+  // ✅ choisir les heures de TOTAL selon MODE
+  let hoursForTotal;
+  let totalLabel;
 
-  for(const h of targetHoursGood){
+  if(MODE === "goodPos"){
+    hoursForTotal = GLOBAL_GOOD_HOURS.map(hourStrToInt); // 3 heures
+    totalLabel = "Σ(02/14/20)";
+  } else if(MODE === "riskNeg"){
+    hoursForTotal = GLOBAL_RISK_HOURS.map(hourStrToInt); // 5 heures
+    totalLabel = "Σ(03/07/15/17/22)";
+  } else {
+    hoursForTotal = Array.from({length:24}, (_,i)=>i); // 24h
+    totalLabel = "Σ(24h)";
+  }
+
+  let sum = 0;
+  let found = 0;
+  for(const h of hoursForTotal){
     if(byHour.has(h)){
-      sumGood += byHour.get(h);
-      foundGood++;
+      sum += byHour.get(h);
+      found++;
     }
   }
 
-  ui.elFoundGood.textContent = `Heures trouvées: ${foundGood}/3`;
-  ui.elSumGood.textContent = `Σ(02/14/20): ${foundGood ? fmtPct(sumGood) : "—"}`;
+  ui.elFound.textContent = `Heures trouvées: ${found}/${hoursForTotal.length}`;
+  ui.elSum.textContent = `${totalLabel}: ${found ? fmtPct(sum) : "—"}`;
+  setBadgeClass(ui.elSum, sum, found);
 
-  ui.elSumGood.classList.remove("pos","neg","neu");
-  if(!foundGood) ui.elSumGood.classList.add("neu");
-  else if(sumGood > 0) ui.elSumGood.classList.add("pos");
-  else if(sumGood < 0) ui.elSumGood.classList.add("neg");
-  else ui.elSumGood.classList.add("neu");
-
-  // lignes affichées
-  const targetHoursToShow = MODE_GOOD_POSITIVE_ONLY
-    ? targetHoursGood
-    : Array.from({length:24}, (_,i)=>i);
+  // ✅ heures affichées selon MODE
+  let targetHoursToShow;
+  if(MODE === "goodPos") targetHoursToShow = GLOBAL_GOOD_HOURS.map(hourStrToInt);
+  else if(MODE === "riskNeg") targetHoursToShow = GLOBAL_RISK_HOURS.map(hourStrToInt);
+  else targetHoursToShow = Array.from({length:24}, (_,i)=>i);
 
   for(const h of targetHoursToShow){
     const tr = document.createElement("tr");
@@ -510,12 +539,26 @@ function applyPolarityFilter(){
 }
 
 /* ========= MODE ========= */
-function setModeGoodPositive(on){
-  MODE_GOOD_POSITIVE_ONLY = !!on;
-  document.getElementById("modePill").style.display = MODE_GOOD_POSITIVE_ONLY ? "" : "none";
+function updateModePill(){
+  const pill = document.getElementById("modePill");
+  if(MODE === "none"){
+    pill.style.display = "none";
+    pill.textContent = "";
+    return;
+  }
+  pill.style.display = "";
+  if(MODE === "goodPos") pill.textContent = "MODE: POSITIFS + 02/14/20";
+  if(MODE === "riskNeg") pill.textContent = "MODE: NÉGATIFS + 03/07/15/17/22";
+}
 
-  if(MODE_GOOD_POSITIVE_ONLY){
+function setMode(next){
+  MODE = next; // "none" | "goodPos" | "riskNeg"
+  updateModePill();
+
+  if(MODE === "goodPos"){
     document.getElementById("polarityFilter").value = "positive";
+  } else if(MODE === "riskNeg"){
+    document.getElementById("polarityFilter").value = "negative";
   }
   refreshMulti();
 }
@@ -549,17 +592,17 @@ async function refreshMulti(){
       fillTableForDate(d, obj).catch(err=>{
         console.error(err);
         obj.tbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
-        obj.elSumGood.textContent = "Σ(02/14/20): Erreur";
-        obj.elFoundGood.textContent = "Heures trouvées: —";
+        obj.elSum.textContent = "Total: Erreur";
+        obj.elFound.textContent = "Heures trouvées: —";
       })
     );
   }
 
   await Promise.all(jobs);
 
-  if(MODE_GOOD_POSITIVE_ONLY){
-    document.getElementById("polarityFilter").value = "positive";
-  }
+  if(MODE === "goodPos") document.getElementById("polarityFilter").value = "positive";
+  if(MODE === "riskNeg") document.getElementById("polarityFilter").value = "negative";
+
   applyPolarityFilter();
 }
 
@@ -604,19 +647,23 @@ document.querySelectorAll(".dateInput").forEach(inp => {
 });
 
 document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
+
 document.getElementById("polarityFilter").addEventListener("change", ()=>{
-  // si l'utilisateur change le filtre en dehors de "positive", on coupe le mode spécial (sinon incohérent)
-  if(MODE_GOOD_POSITIVE_ONLY && document.getElementById("polarityFilter").value !== "positive"){
-    MODE_GOOD_POSITIVE_ONLY = false;
-    document.getElementById("modePill").style.display = "none";
-  }
+  const v = document.getElementById("polarityFilter").value;
+  if(MODE === "goodPos" && v !== "positive") setMode("none");
+  if(MODE === "riskNeg" && v !== "negative") setMode("none");
   applyPolarityFilter();
 });
-document.getElementById("btnShowGoodPositive").addEventListener("click", ()=>setModeGoodPositive(true));
-document.getElementById("btnResetMode").addEventListener("click", ()=>setModeGoodPositive(false));
+
+document.getElementById("btnShowGoodPositive").addEventListener("click", ()=>setMode("goodPos"));
+document.getElementById("btnShowRiskNegative").addEventListener("click", ()=>setMode("riskNeg"));
+
+document.getElementById("btnResetModeA").addEventListener("click", ()=>setMode("none"));
+document.getElementById("btnResetModeB").addEventListener("click", ()=>setMode("none"));
 
 /* ========= INIT ========= */
 renderGlobalInsights();
+updateModePill();
 document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
 refreshMulti();
 </script>
