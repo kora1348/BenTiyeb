@@ -210,7 +210,7 @@
           </div>
 
           <div class="hoursRow">
-            <button class="danger" id="btnShowRiskNegative">Afficher tableaux NÉGATIFS + heure 03:00</button>
+            <button class="danger" id="btnShowRiskNegative">Afficher tableaux NÉGATIFS + heures 03:00 / 23:00</button>
             <button id="btnResetModeA">Reset</button>
           </div>
         </div>
@@ -236,7 +236,7 @@
       <div class="muted small" style="margin-top:8px">
         ✅ Reset: tableaux = toutes les heures, total = Σ(24h).<br>
         ✅ Mode “Favorable”: tableaux positifs + heures 02/14/20, total = Σ(02/14/20).<br>
-        ✅ Mode “Risque”: tableaux négatifs + heure 03:00, total = Σ(03:00).
+        ✅ Mode “Risque”: tableaux négatifs + heures 03:00/23:00, total = Σ(03:00/23:00).
       </div>
     </div>
   </div>
@@ -291,7 +291,7 @@ const STATUS_BY_DATE_FR = {
 };
 
 /* ========= HEURES ========= */
-const GLOBAL_RISK_HOURS = ["03:00"];                // ✅ CHANGÉ ICI
+const GLOBAL_RISK_HOURS = ["03:00","23:00"];                 // ✅ CHANGÉ ICI
 const GLOBAL_GOOD_HOURS = ["02:00","14:00","20:00"];
 
 /* ✅ Modes (un seul mode à la fois) */
@@ -390,7 +390,6 @@ function createTableCard(dateUtc){
   h2.textContent = `Tableau — ${SYMBOL} — ${fr}`;
   card.appendChild(h2);
 
-  // ✅ UN SEUL TOTAL (mode actif)
   const meta = document.createElement("div");
   meta.className = "dayTotal";
   meta.innerHTML = `
@@ -428,7 +427,6 @@ function createTableCard(dateUtc){
   return {
     card,
     tbody: table.querySelector("tbody"),
-    status: st,
     elSum: meta.querySelector('[data-role="sum"]'),
     elFound: meta.querySelector('[data-role="found"]')
   };
@@ -450,7 +448,6 @@ async function fillTableForDate(dateUtc, ui){
   const {start, end} = dayUtcRangeMs(dateUtc);
   const klines = await fetchKlines1h(SYMBOL, start, end);
 
-  // map heure -> pct
   const byHour = new Map();
   for(const k of klines){
     if(!k || !isFinite(k[0])) continue;
@@ -462,7 +459,7 @@ async function fillTableForDate(dateUtc, ui){
     byHour.set(h, v);
   }
 
-  // ✅ choisir les heures de TOTAL selon MODE
+  // total selon MODE
   let hoursForTotal;
   let totalLabel;
 
@@ -470,8 +467,8 @@ async function fillTableForDate(dateUtc, ui){
     hoursForTotal = GLOBAL_GOOD_HOURS.map(hourStrToInt);
     totalLabel = "Σ(02/14/20)";
   } else if(MODE === "riskNeg"){
-    hoursForTotal = GLOBAL_RISK_HOURS.map(hourStrToInt);   // ✅ 1 heure
-    totalLabel = "Σ(03:00)";
+    hoursForTotal = GLOBAL_RISK_HOURS.map(hourStrToInt); // ✅ 2 heures
+    totalLabel = "Σ(03:00/23:00)";
   } else {
     hoursForTotal = Array.from({length:24}, (_,i)=>i);
     totalLabel = "Σ(24h)";
@@ -490,10 +487,10 @@ async function fillTableForDate(dateUtc, ui){
   ui.elSum.textContent = `${totalLabel}: ${found ? fmtPct(sum) : "—"}`;
   setBadgeClass(ui.elSum, sum, found);
 
-  // ✅ heures affichées selon MODE
+  // heures affichées selon MODE
   let targetHoursToShow;
   if(MODE === "goodPos") targetHoursToShow = GLOBAL_GOOD_HOURS.map(hourStrToInt);
-  else if(MODE === "riskNeg") targetHoursToShow = GLOBAL_RISK_HOURS.map(hourStrToInt); // ✅ 03:00 only
+  else if(MODE === "riskNeg") targetHoursToShow = GLOBAL_RISK_HOURS.map(hourStrToInt); // ✅ 03 + 04
   else targetHoursToShow = Array.from({length:24}, (_,i)=>i);
 
   for(const h of targetHoursToShow){
@@ -518,27 +515,25 @@ async function fillTableForDate(dateUtc, ui){
   }
 }
 
-/* ========= FILTRE UI ========= */
 function applyPolarityFilter(){
   const sel = document.getElementById("polarityFilter").value;
   const cards = Array.from(document.querySelectorAll("#tables .card"));
-
   let shown = 0;
+
   for(const c of cards){
     const pol = c.dataset.polarity;
     let visible = true;
 
     if(sel === "negative") visible = (pol === "negative");
     else if(sel === "positive") visible = (pol === "positive");
-    else visible = true;
 
     c.style.display = visible ? "" : "none";
     if(visible) shown++;
   }
+
   document.getElementById("shownCount").textContent = `Affichés: ${shown}/${cards.length}`;
 }
 
-/* ========= MODE ========= */
 function updateModePill(){
   const pill = document.getElementById("modePill");
   if(MODE === "none"){
@@ -548,22 +543,19 @@ function updateModePill(){
   }
   pill.style.display = "";
   if(MODE === "goodPos") pill.textContent = "MODE: POSITIFS + 02/14/20";
-  if(MODE === "riskNeg") pill.textContent = "MODE: NÉGATIFS + 03:00";
+  if(MODE === "riskNeg") pill.textContent = "MODE: NÉGATIFS + 03:00/23:00";
 }
 
 function setMode(next){
   MODE = next;
   updateModePill();
 
-  if(MODE === "goodPos"){
-    document.getElementById("polarityFilter").value = "positive";
-  } else if(MODE === "riskNeg"){
-    document.getElementById("polarityFilter").value = "negative";
-  }
+  if(MODE === "goodPos") document.getElementById("polarityFilter").value = "positive";
+  if(MODE === "riskNeg") document.getElementById("polarityFilter").value = "negative";
+
   refreshMulti();
 }
 
-/* ========= REFRESH ========= */
 async function refreshMulti(){
   baseDateUtc = clampToFixedRange(baseDateUtc);
 
