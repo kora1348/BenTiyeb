@@ -153,7 +153,7 @@
     </div>
     <div class="muted small" id="fixedInfo"></div>
 
-    <!-- ✅ AJOUT: Bloc affiché dans la card du haut -->
+    <!-- ✅ Bloc affiché dans la card du haut -->
     <div class="insights" id="globalInsights">
       <div class="insightsTitle">📌 Heures clés (basées sur tes répétitions)</div>
 
@@ -182,18 +182,29 @@
 
 <script>
 /* ========= CONFIG ========= */
-const BASE_FUTURES  = "https://fapi.binance.com";
-const SYMBOL        = "1000LUNCUSDT";
+const BASE_FUTURES = "https://fapi.binance.com";
+const SYMBOL       = "1000LUNCUSDT";
 
-// Fenêtre demandée : du 20/12/2025 au 27/11/2025 (inclus)
-const RANGE_START_UTC = new Date(Date.UTC(2025, 11, 20, 0, 0, 0, 0)); // 20/12/2025
-const RANGE_END_UTC   = new Date(Date.UTC(2025, 10, 27, 0, 0, 0, 0)); // 27/11/2025
+/* ✅ RANGE_START_UTC = "date du jour" (UTC 00:00) */
+const NOW = new Date();
+const RANGE_START_UTC = new Date(Date.UTC(
+  NOW.getUTCFullYear(),
+  NOW.getUTCMonth(),
+  NOW.getUTCDate(),
+  0, 0, 0, 0
+));
 
-// Date courante (point de départ d'affichage)
+/* ✅ RANGE_END_UTC fixe (comme tu veux) */
+const RANGE_END_UTC = new Date(Date.UTC(2025, 10, 27, 0, 0, 0, 0)); // 27/11/2025
+
+/* Date courante (point de départ d'affichage) */
 let baseDateUtc = new Date(RANGE_START_UTC);
 
-/* ========= STATUS MANUEL PAR DATE (JJ/MM/AAAA) ========= */
+/* ========= STATUS MANUEL PAR DATE (JJ/MM/AAAA) =========
+   (tu peux continuer à compléter ici, ça reste manuel)
+*/
 const STATUS_BY_DATE_FR = {
+  "21/12/2025": { text: "positif",  cls: "positive" },
   "20/12/2025": { text: "negative", cls: "negative" },
   "19/12/2025": { text: "positif",  cls: "positive" },
   "18/12/2025": { text: "negative", cls: "negative" },
@@ -220,7 +231,7 @@ const STATUS_BY_DATE_FR = {
   "27/11/2025": { text: "negative", cls: "negative" },
 };
 
-/* ========= ✅ LISTES "joli truc" demandées (fixes) ========= */
+/* ========= LISTES "joli truc" (fixes) ========= */
 const GLOBAL_RISK_HOURS = ["03:00","07:00","15:00","17:00","22:00"];
 const GLOBAL_GOOD_HOURS = ["02:00","14:00","20:00"];
 
@@ -254,9 +265,15 @@ function addDaysUtc(d, days){
   return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0, 0, 0, 0));
 }
 
+/* ✅ clamp cohérent même si "aujourd'hui" < RANGE_END_UTC
+   (si la fenêtre est inversée, on borne sur le min/max)
+*/
 function clampToFixedRange(d){
-  if(d.getTime() > RANGE_START_UTC.getTime()) return new Date(RANGE_START_UTC);
-  if(d.getTime() < RANGE_END_UTC.getTime()) return new Date(RANGE_END_UTC);
+  const maxT = Math.max(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime());
+  const minT = Math.min(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime());
+  const t = d.getTime();
+  if(t > maxT) return new Date(maxT);
+  if(t < minT) return new Date(minT);
   return d;
 }
 
@@ -437,7 +454,9 @@ async function refreshMulti(){
   const tablesWrap = document.getElementById("tables");
   tablesWrap.innerHTML = "";
 
-  const maxDaysPossible = Math.floor((baseDateUtc.getTime() - RANGE_END_UTC.getTime()) / (24*60*60*1000)) + 1;
+  const maxDaysPossible =
+    Math.floor((baseDateUtc.getTime() - Math.min(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime())) / (24*60*60*1000)) + 1;
+
   const realDays = Math.min(days, maxDaysPossible);
 
   document.getElementById("rangeInfo").textContent =
@@ -514,7 +533,7 @@ document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
 document.getElementById("polarityFilter").addEventListener("change", applyPolarityFilter);
 
 /* ========= INIT ========= */
-renderGlobalInsights();               // ✅ affiche ton bloc "joli"
+renderGlobalInsights();
 document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
 refreshMulti();
 </script>
