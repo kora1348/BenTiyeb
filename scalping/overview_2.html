@@ -210,7 +210,7 @@
           </div>
 
           <div class="hoursRow">
-            <button class="danger" id="btnShowRiskNegative">Afficher tableaux NÉGATIFS + heures 03/07/15/17/22</button>
+            <button class="danger" id="btnShowRiskNegative">Afficher tableaux NÉGATIFS + heure 03:00</button>
             <button id="btnResetModeA">Reset</button>
           </div>
         </div>
@@ -236,7 +236,7 @@
       <div class="muted small" style="margin-top:8px">
         ✅ Reset: tableaux = toutes les heures, total = Σ(24h).<br>
         ✅ Mode “Favorable”: tableaux positifs + heures 02/14/20, total = Σ(02/14/20).<br>
-        ✅ Mode “Risque”: tableaux négatifs + heures 03/07/15/17/22, total = Σ(03/07/15/17/22).
+        ✅ Mode “Risque”: tableaux négatifs + heure 03:00, total = Σ(03:00).
       </div>
     </div>
   </div>
@@ -291,7 +291,7 @@ const STATUS_BY_DATE_FR = {
 };
 
 /* ========= HEURES ========= */
-const GLOBAL_RISK_HOURS = ["03:00","07:00","15:00","17:00","22:00"];
+const GLOBAL_RISK_HOURS = ["03:00"];                // ✅ CHANGÉ ICI
 const GLOBAL_GOOD_HOURS = ["02:00","14:00","20:00"];
 
 /* ✅ Modes (un seul mode à la fois) */
@@ -467,13 +467,13 @@ async function fillTableForDate(dateUtc, ui){
   let totalLabel;
 
   if(MODE === "goodPos"){
-    hoursForTotal = GLOBAL_GOOD_HOURS.map(hourStrToInt); // 3 heures
+    hoursForTotal = GLOBAL_GOOD_HOURS.map(hourStrToInt);
     totalLabel = "Σ(02/14/20)";
   } else if(MODE === "riskNeg"){
-    hoursForTotal = GLOBAL_RISK_HOURS.map(hourStrToInt); // 5 heures
-    totalLabel = "Σ(03/07/15/17/22)";
+    hoursForTotal = GLOBAL_RISK_HOURS.map(hourStrToInt);   // ✅ 1 heure
+    totalLabel = "Σ(03:00)";
   } else {
-    hoursForTotal = Array.from({length:24}, (_,i)=>i); // 24h
+    hoursForTotal = Array.from({length:24}, (_,i)=>i);
     totalLabel = "Σ(24h)";
   }
 
@@ -493,7 +493,7 @@ async function fillTableForDate(dateUtc, ui){
   // ✅ heures affichées selon MODE
   let targetHoursToShow;
   if(MODE === "goodPos") targetHoursToShow = GLOBAL_GOOD_HOURS.map(hourStrToInt);
-  else if(MODE === "riskNeg") targetHoursToShow = GLOBAL_RISK_HOURS.map(hourStrToInt);
+  else if(MODE === "riskNeg") targetHoursToShow = GLOBAL_RISK_HOURS.map(hourStrToInt); // ✅ 03:00 only
   else targetHoursToShow = Array.from({length:24}, (_,i)=>i);
 
   for(const h of targetHoursToShow){
@@ -548,11 +548,11 @@ function updateModePill(){
   }
   pill.style.display = "";
   if(MODE === "goodPos") pill.textContent = "MODE: POSITIFS + 02/14/20";
-  if(MODE === "riskNeg") pill.textContent = "MODE: NÉGATIFS + 03/07/15/17/22";
+  if(MODE === "riskNeg") pill.textContent = "MODE: NÉGATIFS + 03:00";
 }
 
 function setMode(next){
-  MODE = next; // "none" | "goodPos" | "riskNeg"
+  MODE = next;
   updateModePill();
 
   if(MODE === "goodPos"){
