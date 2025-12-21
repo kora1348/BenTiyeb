@@ -3,322 +3,242 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Variations — Binance (Futures + Spot)</title>
+  <title>Variations — Binance Futures (1h) — RONINUSDT & 1000LUNCUSDT</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
+    h2{margin:0 0 8px}
+    .card{margin:12px 0 14px;padding:14px;border-radius:8px;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.10)}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .muted{color:#666;font-size:13px}
+    table{background:#fff;border-collapse:collapse}
+    th{background:#fafafa}
+    th,td{border:1px solid #ddd;padding:8px}
+    .wrap{max-width:1200px}
+  </style>
 </head>
-<body>
+<body class="wrap">
 
-  <h2>Tableau 1 — AIUSDT (Futures) (2 dates)</h2>
+  <!-- Contrôles (précédant / suivant) -->
+  <div class="card">
+    <div class="row">
+      <div>
+        <button class="prevBtn">Précédant</button>
+        <button class="nextBtn">Suivant</button>
 
-  <p>
-    <button class="prevBtn">Précédant</button>
-    <button class="nextBtn">Suivant</button>
+        &nbsp;|&nbsp;
 
-    &nbsp;|&nbsp;
+        <label>
+          Date :
+          <input
+            type="text"
+            class="dateInput"
+            placeholder="JJ/MM/AAAA"
+            inputmode="numeric"
+            style="width:120px"
+          />
+        </label>
 
-    <label>
-      Date :
-      <input
-        type="text"
-        class="dateInput"
-        placeholder="JJ/MM/AAAA"
-        inputmode="numeric"
-        style="width:120px"
-      />
-    </label>
+        <button class="goDateBtn">OK</button>
+      </div>
+      <div class="muted" id="rangeInfo">—</div>
+    </div>
+  </div>
 
-    <button class="goDateBtn">OK</button>
-  </p>
+ 
 
-  <table width="100%" border="1" cellpadding="8">
-    <thead>
-      <tr>
-        <th>Symbol</th>
-        <th id="thDate1">—</th>
-        <th id="thDate2">—</th>
-        <th>TOTAL</th>
-      </tr>
-    </thead>
-    <tbody id="tbody1"></tbody>
-  </table>
-
-  <br />
-
-  <p>
-    <button class="prevBtn">Précédant</button>
-    <button class="nextBtn">Suivant</button>
-
-    &nbsp;|&nbsp;
-
-    <label>
-      Date :
-      <input
-        type="text"
-        class="dateInput"
-        placeholder="JJ/MM/AAAA"
-        inputmode="numeric"
-        style="width:120px"
-      />
-    </label>
-
-    <button class="goDateBtn">OK</button>
-  </p>
-
-  <h2 id="titleTable2">Tableau 2 — Variations du —</h2>
-  <table width="100%" border="1" cellpadding="8">
-    <thead>
-      <tr>
-        <th>Symbol</th>
-        <th id="thDateSingle">—</th>
-      </tr>
-    </thead>
-    <tbody id="tbody2"></tbody>
-  </table>
+  <!-- TABLE 2 -->
+  <div class="card">
+    <h2 id="title2">Tableau 2 — 1000LUNCUSDT — 20/12/2025</h2>
+    <table width="100%" cellpadding="8">
+      <thead>
+        <tr>
+          <th>Heure (UTC)</th>
+          <th>Taux variation 1h</th>
+        </tr>
+      </thead>
+      <tbody id="tbody2"></tbody>
+    </table>
+  </div>
 
 <script>
-/* ========= BASES ========= */
+/* ========= CONFIG ========= */
 const BASE_FUTURES = "https://fapi.binance.com";
-const BASE_SPOT    = "https://api.binance.com";
+const SYMBOL_TABLE1 = "RONINUSDT";
+const SYMBOL_TABLE2 = "1000LUNCUSDT";
 
-/* ========= TABLE 1 (listing 2024) ========= */
-const SYMBOLS_TABLE1 = [
-  "AIUSDT","ALTUSDT","JUPUSDT","LSKUSDT","MANTAUSDT","ONDOUSDT","WIFUSDT","XAIUSDT","DYMUSDT",
-  "GLMUSDT","OMUSDT","PIXELUSDT","PORTALUSDT","RONINUSDT","STRKUSDT","ZETAUSDT","AEVOUSDT","AXLUSDT",
-  "BOMEUSDT","ETHFIUSDT","METISUSDT","TONUSDT","VANRYUSDT","ENAUSDT","REZUSDT","SAGAUSDT","TAOUSDT",
-  "TNSRUSDT","WUSDT","BBUSDT","NOTUSDT","TURBOUSDT","IOUSDT","LISTAUSDT","MEWUSDT","ZKUSDT","ZROUSDT",
-  "RENDERUSDT","BANANAUSDT","BRETTUSDT","CHESSUSDT","DOGSUSDT","GUSDT","MBOXUSDT","POPCATUSDT","RAREUSDT",
-  "SUNUSDT","SYNUSDT","SYSUSDT","1MBABYDOGEUSDT","CATIUSDT","COSUSDT","FIDAUSDT","FIOUSDT","FLUXUSDT",
-  "GHSTUSDT","HMSTRUSDT","NEIROUSDT","POLUSDT","RPLUSUSDT","1000CATUSDT","DIAUSDT","EIGENUSDT","GOATUSDT",
-  "MOODENGUSDT","SAFEUSDT","SANTOSUSDT","SCRUSDT","1000000MOGUSDT","1000CHEEMSUSDT","1000WHYUSDT","ACTUSDT",
-  "AKTUSDT","BANUSDT","CETUSUSDT","CHILLGUYUSDT","COWUSDT","DEGENUSDT","DRIFTUSDT","GRASSUSDT","HIPPOUSDT",
-  "MORPHOUSDT","PNUTUSDT","SCRTUSDT","THEUSDT","ACXUSDT","AEROUSDT","AIXBTUSDT","AVAUSDT","CGPTUSDT","DEGOUSDT",
-  "DEXEUSDT","DFUSDT","FARTCOINUSDT","HIVEUSDT","KAIAUSDT","KMNOUSDT","KOMAUSDT","LUMIAUSDT","MEUSDT","MOCAUSDT",
-  "MOVEUSDT","ORCAUSDT","PENGUUSDT","PHAUSDT","RAYSOLUSDT","SPXUSDT","USUALUSDT","VANAUSDT","VELODROMEUSDT","VIRTUALUSDT"
-];
+// point de départ : 20/12/2025 (UTC)
+let baseDateUtc = new Date(Date.UTC(2025, 11, 20, 0, 0, 0, 0));
 
-/* ========= TABLE 2 ========= */
-const SYMBOLS_TABLE2 = [
-  "RONINUSDT",
-  "1000LUNCUSDT"
-];
-
-// point de départ
-let aiBaseDateUtc = new Date(Date.UTC(2025, 3, 8));   // 08/04/2025
-let t2BaseDateUtc = new Date(Date.UTC(2025, 11, 20)); // 20/12/2025
-
-/* ================= Utils dates ================= */
+/* ========= UTILS DATES ========= */
 const pad2 = n => String(n).padStart(2, "0");
+const toFr = d => `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
 const toYmd = d => `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`;
-const toFr  = d => `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
 
 function addDaysUtc(d, days){
   const x = new Date(d);
   x.setUTCDate(x.getUTCDate() + days);
-  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate()));
-}
-function addYearsUtc(d, years){
-  return new Date(Date.UTC(d.getUTCFullYear()+years, d.getUTCMonth(), d.getUTCDate()));
+  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0, 0, 0, 0));
 }
 
-function dayUtcRangeMs(ymd){
-  const [y,m,d] = ymd.split("-").map(Number);
-  return {
-    start: Date.UTC(y,m-1,d,0,0,0,0),
-    end:   Date.UTC(y,m-1,d,23,59,59,999)
-  };
-}
-
-// ✅ parse "JJ/MM/AAAA" -> Date UTC (00:00)
+// parse "JJ/MM/AAAA" -> Date UTC (00:00)
 function frToUtcDate(fr){
   const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(fr || "").trim());
   if(!m) return null;
 
-  const dd = Number(m[1]);
-  const mm = Number(m[2]);
-  const yy = Number(m[3]);
-
-  // validation simple
+  const dd = Number(m[1]), mm = Number(m[2]), yy = Number(m[3]);
   if(mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
 
-  const dt = new Date(Date.UTC(yy, mm-1, dd));
+  const dt = new Date(Date.UTC(yy, mm-1, dd, 0, 0, 0, 0));
   if(isNaN(dt.getTime())) return null;
 
-  // check que la date existe vraiment (ex: 31/02)
+  // check existence réelle (31/02, etc.)
   if(dt.getUTCFullYear() !== yy || (dt.getUTCMonth()+1) !== mm || dt.getUTCDate() !== dd) return null;
 
   return dt;
 }
 
-/* ================= API ================= */
-async function fetchDailyPct(symbol, ymd, market){
-  const {start,end} = dayUtcRangeMs(ymd);
-
-  const base = (market === "spot") ? BASE_SPOT : BASE_FUTURES;
-  const path = (market === "spot") ? "/api/v3/klines" : "/fapi/v1/klines";
-
-  const url = `${base}${path}?symbol=${encodeURIComponent(symbol)}&interval=1d&startTime=${start}&endTime=${end}&limit=3`;
-
-  const r = await fetch(url);
-  if(!r.ok) throw new Error(`${symbol} ${ymd} -> HTTP ${r.status}`);
-  const d = await r.json();
-
-  const k = d.find(x => x[0] === start) || d.find(x => x[0]>=start && x[0]<=end) || d[0];
-  if(!k) throw new Error(`${symbol} ${ymd} -> aucune bougie`);
-
-  const o = +k[1], c = +k[4];
-  if(!isFinite(o) || !isFinite(c) || o<=0) throw new Error(`${symbol} ${ymd} -> open/close invalide`);
-  return ((c-o)/o)*100;
+function dayUtcRangeMs(dUtc){
+  const y = dUtc.getUTCFullYear();
+  const m = dUtc.getUTCMonth();
+  const d = dUtc.getUTCDate();
+  return {
+    start: Date.UTC(y, m, d, 0, 0, 0, 0),
+    end:   Date.UTC(y, m, d, 23, 59, 59, 999)
+  };
 }
 
+/* ========= FORMAT ========= */
 const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
-const applyColor = (el,v)=> { el.style.color = v>0?"green":v<0?"red":""; };
-
-/* ================= Table 1 ================= */
-async function loadRow(symbol, market, cellD1, cellD2, cellTot, d1Utc, d2Utc){
-  cellD1.textContent = "Chargement..."; cellD1.style.color = "";
-  cellD2.textContent = "Chargement..."; cellD2.style.color = "";
-  cellTot.textContent = "Chargement..."; cellTot.style.color = "";
-
-  try{
-    const v1 = await fetchDailyPct(symbol, toYmd(d1Utc), market);
-    const v2 = await fetchDailyPct(symbol, toYmd(d2Utc), market);
-    const vt = v1 + v2;
-
-    cellD1.textContent = fmtPct(v1); applyColor(cellD1, v1);
-    cellD2.textContent = fmtPct(v2); applyColor(cellD2, v2);
-    cellTot.textContent = fmtPct(vt); applyColor(cellTot, vt);
-
-    return { v1, v2, vt };
-  }catch(e){
-    cellD1.textContent = "Erreur"; cellD1.style.color = "";
-    cellD2.textContent = "Erreur"; cellD2.style.color = "";
-    cellTot.textContent = "Erreur"; cellTot.style.color = "";
-    console.error(e);
-    return { v1: 0, v2: 0, vt: 0, error: true };
-  }
+function applyColor(el, v){
+  el.style.color = v > 0 ? "green" : v < 0 ? "red" : "";
 }
 
-async function loadTable1(){
-  const d2 = aiBaseDateUtc;
-  const d1 = addYearsUtc(d2, -1);
-
-  document.getElementById("thDate1").textContent = toFr(d1);
-  document.getElementById("thDate2").textContent = toFr(d2);
-
-  const tbody1 = document.getElementById("tbody1");
-  tbody1.innerHTML = "";
-
-  let totalCol1 = 0;
-  let totalCol2 = 0;
-  let totalGlobal = 0;
-
-  const tasks = [];
-
-  for(const sym of SYMBOLS_TABLE1){
-    const tr = document.createElement("tr");
-
-    const tdSym = document.createElement("td");
-    tdSym.textContent = sym;
-
-    const td1 = document.createElement("td");
-    const td2 = document.createElement("td");
-    const tdT = document.createElement("td");
-
-    tr.appendChild(tdSym);
-    tr.appendChild(td1);
-    tr.appendChild(td2);
-    tr.appendChild(tdT);
-
-    tbody1.appendChild(tr);
-
-    tasks.push(
-      loadRow(sym, "futures", td1, td2, tdT, d1, d2).then(res=>{
-        if(res && !res.error){
-          totalCol1 += res.v1;
-          totalCol2 += res.v2;
-          totalGlobal += res.vt; // = v1+v2 par crypto
-        }
-      })
-    );
-  }
-
-  await Promise.all(tasks);
-
-  const trTotal = document.createElement("tr");
-  trTotal.innerHTML = `<td><strong>TOTAL</strong></td>
-                       <td><strong>${fmtPct(totalCol1)}</strong></td>
-                       <td><strong>${fmtPct(totalCol2)}</strong></td>
-                       <td><strong>${fmtPct(totalGlobal)}</strong></td>`;
-  tbody1.appendChild(trTotal);
-
-  applyColor(trTotal.children[1], totalCol1);
-  applyColor(trTotal.children[2], totalCol2);
-  applyColor(trTotal.children[3], totalGlobal);
+/* ========= API (1h klines) ========= */
+async function fetchKlines1h(symbol, startMs, endMs){
+  // on prend un peu de marge (Binance peut renvoyer un peu autour)
+  const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=1h&startTime=${startMs}&endTime=${endMs}&limit=24`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(`${symbol} -> HTTP ${r.status}`);
+  const arr = await r.json();
+  if(!Array.isArray(arr) || arr.length === 0) throw new Error(`${symbol} -> aucune bougie 1h`);
+  return arr;
 }
 
-/* ================= Table 2 ================= */
-async function loadTable2(){
-  const tbody = document.getElementById("tbody2");
+function hourLabelUTC(ms){
+  const d = new Date(ms);
+  return `${pad2(d.getUTCHours())}:00`;
+}
+
+function pctFromKline(k){
+  const o = +k[1], c = +k[4];
+  if(!isFinite(o) || !isFinite(c) || o <= 0) return null;
+  return ((c - o) / o) * 100;
+}
+
+/* ========= RENDER TABLE ========= */
+async function renderHourlyTable(symbol, tbodyId){
+  const tbody = document.getElementById(tbodyId);
   tbody.innerHTML = "";
 
-  const ymd = toYmd(t2BaseDateUtc);
-  const fr  = toFr(t2BaseDateUtc);
+  const {start, end} = dayUtcRangeMs(baseDateUtc);
 
-  document.getElementById("thDateSingle").textContent = fr;
-  document.getElementById("titleTable2").textContent = `Tableau 2 — Variations du ${fr}`;
+  // Récup bougies 1h du jour
+  let klines = await fetchKlines1h(symbol, start, end);
 
-  let globalTotal = 0;
+  // Filtrer strictement sur [start, start+24h) et trier
+  klines = klines
+    .filter(k => k && k[0] >= start && k[0] < start + 24*60*60*1000)
+    .sort((a,b)=>a[0]-b[0]);
 
-  for(const sym of SYMBOLS_TABLE2){
-    try{
-      const v = await fetchDailyPct(sym, ymd, "futures");
-      globalTotal += v;
+  // Si Binance en renvoie moins, on affiche quand même ce qu'on a
+  let total = 0;
+  let count = 0;
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${sym}</td><td>${fmtPct(v)}</td>`;
-      tbody.appendChild(tr);
-      applyColor(tr.children[1], v);
-    }catch(e){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${sym}</td><td>Erreur</td>`;
-      tbody.appendChild(tr);
-      console.error(e);
+  for(const k of klines){
+    const openTime = k[0];
+    const v = pctFromKline(k);
+
+    const tr = document.createElement("tr");
+    const tdH = document.createElement("td");
+    const tdV = document.createElement("td");
+
+    tdH.textContent = hourLabelUTC(openTime);
+
+    if(v === null){
+      tdV.textContent = "Erreur";
+      tdV.style.color = "";
+    }else{
+      tdV.textContent = fmtPct(v);
+      applyColor(tdV, v);
+      total += v;
+      count++;
     }
+
+    tr.appendChild(tdH);
+    tr.appendChild(tdV);
+    tbody.appendChild(tr);
   }
 
+  // Ligne TOTAL (somme des %)
   const trTotal = document.createElement("tr");
-  trTotal.innerHTML = `<td><strong>TOTAL</strong></td><td><strong>${fmtPct(globalTotal)}</strong></td>`;
+  const tdT1 = document.createElement("td");
+  const tdT2 = document.createElement("td");
+  tdT1.innerHTML = "<strong>TOTAL</strong>";
+  tdT2.innerHTML = `<strong>${count ? fmtPct(total) : "Erreur"}</strong>`;
+  trTotal.appendChild(tdT1);
+  trTotal.appendChild(tdT2);
   tbody.appendChild(trTotal);
-  applyColor(trTotal.children[1], globalTotal);
+  applyColor(tdT2, total);
 }
 
-/* ================= Navigation ================= */
+/* ========= REFRESH ========= */
 async function refresh(){
-  await loadTable1();
-  await loadTable2();
+  const fr = toFr(baseDateUtc);
+  document.getElementById("title1").textContent = `Tableau 1 — ${SYMBOL_TABLE1} — ${fr}`;
+  document.getElementById("title2").textContent = `Tableau 2 — ${SYMBOL_TABLE2} — ${fr}`;
+
+  const {start, end} = dayUtcRangeMs(baseDateUtc);
+  document.getElementById("rangeInfo").textContent =
+    `Fenêtre 1D (UTC) : ${toYmd(baseDateUtc)} 00:00 → 23:59`;
+
+  // loaders rapides
+  document.getElementById("tbody1").innerHTML = `<tr><td colspan="2">Chargement...</td></tr>`;
+  document.getElementById("tbody2").innerHTML = `<tr><td colspan="2">Chargement...</td></tr>`;
+
+  try{
+    await Promise.all([
+      renderHourlyTable(SYMBOL_TABLE1, "tbody1"),
+      renderHourlyTable(SYMBOL_TABLE2, "tbody2")
+    ]);
+  }catch(e){
+    console.error(e);
+    // en cas d'erreur globale, on affiche "Erreur" dans les 2 tables
+    document.getElementById("tbody1").innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
+    document.getElementById("tbody2").innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
+  }
 }
 
-/* ✅ Les deux paires de boutons fonctionnent */
+/* ========= NAVIGATION ========= */
 document.querySelectorAll(".prevBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
-    aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, -1);
-    t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, -1);
+    baseDateUtc = addDaysUtc(baseDateUtc, -1);
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
     await refresh();
   });
 });
 
 document.querySelectorAll(".nextBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
-    aiBaseDateUtc = addDaysUtc(aiBaseDateUtc, 1);
-    t2BaseDateUtc = addDaysUtc(t2BaseDateUtc, 1);
+    baseDateUtc = addDaysUtc(baseDateUtc, 1);
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
     await refresh();
   });
 });
 
-/* ✅ Input date FR (JJ/MM/AAAA) : OK recharge comme la pagination */
 document.querySelectorAll(".goDateBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     const wrap = btn.parentElement;
-    const inp  = wrap.querySelector(".dateInput");
+    const inp = wrap.querySelector(".dateInput");
     const dt = frToUtcDate(inp.value);
 
     if(!dt){
@@ -326,18 +246,12 @@ document.querySelectorAll(".goDateBtn").forEach(btn => {
       return;
     }
 
-    // synchro avec la même logique que la pagination
-    aiBaseDateUtc = new Date(dt);
-    t2BaseDateUtc = new Date(dt);
-
-    // optionnel: recopie la date dans les 2 inputs pour rester cohérent
-    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(dt));
-
+    baseDateUtc = new Date(dt);
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
     await refresh();
   });
 });
 
-/* ✅ Enter dans l'input = OK */
 document.querySelectorAll(".dateInput").forEach(inp => {
   inp.addEventListener("keydown", (e)=>{
     if(e.key === "Enter"){
@@ -347,9 +261,8 @@ document.querySelectorAll(".dateInput").forEach(inp => {
   });
 });
 
-// init : pré-remplir les inputs avec la date actuelle de Table 2 (optionnel)
-document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(t2BaseDateUtc));
-
+/* ========= INIT ========= */
+document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
 refresh();
 </script>
 

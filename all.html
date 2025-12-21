@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Binance Futures — Variation 1D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1 { margin: 0 0 6px; }
+    p { margin: 0 0 14px; color: #444; }
+
+    .card {
+      margin: 12px 0 14px;
+      padding: 14px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10);
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .muted { color: #666; font-size: 13px; }
+    .progressWrap {
+      width: 420px;
+      max-width: 100%;
+    }
+    .bar {
+      height: 12px;
+      background: #e9e9e9;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+    .bar > div {
+      height: 100%;
+      width: 0%;
+      background: #4CAF50;
+      transition: width 0.15s ease;
+    }
+    .pct {
+      font-weight: 700;
+      min-width: 64px;
+      text-align: right;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tr:hover { background-color: #f1f1f1; }
+    .positive { color: green; font-weight: 700; }
+    .negative { color: red; font-weight: 700; }
+    .na { color: #999; }
+    .small { font-size: 12px; }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f0f0f0;
+      border: 1px solid #e3e3e3;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .warn {
+      background: #fff3cd;
+      border: 1px solid #ffe69c;
+      color: #664d03;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    /* Style pour le champ de date et le bouton */
+    .date-input {
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .load-button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .load-button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Variations Futures — <span id="targetDateDisplay">25/03/2024</span> (bougie 1D)</h1>
+  <p>
+    Tableau auto: toutes les cryptos <b>USDT-M PERP</b> (Binance Futures) +
+    variation (%) de la bougie <b>1D</b> du <b><span id="targetDateDisplay2">25/03/2024</span></b> (journée <b>UTC</b>).
+  </p>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="dateInput">Choisir une date :</label>
+        <input type="date" id="dateInput" class="date-input" value="2024-03-25">
+        <button id="loadButton" class="load-button">Charger les variations</button>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <div><b>En attente de chargement…</b></div>
+        <div class="muted" id="statusLine">Prêt</div>
+        <div class="muted small" id="subLine"></div>
+      </div>
+      <div class="progressWrap">
+        <div class="row" style="justify-content: space-between; margin-bottom: 6px;">
+          <span class="pill" id="countsPill">0 / 0</span>
+          <span class="pct" id="pct">0%</span>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+    </div>
+    <div class="warn">
+      ⚠️ Binance limite les requêtes. Le script gère un <b>concurrency</b> et des <b>retries</b>,
+      mais ça peut rester un peu long selon le nombre de symboles.
+    </div>
+  </div>
+
+  <table id="cryptoTable">
+    <thead>
+      <tr>
+        <th>Crypto</th>
+        <th><span id="targetDateDisplay3">25/03/2024</span> — 1D (UTC)</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <script>
+    // Variable globale pour la date cible
+    let TARGET_DAY = { y: 2024, m: 3, d: 25 };
+
+    // futures exchangeInfo + klines endpoints
+    const EXCHANGE_INFO_URL = "https://fapi.binance.com/fapi/v1/exchangeInfo";
+    const KLINES_URL = "https://fapi.binance.com/fapi/v1/klines";
+
+    // réglages anti rate-limit
+    const CONCURRENCY = 10;
+    const RETRIES = 6;
+    const BASE_BACKOFF_MS = 450;
+
+    // UI refs
+    const statusLine = document.getElementById("statusLine");
+    const subLine = document.getElementById("subLine");
+    const pctEl = document.getElementById("pct");
+    const barFill = document.getElementById("barFill");
+    const countsPill = document.getElementById("countsPill");
+    const tbody = document.getElementById("tableBody");
+    const dateInput = document.getElementById("dateInput");
+    const loadButton = document.getElementById("loadButton");
+    const targetDateDisplay = document.getElementById("targetDateDisplay");
+    const targetDateDisplay2 = document.getElementById("targetDateDisplay2");
+    const targetDateDisplay3 = document.getElementById("targetDateDisplay3");
+
+    // progress tracking
+    let totalSymbols = 0;
+    let doneSymbols = 0;
+    let totalRequests = 0;
+    let doneRequests = 0;
+
+    function setStatus(main, sub = "") {
+      statusLine.textContent = main;
+      subLine.textContent = sub;
+    }
+
+    function setProgress() {
+      const pct = totalRequests ? Math.min(100, Math.round((doneRequests / totalRequests) * 100)) : 0;
+      pctEl.textContent = pct + "%";
+      barFill.style.width = pct + "%";
+      countsPill.textContent = `${doneSymbols} / ${totalSymbols}`;
+    }
+
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    async function fetchJsonWithRetry(url, tries = RETRIES) {
+      let attempt = 0;
+      while (true) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) {
+            const status = res.status;
+            if ((status === 418 || status === 429 || status >= 500) && attempt < tries) {
+              const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt) + Math.floor(Math.random() * 250);
+              attempt++;
+              await sleep(backoff);
+              continue;
+            }
+            throw new Error(`HTTP ${status} sur ${url}`);
+          }
+          return await res.json();
+        } catch (err) {
+          if (attempt < tries) {
+            const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt) + Math.floor(Math.random() * 250);
+            attempt++;
+            await sleep(backoff);
+            continue;
+          }
+          throw err;
+        }
+      }
+    }
+
+    // Convertit une date au format YYYY-MM-DD en objet { y, m, d }
+    function parseDate(dateString) {
+      const [y, m, d] = dateString.split("-").map(Number);
+      return { y, m, d };
+    }
+
+    // timestamp UTC (ms) du début de journée UTC
+    function toUtcMsStartOfDay(day) {
+      return Date.UTC(day.y, day.m - 1, day.d, 0, 0, 0, 0);
+    }
+
+    function formatPct(x) {
+      if (x === null || Number.isNaN(x)) return "-";
+      const v = Number(x);
+      return (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
+    }
+
+    function tdWithValue(value) {
+      const td = document.createElement("td");
+      if (value === null || Number.isNaN(value)) {
+        td.textContent = "-";
+        td.className = "na";
+        return td;
+      }
+      td.textContent = formatPct(value);
+      td.className = value >= 0 ? "positive" : "negative";
+      return td;
+    }
+
+    async function fetchAllUsdtPerpSymbols() {
+      setStatus("Récupération des symboles Futures…");
+      const info = await fetchJsonWithRetry(EXCHANGE_INFO_URL);
+      return (info.symbols || [])
+        .filter(
+          (s) =>
+            s.status === "TRADING" &&
+            s.contractType === "PERPETUAL" &&
+            s.quoteAsset === "USDT" &&
+            s.symbol &&
+            s.symbol.endsWith("USDT")
+        )
+        .map((s) => s.symbol)
+        .sort((a, b) => a.localeCompare(b));
+    }
+
+    async function fetchOneDayCandleVariation(symbol, startTimeMs) {
+      const url = `${KLINES_URL}?symbol=${encodeURIComponent(symbol)}&interval=1d&startTime=${startTimeMs}&limit=1`;
+      const data = await fetchJsonWithRetry(url);
+      doneRequests++;
+      setProgress();
+      if (!Array.isArray(data) || !data.length) return null;
+      const c = data[0];
+      const open = parseFloat(c[1]);
+      const close = parseFloat(c[4]);
+      if (!open || Number.isNaN(open) || Number.isNaN(close)) return null;
+      return ((close - open) / open) * 100;
+    }
+
+    async function runPool(items, worker, concurrency) {
+      let i = 0;
+      const workers = new Array(concurrency).fill(0).map(async () => {
+        while (i < items.length) {
+          const idx = i++;
+          await worker(items[idx], idx);
+        }
+      });
+      await Promise.all(workers);
+    }
+
+    function createRowPlaceholder(symbol) {
+      const tr = document.createElement("tr");
+      tr.dataset.symbol = symbol;
+      const tdName = document.createElement("td");
+      tdName.textContent = symbol;
+      tr.appendChild(tdName);
+      const td = document.createElement("td");
+      td.textContent = "…";
+      td.className = "na";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return tr;
+    }
+
+    function updateRow(tr, value) {
+      tr.children[1].replaceWith(tdWithValue(value));
+    }
+
+    function clearTable() {
+      tbody.innerHTML = "";
+    }
+
+    function updateTargetDate() {
+      const dateString = dateInput.value;
+      const [y, m, d] = dateString.split("-").map(Number);
+      TARGET_DAY = { y, m, d };
+      const formattedDate = `${d}/${m}/${y}`;
+      targetDateDisplay.textContent = formattedDate;
+      targetDateDisplay2.textContent = formattedDate;
+      targetDateDisplay3.textContent = formattedDate;
+    }
+
+    async function buildTable() {
+      try {
+        setStatus("Initialisation…");
+        clearTable();
+        const symbols = await fetchAllUsdtPerpSymbols();
+        totalSymbols = symbols.length;
+        totalRequests = totalSymbols;
+        doneSymbols = 0;
+        doneRequests = 0;
+        setStatus("Préparation du tableau…", `${totalSymbols} symboles détectés (USDT-M PERP)`);
+        setProgress();
+        const rowMap = new Map();
+        for (const s of symbols) {
+          rowMap.set(s, createRowPlaceholder(s));
+        }
+        const startTime = toUtcMsStartOfDay(TARGET_DAY);
+        setStatus(
+          "Chargement des bougies 1D…",
+          "Variation = (close-open) / open * 100 — bougie journalière Binance (UTC)"
+        );
+        await runPool(
+          symbols,
+          async (symbol) => {
+            let val = null;
+            try {
+              val = await fetchOneDayCandleVariation(symbol, startTime);
+            } catch (e) {
+              val = null;
+            }
+            updateRow(rowMap.get(symbol), val);
+            doneSymbols++;
+            setProgress();
+          },
+          CONCURRENCY
+        );
+        setStatus("Terminé ✅", `Bougies traitées: ${doneRequests}/${totalRequests}`);
+        setProgress();
+      } catch (err) {
+        console.error(err);
+        setStatus("Erreur lors du chargement ❌", String(err.message || err));
+      }
+    }
+
+    loadButton.addEventListener("click", () => {
+      updateTargetDate();
+      buildTable();
+    });
+
+    // Initialisation
+    updateTargetDate();
+  </script>
+</body>
+</html>

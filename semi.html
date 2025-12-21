@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Binance Futures — Variations 1D (watchlist)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1{ margin:0 0 6px }
+    p{ margin:0 0 14px; color:#444 }
+
+    .card{
+      margin: 12px 0 14px;
+      padding: 14px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,.10);
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .muted{ color:#666; font-size: 13px; }
+    .small{ font-size: 12px; }
+
+    .progressWrap{ width: 420px; max-width: 100%; }
+    .bar{
+      height: 12px;
+      background:#e9e9e9;
+      border-radius: 999px;
+      overflow:hidden;
+      border:1px solid #ddd;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: #4CAF50;
+      transition: width .15s ease;
+    }
+    .pct{ font-weight:700; min-width: 64px; text-align:right; }
+
+    table{
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,.10);
+    }
+    th, td{
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th{
+      background-color: #4CAF50;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tr:hover{ background-color: #f1f1f1; }
+
+    .positive{ color: green; font-weight: 700; }
+    .negative{ color: red; font-weight: 700; }
+    .zero{ color:#555; font-weight: 700; }
+    .na{ color:#999; }
+
+    .pill{
+      display:inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background:#f0f0f0;
+      border:1px solid #e3e3e3;
+      font-size: 12px;
+      color:#333;
+    }
+
+    .warn{
+      background:#fff3cd;
+      border:1px solid #ffe69c;
+      color:#664d03;
+      padding:10px 12px;
+      border-radius:8px;
+      font-size: 13px;
+      margin-top:10px;
+    }
+
+    .controls{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    input[type="text"]{
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      width:140px;
+      font-size:14px;
+      outline:none;
+    }
+    input[type="text"]:focus{
+      border-color:#4CAF50;
+      box-shadow:0 0 0 3px rgba(76,175,80,.15);
+    }
+    button{
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      background:#fff;
+      cursor:pointer;
+    }
+    button:hover{ background:#fafafa; }
+
+    .loadingRow td{
+      color:#666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>Futures — Variations (bougie 1D)</h1>
+  <p>
+    Watchlist + variation (%) de la bougie <b>1D</b> pour la date choisie.
+    Bougie <b>1D</b> = journée <b>UTC</b> (00:00 → 23:59).
+  </p>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <div><b>Watchlist ✅ (pas de filtre)</b></div>
+        <div class="muted" id="statusLine">Prêt</div>
+        <div class="muted small" id="subLine"></div>
+
+        <div class="controls">
+          <span class="pill">Date (FR)</span>
+          <input id="dateInput" type="text" inputmode="numeric" placeholder="JJ/MM/AAAA" value="09/12/2025" />
+          <button id="reloadBtn">Recharger</button>
+          <span class="pill" id="shownCountPill">Affichées: 0</span>
+        </div>
+
+        <div class="warn">
+          ⚠️ IMPORTANT : si Binance n’a <b>pas</b> de bougie exactement ce jour-là,
+          le script affiche <b>-</b> (au lieu de prendre la “prochaine bougie”).
+        </div>
+      </div>
+
+      <div class="progressWrap">
+        <div class="row" style="justify-content:space-between; margin-bottom:6px;">
+          <span class="pill" id="countsPill">0 / 0</span>
+          <span class="pct" id="pct">0%</span>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <table id="cryptoTable">
+    <thead>
+      <tr>
+        <th>Crypto</th>
+        <th id="thDate">—</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+<script>
+/** ✅ TA LISTE */
+const WATCHLIST = [
+  "APRUSDT"
+];
+
+// Futures endpoints
+const EXCHANGE_INFO_URL = "https://fapi.binance.com/fapi/v1/exchangeInfo";
+const KLINES_URL = "https://fapi.binance.com/fapi/v1/klines";
+
+// Anti rate-limit
+const CONCURRENCY = 6;
+const RETRIES = 6;
+const BASE_BACKOFF_MS = 450;
+
+// UI
+const statusLine = document.getElementById("statusLine");
+const subLine = document.getElementById("subLine");
+const pctEl = document.getElementById("pct");
+const barFill = document.getElementById("barFill");
+const countsPill = document.getElementById("countsPill");
+const shownCountPill = document.getElementById("shownCountPill");
+const tbody = document.getElementById("tableBody");
+const dateInput = document.getElementById("dateInput");
+const reloadBtn = document.getElementById("reloadBtn");
+const thDate = document.getElementById("thDate");
+
+// progress
+let totalRequests = 0;
+let doneRequests = 0;
+
+function setStatus(main, sub=""){
+  statusLine.textContent = main;
+  subLine.textContent = sub;
+}
+
+function setProgress(){
+  const pct = totalRequests ? Math.min(100, Math.round((doneRequests / totalRequests) * 100)) : 0;
+  pctEl.textContent = pct + "%";
+  barFill.style.width = pct + "%";
+  countsPill.textContent = `${doneRequests} / ${totalRequests}`;
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function fetchJsonWithRetry(url, tries = RETRIES){
+  let attempt = 0;
+  while(true){
+    try{
+      const res = await fetch(url, { cache: "no-store" });
+
+      if(!res.ok){
+        const status = res.status;
+        if((status === 418 || status === 429 || status >= 500) && attempt < tries){
+          const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt) + Math.floor(Math.random()*250);
+          attempt++;
+          await sleep(backoff);
+          continue;
+        }
+        throw new Error(`HTTP ${status} sur ${url}`);
+      }
+
+      return await res.json();
+    }catch(err){
+      if(attempt < tries){
+        const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt) + Math.floor(Math.random()*250);
+        attempt++;
+        await sleep(backoff);
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
+/** Parse date FR JJ/MM/AAAA -> {y,m,d} ou null */
+function parseFrDate(str){
+  const s = String(str || "").trim();
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
+  if(!m) return null;
+  const dd = Number(m[1]);
+  const mm = Number(m[2]);
+  const yy = Number(m[3]);
+
+  if(mm < 1 || mm > 12) return null;
+  if(dd < 1 || dd > 31) return null;
+
+  const dt = new Date(Date.UTC(yy, mm-1, dd, 0, 0, 0, 0));
+  if(dt.getUTCFullYear() !== yy || (dt.getUTCMonth()+1) !== mm || dt.getUTCDate() !== dd) return null;
+
+  return { y: yy, m: mm, d: dd };
+}
+
+function toUtcMsStartOfDay(day){
+  return Date.UTC(day.y, day.m - 1, day.d, 0, 0, 0, 0);
+}
+function toUtcMsEndOfDay(day){
+  return Date.UTC(day.y, day.m - 1, day.d, 23, 59, 59, 999);
+}
+
+function formatPct(v){
+  const n = Number(v);
+  return (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+}
+
+function clearTable(){
+  tbody.innerHTML = "";
+}
+
+function showLoadingRow(text){
+  clearTable();
+  const tr = document.createElement("tr");
+  tr.className = "loadingRow";
+  const td = document.createElement("td");
+  td.colSpan = 2;
+  td.textContent = text;
+  tr.appendChild(td);
+  tbody.appendChild(tr);
+}
+
+function makeRow(symbol, value){
+  const tr = document.createElement("tr");
+  const td1 = document.createElement("td");
+  td1.textContent = symbol;
+
+  const td2 = document.createElement("td");
+  if(value === null || Number.isNaN(value)){
+    td2.textContent = "-";
+    td2.className = "na";
+  }else{
+    td2.textContent = formatPct(value);
+    if(value > 0) td2.className = "positive";
+    else if(value < 0) td2.className = "negative";
+    else td2.className = "zero";
+  }
+
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+  return tr;
+}
+
+/** On garde uniquement ceux qui existent en Futures PERP USDT */
+async function getValidFuturesPerpUsdtSymbols(watchlist){
+  const info = await fetchJsonWithRetry(EXCHANGE_INFO_URL);
+
+  const tradable = new Set(
+    (info.symbols || [])
+      .filter(s =>
+        s.status === "TRADING" &&
+        s.contractType === "PERPETUAL" &&
+        s.quoteAsset === "USDT" &&
+        s.symbol
+      )
+      .map(s => s.symbol)
+  );
+
+  const valid = [];
+  const invalid = [];
+  for(const s of watchlist){
+    if(tradable.has(s)) valid.push(s);
+    else invalid.push(s);
+  }
+
+  if(invalid.length){
+    console.warn("Symboles introuvables en Futures USDT-M PERP:", invalid);
+  }
+
+  return { valid, invalid };
+}
+
+/**
+ * ✅ FIX: startTime + endTime + vérif openTime === startTime
+ */
+async function fetchOneDayCandleVariationExact(symbol, startMs, endMs){
+  const url =
+    `${KLINES_URL}?symbol=${encodeURIComponent(symbol)}&interval=1d` +
+    `&startTime=${startMs}&endTime=${endMs}&limit=5`;
+
+  const data = await fetchJsonWithRetry(url);
+
+  doneRequests++;
+  setProgress();
+
+  if(!Array.isArray(data) || !data.length) return null;
+
+  const candle = data.find(c => Array.isArray(c) && Number(c[0]) === Number(startMs));
+  if(!candle) return null;
+
+  const open = parseFloat(candle[1]);
+  const close = parseFloat(candle[4]);
+  if(!open || Number.isNaN(open) || Number.isNaN(close)) return null;
+
+  return ((close - open) / open) * 100;
+}
+
+async function runPool(items, worker, concurrency){
+  let i = 0;
+  const workers = new Array(concurrency).fill(0).map(async () => {
+    while(i < items.length){
+      const idx = i++;
+      await worker(items[idx], idx);
+    }
+  });
+  await Promise.all(workers);
+}
+
+let activeRunId = 0;
+
+async function loadForDate(frDateStr){
+  const runId = ++activeRunId;
+
+  const day = parseFrDate(frDateStr);
+  if(!day){
+    setStatus("Date invalide ❌", "Format attendu : JJ/MM/AAAA (ex: 09/12/2025)");
+    thDate.textContent = "—";
+    shownCountPill.textContent = "Affichées: 0";
+    totalRequests = 0; doneRequests = 0; setProgress();
+    showLoadingRow("Date invalide. Exemple: 09/12/2025");
+    return;
+  }
+
+  const label = `${String(day.d).padStart(2,"0")}/${String(day.m).padStart(2,"0")}/${day.y} — 1D (UTC)`;
+  thDate.textContent = label;
+
+  shownCountPill.textContent = "Affichées: 0";
+  doneRequests = 0;
+  totalRequests = 0;
+  setProgress();
+  showLoadingRow("Chargement…");
+
+  const startMs = toUtcMsStartOfDay(day);
+  const endMs = toUtcMsEndOfDay(day);
+
+  setStatus("Recharge…", `Date: ${frDateStr} | startTime UTC=${new Date(startMs).toISOString().slice(0,10)}`);
+
+  try{
+    setStatus("Validation des symboles Futures…", "USDT-M PERP uniquement");
+    const { valid } = await getValidFuturesPerpUsdtSymbols(WATCHLIST);
+
+    if(runId !== activeRunId) return;
+
+    if(!valid.length){
+      setStatus("Aucun symbole valide ❌", "Aucun symbole de ta liste n’existe en Futures USDT-M PERP.");
+      showLoadingRow("Aucun symbole valide en Futures USDT-M PERP.");
+      return;
+    }
+
+    doneRequests = 0;
+    totalRequests = valid.length;
+    setProgress();
+
+    setStatus("Chargement des bougies 1D…", "Si pas de bougie exacte ce jour-là => '-'");
+
+    const resultMap = new Map();
+    for(const s of valid) resultMap.set(s, null);
+
+    await runPool(valid, async (symbol) => {
+      if(runId !== activeRunId) return;
+
+      let val = null;
+      try{
+        val = await fetchOneDayCandleVariationExact(symbol, startMs, endMs);
+      }catch(e){
+        val = null;
+      }
+      resultMap.set(symbol, val);
+    }, CONCURRENCY);
+
+    if(runId !== activeRunId) return;
+
+    clearTable();
+    let shown = 0;
+
+    for(const s of WATCHLIST){
+      if(!resultMap.has(s)) continue;
+      const val = resultMap.get(s);
+      tbody.appendChild(makeRow(s, val));
+      shown++;
+    }
+
+    shownCountPill.textContent = `Affichées: ${shown}`;
+    setStatus("Terminé ✅", `Lignes: ${shown} — requêtes: ${doneRequests}/${totalRequests}`);
+
+  }catch(err){
+    console.error(err);
+    if(runId !== activeRunId) return;
+    setStatus("Erreur ❌", String(err.message || err));
+    showLoadingRow("Erreur lors du chargement. Regarde la console (F12).");
+  }
+}
+
+/** Recharge seulement quand la date est complète (10 chars) + Enter + blur + bouton */
+function maybeReload(){
+  const v = dateInput.value.trim();
+  if(v.length < 10){
+    setStatus("En attente…", "Tape une date complète JJ/MM/AAAA puis ça recharge automatiquement.");
+    return;
+  }
+  loadForDate(v);
+}
+
+/* ✅ AUTO-RELOAD: input + change + paste + blur + enter (bouton toujours OK) */
+let debounceTimer = null;
+
+dateInput.addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+
+  const v = dateInput.value.trim();
+
+  // si date complète -> reload immédiat
+  if(v.length === 10){
+    maybeReload();
+    return;
+  }
+
+  // sinon petit debounce (utile quand tu tapes)
+  debounceTimer = setTimeout(maybeReload, 350);
+});
+
+// quand le champ "valide" (souvent après édition)
+dateInput.addEventListener("change", () => {
+  maybeReload();
+});
+
+// quand tu colles une date
+dateInput.addEventListener("paste", () => {
+  setTimeout(maybeReload, 0);
+});
+
+// quand tu quittes le champ
+dateInput.addEventListener("blur", () => {
+  maybeReload();
+});
+
+// Enter
+dateInput.addEventListener("keydown", (e) => {
+  if(e.key === "Enter"){
+    e.preventDefault();
+    maybeReload();
+  }
+});
+
+// bouton
+reloadBtn.addEventListener("click", () => maybeReload());
+
+// premier chargement
+loadForDate(dateInput.value);
+</script>
+</body>
+</html>
