@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Variations — Binance Futures (1h) — 1000LUNCUSDT — Multi-jours</title>
+  <title>Variations — Binance Futures (1h) — 1000LUNCUSDT</title>
   <style>
     body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
     h2{margin:0 0 8px}
@@ -11,11 +11,9 @@
     .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .muted{color:#666;font-size:13px}
     table{background:#fff;border-collapse:collapse}
-    th{background:#fafafa;position:sticky;top:0}
+    th{background:#fafafa}
     th,td{border:1px solid #ddd;padding:8px}
     .wrap{max-width:1200px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
-    .small{font-size:12px}
   </style>
 </head>
 <body class="wrap">
@@ -41,36 +39,32 @@
         </label>
 
         <button class="goDateBtn">OK</button>
-
-        &nbsp;|&nbsp;
-
-        <label class="small">
-          Nombre de jours affichés :
-          <input id="daysCount" type="number" min="1" max="60" value="8" style="width:70px" />
-        </label>
-
-        <button id="reloadBtn">Recharger</button>
       </div>
-
       <div class="muted" id="rangeInfo">—</div>
     </div>
-    <div class="muted small" id="fixedInfo"></div>
   </div>
 
-  <!-- CONTAINER DES TABLEAUX -->
-  <div id="tables" class="grid"></div>
+  <!-- TABLE UNIQUE (Tableau 2) -->
+  <div class="card">
+    <h2 id="title2">Tableau — 1000LUNCUSDT — 20/12/2025</h2>
+    <table width="100%" cellpadding="8">
+      <thead>
+        <tr>
+          <th>Heure (UTC)</th>
+          <th>Taux variation 1h</th>
+        </tr>
+      </thead>
+      <tbody id="tbody2"></tbody>
+    </table>
+  </div>
 
 <script>
 /* ========= CONFIG ========= */
 const BASE_FUTURES  = "https://fapi.binance.com";
-const SYMBOL        = "1000LUNCUSDT";
+const SYMBOL_TABLE2 = "1000LUNCUSDT";
 
-// Fenêtre demandée : du 20/12/2025 au 27/11/2025 (inclus)
-const RANGE_START_UTC = new Date(Date.UTC(2025, 11, 20, 0, 0, 0, 0)); // 20/12/2025
-const RANGE_END_UTC   = new Date(Date.UTC(2025, 10, 27, 0, 0, 0, 0)); // 27/11/2025
-
-// Date courante (point de départ d'affichage)
-let baseDateUtc = new Date(RANGE_START_UTC);
+// point de départ : 20/12/2025 (UTC)
+let baseDateUtc = new Date(Date.UTC(2025, 11, 20, 0, 0, 0, 0));
 
 /* ========= UTILS DATES ========= */
 const pad2 = n => String(n).padStart(2, "0");
@@ -81,12 +75,6 @@ function addDaysUtc(d, days){
   const x = new Date(d);
   x.setUTCDate(x.getUTCDate() + days);
   return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0, 0, 0, 0));
-}
-
-function clampToFixedRange(d){
-  if(d.getTime() > RANGE_START_UTC.getTime()) return new Date(RANGE_START_UTC);
-  if(d.getTime() < RANGE_END_UTC.getTime()) return new Date(RANGE_END_UTC);
-  return d;
 }
 
 // parse "JJ/MM/AAAA" -> Date UTC (00:00)
@@ -100,7 +88,9 @@ function frToUtcDate(fr){
   const dt = new Date(Date.UTC(yy, mm-1, dd, 0, 0, 0, 0));
   if(isNaN(dt.getTime())) return null;
 
+  // check existence réelle (31/02, etc.)
   if(dt.getUTCFullYear() !== yy || (dt.getUTCMonth()+1) !== mm || dt.getUTCDate() !== dd) return null;
+
   return dt;
 }
 
@@ -119,12 +109,8 @@ const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
 function applyColor(el, v){
   el.style.color = v > 0 ? "green" : v < 0 ? "red" : "";
 }
-function hourLabelUTC(ms){
-  const d = new Date(ms);
-  return `${pad2(d.getUTCHours())}:00`;
-}
 
-/* ========= API ========= */
+/* ========= API (1h klines) ========= */
 async function fetchKlines1h(symbol, startMs, endMs){
   const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=1h&startTime=${startMs}&endTime=${endMs}&limit=24`;
   const r = await fetch(url);
@@ -134,50 +120,27 @@ async function fetchKlines1h(symbol, startMs, endMs){
   return arr;
 }
 
+function hourLabelUTC(ms){
+  const d = new Date(ms);
+  return `${pad2(d.getUTCHours())}:00`;
+}
+
 function pctFromKline(k){
   const o = +k[1], c = +k[4];
   if(!isFinite(o) || !isFinite(c) || o <= 0) return null;
   return ((c - o) / o) * 100;
 }
 
-/* ========= BUILD 1 TABLE CARD ========= */
-function createTableCard(dateUtc){
-  const fr = toFr(dateUtc);
-  const card = document.createElement("div");
-  card.className = "card";
-
-  const h2 = document.createElement("h2");
-  h2.textContent = `Tableau — ${SYMBOL} — ${fr}`;
-  card.appendChild(h2);
-
-  const table = document.createElement("table");
-  table.width = "100%";
-  table.cellPadding = "8";
-
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Heure (UTC)</th>
-        <th>Taux variation 1h</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td colspan="2">Chargement...</td></tr>
-    </tbody>
-  `;
-
-  card.appendChild(table);
-
-  return { card, tbody: table.querySelector("tbody") };
-}
-
-async function fillTableForDate(dateUtc, tbody){
+/* ========= RENDER TABLE ========= */
+async function renderHourlyTable(symbol, tbodyId){
+  const tbody = document.getElementById(tbodyId);
   tbody.innerHTML = "";
 
-  const {start, end} = dayUtcRangeMs(dateUtc);
+  const {start, end} = dayUtcRangeMs(baseDateUtc);
 
-  let klines = await fetchKlines1h(SYMBOL, start, end);
+  let klines = await fetchKlines1h(symbol, start, end);
 
+  // Filtrer strictement sur [start, start+24h) et trier
   klines = klines
     .filter(k => k && k[0] >= start && k[0] < start + 24*60*60*1000)
     .sort((a,b)=>a[0]-b[0]);
@@ -186,16 +149,18 @@ async function fillTableForDate(dateUtc, tbody){
   let count = 0;
 
   for(const k of klines){
+    const openTime = k[0];
     const v = pctFromKline(k);
 
     const tr = document.createElement("tr");
     const tdH = document.createElement("td");
     const tdV = document.createElement("td");
 
-    tdH.textContent = hourLabelUTC(k[0]);
+    tdH.textContent = hourLabelUTC(openTime);
 
     if(v === null){
       tdV.textContent = "Erreur";
+      tdV.style.color = "";
     }else{
       tdV.textContent = fmtPct(v);
       applyColor(tdV, v);
@@ -208,72 +173,50 @@ async function fillTableForDate(dateUtc, tbody){
     tbody.appendChild(tr);
   }
 
+  // Ligne TOTAL (somme des %)
   const trTotal = document.createElement("tr");
   const tdT1 = document.createElement("td");
   const tdT2 = document.createElement("td");
   tdT1.innerHTML = "<strong>TOTAL</strong>";
   tdT2.innerHTML = `<strong>${count ? fmtPct(total) : "Erreur"}</strong>`;
-  applyColor(tdT2, total);
   trTotal.appendChild(tdT1);
   trTotal.appendChild(tdT2);
   tbody.appendChild(trTotal);
+  applyColor(tdT2, total);
 }
 
-/* ========= REFRESH MULTI ========= */
-async function refreshMulti(){
-  baseDateUtc = clampToFixedRange(baseDateUtc);
-
-  const days = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 8)));
-
-  // On affiche en descendant : baseDateUtc, baseDateUtc-1, ...
-  const tablesWrap = document.getElementById("tables");
-  tablesWrap.innerHTML = "";
-
-  // calc max possible sans sortir de la fenêtre
-  const maxDaysPossible = Math.floor((baseDateUtc.getTime() - RANGE_END_UTC.getTime()) / (24*60*60*1000)) + 1;
-  const realDays = Math.min(days, maxDaysPossible);
+/* ========= REFRESH ========= */
+async function refresh(){
+  const fr = toFr(baseDateUtc);
+  document.getElementById("title2").textContent = `Tableau — ${SYMBOL_TABLE2} — ${fr}`;
 
   document.getElementById("rangeInfo").textContent =
-    `Affiché : ${toFr(baseDateUtc)} → ${toFr(addDaysUtc(baseDateUtc, -(realDays-1)))} (UTC)`;
+    `Fenêtre 1D (UTC) : ${toYmd(baseDateUtc)} 00:00 → 23:59`;
 
-  document.getElementById("fixedInfo").textContent =
-    `Fenêtre fixée : du ${toFr(RANGE_START_UTC)} au ${toFr(RANGE_END_UTC)} (inclus).`;
+  document.getElementById("tbody2").innerHTML = `<tr><td colspan="2">Chargement...</td></tr>`;
 
-  // Créer toutes les cards d'abord
-  const jobs = [];
-  for(let i=0;i<realDays;i++){
-    const d = addDaysUtc(baseDateUtc, -i);
-    const {card, tbody} = createTableCard(d);
-    tablesWrap.appendChild(card);
-
-    // remplir en async
-    jobs.push(
-      fillTableForDate(d, tbody).catch(err=>{
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
-      })
-    );
+  try{
+    await renderHourlyTable(SYMBOL_TABLE2, "tbody2");
+  }catch(e){
+    console.error(e);
+    document.getElementById("tbody2").innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
   }
-
-  await Promise.all(jobs);
 }
 
 /* ========= NAVIGATION ========= */
 document.querySelectorAll(".prevBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, -1);
-    baseDateUtc = clampToFixedRange(baseDateUtc);
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
-    await refreshMulti();
+    await refresh();
   });
 });
 
 document.querySelectorAll(".nextBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, 1);
-    baseDateUtc = clampToFixedRange(baseDateUtc);
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
-    await refreshMulti();
+    await refresh();
   });
 });
 
@@ -288,12 +231,9 @@ document.querySelectorAll(".goDateBtn").forEach(btn => {
       return;
     }
 
-    baseDateUtc = clampToFixedRange(new Date(dt));
-
-    // si l'utilisateur tape en dehors de la fenêtre, on le remet dans les bornes
+    baseDateUtc = new Date(dt);
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
-
-    await refreshMulti();
+    await refresh();
   });
 });
 
@@ -306,11 +246,9 @@ document.querySelectorAll(".dateInput").forEach(inp => {
   });
 });
 
-document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
-
 /* ========= INIT ========= */
 document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
-refreshMulti();
+refresh();
 </script>
 
 </body>
