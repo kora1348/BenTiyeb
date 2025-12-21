@@ -10,6 +10,7 @@
     .status{margin:0 0 10px;font-weight:700}
     .status.negative{color:red}
     .status.positive{color:green}
+
     .card{margin:12px 0 14px;padding:14px;border-radius:8px;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.10)}
     .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .muted{color:#666;font-size:13px}
@@ -158,6 +159,7 @@ function pctFromKline(k){
 /* ========= BUILD 1 TABLE CARD ========= */
 function createTableCard(dateUtc){
   const fr = toFr(dateUtc);
+  const st = STATUS_BY_DATE_FR[fr]; // peut être undefined
 
   const card = document.createElement("div");
   card.className = "card";
@@ -166,8 +168,6 @@ function createTableCard(dateUtc){
   h2.textContent = `Tableau — ${SYMBOL} — ${fr}`;
   card.appendChild(h2);
 
-  // ✅ statut manuel sous la date
-  const st = STATUS_BY_DATE_FR[fr];
   if(st){
     const p = document.createElement("div");
     p.className = `status ${st.cls}`;
@@ -193,55 +193,69 @@ function createTableCard(dateUtc){
 
   card.appendChild(table);
 
-  return { card, tbody: table.querySelector("tbody") };
+  return { card, tbody: table.querySelector("tbody"), status: st };
 }
 
-async function fillTableForDate(dateUtc, tbody){
+/* ========= FILL TABLE (afficher seulement les heures selon polarité) ========= */
+async function fillTableForDate(dateUtc, tbody, status){
   tbody.innerHTML = "";
 
   const {start, end} = dayUtcRangeMs(dateUtc);
-
   let klines = await fetchKlines1h(SYMBOL, start, end);
 
   klines = klines
     .filter(k => k && k[0] >= start && k[0] < start + 24*60*60*1000)
     .sort((a,b)=>a[0]-b[0]);
 
-  let total = 0;
-  let count = 0;
+  // filtre demandé:
+  // - status negative => afficher UNIQUEMENT les heures négatives
+  // - status positive/positif => afficher UNIQUEMENT les heures positives
+  // - pas de status => afficher toutes les heures (comportement normal)
+  const filterMode = status ? status.cls : null; // "negative" | "positive" | null
+
+  let rows = 0;
 
   for(const k of klines){
     const v = pctFromKline(k);
+    if(v === null) continue;
+
+    const isNeg = v < 0;
+    const isPos = v > 0;
+
+    let ok = true;
+    if(filterMode === "negative") ok = isNeg;
+    else if(filterMode === "positive") ok = isPos;
+
+    if(!ok) continue;
+
+    rows++;
 
     const tr = document.createElement("tr");
     const tdH = document.createElement("td");
     const tdV = document.createElement("td");
 
     tdH.textContent = hourLabelUTC(k[0]);
-
-    if(v === null){
-      tdV.textContent = "Erreur";
-    }else{
-      tdV.textContent = fmtPct(v);
-      applyColor(tdV, v);
-      total += v;
-      count++;
-    }
+    tdV.textContent = fmtPct(v);
+    applyColor(tdV, v);
 
     tr.appendChild(tdH);
     tr.appendChild(tdV);
     tbody.appendChild(tr);
   }
 
-  const trTotal = document.createElement("tr");
-  const tdT1 = document.createElement("td");
-  const tdT2 = document.createElement("td");
-  tdT1.innerHTML = "<strong>TOTAL</strong>";
-  tdT2.innerHTML = `<strong>${count ? fmtPct(total) : "Erreur"}</strong>`;
-  applyColor(tdT2, total);
-  trTotal.appendChild(tdT1);
-  trTotal.appendChild(tdT2);
-  tbody.appendChild(trTotal);
+  // Si aucune heure ne correspond (ex: journée "positive" mais pas d'heures > 0)
+  if(rows === 0){
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 2;
+
+    if(filterMode === "negative") td.textContent = "Aucune heure négative trouvée.";
+    else if(filterMode === "positive") td.textContent = "Aucune heure positive trouvée.";
+    else td.textContent = "Aucune donnée.";
+
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
 }
 
 /* ========= REFRESH MULTI ========= */
@@ -265,13 +279,13 @@ async function refreshMulti(){
   const jobs = [];
   for(let i=0;i<realDays;i++){
     const d = addDaysUtc(baseDateUtc, -i);
-    const {card, tbody} = createTableCard(d);
-    tablesWrap.appendChild(card);
+    const obj = createTableCard(d);
+    tablesWrap.appendChild(obj.card);
 
     jobs.push(
-      fillTableForDate(d, tbody).catch(err=>{
+      fillTableForDate(d, obj.tbody, obj.status).catch(err=>{
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
+        obj.tbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
       })
     );
   }
