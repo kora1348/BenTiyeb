@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Variations — Binance Futures (15m) — BTCUSDT & ETHUSDT — Multi-jours</title>
+  <title>Variations — Binance Futures (15m) — Multi-jours</title>
   <style>
     body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
     h2{margin:0 0 6px}
@@ -165,14 +165,16 @@
           <input type="text" class="dateInput" placeholder="JJ/MM/AAAA" inputmode="numeric" style="width:120px" />
         </label>
 
-        <button class="goDateBtn">OK</button>
+        <button class="goDateBtn primary">OK (1 jour)</button>
 
         &nbsp;|&nbsp;
 
         <label class="small">
           Nombre de jours affichés :
-          <input id="daysCount" type="number" min="1" max="60" value="24" style="width:70px" />
+          <input id="daysCount" type="number" min="1" max="60" value="1" style="width:70px" />
         </label>
+
+        <button id="btnApplyDays">Appliquer jours</button>
 
         &nbsp;|&nbsp;
 
@@ -237,10 +239,11 @@
       </div>
 
       <div class="muted small" style="margin-top:8px">
-        ✅ Reset: tableaux = 24h en 15m (≈96 lignes), total = Σ(24h).<br>
+        ✅ OK = <b>1 seul jour</b> (la date tapée).<br>
+        ✅ Appliquer jours = multi-jours.<br>
         ✅ Mode “Séances favorables”: jours POSITIFS + lignes séances, total = Σ(séances).<br>
         ✅ Mode “Séances à risque”: jours NÉGATIFS + lignes séances, total = Σ(séances).<br>
-        ✅ En mode séance: tableau = <b>petit filtre</b> (uniquement les lignes des séances).
+        ✅ En mode séance: tableau = uniquement les lignes des séances.
       </div>
     </div>
   </div>
@@ -251,26 +254,22 @@
 /* ========= CONFIG ========= */
 const BASE_FUTURES = "https://fapi.binance.com";
 
-/* ✅ seulement BTC + ETH dans un array */
-const SYMBOLS = [   "AEVOUSDT","ARPAUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
-            "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT"];
+/* tes symboles */
+const SYMBOLS = [
+  "AEVOUSDT","ARPAUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+  "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT"
+];
 
-/* ✅ intervalle 15m */
+/* intervalle 15m */
 const INTERVAL     = "15m";
 const MINUTES_STEP = 15;
 
-/* date du jour UTC */
-const NOW = new Date();
-const RANGE_START_UTC = new Date(Date.UTC(
-  NOW.getUTCFullYear(),
-  NOW.getUTCMonth(),
-  NOW.getUTCDate(),
-  0, 0, 0, 0
-));
-
-/* fin fixe */
-const RANGE_END_UTC = new Date(Date.UTC(2025, 10, 27, 0, 0, 0, 0)); // 27/11/2025
-let baseDateUtc = new Date(RANGE_START_UTC);
+/* date de référence = aujourd'hui (UTC 00:00) */
+function todayUtc00(){
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0,0,0,0));
+}
+let baseDateUtc = todayUtc00();
 
 /* ========= STATUS MANUEL ========= */
 const STATUS_BY_DATE_FR = {
@@ -287,10 +286,10 @@ const STATUS_BY_DATE_FR = {
 };
 
 /* ========= SÉANCES ========= */
-const GOOD_SESSIONS = ["11:48","12:42","14:45","15:48"];                 // POS
-const RISK_SESSIONS = ["09:51","09:54","21:51","23:51","23:54"];         // NEG
+const GOOD_SESSIONS = ["11:48","12:42","14:45","15:48"];
+const RISK_SESSIONS = ["09:51","09:54","21:51","23:51","23:54"];
 
-/* ✅ Modes */
+/* Modes */
 let MODE = "none"; // "none" | "goodPos" | "riskNeg"
 
 /* ========= UI helpers ========= */
@@ -312,7 +311,7 @@ function parseHHMM(hhmm){
   return { hh, mm, minOfDay: hh*60 + mm };
 }
 
-/* ✅ aligne une minute sur une bougie 15m (00,15,30,45) */
+/* aligne une minute sur bougie 15m */
 function alignToStep(minOfDay){
   const aligned = Math.floor(minOfDay / MINUTES_STEP) * MINUTES_STEP;
   return Math.min(1435, aligned);
@@ -323,7 +322,12 @@ function buildSessions(listHHMM){
   for(const t of listHHMM){
     const p = parseHHMM(t);
     if(!p) continue;
-    out.push({ min: alignToStep(p.minOfDay), label: t, alignedLabel: `${pad2(Math.floor(alignToStep(p.minOfDay)/60))}:${pad2(alignToStep(p.minOfDay)%60)}` });
+    const a = alignToStep(p.minOfDay);
+    out.push({
+      min: a,
+      label: t,
+      alignedLabel: `${pad2(Math.floor(a/60))}:${pad2(a%60)}`
+    });
   }
   return out;
 }
@@ -341,7 +345,6 @@ function renderGlobalInsights(){
   riskWrap.innerHTML = "";
   goodWrap.innerHTML = "";
 
-  // on affiche les heures "demandées" + l'heure alignée en petit
   const riskBuilt = buildSessions(RISK_SESSIONS);
   const goodBuilt = buildSessions(GOOD_SESSIONS);
 
@@ -363,15 +366,6 @@ function addDaysUtc(d, days){
   const x = new Date(d);
   x.setUTCDate(x.getUTCDate() + days);
   return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0, 0, 0, 0));
-}
-
-function clampToFixedRange(d){
-  const maxT = Math.max(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime());
-  const minT = Math.min(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime());
-  const t = d.getTime();
-  if(t > maxT) return new Date(maxT);
-  if(t < minT) return new Date(minT);
-  return d;
 }
 
 function frToUtcDate(fr){
@@ -396,7 +390,6 @@ function dayUtcRangeMs(dUtc){
 }
 
 /* ========= API ========= */
-/* ✅ pour 15m, 24h => 96 bougies, donc limit 200 suffit */
 async function fetchKlines(symbol, startMs, endMs){
   const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=200`;
   const r = await fetch(url);
@@ -427,6 +420,7 @@ function createTableCard(symbol, dateUtc){
   const card = document.createElement("div");
   card.className = "card";
   card.dataset.polarity = st ? st.cls : "unknown";
+  card.dataset.date = fr; // utile debug
 
   const h2 = document.createElement("h2");
   h2.textContent = `Tableau — ${symbol} — ${fr}`;
@@ -436,7 +430,7 @@ function createTableCard(symbol, dateUtc){
   meta.className = "dayTotal";
   meta.innerHTML = `
     <span class="badge neu" data-role="sum">Total: —</span>
-    <span class="badge neu" data-role="found">Lignes trouvées: —</span>
+    <span class="badge neu" data-role="found">Lignes affichées: —</span>
   `;
   card.appendChild(meta);
 
@@ -584,26 +578,22 @@ function setMode(next){
 
 /* ========= RENDER ========= */
 async function refreshMulti(){
-  baseDateUtc = clampToFixedRange(baseDateUtc);
-
-  const days = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 24)));
+  const days = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 1)));
   const tablesWrap = document.getElementById("tables");
   tablesWrap.innerHTML = "";
 
-  const maxDaysPossible =
-    Math.floor((baseDateUtc.getTime() - Math.min(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime())) / (24*60*60*1000)) + 1;
-
-  const realDays = Math.min(days, maxDaysPossible);
+  const startFr = toFr(addDaysUtc(baseDateUtc, -(days-1)));
+  const endFr   = toFr(baseDateUtc);
 
   document.getElementById("rangeInfo").textContent =
-    `Affiché : ${toFr(baseDateUtc)} → ${toFr(addDaysUtc(baseDateUtc, -(realDays-1)))} (UTC)`;
+    `Affiché : ${endFr} → ${startFr} (UTC)`;
 
   document.getElementById("fixedInfo").textContent =
-    `Fenêtre fixée : du ${toFr(RANGE_START_UTC)} au ${toFr(RANGE_END_UTC)} (inclus). | SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL}`;
+    `SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL} | (OK = 1 jour exact)`;
 
   const jobs = [];
 
-  for(let i=0;i<realDays;i++){
+  for(let i=0;i<days;i++){
     const d = addDaysUtc(baseDateUtc, -i);
 
     for(const sym of SYMBOLS){
@@ -615,7 +605,7 @@ async function refreshMulti(){
           console.error(err);
           obj.tbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
           obj.elSum.textContent = "Total: Erreur";
-          obj.elFound.textContent = "Lignes trouvées: —";
+          obj.elFound.textContent = "Lignes affichées: —";
         })
       );
     }
@@ -629,33 +619,61 @@ async function refreshMulti(){
 document.querySelectorAll(".prevBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, -1);
-    baseDateUtc = clampToFixedRange(baseDateUtc);
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    // logique: prev/next reste sur 1 jour (si tu veux)
+    document.getElementById("daysCount").value = String(Math.max(1, Number(document.getElementById("daysCount").value||1)));
     await refreshMulti();
   });
 });
+
 document.querySelectorAll(".nextBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, 1);
-    baseDateUtc = clampToFixedRange(baseDateUtc);
+    // option: ne pas aller au-delà d'aujourd'hui (évite "aucune donnée" si futur)
+    const tdy = todayUtc00().getTime();
+    if(baseDateUtc.getTime() > tdy) baseDateUtc = todayUtc00();
+
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    document.getElementById("daysCount").value = String(Math.max(1, Number(document.getElementById("daysCount").value||1)));
     await refreshMulti();
   });
 });
+
+/* ✅ OK = 1 seul jour (ta demande) */
 document.querySelectorAll(".goDateBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     const wrap = btn.parentElement;
     const inp = wrap.querySelector(".dateInput");
     const dt = frToUtcDate(inp.value);
     if(!dt){
-      alert("Date invalide. Utilise le format JJ/MM/AAAA (ex: 20/12/2025).");
+      alert("Date invalide. Utilise JJ/MM/AAAA (ex: 22/12/2025).");
       return;
     }
-    baseDateUtc = clampToFixedRange(new Date(dt));
+
+    // option: bloque futur (Binance renvoie souvent rien)
+    const tdy = todayUtc00().getTime();
+    if(dt.getTime() > tdy){
+      alert("Date dans le futur (UTC). Choisis une date <= aujourd’hui.");
+      return;
+    }
+
+    baseDateUtc = new Date(dt);
+
+    // 🔥 important: OK = 1 seul jour
+    document.getElementById("daysCount").value = "1";
+
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
     await refreshMulti();
   });
 });
+
+/* Appliquer jours (multi-jours volontaire) */
+document.getElementById("btnApplyDays").addEventListener("click", async ()=>{
+  const v = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 1)));
+  document.getElementById("daysCount").value = String(v);
+  await refreshMulti();
+});
+
 document.querySelectorAll(".dateInput").forEach(inp => {
   inp.addEventListener("keydown", (e)=>{
     if(e.key === "Enter"){
@@ -676,7 +694,6 @@ document.getElementById("polarityFilter").addEventListener("change", ()=>{
 
 document.getElementById("btnShowGoodPositive").addEventListener("click", ()=>setMode("goodPos"));
 document.getElementById("btnShowRiskNegative").addEventListener("click", ()=>setMode("riskNeg"));
-
 document.getElementById("btnResetModeA").addEventListener("click", ()=>setMode("none"));
 document.getElementById("btnResetModeB").addEventListener("click", ()=>setMode("none"));
 
