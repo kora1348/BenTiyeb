@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Variations — Binance Futures Perp (Movers 24h LIVE)</title>
+  <title>Variations — Binance Futures (15m) — BTCUSDT & ETHUSDT — Multi-jours</title>
   <style>
     body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
     h2{margin:0 0 6px}
@@ -14,10 +14,12 @@
     .card{margin:12px 0 14px;padding:14px;border-radius:10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.10)}
     .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .muted{color:#666;font-size:13px}
-    table{background:#fff;border-collapse:collapse;width:100%}
-    th{background:#fafafa}
+    table{background:#fff;border-collapse:collapse}
+    th{background:#fafafa;position:sticky;top:0}
     th,td{border:1px solid #ddd;padding:8px}
-    .wrap{max-width:800px;margin:0 auto}
+    .wrap{max-width:1200px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+    .small{font-size:12px}
 
     select, input, button{font:inherit}
     button{
@@ -28,6 +30,8 @@
       cursor:pointer;
     }
     button:hover{background:#fafafa}
+    button.primary{border-color:#bbf7d0;background:#f0fdf4}
+    button.danger{border-color:#fecaca;background:#fff1f2}
 
     .pill{
       display:inline-block;
@@ -39,12 +43,31 @@
       border:1px solid #e5e7eb;
     }
 
-    .moversGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    @media (max-width: 700px){ .moversGrid{grid-template-columns:1fr} }
-    .kpiRow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}
-    .kpi{padding:4px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:800;font-size:12px}
-    .loadingLine{color:#6b7280;font-style:italic}
-    
+    .insights{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      background:linear-gradient(180deg,#ffffff,#fafafa);
+    }
+    .insightsTitle{
+      margin:0 0 8px;
+      font-weight:800;
+      font-size:13px;
+      color:#111827;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .insightsGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 700px){
+      .insightsGrid{grid-template-columns:1fr}
+    }
     .box{
       border-radius:12px;
       padding:10px 10px 12px;
@@ -71,19 +94,68 @@
     }
     .tag.neg{background:#fee2e2;border-color:#fecaca;color:#991b1b}
     .tag.pos{background:#dcfce7;border-color:#bbf7d0;color:#166534}
-    
-    .positive{color:#16a34a}
-    .negative{color:#dc2626}
+
+    .hoursRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .hourChip{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      font-size:12px;
+      font-weight:700;
+      color:#111827;
+    }
+    .hourChip.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+    .hourChip.pos{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+
+    .dayTotal{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin:8px 0 10px;
+    }
+    .dayTotal .badge{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .badge.pos{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+    .badge.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+    .badge.neu{background:#f3f4f6;border-color:#e5e7eb;color:#374151}
+
+    .modePill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #dbeafe;
+      background:#eff6ff;
+      color:#1d4ed8;
+      font-weight:800;
+      font-size:12px;
+    }
+
+    tr.inWindow td{ background:#fff7ed; }
+    tr.inWindow td:last-child{ font-weight:800; }
   </style>
 </head>
 
 <body class="wrap">
 
-  <!-- CARD CONTROLES -->
   <div class="card">
     <div class="row">
       <div>
-        <button class="prevBtn">Précédent</button>
+        <button class="prevBtn">Précédant</button>
         <button class="nextBtn">Suivant</button>
 
         &nbsp;|&nbsp;
@@ -97,35 +169,111 @@
 
         &nbsp;|&nbsp;
 
-        <label class="muted">
-          Movers LIVE (24h) - Futures USDT-M PERPETUAL
+        <label class="small">
+          Nombre de jours affichés :
+          <input id="daysCount" type="number" min="1" max="60" value="24" style="width:70px" />
+        </label>
+
+        &nbsp;|&nbsp;
+
+        <label class="small">
+          Filtre :
+          <select id="polarityFilter">
+            <option value="all">All</option>
+            <option value="negative">Negative</option>
+            <option value="positive">Positif</option>
+          </select>
         </label>
 
         <button id="reloadBtn">Recharger</button>
 
         <span class="pill" id="shownCount">—</span>
+        <span class="modePill" id="modePill" style="display:none"></span>
+      </div>
+
+      <div class="muted" id="rangeInfo">—</div>
+    </div>
+
+    <div class="muted small" id="fixedInfo"></div>
+
+    <div class="insights" id="globalInsights">
+      <div class="insightsTitle">
+        <span>📌 Heures clés (15m)</span>
+        <span class="muted small">1 seul total = celui du mode actif</span>
+      </div>
+
+      <div class="insightsGrid">
+        <div class="box">
+          <div class="boxHeader">
+            <span>🔴 Séances à risque</span>
+            <span class="tag neg">NEGATIVE</span>
+          </div>
+
+          <div class="hoursRow" style="margin-bottom:10px">
+            <div class="hoursRow" id="riskHours"></div>
+          </div>
+
+          <div class="hoursRow">
+            <button class="danger" id="btnShowRiskNegative">Afficher tableaux NÉGATIFS + séances 09:51 / 09:54 / 21:51 / 23:51 / 23:54</button>
+            <button id="btnResetModeA">Reset</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="boxHeader">
+            <span>🟢 Séances favorables</span>
+            <span class="tag pos">POSITIVE</span>
+          </div>
+
+          <div class="hoursRow" style="margin-bottom:10px">
+            <div class="hoursRow" id="goodHours"></div>
+          </div>
+
+          <div class="hoursRow">
+            <button class="primary" id="btnShowGoodPositive">Afficher tableaux POSITIFS + séances 11:48 / 12:42 / 14:45 / 15:48</button>
+            <button id="btnResetModeB">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="muted small" style="margin-top:8px">
+        ✅ Reset: tableaux = 24h en 15m (≈96 lignes), total = Σ(24h).<br>
+        ✅ Mode “Séances favorables”: jours POSITIFS + lignes séances, total = Σ(séances).<br>
+        ✅ Mode “Séances à risque”: jours NÉGATIFS + lignes séances, total = Σ(séances).<br>
+        ✅ En mode séance: tableau = <b>petit filtre</b> (uniquement les lignes des séances).
       </div>
     </div>
   </div>
 
-  <!-- CARTE MOVERS UNIQUE -->
-  <div id="moversCard"></div>
+  <div id="tables" class="grid"></div>
 
 <script>
 /* ========= CONFIG ========= */
 const BASE_FUTURES = "https://fapi.binance.com";
-const MOVERS_TOP_N = 4;
-const MOVERS_QUOTE = "USDT"; // uniquement pairs ...USDT
-const MOVERS_ABS_CLAMP = 0; // 0 pour désactiver
 
+/* ✅ seulement BTC + ETH dans un array */
+const SYMBOLS = [   "AEVOUSDT","ARPAUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+            "1000satsusdt","1000luncusdt","ANKRUSDT","DENTUSDT","ENJUSDT"];
+
+/* ✅ intervalle 15m */
+const INTERVAL     = "15m";
+const MINUTES_STEP = 15;
+
+/* date du jour UTC */
 const NOW = new Date();
-const RANGE_START_UTC = new Date(Date.UTC(NOW.getUTCFullYear(), NOW.getUTCMonth(), NOW.getUTCDate(), 0,0,0,0));
-const RANGE_END_UTC   = new Date(Date.UTC(2025, 10, 27, 0,0,0,0)); // 27/11/2025
+const RANGE_START_UTC = new Date(Date.UTC(
+  NOW.getUTCFullYear(),
+  NOW.getUTCMonth(),
+  NOW.getUTCDate(),
+  0, 0, 0, 0
+));
+
+/* fin fixe */
+const RANGE_END_UTC = new Date(Date.UTC(2025, 10, 27, 0, 0, 0, 0)); // 27/11/2025
 let baseDateUtc = new Date(RANGE_START_UTC);
 
+/* ========= STATUS MANUEL ========= */
 const STATUS_BY_DATE_FR = {
-  "23/12/2025": { text: "negative", cls: "negative" },
-  "22/12/2025": { text: "positif",  cls: "positive" },
   "21/12/2025": { text: "negative", cls: "negative" },
   "20/12/2025": { text: "positif",  cls: "positive" },
   "19/12/2025": { text: "negative", cls: "negative" },
@@ -138,16 +286,83 @@ const STATUS_BY_DATE_FR = {
   "12/12/2025": { text: "negative", cls: "negative" },
 };
 
-/* ========= HELPERS ========= */
+/* ========= SÉANCES ========= */
+const GOOD_SESSIONS = ["11:48","12:42","14:45","15:48"];                 // POS
+const RISK_SESSIONS = ["09:51","09:54","21:51","23:51","23:54"];         // NEG
+
+/* ✅ Modes */
+let MODE = "none"; // "none" | "goodPos" | "riskNeg"
+
+/* ========= UI helpers ========= */
 const pad2 = n => String(n).padStart(2, "0");
 const toFr = d => `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
 const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
-function applyColor(el, v){ el.style.color = v>0 ? "#16a34a" : v<0 ? "#dc2626" : ""; }
+function applyColor(el, v){ el.style.color = v>0 ? "green" : v<0 ? "red" : ""; }
+
+function fmtTimeUTC(ms){
+  const d = new Date(ms);
+  return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
+}
+
+function parseHHMM(hhmm){
+  const m = /^(\d{2}):(\d{2})$/.exec(String(hhmm).trim());
+  if(!m) return null;
+  const hh = Number(m[1]), mm = Number(m[2]);
+  if(hh<0||hh>23||mm<0||mm>59) return null;
+  return { hh, mm, minOfDay: hh*60 + mm };
+}
+
+/* ✅ aligne une minute sur une bougie 15m (00,15,30,45) */
+function alignToStep(minOfDay){
+  const aligned = Math.floor(minOfDay / MINUTES_STEP) * MINUTES_STEP;
+  return Math.min(1435, aligned);
+}
+
+function buildSessions(listHHMM){
+  const out = [];
+  for(const t of listHHMM){
+    const p = parseHHMM(t);
+    if(!p) continue;
+    out.push({ min: alignToStep(p.minOfDay), label: t, alignedLabel: `${pad2(Math.floor(alignToStep(p.minOfDay)/60))}:${pad2(alignToStep(p.minOfDay)%60)}` });
+  }
+  return out;
+}
+
+function isInAnySession(minOfDay, sessions){
+  for(const s of sessions){
+    if(minOfDay === s.min) return true;
+  }
+  return false;
+}
+
+function renderGlobalInsights(){
+  const riskWrap = document.getElementById("riskHours");
+  const goodWrap = document.getElementById("goodHours");
+  riskWrap.innerHTML = "";
+  goodWrap.innerHTML = "";
+
+  // on affiche les heures "demandées" + l'heure alignée en petit
+  const riskBuilt = buildSessions(RISK_SESSIONS);
+  const goodBuilt = buildSessions(GOOD_SESSIONS);
+
+  for(const s of riskBuilt){
+    const sp = document.createElement("span");
+    sp.className = "hourChip neg";
+    sp.textContent = `${s.label} → ${s.alignedLabel}`;
+    riskWrap.appendChild(sp);
+  }
+  for(const s of goodBuilt){
+    const sp = document.createElement("span");
+    sp.className = "hourChip pos";
+    sp.textContent = `${s.label} → ${s.alignedLabel}`;
+    goodWrap.appendChild(sp);
+  }
+}
 
 function addDaysUtc(d, days){
   const x = new Date(d);
   x.setUTCDate(x.getUTCDate() + days);
-  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0,0,0,0));
+  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0, 0, 0, 0));
 }
 
 function clampToFixedRange(d){
@@ -164,61 +379,48 @@ function frToUtcDate(fr){
   if(!m) return null;
   const dd = Number(m[1]), mm = Number(m[2]), yy = Number(m[3]);
   if(mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
-  const dt = new Date(Date.UTC(yy, mm-1, dd, 0,0,0,0));
+  const dt = new Date(Date.UTC(yy, mm-1, dd, 0, 0, 0, 0));
   if(isNaN(dt.getTime())) return null;
   if(dt.getUTCFullYear() !== yy || (dt.getUTCMonth()+1) !== mm || dt.getUTCDate() !== dd) return null;
   return dt;
 }
 
-/* ========= MOVERS: USDT-M PERPETUAL ONLY ========= */
-let perpUsdtSetPromise = null;
-
-async function getPerpUsdtSet(){
-  if(perpUsdtSetPromise) return perpUsdtSetPromise;
-
-  perpUsdtSetPromise = (async ()=>{
-    const url = `${BASE_FUTURES}/fapi/v1/exchangeInfo`;
-    const r = await fetch(url);
-    if(!r.ok) throw new Error(`exchangeInfo -> HTTP ${r.status}`);
-    const json = await r.json();
-    const all = Array.isArray(json?.symbols) ? json.symbols : [];
-    const set = new Set();
-
-    for(const s of all){
-      if(!s) continue;
-      if(s.status !== "TRADING") continue;
-      if(s.contractType !== "PERPETUAL") continue;     // ✅ PERPETUAL
-      if(s.quoteAsset !== MOVERS_QUOTE) continue;      // ✅ USDT
-      set.add(s.symbol);
-    }
-    return set;
-  })();
-
-  return perpUsdtSetPromise;
+function dayUtcRangeMs(dUtc){
+  const y = dUtc.getUTCFullYear();
+  const m = dUtc.getUTCMonth();
+  const d = dUtc.getUTCDate();
+  return {
+    start: Date.UTC(y, m, d, 0, 0, 0, 0),
+    end:   Date.UTC(y, m, d, 23, 59, 59, 999)
+  };
 }
 
-async function fetchMovers24hPerp(){
-  const [perpSet] = await Promise.all([getPerpUsdtSet()]);
-  const url = `${BASE_FUTURES}/fapi/v1/ticker/24hr`;
+/* ========= API ========= */
+/* ✅ pour 15m, 24h => 96 bougies, donc limit 200 suffit */
+async function fetchKlines(symbol, startMs, endMs){
+  const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=200`;
   const r = await fetch(url);
-  if(!r.ok) throw new Error(`ticker/24hr -> HTTP ${r.status}`);
+  if(!r.ok) throw new Error(`${symbol} -> HTTP ${r.status}`);
   const arr = await r.json();
-  if(!Array.isArray(arr)) throw new Error(`ticker/24hr -> réponse invalide`);
-
-  const rows = [];
-  for(const it of arr){
-    const sym = String(it?.symbol || "");
-    if(!perpSet.has(sym)) continue;                    // ✅ filtre PERPETUAL+USDT
-    const v = Number(it?.priceChangePercent);
-    if(!isFinite(v)) continue;
-    if(MOVERS_ABS_CLAMP > 0 && Math.abs(v) > MOVERS_ABS_CLAMP) continue;
-    rows.push({ sym, v });
-  }
-  return { rows, totalPerp: perpSet.size };
+  if(!Array.isArray(arr) || arr.length === 0) throw new Error(`${symbol} -> aucune bougie ${INTERVAL}`);
+  return arr;
 }
 
-/* ========= UI CARDS ========= */
-function createMoversCard(dateUtc){
+function pctFromKline(k){
+  const o = +k[1], c = +k[4];
+  if(!isFinite(o) || !isFinite(c) || o <= 0) return null;
+  return ((c - o) / o) * 100;
+}
+
+/* ========= MODE TARGET ========= */
+function modeTarget(){
+  if(MODE === "goodPos") return { kind:"session", sessions: buildSessions(GOOD_SESSIONS), label:`Σ(séances alignées ${INTERVAL})` };
+  if(MODE === "riskNeg") return { kind:"session", sessions: buildSessions(RISK_SESSIONS), label:`Σ(séances alignées ${INTERVAL})` };
+  return { kind:"all", sessions: null, label:"Σ(24h)" };
+}
+
+/* ========= CARD ========= */
+function createTableCard(symbol, dateUtc){
   const fr = toFr(dateUtc);
   const st = STATUS_BY_DATE_FR[fr];
 
@@ -227,17 +429,16 @@ function createMoversCard(dateUtc){
   card.dataset.polarity = st ? st.cls : "unknown";
 
   const h2 = document.createElement("h2");
-  h2.textContent = `📈 Movers (24h LIVE) — ${fr} — Futures USDT-M PERPETUAL (TOP ${MOVERS_TOP_N} / FLOP ${MOVERS_TOP_N})`;
+  h2.textContent = `Tableau — ${symbol} — ${fr}`;
   card.appendChild(h2);
 
-  const kpi = document.createElement("div");
-  kpi.className = "kpiRow";
-  kpi.innerHTML = `
-    <span class="kpi" data-role="market">Market: FUTURES PERP</span>
-    <span class="kpi" data-role="count">Paires PERP USDT: —</span>
-    <span class="kpi" data-role="note">Source: fapi ticker/24hr</span>
+  const meta = document.createElement("div");
+  meta.className = "dayTotal";
+  meta.innerHTML = `
+    <span class="badge neu" data-role="sum">Total: —</span>
+    <span class="badge neu" data-role="found">Lignes trouvées: —</span>
   `;
-  card.appendChild(kpi);
+  card.appendChild(meta);
 
   if(st){
     const p = document.createElement("div");
@@ -251,104 +452,177 @@ function createMoversCard(dateUtc){
     card.appendChild(p);
   }
 
-  const wrap = document.createElement("div");
-  wrap.className = "moversGrid";
-
-  const topBox = document.createElement("div");
-  topBox.className = "box";
-  topBox.innerHTML = `
-    <div class="boxHeader">
-      <span>Top ${MOVERS_TOP_N} (24h)</span>
-      <span class="tag pos">HAUT</span>
-    </div>
-    <table>
-      <thead><tr><th>Symbol</th><th>Var 24h</th></tr></thead>
-      <tbody data-role="top"><tr><td colspan="2" class="loadingLine">⏳ Chargement…</td></tr></tbody>
-    </table>
+  const table = document.createElement("table");
+  table.width = "100%";
+  table.cellPadding = "8";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Heure (UTC)</th>
+        <th>Taux variation ${INTERVAL}</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="2">Chargement...</td></tr></tbody>
   `;
-
-  const flopBox = document.createElement("div");
-  flopBox.className = "box";
-  flopBox.innerHTML = `
-    <div class="boxHeader">
-      <span>Flop ${MOVERS_TOP_N} (24h)</span>
-      <span class="tag neg">BAS</span>
-    </div>
-    <table>
-      <thead><tr><th>Symbol</th><th>Var 24h</th></tr></thead>
-      <tbody data-role="flop"><tr><td colspan="2" class="loadingLine">⏳ Chargement…</td></tr></tbody>
-    </table>
-  `;
-
-  wrap.appendChild(topBox);
-  wrap.appendChild(flopBox);
-  card.appendChild(wrap);
+  card.appendChild(table);
 
   return {
     card,
-    elCount:  kpi.querySelector('[data-role="count"]'),
-    topTbody: topBox.querySelector('tbody[data-role="top"]'),
-    flopTbody: flopBox.querySelector('tbody[data-role="flop"]'),
+    tbody: table.querySelector("tbody"),
+    elSum: meta.querySelector('[data-role="sum"]'),
+    elFound: meta.querySelector('[data-role="found"]')
   };
 }
 
-async function fillMoversForDate(_dateUtc, ui){
-  // ticker/24hr = LIVE (pas historique) mais on l'affiche dans la grille multi-jours.
-  const { rows, totalPerp } = await fetchMovers24hPerp();
-  ui.elCount.textContent = `Paires PERP USDT: ${rows.length}/${totalPerp}`;
+function setBadgeClass(el, value, found){
+  el.classList.remove("pos","neg","neu");
+  if(!found) el.classList.add("neu");
+  else if(value > 0) el.classList.add("pos");
+  else if(value < 0) el.classList.add("neg");
+  else el.classList.add("neu");
+}
 
-  rows.sort((a,b)=> b.v - a.v);
-  const top = rows.slice(0, MOVERS_TOP_N);
-  const flop = rows.slice(-MOVERS_TOP_N).sort((a,b)=> a.v - b.v);
+/* ========= FILL TABLE ========= */
+async function fillTableForDate(symbol, dateUtc, ui){
+  const tbody = ui.tbody;
+  tbody.innerHTML = "";
 
-  ui.topTbody.innerHTML = "";
-  for(const it of top){
-    const tr = document.createElement("tr");
-    const tdS = document.createElement("td");
-    const tdV = document.createElement("td");
-    tdS.textContent = it.sym;
-    tdV.textContent = fmtPct(it.v);
-    applyColor(tdV, it.v);
-    tr.appendChild(tdS); tr.appendChild(tdV);
-    ui.topTbody.appendChild(tr);
+  const {start, end} = dayUtcRangeMs(dateUtc);
+  const klines = await fetchKlines(symbol, start, end);
+
+  const rows = [];
+  for(const k of klines){
+    if(!k || !isFinite(k[0])) continue;
+    const openMs = k[0];
+    if(openMs < start || openMs > end) continue;
+
+    const v = pctFromKline(k);
+    if(v === null) continue;
+
+    const d = new Date(openMs);
+    const minOfDay = d.getUTCHours()*60 + d.getUTCMinutes();
+    rows.push({ openMs, minOfDay, v });
   }
 
-  ui.flopTbody.innerHTML = "";
-  for(const it of flop){
+  const tgt = modeTarget();
+
+  let displayed = rows;
+  if(tgt.kind === "session"){
+    displayed = rows.filter(r => isInAnySession(r.minOfDay, tgt.sessions));
+  }
+
+  let sum = 0;
+  for(const r of displayed) sum += r.v;
+
+  ui.elFound.textContent = `Lignes affichées: ${displayed.length}`;
+  ui.elSum.textContent = `${tgt.label}: ${displayed.length ? fmtPct(sum) : "—"}`;
+  setBadgeClass(ui.elSum, sum, displayed.length);
+
+  if(displayed.length === 0){
+    tbody.innerHTML = `<tr><td colspan="2">Aucune donnée</td></tr>`;
+    return;
+  }
+
+  for(const r of displayed){
     const tr = document.createElement("tr");
-    const tdS = document.createElement("td");
+    if(tgt.kind !== "all") tr.classList.add("inWindow");
+
+    const tdT = document.createElement("td");
     const tdV = document.createElement("td");
-    tdS.textContent = it.sym;
-    tdV.textContent = fmtPct(it.v);
-    applyColor(tdV, it.v);
-    tr.appendChild(tdS); tr.appendChild(tdV);
-    ui.flopTbody.appendChild(tr);
+
+    tdT.textContent = fmtTimeUTC(r.openMs);
+    tdV.textContent = fmtPct(r.v);
+    applyColor(tdV, r.v);
+
+    tr.appendChild(tdT);
+    tr.appendChild(tdV);
+    tbody.appendChild(tr);
   }
 }
 
-/* ========= RENDER ========= */
-async function refreshMovers(){
-  baseDateUtc = clampToFixedRange(baseDateUtc);
-  const moversWrap = document.getElementById("moversCard");
-  moversWrap.innerHTML = "";
+/* ========= FILTRE + MODE ========= */
+function applyPolarityFilter(){
+  const sel = document.getElementById("polarityFilter").value;
+  const cards = Array.from(document.querySelectorAll("#tables .card"));
+  let shown = 0;
 
-  document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+  for(const c of cards){
+    const pol = c.dataset.polarity;
+    let visible = true;
 
-  const fr = toFr(baseDateUtc);
-  document.getElementById("shownCount").textContent = `Date: ${fr}`;
+    if(sel === "negative") visible = (pol === "negative");
+    else if(sel === "positive") visible = (pol === "positive");
 
-  // Créer et afficher la carte des movers
-  const movers = createMoversCard(baseDateUtc);
-  moversWrap.appendChild(movers.card);
-  
-  try {
-    await fillMoversForDate(baseDateUtc, movers);
-  } catch(err) {
-    console.error(err);
-    movers.topTbody.innerHTML = `<tr><td colspan="2">Erreur de chargement</td></tr>`;
-    movers.flopTbody.innerHTML = `<tr><td colspan="2">Erreur de chargement</td></tr>`;
-    movers.elCount.textContent = "Paires PERP USDT: Erreur";
+    c.style.display = visible ? "" : "none";
+    if(visible) shown++;
   }
+
+  document.getElementById("shownCount").textContent = `Affichés: ${shown}/${cards.length}`;
+}
+
+function updateModePill(){
+  const pill = document.getElementById("modePill");
+  if(MODE === "none"){
+    pill.style.display = "none";
+    pill.textContent = "";
+    return;
+  }
+  pill.style.display = "";
+  if(MODE === "riskNeg") pill.textContent = `MODE: NÉGATIFS + séances (alignées ${INTERVAL})`;
+  if(MODE === "goodPos") pill.textContent = `MODE: POSITIFS + séances (alignées ${INTERVAL})`;
+}
+
+function setMode(next){
+  MODE = next;
+  updateModePill();
+
+  if(MODE === "goodPos") document.getElementById("polarityFilter").value = "positive";
+  if(MODE === "riskNeg") document.getElementById("polarityFilter").value = "negative";
+
+  refreshMulti();
+}
+
+/* ========= RENDER ========= */
+async function refreshMulti(){
+  baseDateUtc = clampToFixedRange(baseDateUtc);
+
+  const days = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 24)));
+  const tablesWrap = document.getElementById("tables");
+  tablesWrap.innerHTML = "";
+
+  const maxDaysPossible =
+    Math.floor((baseDateUtc.getTime() - Math.min(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime())) / (24*60*60*1000)) + 1;
+
+  const realDays = Math.min(days, maxDaysPossible);
+
+  document.getElementById("rangeInfo").textContent =
+    `Affiché : ${toFr(baseDateUtc)} → ${toFr(addDaysUtc(baseDateUtc, -(realDays-1)))} (UTC)`;
+
+  document.getElementById("fixedInfo").textContent =
+    `Fenêtre fixée : du ${toFr(RANGE_START_UTC)} au ${toFr(RANGE_END_UTC)} (inclus). | SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL}`;
+
+  const jobs = [];
+
+  for(let i=0;i<realDays;i++){
+    const d = addDaysUtc(baseDateUtc, -i);
+
+    for(const sym of SYMBOLS){
+      const obj = createTableCard(sym, d);
+      tablesWrap.appendChild(obj.card);
+
+      jobs.push(
+        fillTableForDate(sym, d, obj).catch(err=>{
+          console.error(err);
+          obj.tbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
+          obj.elSum.textContent = "Total: Erreur";
+          obj.elFound.textContent = "Lignes trouvées: —";
+        })
+      );
+    }
+  }
+
+  await Promise.all(jobs);
+  applyPolarityFilter();
 }
 
 /* ========= EVENTS ========= */
@@ -356,32 +630,32 @@ document.querySelectorAll(".prevBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, -1);
     baseDateUtc = clampToFixedRange(baseDateUtc);
-    await refreshMovers();
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    await refreshMulti();
   });
 });
-
 document.querySelectorAll(".nextBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, 1);
     baseDateUtc = clampToFixedRange(baseDateUtc);
-    await refreshMovers();
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    await refreshMulti();
   });
 });
-
 document.querySelectorAll(".goDateBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     const wrap = btn.parentElement;
     const inp = wrap.querySelector(".dateInput");
     const dt = frToUtcDate(inp.value);
     if(!dt){
-      alert("Date invalide. Format JJ/MM/AAAA (ex: 23/12/2025).");
+      alert("Date invalide. Utilise le format JJ/MM/AAAA (ex: 20/12/2025).");
       return;
     }
     baseDateUtc = clampToFixedRange(new Date(dt));
-    await refreshMovers();
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    await refreshMulti();
   });
 });
-
 document.querySelectorAll(".dateInput").forEach(inp => {
   inp.addEventListener("keydown", (e)=>{
     if(e.key === "Enter"){
@@ -391,11 +665,26 @@ document.querySelectorAll(".dateInput").forEach(inp => {
   });
 });
 
-document.getElementById("reloadBtn").addEventListener("click", refreshMovers);
+document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
+
+document.getElementById("polarityFilter").addEventListener("change", ()=>{
+  const v = document.getElementById("polarityFilter").value;
+  if(MODE === "goodPos" && v !== "positive") setMode("none");
+  if(MODE === "riskNeg" && v !== "negative") setMode("none");
+  applyPolarityFilter();
+});
+
+document.getElementById("btnShowGoodPositive").addEventListener("click", ()=>setMode("goodPos"));
+document.getElementById("btnShowRiskNegative").addEventListener("click", ()=>setMode("riskNeg"));
+
+document.getElementById("btnResetModeA").addEventListener("click", ()=>setMode("none"));
+document.getElementById("btnResetModeB").addEventListener("click", ()=>setMode("none"));
 
 /* ========= INIT ========= */
+renderGlobalInsights();
+updateModePill();
 document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
-refreshMovers();
+refreshMulti();
 </script>
 
 </body>
