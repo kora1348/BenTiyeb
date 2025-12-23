@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Variations — Binance Futures (15m) — BTCUSDT & ETHUSDT — Multi-jours</title>
+  <title>Variations — Binance (Movers 24h + Futures 15m)</title>
   <style>
     body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
     h2{margin:0 0 6px}
@@ -95,54 +95,26 @@
     .tag.neg{background:#fee2e2;border-color:#fecaca;color:#991b1b}
     .tag.pos{background:#dcfce7;border-color:#bbf7d0;color:#166534}
 
-    .hoursRow{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      align-items:center;
-    }
+    .hoursRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
     .hourChip{
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid #e5e7eb;
-      background:#f9fafb;
-      font-size:12px;
-      font-weight:700;
-      color:#111827;
+      padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;
+      background:#f9fafb;font-size:12px;font-weight:700;color:#111827;
     }
     .hourChip.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
     .hourChip.pos{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
 
-    .dayTotal{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin:8px 0 10px;
-    }
+    .dayTotal{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px}
     .dayTotal .badge{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid #e5e7eb;
-      background:#f9fafb;
-      font-size:12px;
-      font-weight:800;
-      white-space:nowrap;
+      display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid #e5e7eb;
+      background:#f9fafb;font-size:12px;font-weight:800;white-space:nowrap;
     }
     .badge.pos{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
     .badge.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
     .badge.neu{background:#f3f4f6;border-color:#e5e7eb;color:#374151}
 
     .modePill{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid #dbeafe;
-      background:#eff6ff;
-      color:#1d4ed8;
-      font-weight:800;
-      font-size:12px;
+      display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid #dbeafe;
+      background:#eff6ff;color:#1d4ed8;font-weight:800;font-size:12px;
     }
 
     tr.inWindow td{ background:#fff7ed; }
@@ -155,7 +127,6 @@
     .kpiRow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}
     .kpi{padding:4px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:800;font-size:12px}
     .loadingLine{color:#6b7280;font-style:italic}
-    progress{width:100%;height:10px}
   </style>
 </head>
 
@@ -192,6 +163,16 @@
             <option value="all">All</option>
             <option value="negative">Negative</option>
             <option value="positive">Positif</option>
+          </select>
+        </label>
+
+        &nbsp;|&nbsp;
+
+        <label class="small">
+          Movers :
+          <select id="moversMarket">
+            <option value="futures" selected>Futures (24h)</option>
+            <option value="spot">Spot (24h)</option>
           </select>
         </label>
 
@@ -247,10 +228,9 @@
       </div>
 
       <div class="muted small" style="margin-top:8px">
-        ✅ Reset: tableaux = 24h en 15m (≈96 lignes), total = Σ(24h).<br>
-        ✅ Mode “Séances favorables”: jours POSITIFS + lignes séances, total = Σ(séances).<br>
-        ✅ Mode “Séances à risque”: jours NÉGATIFS + lignes séances, total = Σ(séances).<br>
-        ✅ En mode séance: tableau = <b>petit filtre</b> (uniquement les lignes des séances).
+        ✅ Movers = <b>24h change LIVE</b> (comme Binance).<br>
+        ✅ Tables BTC/ETH = bougies futures <b>15m</b> (historique du jour).<br>
+        ✅ Mode “séance” filtre uniquement les heures demandées.
       </div>
     </div>
   </div>
@@ -260,24 +240,18 @@
 <script>
 /* ========= CONFIG ========= */
 const BASE_FUTURES = "https://fapi.binance.com";
-const SYMBOLS = ["BTCUSDT","ETHUSDT"];
+const BASE_SPOT    = "https://api.binance.com";
 
+const SYMBOLS = ["BTCUSDT","ETHUSDT"];  // tableaux 15m (futures)
 const INTERVAL     = "15m";
 const MINUTES_STEP = 15;
 
 const MOVERS_TOP_N = 4;
 const MOVERS_QUOTE = "USDT";
-const MOVERS_CONCURRENCY = 12;
-const MOVERS_MAX_SYMBOLS = 0;
 
 const NOW = new Date();
-const RANGE_START_UTC = new Date(Date.UTC(
-  NOW.getUTCFullYear(),
-  NOW.getUTCMonth(),
-  NOW.getUTCDate(),
-  0, 0, 0, 0
-));
-const RANGE_END_UTC = new Date(Date.UTC(2025, 10, 27, 0, 0, 0, 0)); // 27/11/2025
+const RANGE_START_UTC = new Date(Date.UTC(NOW.getUTCFullYear(), NOW.getUTCMonth(), NOW.getUTCDate(), 0,0,0,0));
+const RANGE_END_UTC   = new Date(Date.UTC(2025, 10, 27, 0,0,0,0)); // 27/11/2025
 let baseDateUtc = new Date(RANGE_START_UTC);
 
 const STATUS_BY_DATE_FR = {
@@ -295,7 +269,6 @@ const STATUS_BY_DATE_FR = {
 
 const GOOD_SESSIONS = ["11:48","12:42","14:45","15:48"];
 const RISK_SESSIONS = ["09:51","09:54","21:51","23:51","23:54"];
-
 let MODE = "none";
 
 /* ========= HELPERS ========= */
@@ -303,6 +276,7 @@ const pad2 = n => String(n).padStart(2, "0");
 const toFr = d => `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
 const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
 function applyColor(el, v){ el.style.color = v>0 ? "green" : v<0 ? "red" : ""; }
+
 function fmtTimeUTC(ms){
   const d = new Date(ms);
   return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
@@ -312,7 +286,7 @@ function parseHHMM(hhmm){
   if(!m) return null;
   const hh = Number(m[1]), mm = Number(m[2]);
   if(hh<0||hh>23||mm<0||mm>59) return null;
-  return { hh, mm, minOfDay: hh*60 + mm };
+  return { minOfDay: hh*60 + mm };
 }
 function alignToStep(minOfDay){
   const aligned = Math.floor(minOfDay / MINUTES_STEP) * MINUTES_STEP;
@@ -339,17 +313,13 @@ function renderGlobalInsights(){
   const goodWrap = document.getElementById("goodHours");
   riskWrap.innerHTML = "";
   goodWrap.innerHTML = "";
-
-  const riskBuilt = buildSessions(RISK_SESSIONS);
-  const goodBuilt = buildSessions(GOOD_SESSIONS);
-
-  for(const s of riskBuilt){
+  for(const s of buildSessions(RISK_SESSIONS)){
     const sp = document.createElement("span");
     sp.className = "hourChip neg";
     sp.textContent = `${s.label} → ${s.alignedLabel}`;
     riskWrap.appendChild(sp);
   }
-  for(const s of goodBuilt){
+  for(const s of buildSessions(GOOD_SESSIONS)){
     const sp = document.createElement("span");
     sp.className = "hourChip pos";
     sp.textContent = `${s.label} → ${s.alignedLabel}`;
@@ -359,7 +329,7 @@ function renderGlobalInsights(){
 function addDaysUtc(d, days){
   const x = new Date(d);
   x.setUTCDate(x.getUTCDate() + days);
-  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0, 0, 0, 0));
+  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0,0,0,0));
 }
 function clampToFixedRange(d){
   const maxT = Math.max(RANGE_START_UTC.getTime(), RANGE_END_UTC.getTime());
@@ -374,7 +344,7 @@ function frToUtcDate(fr){
   if(!m) return null;
   const dd = Number(m[1]), mm = Number(m[2]), yy = Number(m[3]);
   if(mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
-  const dt = new Date(Date.UTC(yy, mm-1, dd, 0, 0, 0, 0));
+  const dt = new Date(Date.UTC(yy, mm-1, dd, 0,0,0,0));
   if(isNaN(dt.getTime())) return null;
   if(dt.getUTCFullYear() !== yy || (dt.getUTCMonth()+1) !== mm || dt.getUTCDate() !== dd) return null;
   return dt;
@@ -383,11 +353,16 @@ function dayUtcRangeMs(dUtc){
   const y = dUtc.getUTCFullYear();
   const m = dUtc.getUTCMonth();
   const d = dUtc.getUTCDate();
-  return { start: Date.UTC(y, m, d, 0, 0, 0, 0), end: Date.UTC(y, m, d, 23, 59, 59, 999) };
+  return { start: Date.UTC(y,m,d,0,0,0,0), end: Date.UTC(y,m,d,23,59,59,999) };
+}
+function sameUtcDay(a, b){
+  return a.getUTCFullYear()===b.getUTCFullYear()
+    && a.getUTCMonth()===b.getUTCMonth()
+    && a.getUTCDate()===b.getUTCDate();
 }
 
-/* ========= API (15m) ========= */
-async function fetchKlines(symbol, startMs, endMs){
+/* ========= API (15m FUTURES) ========= */
+async function fetchKlinesFutures(symbol, startMs, endMs){
   const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=200`;
   const r = await fetch(url);
   if(!r.ok) throw new Error(`${symbol} -> HTTP ${r.status}`);
@@ -401,62 +376,27 @@ function pctFromKline(k){
   return ((c - o) / o) * 100;
 }
 
-/* ========= MOVERS (1D) ========= */
-const moversCache = new Map();
-let moversSymbolsPromise = null;
+/* ========= MOVERS (LIVE 24H like Binance) ========= */
+async function fetchMovers24h(market){
+  const url = market === "spot"
+    ? `${BASE_SPOT}/api/v3/ticker/24hr`
+    : `${BASE_FUTURES}/fapi/v1/ticker/24hr`;
 
-async function fetchMoversSymbols(){
-  if(moversSymbolsPromise) return moversSymbolsPromise;
-  moversSymbolsPromise = (async ()=>{
-    const url = `${BASE_FUTURES}/fapi/v1/exchangeInfo`;
-    const r = await fetch(url);
-    if(!r.ok) throw new Error(`exchangeInfo -> HTTP ${r.status}`);
-    const json = await r.json();
-    const all = Array.isArray(json?.symbols) ? json.symbols : [];
-    let syms = all
-      .filter(s => s && s.status === "TRADING" && s.contractType === "PERPETUAL" && s.quoteAsset === MOVERS_QUOTE)
-      .map(s => s.symbol);
-    if(MOVERS_MAX_SYMBOLS > 0) syms = syms.slice(0, MOVERS_MAX_SYMBOLS);
-    return syms;
-  })();
-  return moversSymbolsPromise;
-}
-
-async function fetchKline1D(symbol, dayStartMs, dayEndMs){
-  const key = `${symbol}|${dayStartMs}`;
-  if(moversCache.has(key)) return moversCache.get(key);
-
-  const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=1d&startTime=${dayStartMs}&endTime=${dayEndMs}&limit=2`;
   const r = await fetch(url);
-  if(!r.ok) { moversCache.set(key, null); return null; }
-
+  if(!r.ok) throw new Error(`ticker/24hr -> HTTP ${r.status}`);
   const arr = await r.json();
-  if(!Array.isArray(arr) || arr.length === 0) { moversCache.set(key, null); return null; }
+  if(!Array.isArray(arr)) throw new Error(`ticker/24hr -> réponse invalide`);
 
-  let k = arr[0];
-  if(arr.length > 1 && isFinite(arr[1]?.[0]) && arr[1][0] >= dayStartMs && arr[1][0] <= dayEndMs) {
-    if(k[0] < dayStartMs) k = arr[1];
+  // On garde uniquement les paires ...USDT, et percent numérique
+  const rows = [];
+  for(const it of arr){
+    const sym = String(it?.symbol || "");
+    if(!sym.endsWith(MOVERS_QUOTE)) continue;
+    const v = Number(it?.priceChangePercent);
+    if(!isFinite(v)) continue;
+    rows.push({ sym, v });
   }
-
-  const v = pctFromKline(k);
-  moversCache.set(key, v);
-  return v;
-}
-
-async function poolMap(items, concurrency, mapper){
-  const results = new Array(items.length);
-  let idx = 0;
-  async function worker(){
-    while(true){
-      const i = idx++;
-      if(i >= items.length) return;
-      try{ results[i] = await mapper(items[i], i); }
-      catch(_e){ results[i] = null; }
-    }
-  }
-  const workers = Array.from({length: Math.max(1, concurrency)}, () => worker());
-  await Promise.all(workers);
-  return results;
+  return rows;
 }
 
 /* ========= MODE TARGET ========= */
@@ -484,25 +424,17 @@ function createMoversCard(dateUtc){
   card.dataset.polarity = st ? st.cls : "unknown";
 
   const h2 = document.createElement("h2");
-  h2.textContent = `📈 Movers 1D — ${fr} (TOP ${MOVERS_TOP_N} / FLOP ${MOVERS_TOP_N})`;
+  h2.textContent = `📈 Movers (24h LIVE) — ${fr} (TOP ${MOVERS_TOP_N} / FLOP ${MOVERS_TOP_N})`;
   card.appendChild(h2);
 
   const kpi = document.createElement("div");
   kpi.className = "kpiRow";
   kpi.innerHTML = `
-    <span class="kpi" data-role="scan">Scan: —</span>
-    <span class="kpi" data-role="ok">OK: —</span>
-    <span class="kpi" data-role="skip">Sans data: —</span>
+    <span class="kpi" data-role="market">Market: —</span>
+    <span class="kpi" data-role="count">Paires USDT: —</span>
+    <span class="kpi" data-role="note">—</span>
   `;
   card.appendChild(kpi);
-
-  const prog = document.createElement("div");
-  prog.className = "small muted";
-  prog.innerHTML = `
-    <div style="margin:6px 0 6px"><progress data-role="progress" value="0" max="1"></progress></div>
-    <div data-role="progressText" class="loadingLine">⏳ Préparation du scan...</div>
-  `;
-  card.appendChild(prog);
 
   if(st){
     const p = document.createElement("div");
@@ -523,14 +455,12 @@ function createMoversCard(dateUtc){
   topBox.className = "box";
   topBox.innerHTML = `
     <div class="boxHeader">
-      <span>Top ${MOVERS_TOP_N} (1D)</span>
+      <span>Top ${MOVERS_TOP_N} (24h)</span>
       <span class="tag pos">HAUT</span>
     </div>
     <table class="mini" width="100%">
-      <thead><tr><th>Symbol</th><th>Var 1D</th></tr></thead>
-      <tbody data-role="top">
-        <tr><td colspan="2" class="loadingLine">⏳ Scan en cours… (TOP) — en attente</td></tr>
-      </tbody>
+      <thead><tr><th>Symbol</th><th>Var 24h</th></tr></thead>
+      <tbody data-role="top"><tr><td colspan="2" class="loadingLine">⏳ Chargement des movers 24h…</td></tr></tbody>
     </table>
   `;
 
@@ -538,14 +468,12 @@ function createMoversCard(dateUtc){
   flopBox.className = "box";
   flopBox.innerHTML = `
     <div class="boxHeader">
-      <span>Flop ${MOVERS_TOP_N} (1D)</span>
+      <span>Flop ${MOVERS_TOP_N} (24h)</span>
       <span class="tag neg">BAS</span>
     </div>
     <table class="mini" width="100%">
-      <thead><tr><th>Symbol</th><th>Var 1D</th></tr></thead>
-      <tbody data-role="flop">
-        <tr><td colspan="2" class="loadingLine">⏳ Scan en cours… (FLOP) — en attente</td></tr>
-      </tbody>
+      <thead><tr><th>Symbol</th><th>Var 24h</th></tr></thead>
+      <tbody data-role="flop"><tr><td colspan="2" class="loadingLine">⏳ Chargement des movers 24h…</td></tr></tbody>
     </table>
   `;
 
@@ -555,93 +483,51 @@ function createMoversCard(dateUtc){
 
   return {
     card,
-    elScan: kpi.querySelector('[data-role="scan"]'),
-    elOk: kpi.querySelector('[data-role="ok"]'),
-    elSkip: kpi.querySelector('[data-role="skip"]'),
-    elProgress: prog.querySelector('[data-role="progress"]'),
-    elProgressText: prog.querySelector('[data-role="progressText"]'),
+    elMarket: kpi.querySelector('[data-role="market"]'),
+    elCount:  kpi.querySelector('[data-role="count"]'),
+    elNote:   kpi.querySelector('[data-role="note"]'),
     topTbody: topBox.querySelector('tbody[data-role="top"]'),
     flopTbody: flopBox.querySelector('tbody[data-role="flop"]'),
   };
 }
 
-function setMoversLoading(ui, done, total, ok, skip){
-  ui.elProgress.max = Math.max(1, total);
-  ui.elProgress.value = Math.min(total, done);
-  ui.elProgressText.textContent = `⏳ Scan en cours… ${done}/${total} | OK: ${ok} | Sans data: ${skip}`;
-  ui.topTbody.innerHTML  = `<tr><td colspan="2" class="loadingLine">⏳ Scan en cours… ${done}/${total} (TOP) | OK: ${ok} | Sans data: ${skip}</td></tr>`;
-  ui.flopTbody.innerHTML = `<tr><td colspan="2" class="loadingLine">⏳ Scan en cours… ${done}/${total} (FLOP) | OK: ${ok} | Sans data: ${skip}</td></tr>`;
-}
-
 async function fillMoversForDate(dateUtc, ui){
-  const {start, end} = dayUtcRangeMs(dateUtc);
-  const syms = await fetchMoversSymbols();
+  const market = document.getElementById("moversMarket").value; // futures|spot
+  ui.elMarket.textContent = `Market: ${market.toUpperCase()}`;
+  ui.elNote.textContent = `Source: ticker/24hr (LIVE)`;
 
-  ui.elScan.textContent = `Scan: ${syms.length}`;
-  ui.elOk.textContent = `OK: 0`;
-  ui.elSkip.textContent = `Sans data: 0`;
+  // IMPORTANT: ticker/24hr = live, donc ça représente "maintenant".
+  // On l'affiche pour chaque jour, mais c'est la même source live.
+  // Si tu veux de l'historique 24h, Binance ne donne pas ça directement via API.
+  const rows = await fetchMovers24h(market);
+  ui.elCount.textContent = `Paires USDT: ${rows.length}`;
 
-  let ok = 0, skip = 0, done = 0;
-  setMoversLoading(ui, 0, syms.length, ok, skip);
-
-  const results = await poolMap(syms, MOVERS_CONCURRENCY, async (sym)=>{
-    const v = await fetchKline1D(sym, start, end);
-    done++;
-
-    if(v === null || !isFinite(v)) { skip++; }
-    else { ok++; }
-
-    if(done % 20 === 0 || done === syms.length){
-      ui.elOk.textContent = `OK: ${ok}`;
-      ui.elSkip.textContent = `Sans data: ${skip}`;
-      setMoversLoading(ui, done, syms.length, ok, skip);
-    }
-
-    if(v === null || !isFinite(v)) return null;
-    return { sym, v };
-  });
-
-  ui.elOk.textContent = `OK: ${ok}`;
-  ui.elSkip.textContent = `Sans data: ${skip}`;
-  ui.elProgressText.textContent = `✅ Scan terminé — ${ok} résultats valides sur ${syms.length}`;
-  ui.elProgress.value = ui.elProgress.max;
-
-  const cleaned = results.filter(Boolean);
-
-  cleaned.sort((a,b)=> b.v - a.v);
-  const top = cleaned.slice(0, MOVERS_TOP_N);
-  const flop = cleaned.slice(-MOVERS_TOP_N).sort((a,b)=> a.v - b.v);
+  rows.sort((a,b)=> b.v - a.v);
+  const top = rows.slice(0, MOVERS_TOP_N);
+  const flop = rows.slice(-MOVERS_TOP_N).sort((a,b)=> a.v - b.v);
 
   ui.topTbody.innerHTML = "";
-  if(top.length === 0){
-    ui.topTbody.innerHTML = `<tr><td colspan="2">Aucune donnée</td></tr>`;
-  }else{
-    for(const it of top){
-      const tr = document.createElement("tr");
-      const tdS = document.createElement("td");
-      const tdV = document.createElement("td");
-      tdS.textContent = it.sym;
-      tdV.textContent = fmtPct(it.v);
-      applyColor(tdV, it.v);
-      tr.appendChild(tdS); tr.appendChild(tdV);
-      ui.topTbody.appendChild(tr);
-    }
+  for(const it of top){
+    const tr = document.createElement("tr");
+    const tdS = document.createElement("td");
+    const tdV = document.createElement("td");
+    tdS.textContent = it.sym;
+    tdV.textContent = fmtPct(it.v);
+    applyColor(tdV, it.v);
+    tr.appendChild(tdS); tr.appendChild(tdV);
+    ui.topTbody.appendChild(tr);
   }
 
   ui.flopTbody.innerHTML = "";
-  if(flop.length === 0){
-    ui.flopTbody.innerHTML = `<tr><td colspan="2">Aucune donnée</td></tr>`;
-  }else{
-    for(const it of flop){
-      const tr = document.createElement("tr");
-      const tdS = document.createElement("td");
-      const tdV = document.createElement("td");
-      tdS.textContent = it.sym;
-      tdV.textContent = fmtPct(it.v);
-      applyColor(tdV, it.v);
-      tr.appendChild(tdS); tr.appendChild(tdV);
-      ui.flopTbody.appendChild(tr);
-    }
+  for(const it of flop){
+    const tr = document.createElement("tr");
+    const tdS = document.createElement("td");
+    const tdV = document.createElement("td");
+    tdS.textContent = it.sym;
+    tdV.textContent = fmtPct(it.v);
+    applyColor(tdV, it.v);
+    tr.appendChild(tdS); tr.appendChild(tdV);
+    ui.flopTbody.appendChild(tr);
   }
 }
 
@@ -705,7 +591,7 @@ async function fillTableForDate(symbol, dateUtc, ui){
   tbody.innerHTML = "";
 
   const {start, end} = dayUtcRangeMs(dateUtc);
-  const klines = await fetchKlines(symbol, start, end);
+  const klines = await fetchKlinesFutures(symbol, start, end);
 
   const rows = [];
   for(const k of klines){
@@ -772,7 +658,6 @@ function applyPolarityFilter(){
     c.style.display = visible ? "" : "none";
     if(visible) shown++;
   }
-
   document.getElementById("shownCount").textContent = `Affichés: ${shown}/${cards.length}`;
 }
 
@@ -791,10 +676,8 @@ function updateModePill(){
 function setMode(next){
   MODE = next;
   updateModePill();
-
   if(MODE === "goodPos") document.getElementById("polarityFilter").value = "positive";
   if(MODE === "riskNeg") document.getElementById("polarityFilter").value = "negative";
-
   refreshMulti();
 }
 
@@ -814,14 +697,16 @@ async function refreshMulti(){
   document.getElementById("rangeInfo").textContent =
     `Affiché : ${toFr(baseDateUtc)} → ${toFr(addDaysUtc(baseDateUtc, -(realDays-1)))} (UTC)`;
 
+  const market = document.getElementById("moversMarket").value;
   document.getElementById("fixedInfo").textContent =
-    `Fenêtre fixée : du ${toFr(RANGE_START_UTC)} au ${toFr(RANGE_END_UTC)} (inclus). | SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL} | Movers 1D: TOP/FLOP ${MOVERS_TOP_N} (USDT Perp)`;
+    `Fenêtre fixée : ${toFr(RANGE_START_UTC)} → ${toFr(RANGE_END_UTC)} (UTC). | Tables: Futures 15m BTC/ETH | Movers: ${market.toUpperCase()} ticker/24hr (LIVE).`;
 
   const jobs = [];
 
   for(let i=0;i<realDays;i++){
     const d = addDaysUtc(baseDateUtc, -i);
 
+    // 1) Movers card (LIVE 24h)
     const movers = createMoversCard(d);
     tablesWrap.appendChild(movers.card);
     jobs.push(
@@ -829,16 +714,14 @@ async function refreshMulti(){
         console.error(err);
         movers.topTbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
         movers.flopTbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
-        movers.elOk.textContent = "OK: Erreur";
-        movers.elSkip.textContent = "Sans data: —";
-        movers.elProgressText.textContent = "❌ Erreur pendant le scan.";
+        movers.elNote.textContent = "❌ Erreur API movers.";
       })
     );
 
+    // 2) Tables 15m futures (BTC/ETH)
     for(const sym of SYMBOLS){
       const obj = createTableCard(sym, d);
       tablesWrap.appendChild(obj.card);
-
       jobs.push(
         fillTableForDate(sym, d, obj).catch(err=>{
           console.error(err);
@@ -877,7 +760,7 @@ document.querySelectorAll(".goDateBtn").forEach(btn => {
     const inp = wrap.querySelector(".dateInput");
     const dt = frToUtcDate(inp.value);
     if(!dt){
-      alert("Date invalide. Utilise le format JJ/MM/AAAA (ex: 20/12/2025).");
+      alert("Date invalide. Format JJ/MM/AAAA (ex: 20/12/2025).");
       return;
     }
     baseDateUtc = clampToFixedRange(new Date(dt));
@@ -895,6 +778,7 @@ document.querySelectorAll(".dateInput").forEach(inp => {
 });
 
 document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
+document.getElementById("moversMarket").addEventListener("change", refreshMulti);
 
 document.getElementById("polarityFilter").addEventListener("change", ()=>{
   const v = document.getElementById("polarityFilter").value;
@@ -905,7 +789,6 @@ document.getElementById("polarityFilter").addEventListener("change", ()=>{
 
 document.getElementById("btnShowGoodPositive").addEventListener("click", ()=>setMode("goodPos"));
 document.getElementById("btnShowRiskNegative").addEventListener("click", ()=>setMode("riskNeg"));
-
 document.getElementById("btnResetModeA").addEventListener("click", ()=>setMode("none"));
 document.getElementById("btnResetModeB").addEventListener("click", ()=>setMode("none"));
 
