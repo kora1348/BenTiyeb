@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Variations — Binance Futures (15m) — Multi-jours</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
+    h2{margin:0 0 6px}
+    .card{margin:12px 0 14px;padding:14px;border-radius:10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.10)}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .muted{color:#666;font-size:13px}
+    .small{font-size:12px}
+    table{background:#fff;border-collapse:collapse}
+    th{background:#fafafa;position:sticky;top:0}
+    th,td{border:1px solid #ddd;padding:8px}
+    .wrap{max-width:1200px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+
+    select, input, button{font:inherit}
+    button{
+      border:1px solid #e5e7eb;
+      background:#fff;
+      border-radius:10px;
+      padding:7px 10px;
+      cursor:pointer;
+    }
+    button:hover{background:#fafafa}
+    button.primary{border-color:#bbf7d0;background:#f0fdf4}
+    button.danger{border-color:#fecaca;background:#fff1f2}
+    button.active{
+      border-color:#93c5fd;
+      background:#eff6ff;
+      font-weight:800;
+    }
+
+    .pill{
+      display:inline-block;
+      padding:2px 10px;
+      border-radius:999px;
+      background:#eef2ff;
+      font-size:12px;
+      color:#1f2a44;
+      border:1px solid #e5e7eb;
+    }
+
+    .hoursRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-top:10px;
+    }
+    .hourChip{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      font-size:12px;
+      font-weight:700;
+      color:#111827;
+      white-space:nowrap;
+    }
+
+    .dayTotal{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin:8px 0 10px;
+    }
+    .dayTotal .badge{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .badge.pos{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+    .badge.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+    .badge.neu{background:#f3f4f6;border-color:#e5e7eb;color:#374151}
+
+    tr.inTarget td{ background:#fff7ed; }
+    tr.inTarget td:last-child{ font-weight:800; }
+  </style>
+</head>
+
+<body class="wrap">
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <button class="prevBtn">Précédant</button>
+        <button class="nextBtn">Suivant</button>
+
+        &nbsp;|&nbsp;
+
+        <label>
+          Date :
+          <input type="text" class="dateInput" placeholder="JJ/MM/AAAA" inputmode="numeric" style="width:120px" />
+        </label>
+
+        <button class="goDateBtn primary">OK (1 jour)</button>
+
+        &nbsp;|&nbsp;
+
+        <label class="small">
+          Nombre de jours affichés :
+          <input id="daysCount" type="number" min="1" max="60" value="1" style="width:70px" />
+        </label>
+
+        <button id="btnApplyDays">Appliquer jours</button>
+
+        &nbsp;|&nbsp;
+
+        <button id="btnToggleHours" class="danger">Filtrer heures</button>
+
+        <button id="reloadBtn">Recharger</button>
+
+        <span class="pill" id="shownCount">—</span>
+      </div>
+
+      <div class="muted" id="rangeInfo">—</div>
+    </div>
+
+    <div class="muted small" id="fixedInfo"></div>
+  </div>
+
+  <!-- Card spéciale heures -->
+  <div class="card" id="hoursCard" style="display:none">
+    <div class="row">
+      <div>
+        <b>⏱️ Heures filtrées (alignées 15m)</b>
+        <div class="muted small">Quand “Filtrer heures” est actif : les tableaux affichent uniquement ces lignes.</div>
+      </div>
+      <div class="pill" id="hoursCountPill">—</div>
+    </div>
+
+    <div class="hoursRow" id="hoursRow"></div>
+
+    <!-- ✅ TOTAL GLOBAL demandé (addition des positives + negatives = somme simple) -->
+    <div class="dayTotal" style="margin-top:12px">
+      <span class="badge neu" id="globalHoursTotal">Total global (heures filtrées): —</span>
+      <span class="badge neu" id="globalHoursCount">Nb valeurs: —</span>
+    </div>
+  </div>
+
+  <div id="tables" class="grid"></div>
+
+<script>
+/* ========= CONFIG ========= */
+const BASE_FUTURES = "https://fapi.binance.com";
+
+/* tes symboles */
+const SYMBOLS = [
+  "AEVOUSDT","ARPAUSDT","DIAUSDT","EGLDUSDT","IDUSDT","RONINUSDT","WLDUSDT",
+  "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT"
+];
+
+/* intervalle 15m */
+const INTERVAL     = "15m";
+const MINUTES_STEP = 15;
+
+/* tes heures demandées */
+const FILTER_HOURS = [
+ "16:45"
+];
+
+/* état du mode */
+let HOURS_MODE = false;
+
+/* ========= DATE (UTC 00:00) ========= */
+function todayUtc00(){
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0,0,0,0));
+}
+let baseDateUtc = todayUtc00();
+
+/* ========= HELPERS ========= */
+const pad2 = n => String(n).padStart(2, "0");
+const toFr = d => `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
+const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
+function applyColor(el, v){ el.style.color = v>0 ? "green" : v<0 ? "red" : ""; }
+
+function fmtTimeUTC(ms){
+  const d = new Date(ms);
+  return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
+}
+
+function parseHHMM(hhmm){
+  const m = /^(\d{2}):(\d{2})$/.exec(String(hhmm).trim());
+  if(!m) return null;
+  const hh = Number(m[1]), mm = Number(m[2]);
+  if(hh<0||hh>23||mm<0||mm>59) return null;
+  return { hh, mm, minOfDay: hh*60 + mm };
+}
+
+/* aligne sur bougie 15m (floor) */
+function alignToStep(minOfDay){
+  const aligned = Math.floor(minOfDay / MINUTES_STEP) * MINUTES_STEP;
+  return Math.min(1435, aligned);
+}
+
+function buildAlignedHours(listHHMM){
+  const out = [];
+  for(const t of listHHMM){
+    const p = parseHHMM(t);
+    if(!p) continue;
+    const a = alignToStep(p.minOfDay);
+    out.push({
+      original: t,
+      min: a,
+      aligned: `${pad2(Math.floor(a/60))}:${pad2(a%60)}`
+    });
+  }
+  // dédoublonne si 2 heures tombent sur la même bougie
+  const seen = new Set();
+  return out.filter(x => {
+    const k = String(x.min);
+    if(seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+const ALIGNED_TARGETS = buildAlignedHours(FILTER_HOURS);
+
+function isTargetMinute(minOfDay){
+  return ALIGNED_TARGETS.some(t => t.min === minOfDay);
+}
+
+function setBadgeClass(el, value, found){
+  el.classList.remove("pos","neg","neu");
+  if(!found) el.classList.add("neu");
+  else if(value > 0) el.classList.add("pos");
+  else if(value < 0) el.classList.add("neg");
+  else el.classList.add("neu");
+}
+
+/* ========= GLOBAL HOURS ACCUMULATOR (TOTAL GLOBAL demandé) ========= */
+let GLOBAL_HOURS_SUM = 0;     // somme des % (positifs + négatifs => addition simple)
+let GLOBAL_HOURS_CNT = 0;     // nombre de valeurs additionnées
+
+function resetGlobalHours(){
+  GLOBAL_HOURS_SUM = 0;
+  GLOBAL_HOURS_CNT = 0;
+  const elTot = document.getElementById("globalHoursTotal");
+  const elCnt = document.getElementById("globalHoursCount");
+  if(elTot) { elTot.textContent = "Total global (heures filtrées): —"; elTot.className = "badge neu"; }
+  if(elCnt) { elCnt.textContent = "Nb valeurs: —"; elCnt.className = "badge neu"; }
+}
+
+function renderGlobalHours(){
+  if(!HOURS_MODE) return;
+
+  const elTot = document.getElementById("globalHoursTotal");
+  const elCnt = document.getElementById("globalHoursCount");
+  if(!elTot || !elCnt) return;
+
+  elCnt.textContent = `Nb valeurs: ${GLOBAL_HOURS_CNT}`;
+  if(GLOBAL_HOURS_CNT === 0){
+    elTot.textContent = "Total global (heures filtrées): —";
+    elTot.className = "badge neu";
+    return;
+  }
+
+  elTot.textContent = `Total global (heures filtrées): ${fmtPct(GLOBAL_HOURS_SUM)}`;
+  setBadgeClass(elTot, GLOBAL_HOURS_SUM, true);
+}
+
+/* ========= UI hours card ========= */
+function renderHoursCard(){
+  const card = document.getElementById("hoursCard");
+  const row = document.getElementById("hoursRow");
+  const pill = document.getElementById("hoursCountPill");
+
+  if(!HOURS_MODE){
+    card.style.display = "none";
+    return;
+  }
+
+  card.style.display = "";
+  row.innerHTML = "";
+  pill.textContent = `${ALIGNED_TARGETS.length} bougies`;
+
+  for(const t of ALIGNED_TARGETS){
+    const chip = document.createElement("span");
+    chip.className = "hourChip";
+    chip.textContent = `${t.original} → ${t.aligned}`;
+    row.appendChild(chip);
+  }
+}
+
+/* ========= dates ========= */
+function addDaysUtc(d, days){
+  const x = new Date(d);
+  x.setUTCDate(x.getUTCDate() + days);
+  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate(), 0, 0, 0, 0));
+}
+
+function frToUtcDate(fr){
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(fr || "").trim());
+  if(!m) return null;
+  const dd = Number(m[1]), mm = Number(m[2]), yy = Number(m[3]);
+  if(mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  const dt = new Date(Date.UTC(yy, mm-1, dd, 0, 0, 0, 0));
+  if(isNaN(dt.getTime())) return null;
+  if(dt.getUTCFullYear() !== yy || (dt.getUTCMonth()+1) !== mm || dt.getUTCDate() !== dd) return null;
+  return dt;
+}
+
+function dayUtcRangeMs(dUtc){
+  const y = dUtc.getUTCFullYear();
+  const m = dUtc.getUTCMonth();
+  const d = dUtc.getUTCDate();
+  return {
+    start: Date.UTC(y, m, d, 0, 0, 0, 0),
+    end:   Date.UTC(y, m, d, 23, 59, 59, 999)
+  };
+}
+
+/* ========= API ========= */
+async function fetchKlines(symbol, startMs, endMs){
+  const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=200`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(`${symbol} -> HTTP ${r.status}`);
+  const arr = await r.json();
+  if(!Array.isArray(arr) || arr.length === 0) throw new Error(`${symbol} -> aucune bougie ${INTERVAL}`);
+  return arr;
+}
+
+function pctFromKline(k){
+  const o = +k[1], c = +k[4];
+  if(!isFinite(o) || !isFinite(c) || o <= 0) return null;
+  return ((c - o) / o) * 100;
+}
+
+/* ========= UI card tableau ========= */
+function createTableCard(symbol, dateUtc){
+  const fr = toFr(dateUtc);
+
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const h2 = document.createElement("h2");
+  h2.textContent = `Tableau — ${symbol} — ${fr}`;
+  card.appendChild(h2);
+
+  const meta = document.createElement("div");
+  meta.className = "dayTotal";
+  meta.innerHTML = `
+    <span class="badge neu" data-role="sum">Total: —</span>
+    <span class="badge neu" data-role="found">Lignes affichées: —</span>
+  `;
+  card.appendChild(meta);
+
+  const table = document.createElement("table");
+  table.width = "100%";
+  table.cellPadding = "8";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Heure (UTC)</th>
+        <th>Taux variation ${INTERVAL}</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="2">Chargement...</td></tr></tbody>
+  `;
+  card.appendChild(table);
+
+  return {
+    card,
+    tbody: table.querySelector("tbody"),
+    elSum: meta.querySelector('[data-role="sum"]'),
+    elFound: meta.querySelector('[data-role="found"]')
+  };
+}
+
+/* ========= remplissage ========= */
+async function fillTableForDate(symbol, dateUtc, ui){
+  const tbody = ui.tbody;
+  tbody.innerHTML = "";
+
+  const {start, end} = dayUtcRangeMs(dateUtc);
+  const klines = await fetchKlines(symbol, start, end);
+
+  const rows = [];
+  for(const k of klines){
+    if(!k || !isFinite(k[0])) continue;
+    const openMs = k[0];
+    if(openMs < start || openMs > end) continue;
+
+    const v = pctFromKline(k);
+    if(v === null) continue;
+
+    const d = new Date(openMs);
+    const minOfDay = d.getUTCHours()*60 + d.getUTCMinutes();
+    rows.push({ openMs, minOfDay, v });
+  }
+
+  let displayed = rows;
+  if(HOURS_MODE){
+    displayed = rows.filter(r => isTargetMinute(r.minOfDay));
+  }
+
+  // ✅ Total de la carte (somme simple positives + negatives)
+  let sum = 0;
+  for(const r of displayed) sum += r.v;
+
+  ui.elFound.textContent = `Lignes affichées: ${displayed.length}`;
+  ui.elSum.textContent = HOURS_MODE
+    ? `Σ(heures filtrées): ${displayed.length ? fmtPct(sum) : "—"}`
+    : `Σ(journée): ${displayed.length ? fmtPct(sum) : "—"}`;
+
+  setBadgeClass(ui.elSum, sum, displayed.length);
+
+  // ✅ IMPORTANT : quand Filtrer heures = ON => on cumule dans le TOTAL GLOBAL
+  if(HOURS_MODE && displayed.length){
+    GLOBAL_HOURS_SUM += sum;
+    GLOBAL_HOURS_CNT += displayed.length;
+  }
+
+  if(displayed.length === 0){
+    tbody.innerHTML = `<tr><td colspan="2">Aucune donnée</td></tr>`;
+    return;
+  }
+
+  for(const r of displayed){
+    const tr = document.createElement("tr");
+    if(HOURS_MODE) tr.classList.add("inTarget");
+
+    const tdT = document.createElement("td");
+    const tdV = document.createElement("td");
+
+    tdT.textContent = fmtTimeUTC(r.openMs);
+    tdV.textContent = fmtPct(r.v);
+    applyColor(tdV, r.v);
+
+    tr.appendChild(tdT);
+    tr.appendChild(tdV);
+    tbody.appendChild(tr);
+  }
+}
+
+/* ========= RENDER ========= */
+async function refreshMulti(){
+  const days = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 1)));
+  const tablesWrap = document.getElementById("tables");
+  tablesWrap.innerHTML = "";
+
+  const startFr = toFr(addDaysUtc(baseDateUtc, -(days-1)));
+  const endFr   = toFr(baseDateUtc);
+
+  document.getElementById("rangeInfo").textContent =
+    `Affiché : ${endFr} → ${startFr} (UTC)`;
+
+  document.getElementById("fixedInfo").textContent =
+    `SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL} | Mode heures = ${HOURS_MODE ? "ON" : "OFF"}`;
+
+  renderHoursCard();
+
+  // ✅ reset global total au début d'un refresh
+  resetGlobalHours();
+
+  const jobs = [];
+  let cardsCount = 0;
+
+  for(let i=0;i<days;i++){
+    const d = addDaysUtc(baseDateUtc, -i);
+    for(const sym of SYMBOLS){
+      const obj = createTableCard(sym, d);
+      tablesWrap.appendChild(obj.card);
+      cardsCount++;
+
+      jobs.push(
+        fillTableForDate(sym, d, obj).catch(err=>{
+          console.error(err);
+          obj.tbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
+          obj.elSum.textContent = "Total: Erreur";
+          obj.elFound.textContent = "Lignes affichées: —";
+        })
+      );
+    }
+  }
+
+  await Promise.all(jobs);
+
+  // ✅ après chargement de toutes les cartes => affiche total global heures filtrées
+  renderGlobalHours();
+
+  document.getElementById("shownCount").textContent = `Cartes: ${cardsCount}`;
+}
+
+/* ========= EVENTS ========= */
+document.querySelectorAll(".prevBtn").forEach(btn => {
+  btn.addEventListener("click", async ()=>{
+    baseDateUtc = addDaysUtc(baseDateUtc, -1);
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    await refreshMulti();
+  });
+});
+
+document.querySelectorAll(".nextBtn").forEach(btn => {
+  btn.addEventListener("click", async ()=>{
+    baseDateUtc = addDaysUtc(baseDateUtc, 1);
+    const tdy = todayUtc00().getTime();
+    if(baseDateUtc.getTime() > tdy) baseDateUtc = todayUtc00();
+
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    await refreshMulti();
+  });
+});
+
+/* OK = 1 seul jour */
+document.querySelectorAll(".goDateBtn").forEach(btn => {
+  btn.addEventListener("click", async ()=>{
+    const wrap = btn.parentElement;
+    const inp = wrap.querySelector(".dateInput");
+    const dt = frToUtcDate(inp.value);
+    if(!dt){
+      alert("Date invalide. Utilise JJ/MM/AAAA (ex: 22/12/2025).");
+      return;
+    }
+
+    const tdy = todayUtc00().getTime();
+    if(dt.getTime() > tdy){
+      alert("Date dans le futur (UTC). Choisis une date <= aujourd’hui.");
+      return;
+    }
+
+    baseDateUtc = new Date(dt);
+
+    // OK = 1 seul jour
+    document.getElementById("daysCount").value = "1";
+    document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+    await refreshMulti();
+  });
+});
+
+/* Appliquer jours (multi-jours) */
+document.getElementById("btnApplyDays").addEventListener("click", async ()=>{
+  const v = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 1)));
+  document.getElementById("daysCount").value = String(v);
+  await refreshMulti();
+});
+
+document.querySelectorAll(".dateInput").forEach(inp => {
+  inp.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      const btn = inp.parentElement.parentElement.querySelector(".goDateBtn");
+      if(btn) btn.click();
+    }
+  });
+});
+
+document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
+
+/* bouton filtre heures */
+document.getElementById("btnToggleHours").addEventListener("click", async ()=>{
+  HOURS_MODE = !HOURS_MODE;
+  const b = document.getElementById("btnToggleHours");
+  b.classList.toggle("active", HOURS_MODE);
+  b.textContent = HOURS_MODE ? "Filtrer heures (ON)" : "Filtrer heures";
+  await refreshMulti();
+});
+
+/* ========= INIT ========= */
+document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
+refreshMulti();
+</script>
+
+</body>
+</html>

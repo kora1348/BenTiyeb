@@ -49,6 +49,7 @@
       flex-wrap:wrap;
       gap:8px;
       align-items:center;
+      margin-top:10px;
     }
     .hourChip{
       padding:6px 10px;
@@ -137,7 +138,14 @@
       </div>
       <div class="pill" id="hoursCountPill">—</div>
     </div>
+
     <div class="hoursRow" id="hoursRow"></div>
+
+    <!-- ✅ TOTAL GLOBAL demandé (addition des positives + negatives = somme simple) -->
+    <div class="dayTotal" style="margin-top:12px">
+      <span class="badge neu" id="globalHoursTotal">Total global (heures filtrées): —</span>
+      <span class="badge neu" id="globalHoursCount">Nb valeurs: —</span>
+    </div>
   </div>
 
   <div id="tables" class="grid"></div>
@@ -156,7 +164,7 @@ const SYMBOLS = [
 const INTERVAL     = "15m";
 const MINUTES_STEP = 15;
 
-/* tes heures demandées (on s’en fout du positif/négatif) */
+/* tes heures demandées */
 const FILTER_HOURS = [
   "07:30",
 ];
@@ -224,6 +232,46 @@ function isTargetMinute(minOfDay){
   return ALIGNED_TARGETS.some(t => t.min === minOfDay);
 }
 
+function setBadgeClass(el, value, found){
+  el.classList.remove("pos","neg","neu");
+  if(!found) el.classList.add("neu");
+  else if(value > 0) el.classList.add("pos");
+  else if(value < 0) el.classList.add("neg");
+  else el.classList.add("neu");
+}
+
+/* ========= GLOBAL HOURS ACCUMULATOR (TOTAL GLOBAL demandé) ========= */
+let GLOBAL_HOURS_SUM = 0;     // somme des % (positifs + négatifs => addition simple)
+let GLOBAL_HOURS_CNT = 0;     // nombre de valeurs additionnées
+
+function resetGlobalHours(){
+  GLOBAL_HOURS_SUM = 0;
+  GLOBAL_HOURS_CNT = 0;
+  const elTot = document.getElementById("globalHoursTotal");
+  const elCnt = document.getElementById("globalHoursCount");
+  if(elTot) { elTot.textContent = "Total global (heures filtrées): —"; elTot.className = "badge neu"; }
+  if(elCnt) { elCnt.textContent = "Nb valeurs: —"; elCnt.className = "badge neu"; }
+}
+
+function renderGlobalHours(){
+  if(!HOURS_MODE) return;
+
+  const elTot = document.getElementById("globalHoursTotal");
+  const elCnt = document.getElementById("globalHoursCount");
+  if(!elTot || !elCnt) return;
+
+  elCnt.textContent = `Nb valeurs: ${GLOBAL_HOURS_CNT}`;
+  if(GLOBAL_HOURS_CNT === 0){
+    elTot.textContent = "Total global (heures filtrées): —";
+    elTot.className = "badge neu";
+    return;
+  }
+
+  elTot.textContent = `Total global (heures filtrées): ${fmtPct(GLOBAL_HOURS_SUM)}`;
+  setBadgeClass(elTot, GLOBAL_HOURS_SUM, true);
+}
+
+/* ========= UI hours card ========= */
 function renderHoursCard(){
   const card = document.getElementById("hoursCard");
   const row = document.getElementById("hoursRow");
@@ -246,6 +294,7 @@ function renderHoursCard(){
   }
 }
 
+/* ========= dates ========= */
 function addDaysUtc(d, days){
   const x = new Date(d);
   x.setUTCDate(x.getUTCDate() + days);
@@ -330,14 +379,6 @@ function createTableCard(symbol, dateUtc){
   };
 }
 
-function setBadgeClass(el, value, found){
-  el.classList.remove("pos","neg","neu");
-  if(!found) el.classList.add("neu");
-  else if(value > 0) el.classList.add("pos");
-  else if(value < 0) el.classList.add("neg");
-  else el.classList.add("neu");
-}
-
 /* ========= remplissage ========= */
 async function fillTableForDate(symbol, dateUtc, ui){
   const tbody = ui.tbody;
@@ -365,6 +406,7 @@ async function fillTableForDate(symbol, dateUtc, ui){
     displayed = rows.filter(r => isTargetMinute(r.minOfDay));
   }
 
+  // ✅ Total de la carte (somme simple positives + negatives)
   let sum = 0;
   for(const r of displayed) sum += r.v;
 
@@ -374,6 +416,12 @@ async function fillTableForDate(symbol, dateUtc, ui){
     : `Σ(journée): ${displayed.length ? fmtPct(sum) : "—"}`;
 
   setBadgeClass(ui.elSum, sum, displayed.length);
+
+  // ✅ IMPORTANT : quand Filtrer heures = ON => on cumule dans le TOTAL GLOBAL
+  if(HOURS_MODE && displayed.length){
+    GLOBAL_HOURS_SUM += sum;
+    GLOBAL_HOURS_CNT += displayed.length;
+  }
 
   if(displayed.length === 0){
     tbody.innerHTML = `<tr><td colspan="2">Aucune donnée</td></tr>`;
@@ -414,6 +462,9 @@ async function refreshMulti(){
 
   renderHoursCard();
 
+  // ✅ reset global total au début d'un refresh
+  resetGlobalHours();
+
   const jobs = [];
   let cardsCount = 0;
 
@@ -436,6 +487,10 @@ async function refreshMulti(){
   }
 
   await Promise.all(jobs);
+
+  // ✅ après chargement de toutes les cartes => affiche total global heures filtrées
+  renderGlobalHours();
+
   document.getElementById("shownCount").textContent = `Cartes: ${cardsCount}`;
 }
 
@@ -478,7 +533,7 @@ document.querySelectorAll(".goDateBtn").forEach(btn => {
 
     baseDateUtc = new Date(dt);
 
-    // 🔥 important: OK = 1 seul jour
+    // OK = 1 seul jour
     document.getElementById("daysCount").value = "1";
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
     await refreshMulti();
