@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Variations — Binance (Movers 24h + Futures 15m)</title>
+  <title>Variations — Binance Futures Perp (Movers 24h + 15m Tables)</title>
   <style>
     body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
     h2{margin:0 0 6px}
@@ -166,16 +166,6 @@
           </select>
         </label>
 
-        &nbsp;|&nbsp;
-
-        <label class="small">
-          Movers :
-          <select id="moversMarket">
-            <option value="futures" selected>Futures (24h)</option>
-            <option value="spot">Spot (24h)</option>
-          </select>
-        </label>
-
         <button id="reloadBtn">Recharger</button>
 
         <span class="pill" id="shownCount">—</span>
@@ -228,7 +218,7 @@
       </div>
 
       <div class="muted small" style="margin-top:8px">
-        ✅ Movers = <b>24h change LIVE</b> (comme Binance).<br>
+        ✅ Movers = <b>Futures USDT-M PERPETUAL (ticker/24hr)</b> filtré par <b>exchangeInfo</b> (TRADING + PERPETUAL + USDT).<br>
         ✅ Tables BTC/ETH = bougies futures <b>15m</b> (historique du jour).<br>
         ✅ Mode “séance” filtre uniquement les heures demandées.
       </div>
@@ -240,14 +230,14 @@
 <script>
 /* ========= CONFIG ========= */
 const BASE_FUTURES = "https://fapi.binance.com";
-const BASE_SPOT    = "https://api.binance.com";
-
 const SYMBOLS = ["BTCUSDT","ETHUSDT"];  // tableaux 15m (futures)
 const INTERVAL     = "15m";
 const MINUTES_STEP = 15;
 
 const MOVERS_TOP_N = 4;
-const MOVERS_QUOTE = "USDT";
+const MOVERS_QUOTE = "USDT"; // uniquement pairs ...USDT
+// Optionnel: ignore les moves trop extrêmes (pour debug). Mets 0 pour désactiver.
+const MOVERS_ABS_CLAMP = 0; // ex: 200 pour ignorer > +/-200%
 
 const NOW = new Date();
 const RANGE_START_UTC = new Date(Date.UTC(NOW.getUTCFullYear(), NOW.getUTCMonth(), NOW.getUTCDate(), 0,0,0,0));
@@ -355,11 +345,6 @@ function dayUtcRangeMs(dUtc){
   const d = dUtc.getUTCDate();
   return { start: Date.UTC(y,m,d,0,0,0,0), end: Date.UTC(y,m,d,23,59,59,999) };
 }
-function sameUtcDay(a, b){
-  return a.getUTCFullYear()===b.getUTCFullYear()
-    && a.getUTCMonth()===b.getUTCMonth()
-    && a.getUTCDate()===b.getUTCDate();
-}
 
 /* ========= API (15m FUTURES) ========= */
 async function fetchKlinesFutures(symbol, startMs, endMs){
@@ -376,27 +361,51 @@ function pctFromKline(k){
   return ((c - o) / o) * 100;
 }
 
-/* ========= MOVERS (LIVE 24H like Binance) ========= */
-async function fetchMovers24h(market){
-  const url = market === "spot"
-    ? `${BASE_SPOT}/api/v3/ticker/24hr`
-    : `${BASE_FUTURES}/fapi/v1/ticker/24hr`;
+/* ========= MOVERS: USDT-M PERPETUAL ONLY ========= */
+let perpUsdtSetPromise = null;
 
+async function getPerpUsdtSet(){
+  if(perpUsdtSetPromise) return perpUsdtSetPromise;
+
+  perpUsdtSetPromise = (async ()=>{
+    const url = `${BASE_FUTURES}/fapi/v1/exchangeInfo`;
+    const r = await fetch(url);
+    if(!r.ok) throw new Error(`exchangeInfo -> HTTP ${r.status}`);
+    const json = await r.json();
+    const all = Array.isArray(json?.symbols) ? json.symbols : [];
+    const set = new Set();
+
+    for(const s of all){
+      if(!s) continue;
+      if(s.status !== "TRADING") continue;
+      if(s.contractType !== "PERPETUAL") continue;     // ✅ PERPETUAL
+      if(s.quoteAsset !== MOVERS_QUOTE) continue;      // ✅ USDT
+      set.add(s.symbol);
+    }
+    return set;
+  })();
+
+  return perpUsdtSetPromise;
+}
+
+async function fetchMovers24hPerp(){
+  const [perpSet] = await Promise.all([getPerpUsdtSet()]);
+  const url = `${BASE_FUTURES}/fapi/v1/ticker/24hr`;
   const r = await fetch(url);
   if(!r.ok) throw new Error(`ticker/24hr -> HTTP ${r.status}`);
   const arr = await r.json();
   if(!Array.isArray(arr)) throw new Error(`ticker/24hr -> réponse invalide`);
 
-  // On garde uniquement les paires ...USDT, et percent numérique
   const rows = [];
   for(const it of arr){
     const sym = String(it?.symbol || "");
-    if(!sym.endsWith(MOVERS_QUOTE)) continue;
+    if(!perpSet.has(sym)) continue;                    // ✅ filtre PERPETUAL+USDT
     const v = Number(it?.priceChangePercent);
     if(!isFinite(v)) continue;
+    if(MOVERS_ABS_CLAMP > 0 && Math.abs(v) > MOVERS_ABS_CLAMP) continue;
     rows.push({ sym, v });
   }
-  return rows;
+  return { rows, totalPerp: perpSet.size };
 }
 
 /* ========= MODE TARGET ========= */
@@ -406,7 +415,7 @@ function modeTarget(){
   return { kind:"all", sessions: null, label:"Σ(24h)" };
 }
 
-/* ========= CARDS ========= */
+/* ========= UI CARDS ========= */
 function setBadgeClass(el, value, found){
   el.classList.remove("pos","neg","neu");
   if(!found) el.classList.add("neu");
@@ -424,15 +433,15 @@ function createMoversCard(dateUtc){
   card.dataset.polarity = st ? st.cls : "unknown";
 
   const h2 = document.createElement("h2");
-  h2.textContent = `📈 Movers (24h LIVE) — ${fr} (TOP ${MOVERS_TOP_N} / FLOP ${MOVERS_TOP_N})`;
+  h2.textContent = `📈 Movers (24h LIVE) — ${fr} — Futures USDT-M PERPETUAL (TOP ${MOVERS_TOP_N} / FLOP ${MOVERS_TOP_N})`;
   card.appendChild(h2);
 
   const kpi = document.createElement("div");
   kpi.className = "kpiRow";
   kpi.innerHTML = `
-    <span class="kpi" data-role="market">Market: —</span>
-    <span class="kpi" data-role="count">Paires USDT: —</span>
-    <span class="kpi" data-role="note">—</span>
+    <span class="kpi" data-role="market">Market: FUTURES PERP</span>
+    <span class="kpi" data-role="count">Paires PERP USDT: —</span>
+    <span class="kpi" data-role="note">Source: fapi ticker/24hr</span>
   `;
   card.appendChild(kpi);
 
@@ -460,7 +469,7 @@ function createMoversCard(dateUtc){
     </div>
     <table class="mini" width="100%">
       <thead><tr><th>Symbol</th><th>Var 24h</th></tr></thead>
-      <tbody data-role="top"><tr><td colspan="2" class="loadingLine">⏳ Chargement des movers 24h…</td></tr></tbody>
+      <tbody data-role="top"><tr><td colspan="2" class="loadingLine">⏳ Chargement…</td></tr></tbody>
     </table>
   `;
 
@@ -473,7 +482,7 @@ function createMoversCard(dateUtc){
     </div>
     <table class="mini" width="100%">
       <thead><tr><th>Symbol</th><th>Var 24h</th></tr></thead>
-      <tbody data-role="flop"><tr><td colspan="2" class="loadingLine">⏳ Chargement des movers 24h…</td></tr></tbody>
+      <tbody data-role="flop"><tr><td colspan="2" class="loadingLine">⏳ Chargement…</td></tr></tbody>
     </table>
   `;
 
@@ -483,24 +492,16 @@ function createMoversCard(dateUtc){
 
   return {
     card,
-    elMarket: kpi.querySelector('[data-role="market"]'),
     elCount:  kpi.querySelector('[data-role="count"]'),
-    elNote:   kpi.querySelector('[data-role="note"]'),
     topTbody: topBox.querySelector('tbody[data-role="top"]'),
     flopTbody: flopBox.querySelector('tbody[data-role="flop"]'),
   };
 }
 
-async function fillMoversForDate(dateUtc, ui){
-  const market = document.getElementById("moversMarket").value; // futures|spot
-  ui.elMarket.textContent = `Market: ${market.toUpperCase()}`;
-  ui.elNote.textContent = `Source: ticker/24hr (LIVE)`;
-
-  // IMPORTANT: ticker/24hr = live, donc ça représente "maintenant".
-  // On l'affiche pour chaque jour, mais c'est la même source live.
-  // Si tu veux de l'historique 24h, Binance ne donne pas ça directement via API.
-  const rows = await fetchMovers24h(market);
-  ui.elCount.textContent = `Paires USDT: ${rows.length}`;
+async function fillMoversForDate(_dateUtc, ui){
+  // ticker/24hr = LIVE (pas historique) mais on l’affiche dans la grille multi-jours.
+  const { rows, totalPerp } = await fetchMovers24hPerp();
+  ui.elCount.textContent = `Paires PERP USDT: ${rows.length}/${totalPerp}`;
 
   rows.sort((a,b)=> b.v - a.v);
   const top = rows.slice(0, MOVERS_TOP_N);
@@ -697,16 +698,14 @@ async function refreshMulti(){
   document.getElementById("rangeInfo").textContent =
     `Affiché : ${toFr(baseDateUtc)} → ${toFr(addDaysUtc(baseDateUtc, -(realDays-1)))} (UTC)`;
 
-  const market = document.getElementById("moversMarket").value;
   document.getElementById("fixedInfo").textContent =
-    `Fenêtre fixée : ${toFr(RANGE_START_UTC)} → ${toFr(RANGE_END_UTC)} (UTC). | Tables: Futures 15m BTC/ETH | Movers: ${market.toUpperCase()} ticker/24hr (LIVE).`;
+    `Fenêtre fixée : ${toFr(RANGE_START_UTC)} → ${toFr(RANGE_END_UTC)} (UTC). | Movers: Futures USDT-M PERPETUAL (24h LIVE). | Tables: Futures 15m BTC/ETH.`;
 
   const jobs = [];
 
   for(let i=0;i<realDays;i++){
     const d = addDaysUtc(baseDateUtc, -i);
 
-    // 1) Movers card (LIVE 24h)
     const movers = createMoversCard(d);
     tablesWrap.appendChild(movers.card);
     jobs.push(
@@ -714,11 +713,10 @@ async function refreshMulti(){
         console.error(err);
         movers.topTbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
         movers.flopTbody.innerHTML = `<tr><td colspan="2">Erreur</td></tr>`;
-        movers.elNote.textContent = "❌ Erreur API movers.";
+        movers.elCount.textContent = "Paires PERP USDT: Erreur";
       })
     );
 
-    // 2) Tables 15m futures (BTC/ETH)
     for(const sym of SYMBOLS){
       const obj = createTableCard(sym, d);
       tablesWrap.appendChild(obj.card);
@@ -778,7 +776,6 @@ document.querySelectorAll(".dateInput").forEach(inp => {
 });
 
 document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
-document.getElementById("moversMarket").addEventListener("change", refreshMulti);
 
 document.getElementById("polarityFilter").addEventListener("change", ()=>{
   const v = document.getElementById("polarityFilter").value;
