@@ -7,19 +7,15 @@
   <style>
     body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
     h2{margin:0 0 6px}
-    .status{margin:0 0 10px;font-weight:700}
-    .status.negative{color:#dc2626}
-    .status.positive{color:#16a34a}
-
     .card{margin:12px 0 14px;padding:14px;border-radius:10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.10)}
     .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .muted{color:#666;font-size:13px}
+    .small{font-size:12px}
     table{background:#fff;border-collapse:collapse}
     th{background:#fafafa;position:sticky;top:0}
     th,td{border:1px solid #ddd;padding:8px}
     .wrap{max-width:1200px}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
-    .small{font-size:12px}
 
     select, input, button{font:inherit}
     button{
@@ -32,6 +28,11 @@
     button:hover{background:#fafafa}
     button.primary{border-color:#bbf7d0;background:#f0fdf4}
     button.danger{border-color:#fecaca;background:#fff1f2}
+    button.active{
+      border-color:#93c5fd;
+      background:#eff6ff;
+      font-weight:800;
+    }
 
     .pill{
       display:inline-block;
@@ -42,58 +43,6 @@
       color:#1f2a44;
       border:1px solid #e5e7eb;
     }
-
-    .insights{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid #e5e7eb;
-      background:linear-gradient(180deg,#ffffff,#fafafa);
-    }
-    .insightsTitle{
-      margin:0 0 8px;
-      font-weight:800;
-      font-size:13px;
-      color:#111827;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-    }
-    .insightsGrid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-    @media (max-width: 700px){
-      .insightsGrid{grid-template-columns:1fr}
-    }
-    .box{
-      border-radius:12px;
-      padding:10px 10px 12px;
-      border:1px solid #e5e7eb;
-      background:#fff;
-    }
-    .boxHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:8px;
-      font-weight:800;
-      font-size:12px;
-      letter-spacing:.2px;
-      text-transform:uppercase;
-    }
-    .boxHeader .tag{
-      font-weight:800;
-      font-size:11px;
-      padding:3px 8px;
-      border-radius:999px;
-      border:1px solid transparent;
-    }
-    .tag.neg{background:#fee2e2;border-color:#fecaca;color:#991b1b}
-    .tag.pos{background:#dcfce7;border-color:#bbf7d0;color:#166534}
 
     .hoursRow{
       display:flex;
@@ -109,9 +58,8 @@
       font-size:12px;
       font-weight:700;
       color:#111827;
+      white-space:nowrap;
     }
-    .hourChip.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
-    .hourChip.pos{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
 
     .dayTotal{
       display:flex;
@@ -134,19 +82,8 @@
     .badge.neg{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
     .badge.neu{background:#f3f4f6;border-color:#e5e7eb;color:#374151}
 
-    .modePill{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid #dbeafe;
-      background:#eff6ff;
-      color:#1d4ed8;
-      font-weight:800;
-      font-size:12px;
-    }
-
-    tr.inWindow td{ background:#fff7ed; }
-    tr.inWindow td:last-child{ font-weight:800; }
+    tr.inTarget td{ background:#fff7ed; }
+    tr.inTarget td:last-child{ font-weight:800; }
   </style>
 </head>
 
@@ -178,74 +115,29 @@
 
         &nbsp;|&nbsp;
 
-        <label class="small">
-          Filtre :
-          <select id="polarityFilter">
-            <option value="all">All</option>
-            <option value="negative">Negative</option>
-            <option value="positive">Positif</option>
-          </select>
-        </label>
+        <button id="btnToggleHours" class="danger">Filtrer heures</button>
 
         <button id="reloadBtn">Recharger</button>
 
         <span class="pill" id="shownCount">—</span>
-        <span class="modePill" id="modePill" style="display:none"></span>
       </div>
 
       <div class="muted" id="rangeInfo">—</div>
     </div>
 
     <div class="muted small" id="fixedInfo"></div>
+  </div>
 
-    <div class="insights" id="globalInsights">
-      <div class="insightsTitle">
-        <span>📌 Heures clés (15m)</span>
-        <span class="muted small">1 seul total = celui du mode actif</span>
+  <!-- Card spéciale heures -->
+  <div class="card" id="hoursCard" style="display:none">
+    <div class="row">
+      <div>
+        <b>⏱️ Heures filtrées (alignées 15m)</b>
+        <div class="muted small">Quand “Filtrer heures” est actif : les tableaux affichent uniquement ces lignes.</div>
       </div>
-
-      <div class="insightsGrid">
-        <div class="box">
-          <div class="boxHeader">
-            <span>🔴 Séances à risque</span>
-            <span class="tag neg">NEGATIVE</span>
-          </div>
-
-          <div class="hoursRow" style="margin-bottom:10px">
-            <div class="hoursRow" id="riskHours"></div>
-          </div>
-
-          <div class="hoursRow">
-            <button class="danger" id="btnShowRiskNegative">Afficher tableaux NÉGATIFS + séances 09:51 / 09:54 / 21:51 / 23:51 / 23:54</button>
-            <button id="btnResetModeA">Reset</button>
-          </div>
-        </div>
-
-        <div class="box">
-          <div class="boxHeader">
-            <span>🟢 Séances favorables</span>
-            <span class="tag pos">POSITIVE</span>
-          </div>
-
-          <div class="hoursRow" style="margin-bottom:10px">
-            <div class="hoursRow" id="goodHours"></div>
-          </div>
-
-          <div class="hoursRow">
-            <button class="primary" id="btnShowGoodPositive">Afficher tableaux POSITIFS + séances 11:48 / 12:42 / 14:45 / 15:48</button>
-            <button id="btnResetModeB">Reset</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="muted small" style="margin-top:8px">
-        ✅ OK = <b>1 seul jour</b> (la date tapée).<br>
-        ✅ Appliquer jours = multi-jours.<br>
-        ✅ Mode “Séances favorables”: jours POSITIFS + lignes séances, total = Σ(séances).<br>
-        ✅ Mode “Séances à risque”: jours NÉGATIFS + lignes séances, total = Σ(séances).<br>
-        ✅ En mode séance: tableau = uniquement les lignes des séances.
-      </div>
+      <div class="pill" id="hoursCountPill">—</div>
     </div>
+    <div class="hoursRow" id="hoursRow"></div>
   </div>
 
   <div id="tables" class="grid"></div>
@@ -264,35 +156,22 @@ const SYMBOLS = [
 const INTERVAL     = "15m";
 const MINUTES_STEP = 15;
 
-/* date de référence = aujourd'hui (UTC 00:00) */
+/* tes heures demandées (on s’en fout du positif/négatif) */
+const FILTER_HOURS = [
+  "07:30",
+];
+
+/* état du mode */
+let HOURS_MODE = false;
+
+/* ========= DATE (UTC 00:00) ========= */
 function todayUtc00(){
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0,0,0,0));
 }
 let baseDateUtc = todayUtc00();
 
-/* ========= STATUS MANUEL ========= */
-const STATUS_BY_DATE_FR = {
-  "21/12/2025": { text: "negative", cls: "negative" },
-  "20/12/2025": { text: "positif",  cls: "positive" },
-  "19/12/2025": { text: "negative", cls: "negative" },
-  "18/12/2025": { text: "negative", cls: "negative" },
-  "17/12/2025": { text: "negative", cls: "negative" },
-  "16/12/2025": { text: "positif",  cls: "positive" },
-  "15/12/2025": { text: "negative", cls: "negative" },
-  "14/12/2025": { text: "negative", cls: "negative" },
-  "13/12/2025": { text: "negative", cls: "negative" },
-  "12/12/2025": { text: "negative", cls: "negative" },
-};
-
-/* ========= SÉANCES ========= */
-const GOOD_SESSIONS = ["11:48","12:42","14:45","15:48"];
-const RISK_SESSIONS = ["09:51","09:54","21:51","23:51","23:54"];
-
-/* Modes */
-let MODE = "none"; // "none" | "goodPos" | "riskNeg"
-
-/* ========= UI helpers ========= */
+/* ========= HELPERS ========= */
 const pad2 = n => String(n).padStart(2, "0");
 const toFr = d => `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
 const fmtPct = v => `${v>0?"+":""}${v.toFixed(2)}%`;
@@ -311,54 +190,59 @@ function parseHHMM(hhmm){
   return { hh, mm, minOfDay: hh*60 + mm };
 }
 
-/* aligne une minute sur bougie 15m */
+/* aligne sur bougie 15m (floor) */
 function alignToStep(minOfDay){
   const aligned = Math.floor(minOfDay / MINUTES_STEP) * MINUTES_STEP;
   return Math.min(1435, aligned);
 }
 
-function buildSessions(listHHMM){
+function buildAlignedHours(listHHMM){
   const out = [];
   for(const t of listHHMM){
     const p = parseHHMM(t);
     if(!p) continue;
     const a = alignToStep(p.minOfDay);
     out.push({
+      original: t,
       min: a,
-      label: t,
-      alignedLabel: `${pad2(Math.floor(a/60))}:${pad2(a%60)}`
+      aligned: `${pad2(Math.floor(a/60))}:${pad2(a%60)}`
     });
   }
-  return out;
+  // dédoublonne si 2 heures tombent sur la même bougie
+  const seen = new Set();
+  return out.filter(x => {
+    const k = String(x.min);
+    if(seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }
 
-function isInAnySession(minOfDay, sessions){
-  for(const s of sessions){
-    if(minOfDay === s.min) return true;
-  }
-  return false;
+const ALIGNED_TARGETS = buildAlignedHours(FILTER_HOURS);
+
+function isTargetMinute(minOfDay){
+  return ALIGNED_TARGETS.some(t => t.min === minOfDay);
 }
 
-function renderGlobalInsights(){
-  const riskWrap = document.getElementById("riskHours");
-  const goodWrap = document.getElementById("goodHours");
-  riskWrap.innerHTML = "";
-  goodWrap.innerHTML = "";
+function renderHoursCard(){
+  const card = document.getElementById("hoursCard");
+  const row = document.getElementById("hoursRow");
+  const pill = document.getElementById("hoursCountPill");
 
-  const riskBuilt = buildSessions(RISK_SESSIONS);
-  const goodBuilt = buildSessions(GOOD_SESSIONS);
-
-  for(const s of riskBuilt){
-    const sp = document.createElement("span");
-    sp.className = "hourChip neg";
-    sp.textContent = `${s.label} → ${s.alignedLabel}`;
-    riskWrap.appendChild(sp);
+  if(!HOURS_MODE){
+    card.style.display = "none";
+    return;
   }
-  for(const s of goodBuilt){
-    const sp = document.createElement("span");
-    sp.className = "hourChip pos";
-    sp.textContent = `${s.label} → ${s.alignedLabel}`;
-    goodWrap.appendChild(sp);
+
+  card.style.display = "";
+  row.innerHTML = "";
+  pill.textContent = `${ALIGNED_TARGETS.length} bougies`;
+
+  for(const t of ALIGNED_TARGETS){
+    const chip = document.createElement("span");
+    chip.className = "hourChip";
+    chip.textContent = `${t.original} → ${t.aligned}`;
+    row.appendChild(chip);
   }
 }
 
@@ -405,22 +289,12 @@ function pctFromKline(k){
   return ((c - o) / o) * 100;
 }
 
-/* ========= MODE TARGET ========= */
-function modeTarget(){
-  if(MODE === "goodPos") return { kind:"session", sessions: buildSessions(GOOD_SESSIONS), label:`Σ(séances alignées ${INTERVAL})` };
-  if(MODE === "riskNeg") return { kind:"session", sessions: buildSessions(RISK_SESSIONS), label:`Σ(séances alignées ${INTERVAL})` };
-  return { kind:"all", sessions: null, label:"Σ(24h)" };
-}
-
-/* ========= CARD ========= */
+/* ========= UI card tableau ========= */
 function createTableCard(symbol, dateUtc){
   const fr = toFr(dateUtc);
-  const st = STATUS_BY_DATE_FR[fr];
 
   const card = document.createElement("div");
   card.className = "card";
-  card.dataset.polarity = st ? st.cls : "unknown";
-  card.dataset.date = fr; // utile debug
 
   const h2 = document.createElement("h2");
   h2.textContent = `Tableau — ${symbol} — ${fr}`;
@@ -433,18 +307,6 @@ function createTableCard(symbol, dateUtc){
     <span class="badge neu" data-role="found">Lignes affichées: —</span>
   `;
   card.appendChild(meta);
-
-  if(st){
-    const p = document.createElement("div");
-    p.className = `status ${st.cls}`;
-    p.textContent = st.text;
-    card.appendChild(p);
-  }else{
-    const p = document.createElement("div");
-    p.className = "muted small";
-    p.textContent = "(polarité non définie)";
-    card.appendChild(p);
-  }
 
   const table = document.createElement("table");
   table.width = "100%";
@@ -476,7 +338,7 @@ function setBadgeClass(el, value, found){
   else el.classList.add("neu");
 }
 
-/* ========= FILL TABLE ========= */
+/* ========= remplissage ========= */
 async function fillTableForDate(symbol, dateUtc, ui){
   const tbody = ui.tbody;
   tbody.innerHTML = "";
@@ -498,18 +360,19 @@ async function fillTableForDate(symbol, dateUtc, ui){
     rows.push({ openMs, minOfDay, v });
   }
 
-  const tgt = modeTarget();
-
   let displayed = rows;
-  if(tgt.kind === "session"){
-    displayed = rows.filter(r => isInAnySession(r.minOfDay, tgt.sessions));
+  if(HOURS_MODE){
+    displayed = rows.filter(r => isTargetMinute(r.minOfDay));
   }
 
   let sum = 0;
   for(const r of displayed) sum += r.v;
 
   ui.elFound.textContent = `Lignes affichées: ${displayed.length}`;
-  ui.elSum.textContent = `${tgt.label}: ${displayed.length ? fmtPct(sum) : "—"}`;
+  ui.elSum.textContent = HOURS_MODE
+    ? `Σ(heures filtrées): ${displayed.length ? fmtPct(sum) : "—"}`
+    : `Σ(journée): ${displayed.length ? fmtPct(sum) : "—"}`;
+
   setBadgeClass(ui.elSum, sum, displayed.length);
 
   if(displayed.length === 0){
@@ -519,7 +382,7 @@ async function fillTableForDate(symbol, dateUtc, ui){
 
   for(const r of displayed){
     const tr = document.createElement("tr");
-    if(tgt.kind !== "all") tr.classList.add("inWindow");
+    if(HOURS_MODE) tr.classList.add("inTarget");
 
     const tdT = document.createElement("td");
     const tdV = document.createElement("td");
@@ -532,48 +395,6 @@ async function fillTableForDate(symbol, dateUtc, ui){
     tr.appendChild(tdV);
     tbody.appendChild(tr);
   }
-}
-
-/* ========= FILTRE + MODE ========= */
-function applyPolarityFilter(){
-  const sel = document.getElementById("polarityFilter").value;
-  const cards = Array.from(document.querySelectorAll("#tables .card"));
-  let shown = 0;
-
-  for(const c of cards){
-    const pol = c.dataset.polarity;
-    let visible = true;
-
-    if(sel === "negative") visible = (pol === "negative");
-    else if(sel === "positive") visible = (pol === "positive");
-
-    c.style.display = visible ? "" : "none";
-    if(visible) shown++;
-  }
-
-  document.getElementById("shownCount").textContent = `Affichés: ${shown}/${cards.length}`;
-}
-
-function updateModePill(){
-  const pill = document.getElementById("modePill");
-  if(MODE === "none"){
-    pill.style.display = "none";
-    pill.textContent = "";
-    return;
-  }
-  pill.style.display = "";
-  if(MODE === "riskNeg") pill.textContent = `MODE: NÉGATIFS + séances (alignées ${INTERVAL})`;
-  if(MODE === "goodPos") pill.textContent = `MODE: POSITIFS + séances (alignées ${INTERVAL})`;
-}
-
-function setMode(next){
-  MODE = next;
-  updateModePill();
-
-  if(MODE === "goodPos") document.getElementById("polarityFilter").value = "positive";
-  if(MODE === "riskNeg") document.getElementById("polarityFilter").value = "negative";
-
-  refreshMulti();
 }
 
 /* ========= RENDER ========= */
@@ -589,16 +410,19 @@ async function refreshMulti(){
     `Affiché : ${endFr} → ${startFr} (UTC)`;
 
   document.getElementById("fixedInfo").textContent =
-    `SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL} | (OK = 1 jour exact)`;
+    `SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL} | Mode heures = ${HOURS_MODE ? "ON" : "OFF"}`;
+
+  renderHoursCard();
 
   const jobs = [];
+  let cardsCount = 0;
 
   for(let i=0;i<days;i++){
     const d = addDaysUtc(baseDateUtc, -i);
-
     for(const sym of SYMBOLS){
       const obj = createTableCard(sym, d);
       tablesWrap.appendChild(obj.card);
+      cardsCount++;
 
       jobs.push(
         fillTableForDate(sym, d, obj).catch(err=>{
@@ -612,7 +436,7 @@ async function refreshMulti(){
   }
 
   await Promise.all(jobs);
-  applyPolarityFilter();
+  document.getElementById("shownCount").textContent = `Cartes: ${cardsCount}`;
 }
 
 /* ========= EVENTS ========= */
@@ -620,8 +444,6 @@ document.querySelectorAll(".prevBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, -1);
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
-    // logique: prev/next reste sur 1 jour (si tu veux)
-    document.getElementById("daysCount").value = String(Math.max(1, Number(document.getElementById("daysCount").value||1)));
     await refreshMulti();
   });
 });
@@ -629,17 +451,15 @@ document.querySelectorAll(".prevBtn").forEach(btn => {
 document.querySelectorAll(".nextBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     baseDateUtc = addDaysUtc(baseDateUtc, 1);
-    // option: ne pas aller au-delà d'aujourd'hui (évite "aucune donnée" si futur)
     const tdy = todayUtc00().getTime();
     if(baseDateUtc.getTime() > tdy) baseDateUtc = todayUtc00();
 
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
-    document.getElementById("daysCount").value = String(Math.max(1, Number(document.getElementById("daysCount").value||1)));
     await refreshMulti();
   });
 });
 
-/* ✅ OK = 1 seul jour (ta demande) */
+/* OK = 1 seul jour */
 document.querySelectorAll(".goDateBtn").forEach(btn => {
   btn.addEventListener("click", async ()=>{
     const wrap = btn.parentElement;
@@ -650,7 +470,6 @@ document.querySelectorAll(".goDateBtn").forEach(btn => {
       return;
     }
 
-    // option: bloque futur (Binance renvoie souvent rien)
     const tdy = todayUtc00().getTime();
     if(dt.getTime() > tdy){
       alert("Date dans le futur (UTC). Choisis une date <= aujourd’hui.");
@@ -661,13 +480,12 @@ document.querySelectorAll(".goDateBtn").forEach(btn => {
 
     // 🔥 important: OK = 1 seul jour
     document.getElementById("daysCount").value = "1";
-
     document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
     await refreshMulti();
   });
 });
 
-/* Appliquer jours (multi-jours volontaire) */
+/* Appliquer jours (multi-jours) */
 document.getElementById("btnApplyDays").addEventListener("click", async ()=>{
   const v = Math.max(1, Math.min(60, Number(document.getElementById("daysCount").value || 1)));
   document.getElementById("daysCount").value = String(v);
@@ -685,21 +503,16 @@ document.querySelectorAll(".dateInput").forEach(inp => {
 
 document.getElementById("reloadBtn").addEventListener("click", refreshMulti);
 
-document.getElementById("polarityFilter").addEventListener("change", ()=>{
-  const v = document.getElementById("polarityFilter").value;
-  if(MODE === "goodPos" && v !== "positive") setMode("none");
-  if(MODE === "riskNeg" && v !== "negative") setMode("none");
-  applyPolarityFilter();
+/* bouton filtre heures */
+document.getElementById("btnToggleHours").addEventListener("click", async ()=>{
+  HOURS_MODE = !HOURS_MODE;
+  const b = document.getElementById("btnToggleHours");
+  b.classList.toggle("active", HOURS_MODE);
+  b.textContent = HOURS_MODE ? "Filtrer heures (ON)" : "Filtrer heures";
+  await refreshMulti();
 });
 
-document.getElementById("btnShowGoodPositive").addEventListener("click", ()=>setMode("goodPos"));
-document.getElementById("btnShowRiskNegative").addEventListener("click", ()=>setMode("riskNeg"));
-document.getElementById("btnResetModeA").addEventListener("click", ()=>setMode("none"));
-document.getElementById("btnResetModeB").addEventListener("click", ()=>setMode("none"));
-
 /* ========= INIT ========= */
-renderGlobalInsights();
-updateModePill();
 document.querySelectorAll(".dateInput").forEach(x => x.value = toFr(baseDateUtc));
 refreshMulti();
 </script>
