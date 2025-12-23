@@ -40,7 +40,6 @@
       padding:10px 14px;font-weight:700;font-size:18px;letter-spacing:.5px;
     }
 
-    /* DUPE CARD */
     .dupe-card{margin:16px 0 10px;background:#0f1222;border:1px solid #23324a}
     .dupe-title{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700}
     .dupe-month{margin-top:10px}
@@ -51,11 +50,15 @@
     }
     .dupe-pill.positive{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.08)}
     .dupe-pill.negative{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08)}
+
+    .navBtns{display:flex;gap:8px;align-items:center}
+    .btn-nav{border-color:#2a3755;background:#0b1220}
+    .miniInfo{font-size:11px;color:var(--muted);margin-top:4px}
   </style>
 </head>
 <body>
   <header>
-    <h1 id="h1">Listings en janvier • Bougie n°<span id="nLabel">20</span></h1>
+    <h1 id="h1">Listings en janvier • Bougie n°<span id="nLabel">96</span></h1>
     <div class="sub">
       Marché analysé : <b>Binance Futures — USDT-M PERP</b>
     </div>
@@ -76,6 +79,12 @@
         <select id="candleSel"></select>
       </label>
 
+      <!-- ✅ Boutons qui changent UNIQUEMENT l'intervalle 3m -->
+      <div class="navBtns">
+        <button id="prev3mBtn" class="btn-nav">⬅️ 3m précédent</button>
+        <button id="next3mBtn" class="btn-nav">3m suivant ➡️</button>
+      </div>
+
       <div style="display:flex;gap:8px;align-items:center">
         <button id="runBtn">Run</button>
         <button id="clearBtn" class="btn-danger">🗑️ Effacer</button>
@@ -84,11 +93,11 @@
       </div>
 
       <div class="muted" id="nCalendar">
-        Bougie n°<b><span id="nCalN">20</span></b> — <b><span id="nCalDate">—</span></b>
+        Bougie n°<b><span id="nCalN">96</span></b> — <b><span id="nCalDate">—</span></b>
+        <div class="miniInfo" id="offsetInfo">Offset 3m: 0 (heure actuelle)</div>
       </div>
     </div>
 
-    <!-- CARD x2 -->
     <div id="dupeCard" class="card dupe-card" style="display:none">
       <div class="dupe-title">
         🚨 <span>Minutes “x2” (même jour • même polarité) — Bougie 3m</span>
@@ -106,10 +115,10 @@
         <thead>
           <tr>
             <th style="width:150px">Symbole</th>
-            <th style="width:250px">Date bougie 3m<br><span class="muted">(même jour que daily • heure actuelle)</span></th>
+            <th style="width:250px">Date bougie 3m<br><span class="muted">(même jour que daily • heure “naviguée”)</span></th>
             <th style="width:170px">Variation bougie 3m</th>
-            <th style="width:240px">Date bougie n°<span id="thN1">20</span></th>
-            <th style="width:170px">Variation bougie n°<span id="thN2">20</span></th>
+            <th style="width:240px">Date bougie n°<span id="thN1">96</span></th>
+            <th style="width:170px">Variation bougie n°<span id="thN2">96</span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -117,7 +126,7 @@
 
       <div id="err" class="error"></div>
       <div class="hint">
-        Bougie 3m: même <b>jour</b> que la bougie daily n°N, avec l’<b>heure actuelle</b>, alignée en 3 minutes.
+        Bougie 3m: même <b>jour</b> que la bougie daily n°N, avec une <b>heure naviguée</b> (Précédant/Suivant), alignée sur 3 minutes.
       </div>
 
       <div id="candleDateBanner" class="candle-date-banner">—</div>
@@ -130,6 +139,10 @@
     const yearSel   = document.getElementById('yearSel');
     const monthSel  = document.getElementById('monthSel');
     const candleSel = document.getElementById('candleSel');
+
+    const prev3mBtn = document.getElementById('prev3mBtn');
+    const next3mBtn = document.getElementById('next3mBtn');
+
     const runBtn    = document.getElementById('runBtn');
     const clearBtn  = document.getElementById('clearBtn');
     const statusEl  = document.getElementById('status');
@@ -143,6 +156,7 @@
 
     const nCalN    = document.getElementById('nCalN');
     const nCalDate = document.getElementById('nCalDate');
+    const offsetInfo = document.getElementById('offsetInfo');
 
     const candleDateBanner = document.getElementById('candleDateBanner');
 
@@ -150,14 +164,11 @@
     const dupeContent = document.getElementById('dupeContent');
 
     const dayMs = 24*60*60*1000;
-
-    // Banner perso (inchangé)
     const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
-
-    // On travaille sur ces 3 mois seulement (comme ton projet)
-    const ALLOWED_MONTHS = [0,5,8]; // Jan, Jun, Sep
+    const ALLOWED_MONTHS = [0,5,8];
 
     let lastRows = [];
+    let hasLoadedOnce = false;
 
     const CACHE = {
       symbols: null,
@@ -168,7 +179,7 @@
     };
 
     const keyMonth    = (Y,M)=>`${Y}-${M}`;
-    const keyComputed = (Y,M,N)=>`${Y}-${M}-${N}`;
+    const keyComputed = (Y,M,N,off)=>`${Y}-${M}-${N}-off${off}`; // ✅ offset inclus
     const key3m = (sym, openTime)=>`${sym}|${openTime}`;
 
     function formatShortFrDate(ms){
@@ -185,12 +196,10 @@
     }
     const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
 
-    // clé jour (sur la date 3m) => YYYY-MM-DD (Brussels)
     const dayKeyFromMs = (ms)=> new Intl.DateTimeFormat('en-CA',{
       timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'
     }).format(new Date(ms));
 
-    // jour affichage => DD/MM/YY (Brussels)
     const dayHumanFromMs = (ms)=> new Intl.DateTimeFormat('fr-BE',{
       timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'
     }).format(new Date(ms));
@@ -221,14 +230,33 @@
       });
     }
 
-    // ===== 3m logic =====
+    // ======================
+    // ✅ 3m NAVIGATION
+    // ======================
     const THREE_MIN_MS = 3*60*1000;
 
+    // Offset en "pas de 3 minutes" (0 = heure actuelle)
+    let offset3mSteps = 0;
+
+    function updateOffsetLabel(){
+      const mins = offset3mSteps * 3;
+      const txt = (mins === 0)
+        ? 'Offset 3m: 0 (heure actuelle)'
+        : `Offset 3m: ${offset3mSteps} (=${mins>0?'+':''}${mins} min)`;
+      offsetInfo.textContent = txt;
+    }
+
     function get3mOpenFromDailyOpen(openTimeDailyMs){
-      const daily = new Date(openTimeDailyMs);
-      const now = new Date();
-      daily.setHours(now.getHours(), now.getMinutes(), 0, 0);
-      return Math.floor(daily.getTime() / THREE_MIN_MS) * THREE_MIN_MS;
+      // ✅ on prend l'heure "naviguée" : now + offset
+      const nowShifted = new Date(Date.now() + offset3mSteps * THREE_MIN_MS);
+
+      // On construit une date basée sur le JOUR de la bougie daily,
+      // mais avec l'heure/minute de nowShifted (ou ton "timeframe" courant).
+      const d = new Date(openTimeDailyMs);
+      d.setHours(nowShifted.getHours(), nowShifted.getMinutes(), 0, 0);
+
+      // Aligner sur une ouverture 3m
+      return Math.floor(d.getTime() / THREE_MIN_MS) * THREE_MIN_MS;
     }
 
     async function get3mCandlePctAt(sym, openTimeMs){
@@ -301,10 +329,7 @@
           const klines = await getDailyKlines(sym);
           if(!klines.length) return null;
 
-          // listing = première bougie daily existante
           const openTime1 = klines[0][0];
-
-          // on garde uniquement ceux dont le listing tombe dans le mois (Brussels)
           const {y,m} = monthYearInBrussels(openTime1);
           if (y!==Y || m!==M) return null;
 
@@ -318,7 +343,7 @@
     }
 
     async function computeRows(Y,M,N){
-      const kc = keyComputed(Y,M,N);
+      const kc = keyComputed(Y,M,N,offset3mSteps);
       if (CACHE.computed.has(kc)) return CACHE.computed.get(kc);
 
       const base = CACHE.monthRows.get(keyMonth(Y,M)) || [];
@@ -327,7 +352,6 @@
       const rows = await mapLimit(base, 10, async (r)=>{
         const kl = r.dailyKlines;
 
-        // daily N
         let openTimeN=null, pctN=null;
         if (kl.length>=N){
           const candle = kl[N-1];
@@ -336,7 +360,6 @@
           pctN = o>0 ? ((c-o)/o*100) : 0;
         }
 
-        // 3m derived
         let openTime3m=null, pct3m=null;
         if (openTimeN !== null){
           const target3mOpen = get3mOpenFromDailyOpen(openTimeN);
@@ -348,7 +371,6 @@
         return { sym:r.sym, openTime1:r.openTime1, openTime3m, pct3m, openTimeN, pctN };
       });
 
-      // tri par date N
       rows.sort((a,b)=>{
         if (a.openTimeN && b.openTimeN) return a.openTimeN - b.openTimeN;
         if (a.openTimeN) return -1;
@@ -389,14 +411,8 @@
       tbody.appendChild(frag);
     }
 
-    // ==============================
-    // NEW: dupe card based on 3m dates
-    // Condition: each month (Jan/Jun/Sep) must have exactly 2 "x2" days
-    // where x2 day means: exactly 2 positives OR exactly 2 negatives on that day (3m pct)
-    // ==============================
     function buildX2ReportForMonth(rows){
-      const byDay = new Map(); // dayKey -> {pos:[sym], neg:[sym], ms:number}
-
+      const byDay = new Map();
       rows.forEach(r=>{
         if (r.openTime3m==null || r.pct3m==null) return;
         if (r.pct3m === 0) return;
@@ -407,23 +423,19 @@
         (r.pct3m > 0 ? bag.pos : bag.neg).push(r.sym);
       });
 
-      const x2 = []; // {dayHuman, sign, syms[]}
+      const x2 = [];
       for (const bag of byDay.values()){
         if (bag.pos.length === 2) x2.push({ dayHuman: dayHumanFromMs(bag.ms), sign:'positive', syms: bag.pos.slice(0,2) });
         if (bag.neg.length === 2) x2.push({ dayHuman: dayHumanFromMs(bag.ms), sign:'negative', syms: bag.neg.slice(0,2) });
       }
-
-      // Important: keep only days that are x2 (we expect 2 of them for the rule)
       return x2;
     }
 
     async function updateDupeCardFor3m(Y,N){
-      // calc rows for Jan/Jun/Sep
       await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
       const rowsByMonth = await Promise.all(ALLOWED_MONTHS.map(m => computeRows(Y,m,N)));
 
       const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-
       const report = ALLOWED_MONTHS.map((M, idx)=>{
         const x2 = buildX2ReportForMonth(rowsByMonth[idx]);
         return { M, label: monthNamesShort[M], x2 };
@@ -437,7 +449,6 @@
         return;
       }
 
-      // render card
       report.forEach(block=>{
         const wrap = document.createElement('div');
         wrap.className = 'dupe-month';
@@ -448,8 +459,7 @@
           const pill = document.createElement('span');
           pill.className = `dupe-pill ${d.sign==='positive'?'positive':'negative'}`;
           const signTxt = d.sign==='positive' ? 'Haussière' : 'Baissière';
-          const syms = d.syms.join(', ');
-          pill.innerHTML = `<b>${d.dayHuman}</b> • ${signTxt} • x2 <span class="muted" style="margin-left:6px">${syms}</span>`;
+          pill.innerHTML = `<b>${d.dayHuman}</b> • ${signTxt} • x2 <span class="muted" style="margin-left:6px">${d.syms.join(', ')}</span>`;
           pills.appendChild(pill);
         });
 
@@ -471,10 +481,7 @@
       nCalN.textContent = n;
       const ms = BANNER_BASE_MS + (n-20)*dayMs;
       nCalDate.textContent = new Intl.DateTimeFormat('fr-BE', {
-        timeZone: tz,
-        day: '2-digit',
-        month: '2-digit',
-        year: '2-digit'
+        timeZone: tz, day: '2-digit', month: '2-digit', year: '2-digit'
       }).format(ms);
     }
 
@@ -485,6 +492,7 @@
       thN2.textContent = n;
       updateNCalendar();
       updateBannerOnly();
+      updateOffsetLabel();
     }
 
     async function buildAndRenderCurrent(Y,M,N){
@@ -507,17 +515,33 @@
         await warmMonth(Y,M);
         Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
 
-        statusEl.textContent = `Calcul daily N=${N} + 3m…`;
+        statusEl.textContent = `Calcul daily N=${N} + 3m (offset=${offset3mSteps})…`;
         await buildAndRenderCurrent(Y,M,N);
 
         statusEl.textContent = 'Vérification des minutes x2 (3m)…';
         await updateDupeCardFor3m(Y, N);
 
-        statusEl.textContent = `Terminé (cache) — ${lastRows.length} symbole(s) • N=${N} • ${String(M+1).padStart(2,'0')}/${Y}`;
+        hasLoadedOnce = true;
+        statusEl.textContent = `Terminé — ${lastRows.length} symbole(s) • N=${N} • offset3m=${offset3mSteps}`;
       }catch(e){
         console.error(e);
         errEl.textContent='Erreur: '+e.message;
         statusEl.textContent='';
+      }
+    }
+
+    async function tryFastRender(){
+      const Y = parseInt(yearSel.value,10);
+      const M = parseInt(monthSel.value,10);
+      const N = parseInt(candleSel.value,10);
+
+      if (CACHE.monthRows.has(keyMonth(Y,M))){
+        statusEl.textContent = `Recalcul (offset3m=${offset3mSteps}) depuis le cache…`;
+        await buildAndRenderCurrent(Y,M,N);
+        await updateDupeCardFor3m(Y, N);
+        statusEl.textContent = `OK • N=${N} • offset3m=${offset3mSteps}`;
+      }else{
+        statusEl.textContent = 'Paramètres modifiés — cliquez Run (premier chargement)';
       }
     }
 
@@ -529,6 +553,11 @@
       CACHE.k3m.clear();
 
       lastRows = [];
+      hasLoadedOnce = false;
+
+      offset3mSteps = 0;
+      updateOffsetLabel();
+
       tbody.innerHTML = '';
       errEl.textContent = '';
       progressEl.textContent = '—';
@@ -542,19 +571,16 @@
       statusEl.textContent = 'Tout effacé — sélectionne tes paramètres puis clique Run.';
     }
 
-    async function tryFastRender(){
-      const Y = parseInt(yearSel.value,10);
-      const M = parseInt(monthSel.value,10);
-      const N = parseInt(candleSel.value,10);
+    // ✅ Boutons 3m: ne touchent PAS au day N
+    async function step3m(delta){
+      offset3mSteps += delta;
+      updateOffsetLabel();
 
-      if (CACHE.monthRows.has(keyMonth(Y,M))){
-        statusEl.textContent = 'Recalcul rapide depuis le cache…';
-        await buildAndRenderCurrent(Y,M,N);
-        await updateDupeCardFor3m(Y, N);
-        statusEl.textContent = `OK (cache) • ${lastRows.length} symbole(s)`;
-      }else{
-        statusEl.textContent = 'Paramètres modifiés — cliquez sur Run (premier chargement seulement)';
+      if(!hasLoadedOnce){
+        statusEl.textContent = 'Clique Run une première fois (chargement initial)…';
+        return;
       }
+      await tryFastRender();
     }
 
     (function initSelectors(){
@@ -591,6 +617,7 @@
       updateLabels();
       updateNCalendar();
       updateBannerOnly();
+      updateOffsetLabel();
     })();
 
     candleSel.addEventListener('change', async ()=>{ updateLabels(); await tryFastRender(); });
@@ -599,6 +626,9 @@
 
     runBtn.addEventListener('click', run);
     clearBtn.addEventListener('click', clearAll);
+
+    prev3mBtn.addEventListener('click', ()=> step3m(-1)); // -3 minutes
+    next3mBtn.addEventListener('click', ()=> step3m(+1)); // +3 minutes
 
     const h1 = document.getElementById('h1');
     const monthNames = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
