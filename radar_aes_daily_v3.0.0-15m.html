@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Listings — Bougie n°20 (Binance Futures USDT-M PERP) — 15m</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --bad:#ef4444; --text:#e5e7eb; --border:#1f2937; --blue:#3b82f6;}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:13px}
+    header{padding:18px 16px;border-bottom:1px solid var(--border)}
+    h1{margin:0;font-size:20px}
+    .sub{color:var(--muted);font-size:13px;margin-top:4px}
+    main{max-width:1180px;margin:18px auto;padding:0 12px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;align-items:flex-end}
+    label{font-size:12px}
+    label span{display:block;margin-bottom:4px;font-size:11px}
+    select,button{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px}
+    button{cursor:pointer}
+    .btn-danger{border-color:#3b1d1d;background:#1a0e0e}
+    .btn-warn{border-color:#5a430f;background:#1a1407}
+    #status{font-size:11px}
+    #nCalendar{font-size:12px;margin-left:auto}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;position:relative}
+    table{width:100%;border-collapse:collapse;margin-top:6px}
+    th,td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;vertical-align:top;white-space:nowrap}
+    th:first-child,td:first-child{text-align:left}
+    th:nth-child(2),td:nth-child(2){text-align:center;}
+    th:nth-child(3),td:nth-child(3){text-align:center;}
+    .up{color:var(--ok);font-weight:600}
+    .down{color:var(--bad);font-weight:600}
+    .muted{color:var(--muted)}
+    .error{color:var(--bad);margin-top:8px}
+    .hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.45}
+    .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px}
+    .right{position:absolute;top:-70px;right:12px}
+    #homeBtn { color:white!important; border:1px solid var(--border); }
+    #homeBtn a { color:white!important; text-decoration:none; display:block; }
+
+    .candle-date-banner{
+      margin:16px 0 6px;display:flex;justify-content:center;align-items:center;
+      background:#facc15;color:#111827;border:1px solid #f59e0b;border-radius:12px;
+      padding:10px 14px;font-weight:700;font-size:18px;letter-spacing:.5px;
+    }
+
+    .dupe-card{margin:16px 0 10px;background:#0f1222;border:1px solid #23324a}
+    .dupe-title{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700}
+    .dupe-month{margin-top:10px}
+    .dupe-month h4{margin:8px 0 6px;font-size:13px;color:#d1d5db}
+    .dupe-pill{
+      display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);
+      border-radius:999px;padding:6px 10px;margin:4px 6px 0 0;font-size:12px
+    }
+    .dupe-pill.positive{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.08)}
+    .dupe-pill.negative{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08)}
+
+    .navBtns{display:flex;gap:8px;align-items:center}
+    .btn-nav{border-color:#2a3755;background:#0b1220}
+    .miniInfo{font-size:11px;color:var(--muted);margin-top:4px}
+
+    #autoWrap{ margin-top:12px; margin-bottom:18px; }
+    .autoHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .autoGrid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:12px}
+    @media (min-width: 980px){ .autoGrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+    .autoTag{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--border);border-radius:999px;padding:6px 10px;
+      background:#0b1220;font-size:12px;color:#e5e7eb
+    }
+    .scanLine{ margin:6px 0 10px; color:var(--muted); font-size:12px; line-height:1.35; }
+    .scanLine b{color:#e5e7eb}
+
+    .pbWrap{
+      width:320px; max-width:100%;
+      border:1px solid var(--border);
+      background:#0b1220;
+      border-radius:999px;
+      overflow:hidden;
+      height:12px;
+      position:relative;
+      flex: 0 0 auto;
+    }
+    .pbBar{ height:100%; width:0%; background:var(--blue); transition:width .12s linear; }
+    .pbText{ font-size:11px; color:var(--muted); margin-top:6px; }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1 id="h1">Listings en janvier • Bougie n°<span id="nLabel">96</span></h1>
+  <div class="sub">Marché analysé : <b>Binance Futures — USDT-M PERP</b> • Intervalle scanné : <b>15m</b></div>
+</header>
+
+<main>
+  <div class="controls">
+    <label>
+      <span class="muted">Année (affichée +1)</span>
+      <select id="yearSel"></select>
+    </label>
+    <label>
+      <span class="muted">Mois</span>
+      <select id="monthSel"></select>
+    </label>
+    <label>
+      <span class="muted">N° de bougie (daily)</span>
+      <select id="candleSel"></select>
+    </label>
+
+    <div class="navBtns">
+      <button id="prev15mBtn" class="btn-nav">⬅️ 15m précédent</button>
+      <button id="next15mBtn" class="btn-nav">15m suivant ➡️</button>
+    </div>
+
+    <button id="scanBtn" class="btn-warn">🔎 Scanner (auto) — 1 day (24h) en 15m</button>
+
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="runBtn">Run</button>
+      <button id="clearBtn" class="btn-danger">🗑️ Effacer</button>
+      <button id="homeBtn"><a href="/index.html">Accueil</a></button>
+      <span id="status" class="muted"></span>
+    </div>
+
+    <div class="muted" id="nCalendar">
+      Bougie n°<b><span id="nCalN">96</span></b> — <b><span id="nCalDate">—</span></b>
+      <div class="miniInfo" id="offsetInfo">Offset 15m: 0 (heure actuelle)</div>
+    </div>
+  </div>
+
+  <div id="dupeCard" class="card dupe-card" style="display:none">
+    <div class="dupe-title">🚨 <span>Minutes “x2” (même jour • même polarité) — Bougie 15m</span></div>
+    <div class="scanLine" id="manualScanLine"></div>
+    <div class="muted" style="margin-bottom:8px">
+      Condition: <b>2 dates</b> qui ont <b>exactement 2 cryptos</b> de la même polarité (sur la bougie 15m) dans <b>Jan + Jun + Sep</b>.
+    </div>
+    <div id="dupeContent"></div>
+  </div>
+
+  <div id="autoWrap" class="card" style="display:none">
+    <div class="autoHead">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <b>🧠 Résultats du scan auto</b>
+        <span class="autoTag" id="autoMeta">—</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <div class="pbWrap" title="Progression scan auto">
+          <div id="autoPbBar" class="pbBar"></div>
+        </div>
+        <div id="autoPbText" class="pbText">—</div>
+      </div>
+
+      <div class="muted" id="autoHint" style="flex-basis:100%">
+        Scan auto = 24h complet sur la bougie 1D (96 offsets de 15m). On affiche une card par offset TRUE.
+      </div>
+    </div>
+    <div id="autoGrid" class="autoGrid"></div>
+  </div>
+
+  <div class="card" id="tableCard">
+    <div class="right badge"><span id="progress">—</span></div>
+
+    <table>
+      <thead>
+      <tr>
+        <th style="width:150px">Symbole</th>
+        <th style="width:250px">
+          Date bougie <span id="th15mInterval">15m</span>
+          <br><span class="muted">(même jour que daily • minute scannée: <b id="thScanHHMM">--:--</b>)</span>
+        </th>
+        <th style="width:170px">Variation bougie <span id="th15mInterval2">15m</span></th>
+        <th style="width:240px">Date bougie n°<span id="thN1">96</span></th>
+        <th style="width:170px">Variation bougie n°<span id="thN2">96</span></th>
+      </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div id="err" class="error"></div>
+    <div class="hint">
+      Bougie <b>15m</b>: même <b>jour</b> que la bougie daily n°N, avec la <b>minute scannée</b> (Précédant/Suivant), alignée sur 15 minutes.
+    </div>
+
+    <div id="candleDateBanner" class="candle-date-banner">—</div>
+  </div>
+</main>
+
+<script>
+  const tz='Europe/Brussels';
+
+  const yearSel   = document.getElementById('yearSel');
+  const monthSel  = document.getElementById('monthSel');
+  const candleSel = document.getElementById('candleSel');
+
+  const prev15mBtn = document.getElementById('prev15mBtn');
+  const next15mBtn = document.getElementById('next15mBtn');
+
+  const scanBtn      = document.getElementById('scanBtn');
+
+  const runBtn    = document.getElementById('runBtn');
+  const clearBtn  = document.getElementById('clearBtn');
+  const statusEl  = document.getElementById('status');
+  const progressEl= document.getElementById('progress');
+  const tbody     = document.getElementById('tbody');
+  const errEl     = document.getElementById('err');
+
+  const nLabel = document.getElementById('nLabel');
+  const thN1   = document.getElementById('thN1');
+  const thN2   = document.getElementById('thN2');
+
+  const nCalN    = document.getElementById('nCalN');
+  const nCalDate = document.getElementById('nCalDate');
+  const offsetInfo = document.getElementById('offsetInfo');
+
+  const candleDateBanner = document.getElementById('candleDateBanner');
+
+  const dupeCard = document.getElementById('dupeCard');
+  const dupeContent = document.getElementById('dupeContent');
+  const manualScanLine = document.getElementById('manualScanLine');
+
+  const autoWrap = document.getElementById('autoWrap');
+  const autoGrid = document.getElementById('autoGrid');
+  const autoMeta = document.getElementById('autoMeta');
+
+  const autoPbBar  = document.getElementById('autoPbBar');
+  const autoPbText = document.getElementById('autoPbText');
+
+  const thScanHHMM = document.getElementById('thScanHHMM');
+  const th15mInterval = document.getElementById('th15mInterval');
+  const th15mInterval2 = document.getElementById('th15mInterval2');
+
+  const dayMs = 24*60*60*1000;
+
+  // Base calendrier (garde ta logique existante)
+  const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
+
+  const ALLOWED_MONTHS = [0,5,8];
+
+  let lastRows = [];
+  let hasLoadedOnce = false;
+
+  // ========= 15m SETTINGS =========
+  const STEP_MIN = 15;
+  const STEP_MS  = STEP_MIN*60*1000;
+  const DAY_STEPS = 24*60/STEP_MIN; // 96
+  const INTERVAL_LABEL = '15m';
+
+  const CACHE = {
+    symbols: null,
+    dailyKlines: new Map(),
+    monthRows: new Map(),
+    computed: new Map(),
+    kStep: new Map(),
+  };
+
+  const keyMonth    = (Y,M)=>`${Y}-${M}`;
+  const keyComputed = (Y,M,N,off)=>`${Y}-${M}-${N}-off${off}`;
+  const keyStep = (sym, openTime)=>`${sym}|${openTime}`;
+
+  const fmtPct = n => (n>=0?'+':'') + n.toFixed(4) + ' %';
+
+  function formatShortFrDate(ms){
+    return new Intl.DateTimeFormat('fr-BE',{
+      timeZone: tz, day:'2-digit', month:'2-digit', year:'2-digit'
+    }).format(new Date(ms));
+  }
+
+  function toBrusselsDate(ms){
+    return new Intl.DateTimeFormat('fr-BE',{
+      timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+    }).format(new Date(ms));
+  }
+
+  function monthYearInBrussels(ms){
+    const d = new Date(
+      new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'})
+        .format(new Date(ms))+'T00:00:00'
+    );
+    return { y: d.getUTCFullYear(), m: d.getUTCMonth() };
+  }
+
+  const dayKeyFromMs = (ms)=> new Intl.DateTimeFormat('en-CA',{
+    timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'
+  }).format(new Date(ms));
+
+  const dayHumanFromMs = (ms)=> new Intl.DateTimeFormat('fr-BE',{
+    timeZone:tz,year:'2-digit',month:'2-digit',day:'2-digit'
+  }).format(new Date(ms));
+
+  function hhmmBrusselsFromDayOffset(offSteps){
+    const mins = ((offSteps % DAY_STEPS) + DAY_STEPS) % DAY_STEPS;
+    const totalMin = mins * STEP_MIN;
+    const hh = String(Math.floor(totalMin/60)).padStart(2,'0');
+    const mm = String(totalMin%60).padStart(2,'0');
+    return `${hh}:${mm}`;
+  }
+
+  function fmtEta(ms){
+    if(!isFinite(ms) || ms < 0) return '—';
+    const s = Math.round(ms/1000);
+    const mm = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    return `${mm}:${ss}`;
+  }
+
+  async function fetchJSON(url){
+    const r = await fetch(url);
+    if(!r.ok) throw new Error(`HTTP ${r.status} — ${await r.text()}`);
+    return r.json();
+  }
+
+  async function mapLimit(items, limit, worker){
+    const ret=[]; let i=0, active=0, done=0;
+    return new Promise(resolve=>{
+      const next=()=>{
+        while(active<limit && i<items.length){
+          const idx=i++, it=items[idx]; active++;
+          Promise.resolve(worker(it,idx))
+            .then(res=>{ ret[idx]=res; })
+            .catch(()=>{ ret[idx]=null; })
+            .finally(()=>{
+              active--; done++;
+              progressEl.textContent = `${done}/${items.length}`;
+              if(done===items.length) resolve(ret); else next();
+            });
+        }
+      };
+      next();
+    });
+  }
+
+  // ======================
+  // ✅ DEFAULT OFFSET = NOW (Europe/Brussels) arrondi sur 15 minutes
+  // ======================
+  function getNowOffsetSteps(){
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz, hour12:false, hour:'2-digit', minute:'2-digit'
+    }).formatToParts(new Date());
+
+    const hh = parseInt(parts.find(p=>p.type==='hour')?.value || '0', 10);
+    const mm = parseInt(parts.find(p=>p.type==='minute')?.value || '0', 10);
+
+    const totalMin = hh*60 + mm;
+    const flooredMin = Math.floor(totalMin / STEP_MIN) * STEP_MIN;
+    return Math.floor(flooredMin / STEP_MIN); // 0..95
+  }
+
+  // ======================
+  // 15m NAVIGATION
+  // ======================
+  let offsetSteps = 0;
+
+  function updateOffsetLabel(){
+    const norm = ((offsetSteps % DAY_STEPS) + DAY_STEPS) % DAY_STEPS;
+    const label = hhmmBrusselsFromDayOffset(norm);
+
+    offsetInfo.textContent = `Offset ${INTERVAL_LABEL} (dans la journée 1D): ${norm} (minute = ${label})`;
+    thScanHHMM.textContent = label;
+    th15mInterval.textContent = INTERVAL_LABEL;
+    th15mInterval2.textContent = INTERVAL_LABEL;
+  }
+
+  function getStepOpenFromDailyOpen(openTimeDailyMs, offSteps){
+    const norm = ((offSteps % DAY_STEPS) + DAY_STEPS) % DAY_STEPS;
+    return openTimeDailyMs + norm * STEP_MS;
+  }
+
+  async function getStepCandlePctAt(sym, openTimeMs){
+    const k = keyStep(sym, openTimeMs);
+    if (CACHE.kStep.has(k)) return CACHE.kStep.get(k);
+
+    const u = new URL('https://fapi.binance.com/fapi/v1/klines');
+    u.searchParams.set('symbol', sym);
+    u.searchParams.set('interval', INTERVAL_LABEL); // 15m
+    u.searchParams.set('startTime', String(openTimeMs));
+    u.searchParams.set('endTime', String(openTimeMs + STEP_MS));
+    u.searchParams.set('limit', '1');
+
+    try{
+      const kl = await fetchJSON(u.toString());
+      if(!kl || !kl.length){
+        const res = { openTime: openTimeMs, pct: null };
+        CACHE.kStep.set(k, res);
+        return res;
+      }
+      const candle = kl[0];
+      const o = parseFloat(candle[1]);
+      const c = parseFloat(candle[4]);
+      const pct = (o>0) ? ((c-o)/o*100) : 0;
+
+      const res = { openTime: candle[0], pct };
+      CACHE.kStep.set(k, res);
+      return res;
+    }catch{
+      const res = { openTime: openTimeMs, pct: null };
+      CACHE.kStep.set(k, res);
+      return res;
+    }
+  }
+
+  async function getSymbolsOnce(){
+    if (CACHE.symbols) return CACHE.symbols;
+    const ex = await fetchJSON('https://fapi.binance.com/fapi/v1/exchangeInfo');
+    CACHE.symbols = (ex.symbols||[])
+      .filter(s => s.contractType==='PERPETUAL' && s.quoteAsset==='USDT' && s.status==='TRADING')
+      .map(s => s.symbol);
+    return CACHE.symbols;
+  }
+
+  async function getDailyKlines(sym){
+    if (CACHE.dailyKlines.has(sym)) return CACHE.dailyKlines.get(sym);
+
+    const u=new URL('https://fapi.binance.com/fapi/v1/klines');
+    u.searchParams.set('symbol',sym);
+    u.searchParams.set('interval','1d');
+    u.searchParams.set('limit','500');
+    u.searchParams.set('startTime','0');
+
+    const klines = await fetchJSON(u.toString());
+    CACHE.dailyKlines.set(sym, klines||[]);
+    return klines||[];
+  }
+
+  async function warmMonth(Y,M){
+    const k = keyMonth(Y,M);
+    if (CACHE.monthRows.has(k)) return CACHE.monthRows.get(k);
+
+    const symbols = await getSymbolsOnce();
+    statusEl.textContent = `Préparation du mois ${String(M+1).padStart(2,'0')}/${Y}…`;
+    progressEl.textContent = '—';
+
+    const rows = await mapLimit(symbols, 8, async (sym)=>{
+      try{
+        const klines = await getDailyKlines(sym);
+        if(!klines.length) return null;
+
+        const openTime1 = klines[0][0];
+        const {y,m} = monthYearInBrussels(openTime1);
+        if (y!==Y || m!==M) return null;
+
+        return { sym, openTime1, dailyKlines: klines };
+      }catch{ return null; }
+    });
+
+    const kept = rows.filter(Boolean);
+    CACHE.monthRows.set(k, kept);
+    return kept;
+  }
+
+  async function computeRowsWithOffset(Y,M,N,offSteps){
+    const norm = ((offSteps % DAY_STEPS) + DAY_STEPS) % DAY_STEPS;
+    const kc = keyComputed(Y,M,N,norm);
+    if (CACHE.computed.has(kc)) return CACHE.computed.get(kc);
+
+    const base = CACHE.monthRows.get(keyMonth(Y,M)) || [];
+    if(!base.length){ CACHE.computed.set(kc, []); return []; }
+
+    const rows = await mapLimit(base, 10, async (r)=>{
+      const kl = r.dailyKlines;
+
+      let openTimeN=null, pctN=null;
+      if (kl.length>=N){
+        const candle = kl[N-1];
+        openTimeN = candle[0];
+        const o=parseFloat(candle[1]), c=parseFloat(candle[4]);
+        pctN = o>0 ? ((c-o)/o*100) : 0;
+      }
+
+      let openTimeStep=null, pctStep=null;
+      if (openTimeN !== null){
+        const targetOpen = getStepOpenFromDailyOpen(openTimeN, norm);
+        const cStep = await getStepCandlePctAt(r.sym, targetOpen);
+        openTimeStep = cStep.openTime;
+        pctStep = cStep.pct;
+      }
+
+      return { sym:r.sym, openTime1:r.openTime1, openTimeStep, pctStep, openTimeN, pctN };
+    });
+
+    rows.sort((a,b)=>{
+      if (a.openTimeN && b.openTimeN) return a.openTimeN - b.openTimeN;
+      if (a.openTimeN) return -1;
+      if (b.openTimeN) return 1;
+      return a.sym.localeCompare(b.sym);
+    });
+
+    CACHE.computed.set(kc, rows);
+    return rows;
+  }
+
+  function renderTable(rows){
+    tbody.innerHTML='';
+    if(!rows.length){
+      tbody.innerHTML = `<tr><td colspan="5" class="muted">Aucun nouveau PERP USDT-M listé pour les critères choisis.</td></tr>`;
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    rows.forEach(r=>{
+      const tr = document.createElement('tr');
+
+      const dateStep = (r.openTimeStep==null) ? '<span class="muted">—</span>' : toBrusselsDate(r.openTimeStep);
+      const pctStep  = (r.pctStep==null) ? '<span class="muted">—</span>' : `<span class="${r.pctStep>=0?'up':'down'}">${fmtPct(r.pctStep)}</span>`;
+
+      const dateN  = (r.openTimeN==null) ? '<span class="muted">—</span>' : toBrusselsDate(r.openTimeN);
+      const pctN   = (r.pctN==null) ? '<span class="muted">—</span>' : `<span class="${r.pctN>=0?'up':'down'}">${fmtPct(r.pctN)}</span>`;
+
+      tr.innerHTML = `
+        <td>${r.sym}</td>
+        <td>${dateStep}</td>
+        <td>${pctStep}</td>
+        <td>${dateN}</td>
+        <td>${pctN}</td>
+      `;
+      frag.appendChild(tr);
+    });
+    tbody.appendChild(frag);
+  }
+
+  function buildX2ReportForMonth(rows){
+    const byDay = new Map();
+    rows.forEach(r=>{
+      if (r.openTimeStep==null || r.pctStep==null) return;
+      if (r.pctStep === 0) return;
+
+      const k = dayKeyFromMs(r.openTimeStep);
+      if (!byDay.has(k)) byDay.set(k, {pos:[],neg:[], minMs:r.openTimeStep});
+      const bag = byDay.get(k);
+      bag.minMs = Math.min(bag.minMs, r.openTimeStep);
+      (r.pctStep > 0 ? bag.pos : bag.neg).push(r.sym);
+    });
+
+    const x2 = [];
+    for (const bag of byDay.values()){
+      if (bag.pos.length === 2) x2.push({ ms: bag.minMs, dayHuman: dayHumanFromMs(bag.minMs), sign:'positive', syms: bag.pos.slice(0,2) });
+      if (bag.neg.length === 2) x2.push({ ms: bag.minMs, dayHuman: dayHumanFromMs(bag.minMs), sign:'negative', syms: bag.neg.slice(0,2) });
+    }
+
+    x2.sort((a,b)=>a.ms-b.ms);
+    return x2;
+  }
+
+  async function buildReportForOffset(Y,N,offSteps){
+    const norm = ((offSteps % DAY_STEPS) + DAY_STEPS) % DAY_STEPS;
+
+    await Promise.all(ALLOWED_MONTHS.map(m => warmMonth(Y,m)));
+    const rowsByMonth = await Promise.all(ALLOWED_MONTHS.map(m => computeRowsWithOffset(Y,m,N,norm)));
+
+    const monthNamesShort = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    const report = ALLOWED_MONTHS.map((M, idx)=>{
+      const x2 = buildX2ReportForMonth(rowsByMonth[idx]);
+      return { M, label: monthNamesShort[M], x2 };
+    });
+
+    const ok = report.every(b => b.x2.length === 2);
+    const scanHHMM = hhmmBrusselsFromDayOffset(norm);
+
+    let sampleOpen = null;
+    const flat = rowsByMonth.flat();
+    const any = flat.find(r => r.openTimeN != null);
+    if(any){
+      sampleOpen = getStepOpenFromDailyOpen(any.openTimeN, norm);
+    }
+
+    return { ok, report, scanHHMM, sampleOpen, norm };
+  }
+
+  function fillReportIntoContainer(container, report){
+    container.innerHTML = '';
+    report.forEach(block=>{
+      const wrap = document.createElement('div');
+      wrap.className = 'dupe-month';
+      wrap.innerHTML = `<h4>${block.label} — x2 = ${block.x2.length}</h4>`;
+
+      const pills = document.createElement('div');
+      block.x2.forEach(d=>{
+        const pill = document.createElement('span');
+        pill.className = `dupe-pill ${d.sign==='positive'?'positive':'negative'}`;
+        const signTxt = d.sign==='positive' ? 'Haussière' : 'Baissière';
+        pill.innerHTML = `<b>${d.dayHuman}</b> • ${signTxt} • x2 <span class="muted" style="margin-left:6px">${d.syms.join(', ')}</span>`;
+        pills.appendChild(pill);
+      });
+
+      wrap.appendChild(pills);
+      container.appendChild(wrap);
+    });
+  }
+
+  async function updateDupeCardCurrentOffset(Y,N){
+    const payload = await buildReportForOffset(Y,N,offsetSteps);
+
+    if(!payload.ok){
+      dupeCard.style.display='none';
+      return;
+    }
+
+    const openTxt = payload.sampleOpen ? toBrusselsDate(payload.sampleOpen) : '—';
+    manualScanLine.innerHTML = `🕒 Minute scannée (dans la journée 1D): <b>${payload.scanHHMM}</b> — Bougie ${INTERVAL_LABEL} utilisée (exemple): <b>${openTxt}</b>`;
+    fillReportIntoContainer(dupeContent, payload.report);
+    dupeCard.style.display='block';
+  }
+
+  function renderAutoCard(payload){
+    const title = `Offset (dans 1D) ${payload.norm} • ${payload.scanHHMM}`;
+    const openTxt = payload.sampleOpen ? toBrusselsDate(payload.sampleOpen) : '—';
+
+    const card = document.createElement('div');
+    card.className = 'card dupe-card';
+    card.innerHTML = `
+      <div class="dupe-title">🚨 <span>Minutes “x2” — ${title}</span></div>
+      <div class="scanLine">🕒 Minute scannée (1D): <b>${payload.scanHHMM}</b> — Bougie ${INTERVAL_LABEL} utilisée (exemple): <b>${openTxt}</b></div>
+      <div class="muted" style="margin-bottom:8px">
+        Condition: <b>2 dates</b> qui ont <b>exactement 2 cryptos</b> de la même polarité (${INTERVAL_LABEL}) dans <b>Jan + Jun + Sep</b>.
+      </div>
+      <div class="autoReport"></div>
+    `;
+
+    const host = card.querySelector('.autoReport');
+    fillReportIntoContainer(host, payload.report);
+    return card;
+  }
+
+  function updateBannerOnly(){
+    const n = parseInt(candleSel.value,10);
+    const ms = BANNER_BASE_MS + (n-20)*dayMs;
+    candleDateBanner.textContent = formatShortFrDate(ms);
+  }
+
+  function updateNCalendar(){
+    const n = parseInt(candleSel.value,10);
+    nCalN.textContent = n;
+    const ms = BANNER_BASE_MS + (n-20)*dayMs;
+    nCalDate.textContent = new Intl.DateTimeFormat('fr-BE', {
+      timeZone: tz, day: '2-digit', month: '2-digit', year: '2-digit'
+    }).format(ms);
+  }
+
+  function updateLabels(){
+    const n = parseInt(candleSel.value,10);
+    nLabel.textContent = n;
+    thN1.textContent = n;
+    thN2.textContent = n;
+
+    updateNCalendar();
+    updateBannerOnly();
+    updateOffsetLabel();
+  }
+
+  async function buildAndRenderCurrent(Y,M,N){
+    const rows = await computeRowsWithOffset(Y,M,N,offsetSteps);
+    lastRows = rows;
+    renderTable(rows);
+    updateLabels();
+  }
+
+  async function run(){
+    errEl.textContent=''; tbody.innerHTML=''; progressEl.textContent='—';
+    lastRows=[];
+
+    const Y = parseInt(yearSel.value,10);
+    const M = parseInt(monthSel.value,10);
+    const N = parseInt(candleSel.value,10);
+
+    try{
+      statusEl.textContent = 'Chargement initial (une seule fois)…';
+      await warmMonth(Y,M);
+      Promise.allSettled(ALLOWED_MONTHS.filter(mm=>mm!==M).map(mm=>warmMonth(Y,mm)));
+
+      const norm = ((offsetSteps%DAY_STEPS)+DAY_STEPS)%DAY_STEPS;
+      statusEl.textContent = `Calcul daily N=${N} + ${INTERVAL_LABEL} (offset 1D=${norm})…`;
+      await buildAndRenderCurrent(Y,M,N);
+
+      statusEl.textContent = `Vérification x2 (${INTERVAL_LABEL}) (offset courant)…`;
+      await updateDupeCardCurrentOffset(Y, N);
+
+      hasLoadedOnce = true;
+      statusEl.textContent = `Terminé — ${lastRows.length} symbole(s) • N=${N} • offset(1D)=${norm}`;
+    }catch(e){
+      console.error(e);
+      errEl.textContent='Erreur: '+e.message;
+      statusEl.textContent='';
+    }
+  }
+
+  async function tryFastRender(){
+    const Y = parseInt(yearSel.value,10);
+    const M = parseInt(monthSel.value,10);
+    const N = parseInt(candleSel.value,10);
+
+    const norm = ((offsetSteps%DAY_STEPS)+DAY_STEPS)%DAY_STEPS;
+
+    if (CACHE.monthRows.has(keyMonth(Y,M))){
+      statusEl.textContent = `Recalcul (offset 1D=${norm}) depuis le cache…`;
+      await buildAndRenderCurrent(Y,M,N);
+      await updateDupeCardCurrentOffset(Y, N);
+      statusEl.textContent = `OK • N=${N} • offset(1D)=${norm}`;
+    }else{
+      statusEl.textContent = 'Paramètres modifiés — cliquez Run (premier chargement)';
+      updateLabels();
+    }
+  }
+
+  function clearAll(){
+    CACHE.symbols = null;
+    CACHE.dailyKlines.clear();
+    CACHE.monthRows.clear();
+    CACHE.computed.clear();
+    CACHE.kStep.clear();
+
+    lastRows = [];
+    hasLoadedOnce = false;
+
+    // ✅ au lieu de repartir à 00:00, on repart sur NOW arrondi 15m
+    offsetSteps = getNowOffsetSteps();
+
+    tbody.innerHTML = '';
+    errEl.textContent = '';
+    progressEl.textContent = '—';
+
+    dupeContent.innerHTML='';
+    dupeCard.style.display='none';
+
+    autoGrid.innerHTML = '';
+    autoWrap.style.display = 'none';
+
+    autoPbBar.style.width = '0%';
+    autoPbText.textContent = '—';
+
+    updateLabels();
+    statusEl.textContent = 'Tout effacé — sélectionne tes paramètres puis clique Run.';
+  }
+
+  async function stepInterval(delta){
+    offsetSteps += delta;
+    offsetSteps = ((offsetSteps % DAY_STEPS) + DAY_STEPS) % DAY_STEPS;
+    updateOffsetLabel();
+
+    if(!hasLoadedOnce){
+      statusEl.textContent = 'Clique Run une première fois (chargement initial)…';
+      return;
+    }
+    await tryFastRender();
+  }
+
+  async function scanAuto(){
+    if(!hasLoadedOnce){
+      statusEl.textContent = 'Fais Run une première fois, ensuite tu peux scanner.';
+      return;
+    }
+
+    const Y = parseInt(yearSel.value,10);
+    const N = parseInt(candleSel.value,10);
+
+    autoGrid.innerHTML = '';
+    autoWrap.style.display = 'block';
+
+    autoPbBar.style.width = '0%';
+    autoPbText.textContent = 'Préparation…';
+    autoMeta.textContent = `Scan 1 day (24h) • pas ${INTERVAL_LABEL} • ${DAY_STEPS} offsets`;
+
+    const offsets = Array.from({length: DAY_STEPS}, (_,i)=>i);
+
+    const total = offsets.length;
+    statusEl.textContent = `Scan auto en cours… (${total} offsets)`;
+
+    let found = 0;
+    let done = 0;
+    const t0 = performance.now();
+    const results = [];
+
+    for (const off of offsets){
+      done++;
+
+      const elapsed = performance.now() - t0;
+      const avg = elapsed / done;
+      const remaining = avg * (total - done);
+      const pct = Math.min(100, (done/total)*100);
+
+      autoPbBar.style.width = pct.toFixed(2) + '%';
+      autoPbText.textContent = `${done}/${total} • ~ETA ${fmtEta(remaining)} • trouvés: ${found}`;
+      progressEl.textContent = `${done}/${total}`;
+
+      try{
+        const payload = await buildReportForOffset(Y, N, off);
+        if(payload.ok){
+          found++;
+          results.push(payload);
+        }
+      }catch{}
+    }
+
+    autoGrid.innerHTML = '';
+    if(results.length === 0){
+      autoGrid.innerHTML = `<div class="muted">Aucune condition TRUE trouvée sur la journée.</div>`;
+    } else {
+      const frag = document.createDocumentFragment();
+      for(const p of results){
+        frag.appendChild(renderAutoCard(p));
+      }
+      autoGrid.appendChild(frag);
+    }
+
+    autoPbBar.style.width = '100%';
+    autoPbText.textContent = `${total}/${total} • terminé • trouvés: ${found}`;
+    statusEl.textContent = `Scan terminé — ${found} condition(s) TRUE trouvée(s).`;
+  }
+
+  (function initSelectors(){
+    const years=[2024];
+    years.forEach(y=>{
+      const o=document.createElement('option');
+      o.value=String(y);
+      o.textContent=String(y+1);
+      yearSel.appendChild(o);
+    });
+    yearSel.value='2024';
+
+    const limitedMonths=[
+      {label:'01 Jan', value:0},
+      {label:'06 Jun', value:5},
+      {label:'09 Sep', value:8},
+    ];
+    limitedMonths.forEach(({label,value})=>{
+      const o=document.createElement('option');
+      o.value=value;
+      o.textContent=label;
+      monthSel.appendChild(o);
+    });
+    monthSel.value=0;
+
+    for(let n=1;n<=500;n++){
+      const o=document.createElement('option');
+      o.value=n;
+      o.textContent=String(n);
+      candleSel.appendChild(o);
+    }
+    candleSel.value='96';
+
+    // ✅ IMPORTANT: offset par défaut = heure actuelle arrondie sur 15m
+    offsetSteps = getNowOffsetSteps();
+    updateLabels();
+  })();
+
+  candleSel.addEventListener('change', async ()=>{ updateLabels(); await tryFastRender(); });
+  yearSel.addEventListener('change', tryFastRender);
+  monthSel.addEventListener('change', tryFastRender);
+
+  runBtn.addEventListener('click', run);
+  clearBtn.addEventListener('click', clearAll);
+
+  prev15mBtn.addEventListener('click', ()=> stepInterval(-1));
+  next15mBtn.addEventListener('click', ()=> stepInterval(+1));
+
+  scanBtn.addEventListener('click', scanAuto);
+
+  const h1 = document.getElementById('h1');
+  const monthNames = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const updateHeader = () => {
+    h1.innerHTML = `Listings en ${monthNames[+monthSel.value]} • Bougie n°<span id="nLabel">${candleSel.value}</span>`;
+  };
+  monthSel.addEventListener('change', updateHeader);
+  candleSel.addEventListener('change', updateHeader);
+  updateHeader();
+</script>
+</body>
+</html>
