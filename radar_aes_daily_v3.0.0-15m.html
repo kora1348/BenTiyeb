@@ -88,7 +88,7 @@
       text-decoration-thickness: 3px;
       text-underline-offset: 4px;
       text-decoration-color: #facc15;
-      font-weight: 800;
+      font-weight: 900;
       color: #e5e7eb;
     }
   </style>
@@ -133,18 +133,6 @@
       Bougie n°<b><span id="nCalN">96</span></b> — <b><span id="nCalDate">—</span></b>
       <div class="miniInfo" id="offsetInfo">Offset 15m: 0 (heure actuelle)</div>
     </div>
-  </div>
-
-  <!-- ✅ Card MANUELLE: on la garde, mais elle ne s'affiche JAMAIS via Run/Prev/Next.
-       Elle s'affiche uniquement via "Scanner auto" quand on clique une card (ou si tu veux la montrer dans l'auto, ok).
-       Ici: on la masque tout le temps sauf quand on décide explicitement. -->
-  <div id="dupeCard" class="card dupe-card" style="display:none">
-    <div class="dupe-title">🚨 <span>Minutes “x2” (même jour • même polarité) — Bougie 15m</span></div>
-    <div class="scanLine" id="manualScanLine"></div>
-    <div class="muted" style="margin-bottom:8px">
-      Condition: <b>2 dates</b> qui ont <b>exactement 2 cryptos</b> de la même polarité (sur la bougie 15m) dans <b>Jan + Jun + Sep</b>.
-    </div>
-    <div id="dupeContent"></div>
   </div>
 
   <div id="autoWrap" class="card" style="display:none">
@@ -225,10 +213,6 @@
 
   const candleDateBanner = document.getElementById('candleDateBanner');
 
-  const dupeCard = document.getElementById('dupeCard');
-  const dupeContent = document.getElementById('dupeContent');
-  const manualScanLine = document.getElementById('manualScanLine');
-
   const autoWrap = document.getElementById('autoWrap');
   const autoGrid = document.getElementById('autoGrid');
   const autoMeta = document.getElementById('autoMeta');
@@ -242,15 +226,12 @@
 
   const dayMs = 24*60*60*1000;
 
-  // Base calendrier (garde ta logique existante)
   const BANNER_BASE_MS = Date.UTC(2025, 9, 9, 0, 0, 0);
-
   const ALLOWED_MONTHS = [0,5,8];
 
   let lastRows = [];
   let hasLoadedOnce = false;
 
-  // ========= 15m SETTINGS =========
   const STEP_MIN = 15;
   const STEP_MS  = STEP_MIN*60*1000;
   const DAY_STEPS = 24*60/STEP_MIN; // 96
@@ -340,9 +321,6 @@
     });
   }
 
-  // ======================
-  // ✅ DEFAULT OFFSET = NOW (Europe/Brussels) arrondi sur 15 minutes
-  // ======================
   function getNowOffsetSteps(){
     const parts = new Intl.DateTimeFormat('en-GB', {
       timeZone: tz, hour12:false, hour:'2-digit', minute:'2-digit'
@@ -356,9 +334,6 @@
     return Math.floor(flooredMin / STEP_MIN); // 0..95
   }
 
-  // ======================
-  // 15m NAVIGATION
-  // ======================
   let offsetSteps = 0;
 
   function updateOffsetLabel(){
@@ -564,7 +539,6 @@
     });
 
     const ok = report.every(b => b.x2.length === 2);
-    const scanHHMM = hhmmBrusselsFromDayOffset(norm);
 
     let sampleOpen = null;
     const flat = rowsByMonth.flat();
@@ -573,7 +547,7 @@
       sampleOpen = getStepOpenFromDailyOpen(any.openTimeN, norm);
     }
 
-    return { ok, report, scanHHMM, sampleOpen, norm };
+    return { ok, report, sampleOpen, norm };
   }
 
   function fillReportIntoContainer(container, report){
@@ -597,41 +571,23 @@
     });
   }
 
-  /* ✅ IMPORTANT:
-     On garde cette fonction (utile si plus tard tu veux cliquer une card auto et afficher le détail),
-     mais ON NE L’APPELLE PLUS dans Run/Prev/Next. */
-  async function updateDupeCardCurrentOffset(Y,N){
-    const payload = await buildReportForOffset(Y,N,offsetSteps);
-
-    if(!payload.ok){
-      dupeCard.style.display='none';
-      return;
-    }
-
-    const openTxt = payload.sampleOpen ? toBrusselsDate(payload.sampleOpen) : '—';
-    manualScanLine.innerHTML =
-      `🕒 Minute scannée (dans la journée 1D): <b>${payload.scanHHMM}</b> — ` +
-      `<span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span>`;
-
-    fillReportIntoContainer(dupeContent, payload.report);
-    dupeCard.style.display='block';
-  }
-
+  /* ✅ Card auto: on retire tout le texte "Minutes x2 — Offset..." + "Minute scannée..."
+     On affiche UNIQUEMENT:
+     🚨 Bougie 15m utilisée (exemple): DATE */
   function renderAutoCard(payload){
-    const title = `Offset (dans 1D) ${payload.norm} • ${payload.scanHHMM}`;
     const openTxt = payload.sampleOpen ? toBrusselsDate(payload.sampleOpen) : '—';
 
     const card = document.createElement('div');
     card.className = 'card dupe-card';
     card.innerHTML = `
-      <div class="dupe-title">🚨 <span>Minutes “x2” — ${title}</span></div>
-      <div class="scanLine">
-        🕒 Minute scannée (1D): <b>${payload.scanHHMM}</b> —
+      <div class="dupe-title">🚨
         <span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span>
       </div>
+
       <div class="muted" style="margin-bottom:8px">
         Condition: <b>2 dates</b> qui ont <b>exactement 2 cryptos</b> de la même polarité (${INTERVAL_LABEL}) dans <b>Jan + Jun + Sep</b>.
       </div>
+
       <div class="autoReport"></div>
     `;
 
@@ -673,13 +629,11 @@
     updateLabels();
   }
 
-  // ✅ Run = charge tableau + cache. PAS de cards (ni dupeCard, ni autoWrap)
   async function run(){
     errEl.textContent=''; tbody.innerHTML=''; progressEl.textContent='—';
     lastRows=[];
 
-    // ✅ cache UI cards OFF
-    dupeCard.style.display='none';
+    // ✅ on coupe les cards au Run
     autoWrap.style.display='none';
     autoGrid.innerHTML = '';
     autoPbBar.style.width = '0%';
@@ -707,16 +661,12 @@
     }
   }
 
-  // ✅ Quand tu changes N/mois/année ou prev/next: on recalc le tableau depuis le cache, mais PAS de card
   async function tryFastRender(){
     const Y = parseInt(yearSel.value,10);
     const M = parseInt(monthSel.value,10);
     const N = parseInt(candleSel.value,10);
 
     const norm = ((offsetSteps%DAY_STEPS)+DAY_STEPS)%DAY_STEPS;
-
-    // ✅ pas de cards hors scan auto
-    dupeCard.style.display='none';
 
     if (CACHE.monthRows.has(keyMonth(Y,M))){
       statusEl.textContent = `Recalcul (offset 1D=${norm}) depuis le cache…`;
@@ -744,9 +694,6 @@
     errEl.textContent = '';
     progressEl.textContent = '—';
 
-    dupeContent.innerHTML='';
-    dupeCard.style.display='none';
-
     autoGrid.innerHTML = '';
     autoWrap.style.display = 'none';
 
@@ -769,7 +716,6 @@
     await tryFastRender();
   }
 
-  // ✅ Scanner auto = là seulement on affiche les cards
   async function scanAuto(){
     if(!hasLoadedOnce){
       statusEl.textContent = 'Fais Run une première fois, ensuite tu peux scanner.';
@@ -778,9 +724,6 @@
 
     const Y = parseInt(yearSel.value,10);
     const N = parseInt(candleSel.value,10);
-
-    // ✅ hors scan auto: dupeCard off
-    dupeCard.style.display = 'none';
 
     autoGrid.innerHTML = '';
     autoWrap.style.display = 'block';
