@@ -81,6 +81,7 @@
     }
     .pbBar{ height:100%; width:0%; background:var(--blue); transition:width .12s linear; }
     .pbText{ font-size:11px; color:var(--muted); margin-top:6px; }
+    .important-underline{ text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; text-decoration-color: #facc15; /* jaune comme ton banner */ font-weight: 800; color: #e5e7eb; }
   </style>
 </head>
 
@@ -593,7 +594,7 @@
     }
 
     const openTxt = payload.sampleOpen ? toBrusselsDate(payload.sampleOpen) : '—';
-    manualScanLine.innerHTML = `🕒 Minute scannée (dans la journée 1D): <b>${payload.scanHHMM}</b> — Bougie ${INTERVAL_LABEL} utilisée (exemple): <b>${openTxt}</b>`;
+    manualScanLine.innerHTML = `🕒 Minute scannée (dans la journée 1D): <b>${payload.scanHHMM}</b> — ` + `<span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span>`;
     fillReportIntoContainer(dupeContent, payload.report);
     dupeCard.style.display='block';
   }
@@ -606,7 +607,7 @@
     card.className = 'card dupe-card';
     card.innerHTML = `
       <div class="dupe-title">🚨 <span>Minutes “x2” — ${title}</span></div>
-      <div class="scanLine">🕒 Minute scannée (1D): <b>${payload.scanHHMM}</b> — Bougie ${INTERVAL_LABEL} utilisée (exemple): <b>${openTxt}</b></div>
+      <div class="scanLine"> 🕒 Minute scannée (1D): <b>${payload.scanHHMM}</b> — <span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span> </div>
       <div class="muted" style="margin-bottom:8px">
         Condition: <b>2 dates</b> qui ont <b>exactement 2 cryptos</b> de la même polarité (${INTERVAL_LABEL}) dans <b>Jan + Jun + Sep</b>.
       </div>
