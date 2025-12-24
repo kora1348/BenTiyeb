@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Variations — Binance Futures (15m) — Multi-jours</title>
+  <title>Variations — Binance Futures (3m) — Multi-jours</title>
   <style>
     body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}
     h2{margin:0 0 6px}
@@ -133,7 +133,7 @@
   <div class="card" id="hoursCard" style="display:none">
     <div class="row">
       <div>
-        <b>⏱️ Heures filtrées (alignées 15m)</b>
+        <b>⏱️ Heures filtrées (alignées 3m)</b>
         <div class="muted small">Quand “Filtrer heures” est actif : les tableaux affichent uniquement ces lignes.</div>
       </div>
       <div class="pill" id="hoursCountPill">—</div>
@@ -141,7 +141,6 @@
 
     <div class="hoursRow" id="hoursRow"></div>
 
-    <!-- ✅ TOTAL GLOBAL demandé (addition des positives + negatives = somme simple) -->
     <div class="dayTotal" style="margin-top:12px">
       <span class="badge neu" id="globalHoursTotal">Total global (heures filtrées): —</span>
       <span class="badge neu" id="globalHoursCount">Nb valeurs: —</span>
@@ -160,13 +159,14 @@ const SYMBOLS = [
   "1000SATSUSDT","1000LUNCUSDT","ANKRUSDT","DENTUSDT","ENJUSDT"
 ];
 
-/* intervalle 15m */
-const INTERVAL     = "15m";
-const MINUTES_STEP = 15;
+/* intervalle 3m */
+const INTERVAL     = "3m";
+const MINUTES_STEP = 3;
 
-/* tes heures demandées */
+/* ✅ heures demandées (dans l'ordre voulu) */
 const FILTER_HOURS = [
- "02:00", "02:09", "02:12", "00:21"
+  "02:27",
+
 ];
 
 /* état du mode */
@@ -198,10 +198,10 @@ function parseHHMM(hhmm){
   return { hh, mm, minOfDay: hh*60 + mm };
 }
 
-/* aligne sur bougie 15m (floor) */
+/* aligne sur bougie 3m (floor) */
 function alignToStep(minOfDay){
   const aligned = Math.floor(minOfDay / MINUTES_STEP) * MINUTES_STEP;
-  return Math.min(1435, aligned);
+  return Math.min(1439, aligned);
 }
 
 function buildAlignedHours(listHHMM){
@@ -228,8 +228,11 @@ function buildAlignedHours(listHHMM){
 
 const ALIGNED_TARGETS = buildAlignedHours(FILTER_HOURS);
 
+/* set des minutes ciblées pour filtrage rapide */
+const TARGET_MINUTES_SET = new Set(ALIGNED_TARGETS.map(t => t.min));
+
 function isTargetMinute(minOfDay){
-  return ALIGNED_TARGETS.some(t => t.min === minOfDay);
+  return TARGET_MINUTES_SET.has(minOfDay);
 }
 
 function setBadgeClass(el, value, found){
@@ -240,9 +243,9 @@ function setBadgeClass(el, value, found){
   else el.classList.add("neu");
 }
 
-/* ========= GLOBAL HOURS ACCUMULATOR (TOTAL GLOBAL demandé) ========= */
-let GLOBAL_HOURS_SUM = 0;     // somme des % (positifs + négatifs => addition simple)
-let GLOBAL_HOURS_CNT = 0;     // nombre de valeurs additionnées
+/* ========= GLOBAL HOURS ACCUMULATOR ========= */
+let GLOBAL_HOURS_SUM = 0;
+let GLOBAL_HOURS_CNT = 0;
 
 function resetGlobalHours(){
   GLOBAL_HOURS_SUM = 0;
@@ -286,7 +289,10 @@ function renderHoursCard(){
   row.innerHTML = "";
   pill.textContent = `${ALIGNED_TARGETS.length} bougies`;
 
-  for(const t of ALIGNED_TARGETS){
+  /* ✅ affichage trié (02:00 -> 02:09 -> 02:12 -> 02:21) */
+  const sorted = [...ALIGNED_TARGETS].sort((a,b) => a.min - b.min);
+
+  for(const t of sorted){
     const chip = document.createElement("span");
     chip.className = "hourChip";
     chip.textContent = `${t.original} → ${t.aligned}`;
@@ -324,7 +330,8 @@ function dayUtcRangeMs(dUtc){
 
 /* ========= API ========= */
 async function fetchKlines(symbol, startMs, endMs){
-  const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=200`;
+  // 3m => 24h = 480 bougies, limit 1500 OK
+  const url = `${BASE_FUTURES}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${INTERVAL}&startTime=${startMs}&endTime=${endMs}&limit=1500`;
   const r = await fetch(url);
   if(!r.ok) throw new Error(`${symbol} -> HTTP ${r.status}`);
   const arr = await r.json();
@@ -402,11 +409,16 @@ async function fillTableForDate(symbol, dateUtc, ui){
   }
 
   let displayed = rows;
+
   if(HOURS_MODE){
     displayed = rows.filter(r => isTargetMinute(r.minOfDay));
+    // ✅ IMPORTANT: on force l'ordre 02:00 -> 02:09 -> 02:12 -> 02:21
+    displayed.sort((a,b) => a.minOfDay - b.minOfDay);
+  } else {
+    // optionnel : si tu veux aussi un ordre garanti en mode normal
+    displayed.sort((a,b) => a.minOfDay - b.minOfDay);
   }
 
-  // ✅ Total de la carte (somme simple positives + negatives)
   let sum = 0;
   for(const r of displayed) sum += r.v;
 
@@ -417,7 +429,6 @@ async function fillTableForDate(symbol, dateUtc, ui){
 
   setBadgeClass(ui.elSum, sum, displayed.length);
 
-  // ✅ IMPORTANT : quand Filtrer heures = ON => on cumule dans le TOTAL GLOBAL
   if(HOURS_MODE && displayed.length){
     GLOBAL_HOURS_SUM += sum;
     GLOBAL_HOURS_CNT += displayed.length;
@@ -458,11 +469,9 @@ async function refreshMulti(){
     `Affiché : ${endFr} → ${startFr} (UTC)`;
 
   document.getElementById("fixedInfo").textContent =
-    `SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL} | Mode heures = ${HOURS_MODE ? "ON" : "OFF"}`;
+    `SYMBOLS = [${SYMBOLS.join(", ")}] | INTERVAL = ${INTERVAL} | Mode heures = ${HOURS_MODE ? "ON" : "OFF"} | FILTER_HOURS = [${FILTER_HOURS.join(", ")}]`;
 
   renderHoursCard();
-
-  // ✅ reset global total au début d'un refresh
   resetGlobalHours();
 
   const jobs = [];
@@ -487,8 +496,6 @@ async function refreshMulti(){
   }
 
   await Promise.all(jobs);
-
-  // ✅ après chargement de toutes les cartes => affiche total global heures filtrées
   renderGlobalHours();
 
   document.getElementById("shownCount").textContent = `Cartes: ${cardsCount}`;
