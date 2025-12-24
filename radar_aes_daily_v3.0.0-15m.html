@@ -81,7 +81,16 @@
     }
     .pbBar{ height:100%; width:0%; background:var(--blue); transition:width .12s linear; }
     .pbText{ font-size:11px; color:var(--muted); margin-top:6px; }
-    .important-underline{ text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; text-decoration-color: #facc15; /* jaune comme ton banner */ font-weight: 800; color: #e5e7eb; }
+
+    /* ✅ underline ultra visible pour la date "Bougie 15m utilisée" */
+    .important-underline{
+      text-decoration: underline;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 4px;
+      text-decoration-color: #facc15;
+      font-weight: 800;
+      color: #e5e7eb;
+    }
   </style>
 </head>
 
@@ -126,6 +135,9 @@
     </div>
   </div>
 
+  <!-- ✅ Card MANUELLE: on la garde, mais elle ne s'affiche JAMAIS via Run/Prev/Next.
+       Elle s'affiche uniquement via "Scanner auto" quand on clique une card (ou si tu veux la montrer dans l'auto, ok).
+       Ici: on la masque tout le temps sauf quand on décide explicitement. -->
   <div id="dupeCard" class="card dupe-card" style="display:none">
     <div class="dupe-title">🚨 <span>Minutes “x2” (même jour • même polarité) — Bougie 15m</span></div>
     <div class="scanLine" id="manualScanLine"></div>
@@ -585,6 +597,9 @@
     });
   }
 
+  /* ✅ IMPORTANT:
+     On garde cette fonction (utile si plus tard tu veux cliquer une card auto et afficher le détail),
+     mais ON NE L’APPELLE PLUS dans Run/Prev/Next. */
   async function updateDupeCardCurrentOffset(Y,N){
     const payload = await buildReportForOffset(Y,N,offsetSteps);
 
@@ -594,7 +609,10 @@
     }
 
     const openTxt = payload.sampleOpen ? toBrusselsDate(payload.sampleOpen) : '—';
-    manualScanLine.innerHTML = `🕒 Minute scannée (dans la journée 1D): <b>${payload.scanHHMM}</b> — ` + `<span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span>`;
+    manualScanLine.innerHTML =
+      `🕒 Minute scannée (dans la journée 1D): <b>${payload.scanHHMM}</b> — ` +
+      `<span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span>`;
+
     fillReportIntoContainer(dupeContent, payload.report);
     dupeCard.style.display='block';
   }
@@ -607,7 +625,10 @@
     card.className = 'card dupe-card';
     card.innerHTML = `
       <div class="dupe-title">🚨 <span>Minutes “x2” — ${title}</span></div>
-      <div class="scanLine"> 🕒 Minute scannée (1D): <b>${payload.scanHHMM}</b> — <span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span> </div>
+      <div class="scanLine">
+        🕒 Minute scannée (1D): <b>${payload.scanHHMM}</b> —
+        <span class="important-underline">Bougie ${INTERVAL_LABEL} utilisée (exemple): ${openTxt}</span>
+      </div>
       <div class="muted" style="margin-bottom:8px">
         Condition: <b>2 dates</b> qui ont <b>exactement 2 cryptos</b> de la même polarité (${INTERVAL_LABEL}) dans <b>Jan + Jun + Sep</b>.
       </div>
@@ -652,9 +673,17 @@
     updateLabels();
   }
 
+  // ✅ Run = charge tableau + cache. PAS de cards (ni dupeCard, ni autoWrap)
   async function run(){
     errEl.textContent=''; tbody.innerHTML=''; progressEl.textContent='—';
     lastRows=[];
+
+    // ✅ cache UI cards OFF
+    dupeCard.style.display='none';
+    autoWrap.style.display='none';
+    autoGrid.innerHTML = '';
+    autoPbBar.style.width = '0%';
+    autoPbText.textContent = '—';
 
     const Y = parseInt(yearSel.value,10);
     const M = parseInt(monthSel.value,10);
@@ -669,9 +698,6 @@
       statusEl.textContent = `Calcul daily N=${N} + ${INTERVAL_LABEL} (offset 1D=${norm})…`;
       await buildAndRenderCurrent(Y,M,N);
 
-      statusEl.textContent = `Vérification x2 (${INTERVAL_LABEL}) (offset courant)…`;
-      await updateDupeCardCurrentOffset(Y, N);
-
       hasLoadedOnce = true;
       statusEl.textContent = `Terminé — ${lastRows.length} symbole(s) • N=${N} • offset(1D)=${norm}`;
     }catch(e){
@@ -681,6 +707,7 @@
     }
   }
 
+  // ✅ Quand tu changes N/mois/année ou prev/next: on recalc le tableau depuis le cache, mais PAS de card
   async function tryFastRender(){
     const Y = parseInt(yearSel.value,10);
     const M = parseInt(monthSel.value,10);
@@ -688,10 +715,12 @@
 
     const norm = ((offsetSteps%DAY_STEPS)+DAY_STEPS)%DAY_STEPS;
 
+    // ✅ pas de cards hors scan auto
+    dupeCard.style.display='none';
+
     if (CACHE.monthRows.has(keyMonth(Y,M))){
       statusEl.textContent = `Recalcul (offset 1D=${norm}) depuis le cache…`;
       await buildAndRenderCurrent(Y,M,N);
-      await updateDupeCardCurrentOffset(Y, N);
       statusEl.textContent = `OK • N=${N} • offset(1D)=${norm}`;
     }else{
       statusEl.textContent = 'Paramètres modifiés — cliquez Run (premier chargement)';
@@ -709,7 +738,6 @@
     lastRows = [];
     hasLoadedOnce = false;
 
-    // ✅ au lieu de repartir à 00:00, on repart sur NOW arrondi 15m
     offsetSteps = getNowOffsetSteps();
 
     tbody.innerHTML = '';
@@ -741,6 +769,7 @@
     await tryFastRender();
   }
 
+  // ✅ Scanner auto = là seulement on affiche les cards
   async function scanAuto(){
     if(!hasLoadedOnce){
       statusEl.textContent = 'Fais Run une première fois, ensuite tu peux scanner.';
@@ -749,6 +778,9 @@
 
     const Y = parseInt(yearSel.value,10);
     const N = parseInt(candleSel.value,10);
+
+    // ✅ hors scan auto: dupeCard off
+    dupeCard.style.display = 'none';
 
     autoGrid.innerHTML = '';
     autoWrap.style.display = 'block';
@@ -835,7 +867,6 @@
     }
     candleSel.value='96';
 
-    // ✅ IMPORTANT: offset par défaut = heure actuelle arrondie sur 15m
     offsetSteps = getNowOffsetSteps();
     updateLabels();
   })();
