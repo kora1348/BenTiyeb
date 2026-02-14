@@ -455,7 +455,7 @@
         const card = document.createElement('div');
         card.className = 'day-card';
 
-        const delta = prev1Coeff !== null && prev2Coeff !== null ? prev1Coeff - prev2Coeff : null;
+        const delta = currentCoeff !== null && prev1Coeff !== null ? currentCoeff - prev1Coeff : null;
         let deltaClass = 'delta-neutral';
         let deltaText = 'Δ 0';
 
@@ -548,7 +548,7 @@
                   if (currentCoeff < minCoeff) minCoeff = currentCoeff;
                 }
 
-                const delta = prev1Coeff !== null && prev2Coeff !== null ? prev1Coeff - prev2Coeff : null;
+                const delta = currentCoeff !== null && prev1Coeff !== null ? currentCoeff - prev1Coeff : null;
                 if (delta !== null) {
                   if (delta > 0) positiveDeltas++;
                   else if (delta < 0) negativeDeltas++;
