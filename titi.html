@@ -241,7 +241,6 @@
       margin-top: 10px;
       letter-spacing: .5px;
     }
-    /* IMPORTANT: on garde Δ +1 / Δ -1 visible et très lisible */
     .delta-positive{
       background: rgba(255, 51, 102, 0.18);
       color: var(--accent-red);
@@ -257,7 +256,6 @@
       color: var(--text-muted);
       border: 1px solid rgba(138, 143, 152, 0.55);
     }
-
     .delta-extreme{
       background: var(--orange-bg);
       color: var(--orange-text);
@@ -367,19 +365,15 @@
 
   <script>
     (() => {
-      // ========= CONFIG =========
       const API_BASE = 'https://fapi.binance.com';
-
-      // Concurrency: plus haut = plus rapide, mais attention aux limites Binance.
       const CONCURRENCY = 10;
 
-      // Pour reproduire EXACTEMENT 14/02/2026: ouvre la page avec:
-      // ?base=2026-02-14
-      //
-      // Sinon: base = "aujourd'hui" en heure Belgique (Europe/Brussels).
+      // IMPORTANT:
+      // - Si tu fixes ?base=2026-02-14  => on affiche 12/02 | 13/02 | 14/02
+      // - Par défaut (sans base), on prend "dernier jour complet" = Belgique - 1 jour
+      //   => le 15/02/2026, on affiche 12/02 | 13/02 | 14/02 (et pas 13/02 | 14/02 | 15/02)
       const BASE_PARAM = new URLSearchParams(location.search).get('base'); // YYYY-MM-DD
 
-      // ========= UI =========
       const el = {
         windowLabel: document.getElementById('windowLabel'),
         symCount: document.getElementById('symCount'),
@@ -405,30 +399,29 @@
         sort: document.getElementById('sort'),
       };
 
-      // ========= HELPERS =========
       async function fetchJSON(url) {
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status} — ${url}`);
         return res.json();
       }
 
-      // Belgium date utils (Europe/Brussels)
       function getBelgiumYMD(date = new Date()) {
-        // Convert date => Belgium date parts (YYYY-MM-DD)
         const parts = new Intl.DateTimeFormat('en-CA', {
           timeZone: 'Europe/Brussels',
           year: 'numeric', month: '2-digit', day: '2-digit'
         }).formatToParts(date);
-
         const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
         return `${map.year}-${map.month}-${map.day}`;
       }
 
       function ymdToUTCStartMs(ymd) {
-        // ymd "YYYY-MM-DD" => start of that day in UTC milliseconds
-        // IMPORTANT: Binance klines are UTC-based, so we will request by UTC day boundaries.
-        // For your fixed backtest dates (12/13/14), this is what you want.
         return Date.parse(ymd + 'T00:00:00Z');
+      }
+
+      function addDaysYMD(ymd, deltaDays) {
+        const d = new Date(ymd + 'T00:00:00Z');
+        d.setUTCDate(d.getUTCDate() + deltaDays);
+        return d.toISOString().slice(0, 10);
       }
 
       function formatFR(ymd) {
@@ -440,16 +433,11 @@
 
       function formatPrice(p) {
         if (p === null || p === undefined || !Number.isFinite(p)) return '—';
-        // on garde un look "scanner" (pas trop long)
         if (p >= 1000) return p.toFixed(2);
         if (p >= 1) return p.toFixed(6);
         return p.toFixed(10);
       }
 
-      // Coefficient "intelligent" (même esprit que ton code):
-      // ref -> current :
-      // - si current >= ref => +round(current/ref)
-      // - sinon => -round(ref/current)
       function signedCoeff(ref, cur) {
         if (!Number.isFinite(ref) || !Number.isFinite(cur) || ref <= 0 || cur <= 0) return null;
         if (cur >= ref) return Math.round(cur / ref);
@@ -462,7 +450,7 @@
       }
 
       function deltaBadge(delta) {
-        if (delta === null) return { text: '', cls: 'delta-neutral' };
+        if (delta === null) return { text: 'Δ —', cls: 'delta-neutral' };
         if (delta > 0) {
           const cls = (delta === 1) ? 'delta-positive' : 'delta-extreme';
           return { text: `Δ +${delta}`, cls };
@@ -505,30 +493,23 @@
               <span>Now: <b class="muted">${formatPrice(row.now)}</b></span>
             </div>
 
-            <div class="delta-badge ${badge.cls}">${badge.text || 'Δ —'}</div>
+            <div class="delta-badge ${badge.cls}">${badge.text}</div>
           </div>
         `;
       }
 
-      // ========= CORE FETCH =========
       async function getPerpUSDTsymbols() {
         const data = await fetchJSON(`${API_BASE}/fapi/v1/exchangeInfo`);
-        const symbols = (data.symbols || [])
+        return (data.symbols || [])
           .filter(s =>
             s.contractType === 'PERPETUAL' &&
             s.quoteAsset === 'USDT' &&
             s.status === 'TRADING'
           )
           .map(s => s.symbol);
-
-        // petite hygiene: éviter les trucs trop exotiques si tu veux (décommente)
-        // .filter(sym => sym.endsWith('USDT'));
-
-        return symbols;
       }
 
       async function getAllLivePricesMap() {
-        // one call for ALL futures symbols
         const arr = await fetchJSON(`${API_BASE}/fapi/v1/ticker/price`);
         const map = new Map();
         for (const it of arr) {
@@ -538,25 +519,18 @@
       }
 
       async function get2DailyCloses(symbol, d2YMD, d0YMD) {
-        // One call that returns TWO daily klines: J-2 and J-1
-        // startTime = start of J-2 UTC
-        // limit=2 to get J-2 & J-1 (depending on listing date / availability)
+        // We request daily klines from start of d2 to start of d0 (excluded),
+        // limit=2 => (d2 close, d1 close).
         const start = ymdToUTCStartMs(d2YMD);
-        const end = ymdToUTCStartMs(d0YMD); // start of today UTC (to not include today daily candle)
+        const end = ymdToUTCStartMs(d0YMD);
         const url = `${API_BASE}/fapi/v1/klines?symbol=${symbol}&interval=1d&startTime=${start}&endTime=${end}&limit=2`;
         const kl = await fetchJSON(url);
-
-        // Each kline: [ openTime, open, high, low, close, volume, ... ]
-        // We want close prices.
         if (!Array.isArray(kl) || kl.length === 0) return { close2: null, close1: null };
-
         const close2 = (kl[0] && kl[0][4]) ? Number(kl[0][4]) : null;
         const close1 = (kl[1] && kl[1][4]) ? Number(kl[1][4]) : null;
-
         return { close2, close1 };
       }
 
-      // ========= SCAN ENGINE =========
       function pLimit(limit) {
         let active = 0;
         const queue = [];
@@ -575,8 +549,8 @@
         });
       }
 
-      // ========= FILTER / SORT =========
       let allRows = [];
+
       function applyUI() {
         const q = (el.search.value || '').trim().toUpperCase();
         const mode = el.sort.value;
@@ -591,37 +565,32 @@
           if (mode === 'symbolAsc') return a.symbol.localeCompare(b.symbol);
           if (mode === 'deltaAsc') return getDelta(a) - getDelta(b);
           if (mode === 'absDeltaDesc') return getAbsDelta(b) - getAbsDelta(a);
-          // deltaDesc default
           return getDelta(b) - getDelta(a);
         });
 
         el.grid.innerHTML = rows.map(cardHTML).join('');
       }
 
-      // ========= MAIN =========
       async function main() {
         try {
           el.status.textContent = 'Fetching symbols…';
           setProgress(0, 1, 'Récupération des symboles futures…');
 
-          // base day (Belgium) or forced param
-          const baseYMD = BASE_PARAM && /^\d{4}-\d{2}-\d{2}$/.test(BASE_PARAM)
+          // ✅ FIX: sans ?base=, on prend "dernier jour complet" = Belgique - 1 jour
+          const rawBelgiumToday = getBelgiumYMD(new Date());
+          const defaultBase = addDaysYMD(rawBelgiumToday, -1); // hier en BE
+
+          const baseYMD = (BASE_PARAM && /^\d{4}-\d{2}-\d{2}$/.test(BASE_PARAM))
             ? BASE_PARAM
-            : getBelgiumYMD(new Date());
+            : defaultBase;
 
-          // last 3 days: d0=base, d1=base-1, d2=base-2 (in calendar terms)
-          const baseDateUTC = new Date(baseYMD + 'T00:00:00Z');
-          const d0 = baseYMD;
-          const d1 = new Date(baseDateUTC); d1.setUTCDate(d1.getUTCDate() - 1);
-          const d2 = new Date(baseDateUTC); d2.setUTCDate(d2.getUTCDate() - 2);
+          const d0 = baseYMD;                 // "TODAY" = dernier jour complet
+          const d1 = addDaysYMD(baseYMD, -1); // d0-1
+          const d2 = addDaysYMD(baseYMD, -2); // d0-2
 
-          const d1YMD = d1.toISOString().slice(0,10);
-          const d2YMD = d2.toISOString().slice(0,10);
+          el.windowLabel.textContent = `${formatFR(d2)} → ${formatFR(d0)} (BE)`;
+          el.statsHint.textContent = `Réf = clôture J-2 · Δ = coeff(J) - coeff(J-1)`;
 
-          el.windowLabel.textContent = `${formatFR(d2YMD)} → ${formatFR(d0)} (BE)`;
-          el.statsHint.textContent = `Réf = prix clôture J-2 · Δ = coeff(J) - coeff(J-1)`;
-
-          // symbols + live map
           const symbols = await getPerpUSDTsymbols();
           el.symCount.textContent = symbols.length.toString();
 
@@ -629,14 +598,12 @@
           setProgress(0, 1, 'Récupération des prix LIVE (1 requête)…');
           const liveMap = await getAllLivePricesMap();
 
-          // scan
           el.status.textContent = 'Scanning…';
           const limit = pLimit(CONCURRENCY);
 
           let done = 0;
           let ok = 0;
 
-          // stats
           let pos = 0, neg = 0, zero = 0;
           let maxDelta = -Infinity;
 
@@ -653,24 +620,19 @@
 
             let close2 = null, close1 = null;
             try {
-              const res = await get2DailyCloses(sym, d2YMD, d0);
-              close2 = res.close2;
-              close1 = res.close1;
-            } catch (e) {
-              // ignore per-symbol error
-            }
+              const res = await get2DailyCloses(sym, d2, d0);
+              close2 = res.close2; // close of d2
+              close1 = res.close1; // close of d1
+            } catch (_) {}
 
-            // ref = close of J-2 (the anchor)
             const ref = close2;
 
-            // coeffs for (J-2, J-1, J) relative to ref
-            const c2 = signedCoeff(ref, close2); // usually +1
+            const c2 = signedCoeff(ref, close2);
             const c1 = signedCoeff(ref, close1);
             const c0 = signedCoeff(ref, now);
 
             const delta = (c0 !== null && c1 !== null) ? (c0 - c1) : null;
 
-            // stats update
             if (delta !== null) {
               if (delta > 0) pos++;
               else if (delta < 0) neg++;
@@ -680,10 +642,11 @@
 
             allRows.push({
               symbol: sym,
-              d0, d1: d1YMD, d2: d2YMD,
+              d0, d1, d2,
               ref,
               now,
-              close2, close1,
+              close2,
+              close1,
               c2, c1, c0,
               delta
             });
@@ -691,7 +654,6 @@
             ok++;
             done++;
 
-            // UI heartbeat
             if (done % 12 === 0 || done === symbols.length) {
               el.loadedCount.textContent = String(ok);
               setProgress(done, symbols.length, `Scan… (${done}/${symbols.length})`);
@@ -709,12 +671,10 @@
 
           await Promise.all(tasks);
 
-          // finalize
           el.status.textContent = 'Complete ✓';
           el.progressLeft.textContent = `Terminé: ${ok}/${symbols.length} symboles affichés`;
           setProgress(symbols.length, symbols.length);
 
-          // final render
           el.statPos.textContent = String(pos);
           el.statNeg.textContent = String(neg);
           el.statZero.textContent = String(zero);
@@ -722,7 +682,6 @@
           el.stats.style.display = 'block';
           applyUI();
 
-          // hook UI
           el.search.addEventListener('input', applyUI);
           el.sort.addEventListener('change', applyUI);
 
