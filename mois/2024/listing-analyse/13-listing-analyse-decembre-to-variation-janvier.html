@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Année 2025 (Futures USDT) – Variations</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+:root{ --bg:#0b0f1a; --card:#11182a; --muted:#6b7280; --text:#e5e7eb; --accent:#3b82f6; --pos:#16a34a22; --neg:#dc262622; --neu:#37415166; --ring:#3b82f688; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+.wrap{max-width:1300px;margin:28px auto;padding:0 16px}
+header{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.title{font-size:20px;font-weight:700;letter-spacing:.2px;display:flex;gap:10px;align-items:center}
+.badge{font-size:12px;background:#1f2937;color:#cbd5e1;padding:3px 8px;border-radius:999px;border:1px solid #334155}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap}
+.input, .btn, select{ border:1px solid #1f2937;background:#0f172a;color:var(--text);padding:10px 12px;border-radius:12px;outline:none }
+.input{min-width:220px}
+.btn{cursor:pointer;transition:transform .06s ease, box-shadow .12s ease;border-color:#23304b}
+.btn:hover{box-shadow:0 0 0 3px var(--ring)}
+.btn:active{transform:translateY(1px)}
+.card{ background:linear-gradient(180deg,#0e1527, #0c1223); border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px }
+.card-head{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1f2937}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.chip{border:1px solid #27324b;background:#0f172a;border-radius:999px;padding:6px 10px;font-size:12px;color:#cbd5e1}
+.progress{height:6px;background:#111827;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);width:0%}
+.table-wrap{max-height:70vh;overflow:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:720px}
+thead th{ position:sticky;top:0;background:#0c1325;border-bottom:1px solid #1f2937;padding:10px 8px;font-weight:600;text-align:left }
+tbody td{border-bottom:1px solid #111827;padding:8px 8px;vertical-align:middle}
+tbody tr:nth-child(2n){background:#0a1221}
+tbody tr:hover{background:#0b1530}
+.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+.sym{display:flex;align-items:center;gap:8px}
+.pct{padding:4px 8px;border-radius:9px;display:inline-block;text-align:right;min-width:72px;font-variant-numeric:tabular-nums}
+.pct.pos{background:var(--pos);border:1px solid #14532d;color:#a7f3d0}
+.pct.neg{background:var(--neg);border:1px solid #7f1d1d;color:#fecaca}
+.pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
+.muted{color:var(--muted)}
+.summary {padding:10px;border-top:1px solid #1f2937;background:#0c1325;font-size:13px;display:flex;gap:20px;flex-wrap:wrap;}
+.small{font-size:12px}
+.err{color:#fecaca}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">Analyse pour l’année 2025 — Futures <span class="badge">USDT</span></div>
+    <div class="toolbar">
+      <input id="search" class="input" placeholder="Rechercher un symbole..." />
+      <button id="refresh" class="btn">Rafraîchir</button>
+      <label class="btn" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+        <input id="auto" type="checkbox" style="accent-color:#3b82f6"> Auto-refresh (10 min)
+      </label>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="stats">
+        <div class="chip">Période: 2025 (UTC)</div>
+        <div class="chip">Source: Binance Futures</div>
+        <div class="chip"><span id="count">0</span> symboles</div>
+        <div class="chip small muted" id="note"></div>
+      </div>
+      <div class="progress" style="width:260px"><div id="bar"></div></div>
+    </div>
+
+    <div class="summary">
+      <div id="sum-pct"></div>
+      <div id="sum-high"></div>
+      <div id="sum-low"></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Symbole</th>
+            <th>Listé le (approx)</th>
+            <th>Variation 2025</th>
+            <th>2025 – Plus haut (vs open Jan)</th>
+            <th>2025 – Plus bas (vs open Jan)</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="body">
+          <tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const API = "https://fapi.binance.com";
+
+  // ✅ Année 2025 uniquement (UTC)
+  const startYear = Date.UTC(2025, 0, 1, 0, 0, 0);  // 2025-01-01
+  const endYear   = Date.UTC(2026, 0, 1, 0, 0, 0);  // 2026-01-01
+
+  const $body = document.getElementById("body");
+  const $count = document.getElementById("count");
+  const $bar = document.getElementById("bar");
+  const $search = document.getElementById("search");
+  const $refresh = document.getElementById("refresh");
+  const $auto = document.getElementById("auto");
+  const $sumPct = document.getElementById("sum-pct");
+  const $sumHigh = document.getElementById("sum-high");
+  const $sumLow = document.getElementById("sum-low");
+  const $note = document.getElementById("note");
+
+  let masterRows = [];
+  let timer = null;
+
+  // ✅ TES SYMBOLS (Futures USDT PERP) — nouvelle liste
+  const allowedSymbols = [
+    "ACXUSDT",
+    "AEROUSDT",
+    "AIXBTUSDT",
+    "AVAUSDT",
+    "CGPTUSDT",
+    "DEGOUSDT",
+    "DEXEUSDT",
+    "DFUSDT",
+    "FARTCOINUSDT",
+    "HIVEUSDT",
+    "KAIAUSDT",
+    "KMNOUSDT",
+    "KOMAUSDT",
+    "LUMIAUSDT",
+    "MEUSDT",
+    "MOCAUSDT",
+    "MOVEUSDT",
+    "ORCAUSDT",
+    "PENGUUSDT",
+    "PHAUSDT",
+    "RAYSOLUSDT",
+    "SPXUSDT",
+    "USUALUSDT",
+    "VANAUSDT",
+    "VELODROMEUSDT",
+    "VIRTUALUSDT"
+  ];
+
+  function fmtDateUTC(ts){
+    if (!ts || !isFinite(ts)) return "—";
+    const d = new Date(ts);
+    return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0");
+  }
+  function clsPct(v){
+    if (v === null || !isFinite(v)) return "pct neu";
+    if (v > 0) return "pct pos";
+    if (v < 0) return "pct neg";
+    return "pct neu";
+  }
+  function pctTxt(v){
+    return (v === null || !isFinite(v)) ? "—" : (v>0?"+":"") + v.toFixed(2) + "%";
+  }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  async function jget(url){
+    const r = await fetch(url);
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }
+
+  async function fetchAllowedTradingSymbols(){
+    const ex = await jget(API + "/fapi/v1/exchangeInfo");
+    const map = new Map(ex.symbols.map(s => [s.symbol, s]));
+
+    const picked = allowedSymbols.map(sym => {
+      const s = map.get(sym.toUpperCase());
+      if(!s) return { symbol:sym.toUpperCase(), ok:false, reason:"Absent sur Futures" };
+      const ok = (
+        s.status === "TRADING" &&
+        s.contractType === "PERPETUAL" &&
+        s.quoteAsset === "USDT"
+      );
+      return ok
+        ? { symbol:s.symbol, ok:true }
+        : { symbol:s.symbol, ok:false, reason:"Pas TRADING / Pas PERP / Pas USDT" };
+    });
+
+    return picked;
+  }
+
+  async function fetchListedAt(symbol){
+    const earliest = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=0&limit=1`);
+    if (!earliest || !earliest.length) return null;
+    return earliest[0][0];
+  }
+
+  async function fetchYear2025Data(symbol){
+    // ✅ Toutes les bougies mensuelles de 2025 (jusqu'à 12)
+    const ks = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=${startYear}&endTime=${endYear}&limit=12`);
+
+    if (!ks || ks.length < 1){
+      return { yearPct:null, yearHigh:null, yearLow:null };
+    }
+
+    // Open Janvier (ou 1er mois dispo en 2025)
+    const open = parseFloat(ks[0][1]);
+    if (!isFinite(open) || open <= 0){
+      return { yearPct:null, yearHigh:null, yearLow:null };
+    }
+
+    // Close dernier mois dispo en 2025
+    const close = parseFloat(ks[ks.length - 1][4]);
+
+    // High/Low sur l'ensemble de 2025
+    let highMax = -Infinity;
+    let lowMin  = Infinity;
+
+    for (const k of ks){
+      const h = parseFloat(k[2]);
+      const l = parseFloat(k[3]);
+      if (isFinite(h)) highMax = Math.max(highMax, h);
+      if (isFinite(l)) lowMin  = Math.min(lowMin, l);
+    }
+
+    return {
+      yearPct:  isFinite(close) ? ((close - open) / open) * 100 : null,
+      yearHigh: isFinite(highMax) ? ((highMax - open) / open) * 100 : null,
+      yearLow:  isFinite(lowMin)  ? ((lowMin  - open) / open) * 100 : null
+    };
+  }
+
+  function updateSummary(rows){
+    const sumPct  = rows.reduce((acc,r)=> acc + (isFinite(r.yearPct)  ? r.yearPct  : 0), 0);
+    const sumHigh = rows.reduce((acc,r)=> acc + (isFinite(r.yearHigh) ? r.yearHigh : 0), 0);
+    const sumLow  = rows.reduce((acc,r)=> acc + (isFinite(r.yearLow)  ? r.yearLow  : 0), 0);
+
+    $sumPct.innerHTML  = `Somme variations : <span class="${clsPct(sumPct)}">${pctTxt(sumPct)}</span>`;
+    $sumHigh.innerHTML = `Somme mèches hautes : <span class="${clsPct(sumHigh)}">${pctTxt(sumHigh)}</span>`;
+    $sumLow.innerHTML  = `Somme mèches basses : <span class="${clsPct(sumLow)}">${pctTxt(sumLow)}</span>`;
+  }
+
+  function renderTable(rows){
+    const q = $search.value.trim().toUpperCase();
+    const view = q ? rows.filter(r => r.symbol.includes(q)) : rows;
+
+    $count.textContent = rows.length.toString();
+
+    if (!view.length){
+      $body.innerHTML = `<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
+      updateSummary([]);
+      return;
+    }
+
+    $body.innerHTML = view.map(r => `
+      <tr>
+        <td class="mono"><div class="sym"><span>${r.symbol}</span></div></td>
+        <td class="mono muted">${fmtDateUTC(r.listedAt)}</td>
+        <td><span class="${clsPct(r.yearPct)}">${pctTxt(r.yearPct)}</span></td>
+        <td><span class="${clsPct(r.yearHigh)}">${pctTxt(r.yearHigh)}</span></td>
+        <td><span class="${clsPct(r.yearLow)}">${pctTxt(r.yearLow)}</span></td>
+        <td class="mono ${r.ok ? 'muted' : 'err'}">${r.ok ? 'OK' : (r.reason || 'N/A')}</td>
+      </tr>
+    `).join("");
+
+    updateSummary(view.filter(r => r.ok));
+  }
+
+  async function loadAll(){
+    masterRows = [];
+    $note.textContent = "";
+    $body.innerHTML = `<tr><td colspan="6" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
+    $bar.style.width = "0%";
+
+    try{
+      const picked = await fetchAllowedTradingSymbols();
+      const okSyms = picked.filter(x => x.ok).map(x => x.symbol);
+      const badSyms = picked.filter(x => !x.ok);
+
+      $note.textContent = badSyms.length
+        ? `${badSyms.length} symbole(s) ignoré(s) (non dispo / pas PERP USDT TRADING)`
+        : "Tous les symboles sont OK.";
+
+      let done = 0;
+      let rows = [];
+
+      for (const b of badSyms){
+        rows.push({
+          symbol: b.symbol,
+          ok: false,
+          reason: b.reason,
+          listedAt: null,
+          yearPct: null,
+          yearHigh: null,
+          yearLow: null
+        });
+      }
+      renderTable(rows);
+
+      const BATCH = 6;
+      for (let i=0; i<okSyms.length; i+=BATCH){
+        const slice = okSyms.slice(i, i+BATCH);
+
+        const partial = await Promise.all(slice.map(async sym => {
+          try{
+            const [listedAt, year] = await Promise.all([
+              fetchListedAt(sym),
+              fetchYear2025Data(sym)
+            ]);
+            return { symbol:sym, ok:true, reason:"", listedAt, ...year };
+          }catch(_e){
+            return { symbol:sym, ok:true, reason:"", listedAt:null, yearPct:null, yearHigh:null, yearLow:null };
+          }finally{
+            done++;
+          }
+        }));
+
+        rows.push(...partial);
+        rows.sort((a,b)=> a.symbol.localeCompare(b.symbol));
+        renderTable(rows);
+
+        const progress = Math.round((done / Math.max(1, okSyms.length)) * 100);
+        $bar.style.width = progress + "%";
+        await sleep(80);
+      }
+
+      masterRows = rows;
+      $bar.style.width = "100%";
+      renderTable(masterRows);
+
+    }catch(e){
+      $body.innerHTML = `<tr><td colspan="6" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">
+        Erreur de chargement. Clic sur « Rafraîchir ».
+      </td></tr>`;
+    }
+  }
+
+  $refresh.addEventListener("click", loadAll);
+  $search.addEventListener("input", () => renderTable(masterRows));
+  $auto.addEventListener("change", () => {
+    if ($auto.checked){
+      timer = setInterval(loadAll, 10*60*1000);
+    } else {
+      clearInterval(timer);
+      timer = null;
+    }
+  });
+
+  loadAll();
+})();
+</script>
+</body>
+</html>

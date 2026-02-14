@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Octobre 2024 (Futures USDT) – Résultat Global Octobre</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+:root{ --bg:#0b0f1a; --card:#11182a; --muted:#6b7280; --text:#e5e7eb; --accent:#3b82f6; --pos:#16a34a22; --neg:#dc262622; --neu:#37415166; --ring:#3b82f688; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b0f1a,#0a1020 30%,#0b0f1a);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+.wrap{max-width:1300px;margin:28px auto;padding:0 16px}
+header{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.title{font-size:20px;font-weight:700;letter-spacing:.2px;display:flex;gap:10px;align-items:center}
+.badge{font-size:12px;background:#1f2937;color:#cbd5e1;padding:3px 8px;border-radius:999px;border:1px solid #334155}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap}
+.input, .btn, select{ border:1px solid #1f2937;background:#0f172a;color:var(--text);padding:10px 12px;border-radius:12px;outline:none }
+.input{min-width:220px}
+.btn{cursor:pointer;transition:transform .06s ease, box-shadow .12s ease;border-color:#23304b}
+.btn:hover{box-shadow:0 0 0 3px var(--ring)}
+.btn:active{transform:translateY(1px)}
+.card{ background:linear-gradient(180deg,#0e1527, #0c1223); border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px #0006;overflow:hidden;margin-bottom:16px }
+.card-head{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1f2937}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.chip{border:1px solid #27324b;background:#0f172a;border-radius:999px;padding:6px 10px;font-size:12px;color:#cbd5e1}
+.progress{height:6px;background:#111827;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);width:0%}
+.table-wrap{max-height:70vh;overflow:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:500px}
+thead th{ position:sticky;top:0;background:#0c1325;border-bottom:1px solid #1f2937;padding:10px 8px;font-weight:600;text-align:left }
+tbody td{border-bottom:1px solid #111827;padding:8px 8px;vertical-align:middle}
+tbody tr:nth-child(2n){background:#0a1221}
+tbody tr:hover{background:#0b1530}
+.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+.sym{display:flex;align-items:center;gap:8px}
+.pill{font-size:11px;border:1px solid #263149;background:#0d152b;color:#cbd5e1;padding:2px 6px;border-radius:7px}
+.pct{padding:4px 8px;border-radius:9px;display:inline-block;text-align:right;min-width:72px;font-variant-numeric:tabular-nums}
+.pct.pos{background:var(--pos);border:1px solid #14532d;color:#a7f3d0}
+.pct.neg{background:var(--neg);border:1px solid #7f1d1d;color:#fecaca}
+.pct.neu{background:var(--neu);border:1px solid #374151;color:#e5e7eb}
+.muted{color:var(--muted)}
+.summary {padding:10px;border-top:1px solid #1f2937;background:#0c1325;font-size:13px;display:flex;gap:20px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="title">Analyse pour le mois de Octobre 2024 — Futures <span class="badge">USDT</span></div>
+<div class="toolbar">
+<input id="search" class="input" placeholder="Rechercher un symbole..." />
+<button id="refresh" class="btn">Rafraîchir</button>
+<label class="btn" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+<input id="auto" type="checkbox" style="accent-color:#3b82f6"> Auto-refresh (10 min)
+</label>
+</div>
+</header>
+<div class="card">
+<div class="card-head">
+<div class="stats">
+<div class="chip">Période: Octobre 2024</div>
+<div class="chip">Source: Binance Futures</div>
+<div class="chip"><span id="count">0</span> listées en 2024</div>
+</div>
+<div class="progress" style="width:260px"><div id="bar"></div></div>
+</div>
+<div class="summary">
+<div id="sum-pct"></div>
+<div id="sum-high"></div>
+<div id="sum-low"></div>
+</div>
+<div class="table-wrap">
+<table id="tbl">
+<thead>
+<tr>
+<th>Symbole</th>
+<th>Listé le</th>
+<th>Octobre</th>
+<th>Octobre – Plus haut</th>
+<th>Octobre – Plus bas</th>
+</tr>
+</thead>
+<tbody id="body">
+<tr><td colspan="5" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>
+</tbody>
+</table>
+</div>
+
+</div>
+</div>
+<script>
+(() => {
+const API = "https://fapi.binance.com";
+const YEAR = 2024;
+const start2024 = Date.UTC(2024,0,1);
+const start2025 = Date.UTC(2025,0,1);
+const $body = document.getElementById('body');
+const $count = document.getElementById('count');
+const $bar = document.getElementById('bar');
+const $search = document.getElementById('search');
+const $refresh = document.getElementById('refresh');
+const $auto = document.getElementById('auto');
+const $sumPct = document.getElementById('sum-pct');
+const $sumHigh = document.getElementById('sum-high');
+const $sumLow = document.getElementById('sum-low');
+let masterRows = [];
+let timer = null;
+
+const allowedSymbols = [
+    "1MBABYDOGEUSDT", "BSWUSDT", "CATIUSDT", "COSUSDT", "FIDAUSDT",
+    "FIOUSDT", "FLUXUSDT", "GHSTUSDT", "HMSTRUSDT", "KDAUSDT",
+    "NEIROUSDT", "NEIROETHUSDT", "POLUSDT", "QUICKUSDT", "REIUSDT",
+    "RPLUSDT", "UXLINKUSDT"
+];
+
+
+
+function fmtDateUTC(ts){
+  const d = new Date(ts);
+  return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,'0')+"-"+String(d.getUTCDate()).padStart(2,'0');
+}
+function clsPct(v){
+  if (v === null) return "pct neu";
+  if (v > 0) return "pct pos";
+  if (v < 0) return "pct neg";
+  return "pct neu";
+}
+function pctTxt(v){
+  return v === null ? "—" : (v>0?"+":"") + v.toFixed(2) + "%";
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+async function jget(url){
+  const r = await fetch(url);
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  return r.json();
+}
+
+async function fetchUSDTListings2024(){
+  const ex = await jget(API + "/fapi/v1/exchangeInfo");
+  let usdtFutures = ex.symbols.filter(s =>
+    s.status === "TRADING" &&
+    s.contractType === "PERPETUAL" &&
+    s.quoteAsset === "USDT" &&
+    allowedSymbols.includes(s.symbol)
+  );
+  const BATCH = 10;
+  let kept = [];
+  let done = 0;
+  for (let i=0; i<usdtFutures.length; i+=BATCH){
+    const slice = usdtFutures.slice(i,i+BATCH);
+    const batch = slice.map(async s => {
+      try{
+        const earliest = await jget(`${API}/fapi/v1/klines?symbol=${s.symbol}&interval=1M&startTime=0&limit=1`);
+        if (!earliest || earliest.length===0) return;
+        const firstOpen = earliest[0][0];
+        if (firstOpen >= start2024 && firstOpen < start2025){
+          kept.push({ symbol: s.symbol, listedAt: firstOpen });
+        }
+      }catch(e){}finally{ done++; }
+    });
+    await Promise.all(batch);
+    $bar.style.width = Math.min(100, Math.round((done/usdtFutures.length)*100)) + "%";
+    await sleep(120);
+  }
+  kept.sort((a,b)=> a.symbol.localeCompare(b.symbol));
+  return kept;
+}
+
+async function fetchmonthData(symbol){
+  const ks = await jget(`${API}/fapi/v1/klines?symbol=${symbol}&interval=1M&startTime=${start2024}&endTime=${start2025}`);
+  let monthPct = null, monthHigh = null, monthLow = null;
+  for (const k of ks){
+    const d = new Date(k[0]);
+    // Le mois // 
+    if (d.getUTCFullYear() === YEAR && d.getUTCMonth() === 9){
+      const open = parseFloat(k[1]);
+      const high = parseFloat(k[2]);
+      const low  = parseFloat(k[3]);
+      const close = parseFloat(k[4]);
+      if (isFinite(open) && open > 0){
+        monthPct  = ((close - open) / open) * 100;
+        monthHigh = ((high - open) / open) * 100;
+        monthLow  = ((low - open) / open) * 100;
+      }
+    }
+  }
+  return { monthPct, monthHigh, monthLow };
+}
+
+function updateSummary(rows){
+  const sumPct  = rows.reduce((acc,r) => acc + (r.monthPct  ?? 0), 0);
+  const sumHigh = rows.reduce((acc,r) => acc + (r.monthHigh ?? 0), 0);
+  const sumLow  = rows.reduce((acc,r) => acc + (r.monthLow  ?? 0), 0);
+  $sumPct.innerHTML  = `Somme variations : <span class="${clsPct(sumPct)}">${pctTxt(sumPct)}</span>`;
+  $sumHigh.innerHTML = `Somme mèches hautes : <span class="${clsPct(sumHigh)}">${pctTxt(sumHigh)}</span>`;
+  $sumLow.innerHTML  = `Somme mèches basses : <span class="${clsPct(sumLow)}">${pctTxt(sumLow)}</span>`;
+}
+
+function renderTable(rows){
+  const q = $search.value.trim().toUpperCase();
+  const view = q ? rows.filter(r => r.symbol.includes(q)) : rows;
+  $count.textContent = rows.length.toString();
+  let html = "";
+  if (view.length === 0){
+    html = `<tr><td colspan="5" class="muted" style="text-align:center;padding:18px">Aucun résultat</td></tr>`;
+  } else {
+    for (const r of view){
+      html += `<tr>
+        <td class="mono"><div class="sym"><span>${r.symbol}</span></div></td>
+        <td class="mono muted">${fmtDateUTC(r.listedAt)}</td>
+        <td><span class="${clsPct(r.monthPct)}">${pctTxt(r.monthPct)}</span></td>
+        <td><span class="${clsPct(r.monthHigh)}">${pctTxt(r.monthHigh)}</span></td>
+        <td><span class="${clsPct(r.monthLow)}">${pctTxt(r.monthLow)}</span></td>
+      </tr>`;
+    }
+  }
+  $body.innerHTML = html;
+  updateSummary(view);
+}
+
+async function loadAll(){
+  masterRows = [];
+  $body.innerHTML = `<tr><td colspan="5" class="muted" style="text-align:center;padding:18px">Chargement…</td></tr>`;
+  $bar.style.width = "0%";
+  try{
+    const listed = await fetchUSDTListings2024();
+    const BATCH = 10;
+    let done = 0;
+    let rows = [];
+    for (let i=0;i<listed.length;i+=BATCH){
+      const slice = listed.slice(i,i+BATCH);
+      const batch = slice.map(async it => {
+        try{
+          const { monthPct, monthHigh, monthLow } = await fetchmonthData(it.symbol);
+          return {...it, monthPct, monthHigh, monthLow};
+        }catch(e){
+          return {...it, monthPct: null, monthHigh: null, monthLow: null};
+        }finally{ done++; }
+      });
+      const partial = await Promise.all(batch);
+      rows.push(...partial);
+      const progress = 50 + Math.round((done/listed.length)*50);
+      $bar.style.width = progress + "%";
+      renderTable(rows.sort((a,b)=> a.symbol.localeCompare(b.symbol)));
+      await sleep(80);
+    }
+    masterRows = rows.sort((a,b)=> a.symbol.localeCompare(b.symbol));
+    renderTable(masterRows);
+    $bar.style.width = "100%";
+  }catch(e){
+    $body.innerHTML = `<tr><td colspan="5" style="color:#fecaca;background:#7f1d1d22;border:1px solid #7f1d1d;padding:14px;border-radius:12px">Erreur de chargement. Clic sur « Rafraîchir ».</td></tr>`;
+  }
+}
+
+$refresh.addEventListener('click', loadAll);
+$search.addEventListener('input', () => renderTable(masterRows));
+$auto.addEventListener('change', () => {
+  if ($auto.checked){
+    timer = setInterval(loadAll, 10*60*1000);
+  } else{
+    clearInterval(timer);
+    timer = null;
+  }
+});
+loadAll();
+})();
+</script>
+</body>
+</html>

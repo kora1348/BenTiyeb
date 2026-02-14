@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Détail Quotidien - 30 Jours de Variation</title>
+  <style>
+    :root{
+      --bg:#fff; --text:#111; --muted:#666; --border:#e6e6e6; --header:#f5f5f5;
+      --danger-bg:#ffe6e6; --danger-text:#b00020; --danger-border:#ffd1d1;
+      --success-bg:#e6f9f0; --success-text:#0a7a2f; --success-border:#b7e5d4;
+      --blue-bg:#e3f2fd; --blue-text:#1565c0; --blue-border:#90caf9;
+      --orange-bg:#fff3e0; --orange-text:#e65100; --orange-border:#ffb74d;
+    }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{ width:95%; margin:24px auto 48px; }
+
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+      padding-bottom:16px;
+      border-bottom:2px solid var(--border);
+    }
+
+    h1{ font-size:22px; margin:0; font-weight:700; }
+
+    .back-btn{
+      padding:10px 16px;
+      background:#fff;
+      border:2px solid var(--border);
+      border-radius:10px;
+      font-weight:700;
+      font-size:13px;
+      cursor:pointer;
+      transition:all .2s;
+      text-decoration:none;
+      color:var(--text);
+      display:inline-block;
+    }
+    .back-btn:hover{
+      background:#f5f5f5;
+      border-color:var(--text);
+    }
+
+    .info-cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:12px;
+      margin-bottom:20px;
+    }
+
+    .info-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 2px 12px rgba(0,0,0,.04);
+      position:relative;
+    }
+
+    .info-card.red{
+      background:var(--danger-bg);
+      border-color:var(--danger-border);
+    }
+
+    .info-card.green{
+      background:var(--success-bg);
+      border-color:var(--success-border);
+    }
+
+    .info-card.blue{
+      background:var(--blue-bg);
+      border-color:var(--blue-border);
+    }
+
+    .info-card.orange{
+      background:var(--orange-bg);
+      border-color:var(--orange-border);
+    }
+
+    .info-label{
+      font-size:12px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.6px;
+      margin-bottom:6px;
+    }
+
+    .info-value{
+      font-size:24px;
+      font-weight:900;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      line-height:1.15;
+    }
+
+    .table-wrap{
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow-x:auto;
+      background:#fff;
+      box-shadow:0 2px 12px rgba(0,0,0,.04);
+    }
+
+    .loadingbar-wrap{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      background:#fff;
+    }
+
+    .loadingbar-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:#f0f0f0;
+      overflow:hidden;
+      border:1px solid var(--border);
+    }
+
+    .bar > div{
+      height:100%;
+      width:0%;
+      background:#cfcfcf;
+      transition:width .25s ease;
+    }
+
+    table{ 
+      width:100%; 
+      border-collapse:collapse;
+      min-width:2000px;
+    }
+
+    thead th{
+      background:var(--header);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+      padding:10px 8px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      position:sticky;
+      top:0;
+      z-index:1;
+      white-space:nowrap;
+    }
+
+    thead th:first-child{
+      position:sticky;
+      left:0;
+      z-index:2;
+      background:var(--header);
+    }
+
+    tbody td{
+      padding:8px;
+      border-bottom:1px solid var(--border);
+      font-size:12px;
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+
+    tbody td:first-child{
+      position:sticky;
+      left:0;
+      background:#fff;
+      z-index:1;
+      font-weight:700;
+    }
+
+    tbody tr:hover td{
+      background:#fafafa;
+    }
+
+    tbody tr:hover td:first-child{
+      background:#f5f5f5;
+    }
+
+    tbody tr.daily-total-row{
+      background:var(--header);
+      font-weight:900;
+    }
+
+    tbody tr.daily-total-row td{
+      border-top:2px solid var(--border);
+      border-bottom:2px solid var(--border);
+      padding:12px 8px;
+      background:var(--header) !important;
+    }
+
+    .right{ text-align:right; font-variant-numeric:tabular-nums; }
+
+    .mono{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    }
+
+    .muted{ color:var(--muted); }
+
+    .positive{ color:#0a7a2f; font-weight:800; }
+    .negative{ color:#b00020; font-weight:800; }
+    .neutral{ color:var(--muted); font-weight:800; }
+
+    .loading{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:40px;
+      justify-content:center;
+    }
+
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#999;
+      display:inline-block;
+      animation:pulse 1s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2){ animation-delay:.15s }
+    .dot:nth-child(3){ animation-delay:.3s }
+
+    @keyframes pulse{
+      0%,100%{ transform:scale(.7); opacity:.5 }
+      50%{ transform:scale(1); opacity:1 }
+    }
+
+    .error-msg{
+      padding:20px;
+      background:var(--danger-bg);
+      border:1px solid var(--danger-border);
+      border-radius:14px;
+      color:var(--danger-text);
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1 id="pageTitle">Détail Quotidien - 30 Jours de Variation 1D</h1>
+    </div>
+    <a href="javascript:window.close();" class="back-btn">← Fermer</a>
+  </div>
+
+  <div class="info-cards">
+    <div class="info-card" id="globalCard">
+      <div class="info-label">Total Global (30 jours)</div>
+      <div class="info-value" id="globalTotal">—</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Nombre de Cryptos</div>
+      <div class="info-value" id="cryptoCount">13</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Date Sélectionnée</div>
+      <div class="info-value" id="selectedDate">—</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Type de Position</div>
+      <div class="info-value" id="positionType">—</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="loadingbar-wrap" id="loadingBar" style="display:none;">
+      <div class="loadingbar-top">
+        <div>
+          <span id="loadingLabel">Chargement des variations (30 jours):</span>
+          <b><span id="done">0</span>/<span id="total">0</span></b>
+        </div>
+        <div class="mono"><span id="pct">0%</span></div>
+      </div>
+      <div class="bar"><div id="barFill"></div></div>
+    </div>
+
+    <table>
+      <thead id="thead">
+        <!-- généré dynamiquement -->
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="32">
+          <div class="loading">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="muted">Chargement…</span>
+          </div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(() => {
+  const PERP_BASE = "https://fapi.binance.com";
+  const DAY_INTERVAL = "1d";
+  const WORKERS = 4;
+  const DELAY_MS = 180;
+
+  const DAYS_TO_FETCH = 30;
+
+  // Liste fixe des cryptos à afficher
+  const FILTERED_SYMBOLS = [
+    "AEVOUSDT",
+    "ARPAUSDT",
+    "AXLUSDT",
+    "DIAUSDT",
+    "EGLDUSDT",
+    "IDUSDT",
+    "RONINUSDT",
+    "WLDUSDT",
+    "1000SATSUSDT",
+    "1000LUNCUSDT",
+    "ANKRUSDT",
+    "DENTUSDT",
+    "ENJUSDT"
+  ];
+
+  const tbody = document.getElementById("tbody");
+  const thead = document.getElementById("thead");
+  const cryptoCountEl = document.getElementById("cryptoCount");
+  const selectedDateEl = document.getElementById("selectedDate");
+  const positionTypeEl = document.getElementById("positionType");
+  const pageTitleEl = document.getElementById("pageTitle");
+
+  const globalCardEl = document.getElementById("globalCard");
+  const globalTotalEl = document.getElementById("globalTotal");
+
+  const loadingBarEl = document.getElementById("loadingBar");
+  const loadingLabelEl = document.getElementById("loadingLabel");
+  const doneEl = document.getElementById("done");
+  const totalEl = document.getElementById("total");
+  const pctEl = document.getElementById("pct");
+  const barFillEl = document.getElementById("barFill");
+
+  let detailData = null;
+  let results = [];
+  let globalTotal = null;
+  let dailyTotals = [];
+  let isLoading = false;
+  let futureDates = [];
+  let filteredData = [];
+
+  function fmtPercent(x) {
+    if (x === null || x === undefined || Number.isNaN(x)) return "—";
+    const sign = x >= 0 ? "+" : "";
+    return `${sign}${x.toFixed(2)}%`;
+  }
+
+  function fmtDateFR(d) {
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const yy = String(d.getUTCFullYear());
+    return `${dd}/${mm}/${yy}`;
+  }
+
+  function addDaysUTC(d, delta) {
+    return new Date(Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate() + delta,
+      0, 0, 0, 0
+    ));
+  }
+
+  function startOfDayUTC(d) {
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+  }
+
+  function parseDateFR(dateStr) {
+    const [day, month, year] = (dateStr || "").split("/");
+    return new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10)));
+  }
+
+  async function fetchJSON(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  async function fetchDailyChange(symbol, dayStartUtcMs) {
+    const prevStart = dayStartUtcMs - 24 * 60 * 60 * 1000;
+    const url = `${PERP_BASE}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${DAY_INTERVAL}&startTime=${prevStart}&limit=2`;
+    const data = await fetchJSON(url);
+
+    if (!Array.isArray(data) || data.length < 2) return null;
+
+    const prev = data[0];
+    const cur = data[1];
+
+    const prevClose = Number(prev[4]);
+    const curClose  = Number(cur[4]);
+
+    if (!prevClose || Number.isNaN(prevClose) || Number.isNaN(curClose)) return null;
+
+    return ((curClose - prevClose) / prevClose) * 100;
+  }
+
+  function updateProgress(done, total) {
+    doneEl.textContent = String(done);
+    totalEl.textContent = String(total);
+    const p = total ? Math.round(done / total * 100) : 0;
+    pctEl.textContent = p + "%";
+    barFillEl.style.width = p + "%";
+  }
+
+  function classForValue(v) {
+    if (v === null || v === undefined || Number.isNaN(v) || v === 0) return "neutral";
+    return v > 0 ? "positive" : "negative";
+  }
+
+  function sumValid(arr) {
+    const valid = (arr || []).filter(v => v !== null && v !== undefined && !Number.isNaN(v));
+    if (!valid.length) return null;
+    return valid.reduce((s, v) => s + v, 0);
+  }
+
+  function calculateDailyTotals() {
+    dailyTotals = [];
+    for (let dayIdx = 0; dayIdx < DAYS_TO_FETCH; dayIdx++) {
+      const dayValues = results
+        .map(r => r.variations[dayIdx])
+        .filter(v => v !== null && v !== undefined && !Number.isNaN(v));
+      
+      const dayTotal = dayValues.length ? dayValues.reduce((s, v) => s + v, 0) : null;
+      dailyTotals.push(dayTotal);
+    }
+  }
+
+  function updateGlobalTotal() {
+    const totals = results
+      .map(r => r.total)
+      .filter(v => v !== null && v !== undefined && !Number.isNaN(v));
+
+    globalTotal = totals.length ? totals.reduce((s, v) => s + v, 0) : null;
+
+    const cls = classForValue(globalTotal);
+    globalTotalEl.textContent = fmtPercent(globalTotal);
+    globalTotalEl.classList.remove("positive", "negative", "neutral");
+    globalTotalEl.classList.add(cls);
+  }
+
+  function getTypeInfo() {
+    const type = (detailData.type || "").toLowerCase();
+    
+    if (type.includes("short")) {
+      if (type.includes("high")) {
+        return { isShort: true, label: "SHORT", color: "red" };
+      } else if (type.includes("low")) {
+        return { isShort: true, label: "SHORT", color: "orange" };
+      }
+      return { isShort: true, label: "SHORT", color: "red" };
+    } else if (type.includes("long")) {
+      if (type.includes("high")) {
+        return { isShort: false, label: "LONG", color: "green" };
+      } else if (type.includes("low")) {
+        return { isShort: false, label: "LONG", color: "blue" };
+      }
+      return { isShort: false, label: "LONG", color: "green" };
+    }
+    
+    return { isShort: false, label: "LONG", color: "green" };
+  }
+
+  function setTitleAndColorByType() {
+    const typeInfo = getTypeInfo();
+    
+    pageTitleEl.textContent = `Détail ${typeInfo.label} - 30 Jours de Variation 1D`;
+    document.title = `Détail ${typeInfo.label} - 30 Jours`;
+    
+    positionTypeEl.textContent = typeInfo.label;
+    
+    globalCardEl.classList.remove("green", "red", "blue", "orange");
+    globalCardEl.classList.add(typeInfo.color);
+  }
+
+  function buildFutureDates(selectedDate) {
+    const dates = [];
+    for (let i = 0; i < DAYS_TO_FETCH; i++) {
+      const d = addDaysUTC(selectedDate, i);
+      dates.push({ day: i + 1, date: d, startMs: startOfDayUTC(d) });
+    }
+    return dates;
+  }
+
+  function renderHeader(dates) {
+    const dayThs = dates.map((fd, idx) => {
+      const dayLabel = idx === 0 ? `J+1 (${fmtDateFR(fd.date)})` : `J+${fd.day}`;
+      return `<th class="right" style="min-width:100px;">${dayLabel}</th>`;
+    }).join("");
+
+    thead.innerHTML = `
+      <tr>
+        <th style="min-width:120px;">Symbole</th>
+        ${dayThs}
+        <th class="right" style="min-width:120px;">Total</th>
+      </tr>
+    `;
+  }
+
+  function renderLoadingRow() {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="32">
+          <div class="loading">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="muted">Chargement…</span>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  function renderResults() {
+    if (!results.length) return;
+
+    const typeInfo = getTypeInfo();
+    const sorted = [...results].sort((a, b) => {
+      if (a.total === null) return 1;
+      if (b.total === null) return -1;
+      if (typeInfo.isShort) return a.total - b.total;
+      return b.total - a.total;
+    });
+
+    calculateDailyTotals();
+
+    let html = "";
+
+    sorted.forEach(r => {
+      const totalClass = classForValue(r.total);
+
+      const dayCells = r.variations.map((v) => {
+        const varClass = classForValue(v);
+        return `<td class="right mono ${varClass}">${fmtPercent(v)}</td>`;
+      }).join("");
+
+      html += `
+        <tr>
+          <td class="mono"><b>${r.symbol}</b></td>
+          ${dayCells}
+          <td class="right mono ${totalClass}"><b>${fmtPercent(r.total)}</b></td>
+        </tr>
+      `;
+    });
+
+    const dailyTotalCells = dailyTotals.map(dt => {
+      const dtClass = classForValue(dt);
+      return `<td class="right mono ${dtClass}"><b>${fmtPercent(dt)}</b></td>`;
+    }).join("");
+
+    const globalTotalClass = classForValue(globalTotal);
+    html += `
+      <tr class="daily-total-row">
+        <td><b>TOTAL QUOTIDIEN</b></td>
+        ${dailyTotalCells}
+        <td class="right mono ${globalTotalClass}"><b>${fmtPercent(globalTotal)}</b></td>
+      </tr>
+    `;
+
+    tbody.innerHTML = html;
+  }
+
+  async function loadData() {
+    if (isLoading) return;
+    isLoading = true;
+
+    try {
+      if (!filteredData || !filteredData.length) {
+        tbody.innerHTML = `<tr><td colspan="1" class="error-msg">Aucune donnée disponible</td></tr>`;
+        return;
+      }
+
+      const selectedDate = parseDateFR(detailData.date);
+      futureDates = buildFutureDates(selectedDate);
+
+      setTitleAndColorByType();
+      selectedDateEl.textContent = detailData.date;
+
+      renderHeader(futureDates);
+      renderLoadingRow();
+
+      loadingBarEl.style.display = "block";
+      const totalJobs = filteredData.length * DAYS_TO_FETCH;
+      updateProgress(0, totalJobs);
+
+      results = [];
+      globalTotal = null;
+      dailyTotals = [];
+
+      let idx = 0;
+      let completed = 0;
+
+      async function worker() {
+        while (idx < filteredData.length) {
+          const item = filteredData[idx++];
+          const variations = [];
+
+          for (const fd of futureDates) {
+            await new Promise(res => setTimeout(res, DELAY_MS));
+            try {
+              const v = await fetchDailyChange(item.symbol, fd.startMs);
+              variations.push(v);
+            } catch (e) {
+              variations.push(null);
+            }
+            completed++;
+            updateProgress(completed, totalJobs);
+          }
+
+          const totalLine = sumValid(variations);
+
+          results.push({
+            symbol: item.symbol,
+            variations,
+            total: totalLine
+          });
+
+          updateGlobalTotal();
+          renderResults();
+        }
+      }
+
+      await Promise.all(Array.from({ length: WORKERS }, () => worker()));
+
+      loadingBarEl.style.display = "none";
+      updateGlobalTotal();
+      renderResults();
+    } catch (e) {
+      console.error(e);
+      tbody.innerHTML = `<tr><td colspan="32" class="error-msg">Erreur lors du chargement des données: ${e.message}</td></tr>`;
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function init() {
+    try {
+      const dataStr = localStorage.getItem("detailData");
+      if (!dataStr) {
+        tbody.innerHTML = `<tr><td colspan="1" class="error-msg">Aucune donnée disponible. Veuillez retourner à la page précédente.</td></tr>`;
+        return;
+      }
+
+      detailData = JSON.parse(dataStr);
+
+      filteredData = FILTERED_SYMBOLS.map(symbol => ({ symbol: symbol }));
+
+      cryptoCountEl.textContent = "13";
+
+      renderLoadingRow();
+      loadData();
+    } catch (e) {
+      console.error(e);
+      tbody.innerHTML = `<tr><td colspan="1" class="error-msg">Erreur lors du chargement des données: ${e.message}</td></tr>`;
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

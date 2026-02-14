@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calendrier Trading — Janvier 2026</title>
+  <style>
+    :root{
+      --bg:#0b1020; --card:#111827; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937;
+      --long:#16a34a; --short:#dc2626; --accent:#3b82f6; --chip:#0f172a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:22px;
+      background: radial-gradient(1000px 600px at 20% 0%, #172554 0%, transparent 55%),
+                  radial-gradient(800px 600px at 90% 10%, #3b0764 0%, transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{max-width:1100px;margin:0 auto;display:grid;gap:14px;grid-template-columns: 1.1fr 0.9fr}
+    header{
+      grid-column:1 / -1;
+      display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+      padding:14px 16px;border:1px solid var(--border);border-radius:16px;background:rgba(17,24,39,.82);
+      backdrop-filter: blur(8px);
+    }
+    h1{margin:0;font-size:18px}
+    .sub{color:var(--muted);font-size:12px;margin-top:4px}
+    .legend{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(15,23,42,.7);
+      font-size:12px;color:var(--muted)
+    }
+    .dot{width:10px;height:10px;border-radius:999px;display:inline-block}
+    .dot.long{background:var(--long)}
+    .dot.short{background:var(--short)}
+
+    .card{
+      border:1px solid var(--border);border-radius:16px;background:rgba(17,24,39,.82);
+      backdrop-filter: blur(8px);
+      padding:14px;
+    }
+
+    /* Calendar */
+    .calTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .calTitle{font-weight:700}
+    .btn{
+      border:1px solid var(--border);background:rgba(15,23,42,.75);color:var(--text);
+      padding:7px 10px;border-radius:10px;cursor:pointer;font-weight:600;
+    }
+    .btn:active{transform:translateY(1px)}
+    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+    .dow{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+    .cell{
+      min-height:74px;
+      border:1px solid var(--border);border-radius:14px;
+      background:rgba(15,23,42,.55);
+      padding:8px;
+      position:relative;
+      cursor:default;
+    }
+    .cell.empty{opacity:.35}
+    .num{font-weight:800;font-size:13px}
+    .badges{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+    .badge{
+      font-size:11px;
+      padding:3px 7px;border-radius:999px;
+      background:rgba(148,163,184,.12);
+      border:1px solid rgba(148,163,184,.18);
+      color:var(--muted);
+    }
+    .badge.long{background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.25);color:#bbf7d0}
+    .badge.short{background:rgba(220,38,38,.14);border-color:rgba(220,38,38,.25);color:#fecaca}
+
+    .cell.clickable{cursor:pointer;outline:none}
+    .cell.clickable:hover{border-color:rgba(59,130,246,.55); box-shadow:0 0 0 3px rgba(59,130,246,.12) inset}
+    .cell.selected{
+      border-color:rgba(59,130,246,.8);
+      box-shadow:0 0 0 3px rgba(59,130,246,.18) inset;
+    }
+
+    /* Details */
+    .titleRow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .h2{margin:0;font-size:15px}
+    .kpiRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .kpi{
+      display:flex;gap:8px;align-items:center;
+      padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(15,23,42,.55);
+      color:var(--muted);font-size:12px;
+    }
+    .kpi strong{color:var(--text)}
+    .kpi .tag{
+      font-weight:800;
+      padding:3px 8px;border-radius:999px;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(148,163,184,.10);
+      color:var(--text);
+    }
+    .tag.long{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.14)}
+    .tag.short{border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.14)}
+    .hr{height:1px;background:var(--border);margin:12px 0}
+    .symbols{
+      display:flex;flex-wrap:wrap;gap:8px;
+    }
+    .sym{
+      padding:6px 10px;border-radius:999px;
+      background:rgba(15,23,42,.65);
+      border:1px solid rgba(148,163,184,.18);
+      color:var(--text);font-weight:700;font-size:12px;
+    }
+    .hint{color:var(--muted);font-size:12px;margin-top:6px}
+    @media (max-width: 920px){
+      .wrap{grid-template-columns:1fr}
+      header{align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>📅 Calendrier Trading — Janvier 2026</h1>
+        <div class="sub">Calendrier “en dur” (plans). Clique une date marquée pour voir LONG/SHORT + timeframe + symboles.</div>
+      </div>
+      <div class="legend">
+        <span class="pill"><span class="dot long"></span> LONG</span>
+        <span class="pill"><span class="dot short"></span> SHORT</span>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="calTop">
+        <div class="calTitle" id="calTitle">Janvier 2026</div>
+        <button class="btn" id="todayBtn" type="button">Sélectionner le 01/01</button>
+      </div>
+
+      <div class="grid" id="dow"></div>
+      <div class="grid" id="grid"></div>
+      <div class="hint">✅ Les dates marquées sont cliquables (plans de trading).</div>
+    </section>
+
+    <aside class="card" id="details">
+      <div class="titleRow">
+        <h2 class="h2">🧾 Détails</h2>
+        <div class="pill" id="statusPill">Aucune date sélectionnée</div>
+      </div>
+
+      <div class="kpiRow" id="kpis" style="display:none"></div>
+
+      <div class="hr"></div>
+
+      <div id="symbolsBlock">
+        <div class="hint">Clique une date (ex: 01/01/2026 ou 28/01/2026) pour afficher la liste des cryptos.</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // ✅ Lists (en dur)
+    const SYMBOLS_1D = [
+      "BREVUSDT","COLLECTUSDT","CYSUSDT","GUAUSDT","IRUSDT","LITUSDT","MAGMAUSDT",
+      "NIGHTUSDT","POWERUSDT","RAVEUSDT","RLSUSDT","USUSDT","WETUSDT","ZKPUSDT"
+    ];
+
+    const SYMBOLS_1M_LONG = ["KOMAUSDT","PENGUUSDT","USUALUSDT"];
+
+    // ✅ Plans (en dur) — maintenant une date peut contenir plusieurs timeframes
+    // dateKey: YYYY-MM-DD
+    const PLANS = {
+      "2026-01-01": [
+        { side: "LONG", timeframe: "1D", symbols: SYMBOLS_1D },
+        { side: "LONG", timeframe: "1M", symbols: SYMBOLS_1M_LONG },
+      ],
+      "2026-01-28": [
+        { side: "SHORT", timeframe: "1D", symbols: SYMBOLS_1D },
+      ],
+    };
+
+    // Calendar month to render (Jan 2026)
+    const VIEW = { year: 2026, monthIndex: 0 }; // 0=Jan
+
+    const DOW = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+    const dowEl = document.getElementById("dow");
+    const gridEl = document.getElementById("grid");
+    const statusPill = document.getElementById("statusPill");
+    const kpisEl = document.getElementById("kpis");
+    const symbolsBlock = document.getElementById("symbolsBlock");
+    const todayBtn = document.getElementById("todayBtn");
+
+    let selectedKey = null;
+
+    function pad2(n){ return String(n).padStart(2,"0"); }
+    function toKey(y,m,d){ return `${y}-${pad2(m)}-${pad2(d)}`; }
+
+    // Monday-first index: JS getDay() => 0 Sun ... 6 Sat
+    function mondayFirstIndex(jsDay){
+      // convert: Mon=0 ... Sun=6
+      return (jsDay + 6) % 7;
+    }
+
+    function renderDow(){
+      dowEl.innerHTML = "";
+      for(const d of DOW){
+        const div = document.createElement("div");
+        div.className = "dow";
+        div.textContent = d;
+        dowEl.appendChild(div);
+      }
+    }
+
+    function renderCalendar(){
+      gridEl.innerHTML = "";
+
+      const y = VIEW.year;
+      const m = VIEW.monthIndex;
+
+      // days in month
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const firstDay = new Date(y, m, 1);
+      const firstIndex = mondayFirstIndex(firstDay.getDay());
+
+      // Fill leading empty cells
+      for(let i=0;i<firstIndex;i++){
+        const c = document.createElement("div");
+        c.className = "cell empty";
+        gridEl.appendChild(c);
+      }
+
+      for(let day=1; day<=daysInMonth; day++){
+        const key = toKey(y, m+1, day);
+        const plans = PLANS[key]; // array or undefined
+
+        const c = document.createElement("div");
+        c.className = "cell";
+        c.dataset.key = key;
+
+        const num = document.createElement("div");
+        num.className = "num";
+        num.textContent = day;
+        c.appendChild(num);
+
+        const badges = document.createElement("div");
+        badges.className = "badges";
+
+        if(plans && plans.length){
+          c.classList.add("clickable");
+
+          // Show up to 3 badges (side + timeframe) compactly
+          // Example: LONG 1D, LONG 1M, SHORT 1D
+          const maxToShow = 3;
+          const slice = plans.slice(0, maxToShow);
+
+          for(const p of slice){
+            const b1 = document.createElement("span");
+            b1.className = "badge " + (p.side === "LONG" ? "long" : "short");
+            b1.textContent = p.side;
+
+            const b2 = document.createElement("span");
+            b2.className = "badge";
+            b2.textContent = p.timeframe;
+
+            badges.appendChild(b1);
+            badges.appendChild(b2);
+          }
+
+          if(plans.length > maxToShow){
+            const more = document.createElement("span");
+            more.className = "badge";
+            more.textContent = `+${plans.length - maxToShow}`;
+            badges.appendChild(more);
+          }
+
+          c.addEventListener("click", () => selectDate(key));
+        }
+
+        c.appendChild(badges);
+
+        if(selectedKey === key){
+          c.classList.add("selected");
+        }
+
+        gridEl.appendChild(c);
+      }
+    }
+
+    function selectDate(key){
+      selectedKey = key;
+      const plans = PLANS[key];
+
+      // update selected UI in calendar
+      renderCalendar();
+
+      if(!plans || !plans.length){
+        statusPill.textContent = "Aucun plan sur cette date";
+        kpisEl.style.display = "none";
+        symbolsBlock.innerHTML = `<div class="hint">Aucun trade planifié le <strong>${key}</strong>.</div>`;
+        return;
+      }
+
+      statusPill.textContent = `Sélection : ${key}`;
+      kpisEl.style.display = "none"; // on passe en mode "sections"
+
+      // Build detail sections per plan
+      const sectionsHtml = plans.map((p, idx) => {
+        const tagClass = p.side === "LONG" ? "long" : "short";
+        const symHtml = p.symbols.map(s => `<span class="sym">${s}</span>`).join("");
+        return `
+          <div style="margin-top:${idx===0?0:12}px">
+            <div class="kpiRow" style="margin-top:0">
+              <div class="kpi">Direction : <span class="tag ${tagClass}">${p.side}</span></div>
+              <div class="kpi">Timeframe : <strong>${p.timeframe}</strong></div>
+              <div class="kpi"># Symboles : <strong>${p.symbols.length}</strong></div>
+            </div>
+            <div class="symbols" style="margin-top:10px">${symHtml}</div>
+          </div>
+        `;
+      }).join(`<div class="hr"></div>`);
+
+      symbolsBlock.innerHTML = `
+        <div class="hint">Plans du jour :</div>
+        ${sectionsHtml}
+      `;
+    }
+
+    // Init
+    renderDow();
+    renderCalendar();
+
+    // quick button: select 01/01
+    todayBtn.addEventListener("click", () => selectDate("2026-01-01"));
+  </script>
+</body>
+</html>

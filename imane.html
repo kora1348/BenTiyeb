@@ -1,0 +1,1840 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Binance USDT - Perpetual Only — Listing vs Now/Close</title>
+  <style>
+    :root{
+      --bg:#fff; --text:#111; --muted:#666; --border:#e6e6e6; --header:#f5f5f5;
+      --danger-bg:#ffe6e6; --danger-text:#b00020; --danger-border:#ffd1d1;
+      --success-bg:#e6f9f0; --success-text:#0a7a2f; --success-border:#b7e5d4;
+      --blue-bg:#e3f2fd; --blue-text:#1565c0; --blue-border:#90caf9;
+      --orange-bg:#fff3e0; --orange-text:#e65100; --orange-border:#ffb74d;
+      
+      --date1-color: #9b59b6; /* Violet pour J-2 */
+      --date2-color: #e67e22; /* Orange pour J-1 */
+      --date3-color: #27ae60; /* Vert pour J */
+    }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    .wrap{ width:90%; margin:24px auto 48px; }
+    .topbar{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
+    h1{ font-size:18px; margin:0; font-weight:700; }
+    .meta{ font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .pill{ border:1px solid var(--border); border-radius:999px; padding:6px 10px; background:#fff; white-space:nowrap; }
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0 14px; }
+    input, select, button{ border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:#fff; color:var(--text); font-size:13px; outline:none; }
+    button{ cursor:pointer; }
+    button:hover{ background:#f5f5f5; }
+
+    .color-date1{ color: var(--date1-color); font-weight: 900; }
+    .color-date2{ color: var(--date2-color); font-weight: 900; }
+    .color-date3{ color: var(--date3-color); font-weight: 900; }
+
+    .day-nav{
+      display:inline-flex; align-items:center; gap:6px;
+      border:1px solid var(--border); border-radius:999px;
+      padding:6px 10px; background:#fff; white-space:nowrap;
+      position: relative;
+    }
+    .day-nav .label{ 
+      font-weight:900; color:#222; min-width:90px; text-align:center; 
+      cursor: pointer; user-select: none;
+      padding: 4px 8px; border-radius: 6px; transition: background .2s;
+    }
+    .day-nav .label:hover{ background: #f5f5f5; }
+    .day-nav button{
+      padding:6px 10px; border-radius:999px; border:1px solid var(--border);
+      background:#fff; font-size:12px; line-height:1;
+    }
+    .day-nav button:disabled{ opacity:.45; cursor:not-allowed; }
+
+    /* Monthly Selector */
+    .monthly-selector{
+      display:inline-flex; align-items:center; gap:6px;
+      border:1px solid var(--border); border-radius:999px;
+      padding:6px 10px; background:#fff; white-space:nowrap;
+      position: relative;
+    }
+    .monthly-selector .label{ 
+      font-weight:900; color:#222; min-width:120px; text-align:center; 
+      cursor: pointer; user-select: none;
+      padding: 4px 8px; border-radius: 6px; transition: background .2s;
+    }
+    .monthly-selector .label:hover{ background: #f5f5f5; }
+    .monthly-selector button{
+      padding:6px 10px; border-radius:999px; border:1px solid var(--border);
+      background:#fff; font-size:12px; line-height:1;
+    }
+    .monthly-selector button:disabled{ opacity:.45; cursor:not-allowed; }
+    .monthly-selector .ok-btn{
+      padding:6px 14px;
+      background:#27ae60;
+      color:#fff;
+      border:1px solid #1e8449;
+      font-weight:700;
+      margin-left:4px;
+    }
+    .monthly-selector .ok-btn:hover{
+      background:#1e8449;
+    }
+
+    /* Calendar popup */
+    .calendar-popup{
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.1);
+      padding: 16px;
+      z-index: 1000;
+      display: none;
+      min-width: 280px;
+    }
+    .calendar-popup.show{ display: block; }
+    
+    .calendar-header{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    .calendar-header select{
+      padding: 6px 8px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+    .calendar-header button{
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .calendar-header button:hover{ background: #f5f5f5; }
+    
+    .calendar-grid{
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .calendar-day-header{
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 6px 0;
+    }
+    .calendar-day{
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .2s;
+    }
+    .calendar-day:hover{
+      background: #f5f5f5;
+      border-color: var(--border);
+    }
+    .calendar-day.empty{
+      cursor: default;
+      opacity: 0;
+    }
+    .calendar-day.other-month{
+      color: var(--muted);
+      opacity: 0.4;
+    }
+    .calendar-day.today{
+      background: #e3f2fd;
+      font-weight: 700;
+      color: #1976d2;
+    }
+    .calendar-day.selected{
+      background: #27ae60;
+      color: #fff;
+      font-weight: 700;
+    }
+    .calendar-day.future{
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .calendar-day.future:hover{
+      background: transparent;
+      border-color: transparent;
+    }
+
+    /* Month Picker Popup */
+    .month-popup{
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.1);
+      padding: 16px;
+      z-index: 1000;
+      display: none;
+      min-width: 320px;
+    }
+    .month-popup.show{ display: block; }
+    
+    .month-popup-header{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    .month-popup-header select{
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      flex: 1;
+    }
+    .month-popup-header button{
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .month-popup-header button:hover{ background: #f5f5f5; }
+    
+    .month-grid{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .month-item{
+      padding: 12px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all .2s;
+      background: #fff;
+    }
+    .month-item:hover{
+      background: #f5f5f5;
+      border-color: var(--text);
+    }
+    .month-item.selected{
+      background: #27ae60;
+      color: #fff;
+      border-color: #1e8449;
+    }
+    .month-item.future{
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .month-item.future:hover{
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .alert-card{
+      border-radius:14px; padding:12px 14px;
+      margin: 10px 0 10px; box-shadow: 0 2px 12px rgba(0,0,0,.04); display:none;
+    }
+    .alert-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; font-weight:900; }
+    .alert-badge{ border-radius:999px; padding:6px 10px; font-size:12px; font-weight:900; white-space:nowrap; }
+    .alert-sub{ margin-top:6px; font-size:12px; opacity:.9; }
+    .signal-list{ 
+      margin-top:10px; 
+      display:flex; 
+      flex-wrap:wrap; 
+      gap:8px; 
+    }
+    .signal-chip{ display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius: 999px; font-size:12px; font-weight:900; white-space:nowrap; }
+
+    /* Position indicator */
+    .position-indicator{
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 900;
+      margin-left: 12px;
+      letter-spacing: 1px;
+    }
+
+    /* Boutons Visualisation */
+    .btn-group{
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .btn-visualize{
+      padding: 10px 16px;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    /* Card VERTE pour delta ≤ -3 (LONG) et Total ≥ 53 */
+    .alert-card.green-card {
+      border: 1px solid var(--success-border);
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+    .alert-card.green-card .alert-badge {
+      border: 1px solid var(--success-border);
+      background: #fff;
+    }
+    .alert-card.green-card .signal-chip {
+      border: 1px solid var(--success-border);
+      background: #fff;
+    }
+    .alert-card.green-card .btn-visualize {
+      background: #fff;
+      border-color: var(--success-border);
+      color: var(--success-text);
+    }
+    .alert-card.green-card .btn-visualize:hover {
+      background: #d4f4e2;
+      border-color: var(--success-text);
+    }
+    .alert-card.green-card .position-indicator {
+      background: #0a7a2f;
+      color: #fff;
+    }
+
+    /* Card ROUGE pour delta ≥ +3 (SHORT) et Total ≥ 53 */
+    .alert-card.red-card {
+      border: 1px solid var(--danger-border);
+      background: var(--danger-bg);
+      color: var(--danger-text);
+    }
+    .alert-card.red-card .alert-badge {
+      border: 1px solid #ffbaba;
+      background: #fff3f3;
+    }
+    .alert-card.red-card .signal-chip {
+      border: 1px solid #ffbaba;
+      background: #fff3f3;
+    }
+    .alert-card.red-card .btn-visualize {
+      background: #fff3f3;
+      border-color: var(--danger-border);
+      color: var(--danger-text);
+    }
+    .alert-card.red-card .btn-visualize:hover {
+      background: #ffeded;
+      border-color: var(--danger-text);
+    }
+    .alert-card.red-card .position-indicator {
+      background: #b00020;
+      color: #fff;
+    }
+
+    /* Card BLEUE pour delta ≤ -3 (LONG) et Total ≤ 52 */
+    .alert-card.blue-card {
+      border: 1px solid var(--blue-border);
+      background: var(--blue-bg);
+      color: var(--blue-text);
+    }
+    .alert-card.blue-card .alert-badge {
+      border: 1px solid var(--blue-border);
+      background: #fff;
+    }
+    .alert-card.blue-card .signal-chip {
+      border: 1px solid var(--blue-border);
+      background: #fff;
+    }
+    .alert-card.blue-card .btn-visualize {
+      background: #fff;
+      border-color: var(--blue-border);
+      color: var(--blue-text);
+    }
+    .alert-card.blue-card .btn-visualize:hover {
+      background: #bbdefb;
+      border-color: var(--blue-text);
+    }
+    .alert-card.blue-card .position-indicator {
+      background: #1565c0;
+      color: #fff;
+    }
+
+    /* Card ORANGE pour delta ≥ +3 (SHORT) et Total ≤ 52 */
+    .alert-card.orange-card {
+      border: 1px solid var(--orange-border);
+      background: var(--orange-bg);
+      color: var(--orange-text);
+    }
+    .alert-card.orange-card .alert-badge {
+      border: 1px solid var(--orange-border);
+      background: #fff;
+    }
+    .alert-card.orange-card .signal-chip {
+      border: 1px solid var(--orange-border);
+      background: #fff;
+    }
+    .alert-card.orange-card .btn-visualize {
+      background: #fff;
+      border-color: var(--orange-border);
+      color: var(--orange-text);
+    }
+    .alert-card.orange-card .btn-visualize:hover {
+      background: #ffe0b2;
+      border-color: var(--orange-text);
+    }
+    .alert-card.orange-card .position-indicator {
+      background: #e65100;
+      color: #fff;
+    }
+
+    .table-wrap{ border:1px solid var(--border); border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.04); }
+    .loadingbar-wrap{ padding:10px 12px; border-bottom:1px solid var(--border); background:#fff; }
+    .loadingbar-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px; font-size:12px; color:var(--muted); }
+    .bar{ height:10px; border-radius:999px; background:#f0f0f0; overflow:hidden; border:1px solid var(--border); }
+    .bar > div{ height:100%; width:0%; background:#cfcfcf; transition: width .25s ease; }
+
+    table{ width:100%; border-collapse:collapse; }
+    thead th{
+      background:var(--header); font-size:12px; text-transform:uppercase;
+      letter-spacing:.6px; padding:12px 10px;
+      border-bottom:1px solid var(--border); text-align:left;
+      position:sticky; top:0; z-index:1;
+    }
+    tbody td{ padding:10px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+    tbody tr:hover{ background:#fafafa; }
+    .right{ text-align:right; font-variant-numeric:tabular-nums; }
+    .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+    .muted{ color:var(--muted); }
+    .ok{ color:#0a7a2f; font-weight:800; }
+    
+    /* REMOVED: Lignes colorées delta-green-row et delta-red-row */
+
+    .market-pill{
+      display:inline-flex; align-items:center; gap:6px;
+      border:1px solid var(--border); border-radius:999px; padding:4px 8px;
+      font-size:12px; font-weight:800; background:#fff; white-space:nowrap;
+    }
+
+    .note{ margin-top:10px; font-size:12px; color:var(--muted); line-height:1.35; }
+    .loading{ display:inline-flex; align-items:center; gap:8px; }
+    .dot{ width:8px;height:8px;border-radius:50%; background:#999; display:inline-block; animation:pulse 1s infinite ease-in-out; }
+    .dot:nth-child(2){ animation-delay:.15s } .dot:nth-child(3){ animation-delay:.3s }
+    @keyframes pulse{ 0%,100%{ transform:scale(.7); opacity:.5 } 50%{ transform:scale(1); opacity:1 } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>Binance (USDT) — PERPETUAL UNIQUEMENT — Prix Listing vs Now/Close (UTC)</h1>
+      <div class="meta">
+        <span class="pill">Prix: <b>10 décimales</b></span>
+        <span class="pill">Coeff: <b>entier signé (+/-)</b></span>
+        <span class="pill">Refresh prix: <b>30 min</b></span>
+        <span class="pill">Base: <b>Prix 1er listing</b></span>
+      </div>
+    </div>
+
+    <div class="meta">
+      <span class="pill">Perp API: <span class="mono" id="perpEp">fapi.binance.com</span></span>
+      <span class="pill">Now (UTC): <span id="nowUtc" class="mono">—</span></span>
+
+      <span class="monthly-selector" title="Sélectionner un mois pour analyse">
+        <button id="btnPrevMonth2" type="button">◀</button>
+        <span class="label mono" id="monthLabel">—</span>
+        <button id="btnNextMonth2" type="button">▶</button>
+        <button class="ok-btn" id="btnAnalyzeMonth">OK</button>
+        
+        <!-- Month Picker Popup -->
+        <div id="monthPopup" class="month-popup">
+          <div class="month-popup-header">
+            <button id="btnPrevYear" type="button">◀</button>
+            <select id="selectMonthYear"></select>
+            <button id="btnNextYear" type="button">▶</button>
+          </div>
+          <div class="month-grid" id="monthGrid"></div>
+        </div>
+      </span>
+
+      <span class="day-nav" title="Prix actuel/clôture quotidienne">
+        <button id="btnPrevDay" type="button">◀</button>
+        <span class="label mono" id="dayLabel">—</span>
+        <button id="btnNextDay" type="button">▶</button>
+        
+        <!-- Calendar Popup -->
+        <div id="calendarPopup" class="calendar-popup">
+          <div class="calendar-header">
+            <button id="btnPrevMonth" type="button">◀</button>
+            <select id="selectMonth"></select>
+            <select id="selectYear"></select>
+            <button id="btnNextMonth" type="button">▶</button>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+      </span>
+
+      <span class="pill">Dernière MAJ: <span id="lastUpdate" class="mono">—</span></span>
+      <span class="pill">Lignes: <span id="countSymbols" class="mono">0</span></span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input id="q" placeholder="Rechercher (ex: BTC, ETH, SOL, RIVER…)" />
+    <select id="sort">
+      <option value="symbol">Tri: Symbole</option>
+      <option value="coefDesc">Tri: Coeff abs (haut → bas)</option>
+      <option value="coefAsc">Tri: Coeff abs (bas → haut)</option>
+      <option value="listingDateDesc">Tri: Listing date (récent → ancien)</option>
+    </select>
+    <button id="btnReload">Recharger</button>
+    <button id="btnClearCache">Vider caches</button>
+  </div>
+
+  <!-- Card VERTE : delta ≤ -3 (LONG) - Affichée si Total ≥ 53 -->
+  <div id="alertDeltaLongHigh" class="alert-card green-card">
+    <div class="alert-head">
+      <div>
+        <span class="alert-badge">DELTA</span>
+        <span class="mono">
+          Avant-hier → Hier : <b>≤ -3</b>
+          <span class="muted">• basé sur les coeffs (vs Listing)</span>
+        </span>
+        <span class="position-indicator">LONG</span>
+      </div>
+      <div class="mono" style="font-weight:900;">Total: <span id="alertDeltaLongHighCount">0</span></div>
+    </div>
+    <div class="alert-sub">
+      Card affichée quand (CoeffHier - CoeffAvantHier) ≤ -3 et Total ≥ 53.
+    </div>
+    <div class="btn-group">
+      <button class="btn-visualize" id="btnVisualizeLongHigh">📊 Visualisation 6J</button>
+      <button class="btn-visualize" id="btnMonthlyLongHigh">📅 Vue Mensuelle</button>
+    </div>
+    <div id="signalDeltaLongHighList" class="signal-list"></div>
+  </div>
+
+  <!-- Card BLEUE : delta ≤ -3 (LONG) - Affichée si Total ≤ 52 -->
+  <div id="alertDeltaLongLow" class="alert-card blue-card">
+    <div class="alert-head">
+      <div>
+        <span class="alert-badge">DELTA</span>
+        <span class="mono">
+          Avant-hier → Hier : <b>≤ -3</b>
+          <span class="muted">• basé sur les coeffs (vs Listing)</span>
+        </span>
+        <span class="position-indicator">LONG</span>
+      </div>
+      <div class="mono" style="font-weight:900;">Total: <span id="alertDeltaLongLowCount">0</span></div>
+    </div>
+    <div class="alert-sub">
+      Card affichée quand (CoeffHier - CoeffAvantHier) ≤ -3 et Total ≤ 52.
+    </div>
+    <div class="btn-group">
+      <button class="btn-visualize" id="btnVisualizeLongLow">📊 Visualisation 6J</button>
+      <button class="btn-visualize" id="btnMonthlyLongLow">📅 Vue Mensuelle</button>
+    </div>
+    <div id="signalDeltaLongLowList" class="signal-list"></div>
+  </div>
+
+  <!-- Card ROUGE : delta ≥ +3 (SHORT) - Affichée si Total ≥ 53 -->
+  <div id="alertDeltaShortHigh" class="alert-card red-card">
+    <div class="alert-head">
+      <div>
+        <span class="alert-badge">DELTA</span>
+        <span class="mono">
+          Avant-hier → Hier : <b>≥ +3</b>
+          <span class="muted">• basé sur les coeffs (vs Listing)</span>
+        </span>
+        <span class="position-indicator">SHORT</span>
+      </div>
+      <div class="mono" style="font-weight:900;">Total: <span id="alertDeltaShortHighCount">0</span></div>
+    </div>
+    <div class="alert-sub">
+      Card affichée quand (CoeffHier - CoeffAvantHier) ≥ +3 et Total ≥ 53.
+    </div>
+    <div class="btn-group">
+      <button class="btn-visualize" id="btnVisualizeShortHigh">📊 Visualisation 6J</button>
+      <button class="btn-visualize" id="btnMonthlyShortHigh">📅 Vue Mensuelle</button>
+    </div>
+    <div id="signalDeltaShortHighList" class="signal-list"></div>
+  </div>
+
+  <!-- Card ORANGE : delta ≥ +3 (SHORT) - Affichée si Total ≤ 52 -->
+  <div id="alertDeltaShortLow" class="alert-card orange-card">
+    <div class="alert-head">
+      <div>
+        <span class="alert-badge">DELTA</span>
+        <span class="mono">
+          Avant-hier → Hier : <b>≥ +3</b>
+          <span class="muted">• basé sur les coeffs (vs Listing)</span>
+        </span>
+        <span class="position-indicator">SHORT</span>
+      </div>
+      <div class="mono" style="font-weight:900;">Total: <span id="alertDeltaShortLowCount">0</span></div>
+    </div>
+    <div class="alert-sub">
+      Card affichée quand (CoeffHier - CoeffAvantHier) ≥ +3 et Total ≤ 52.
+    </div>
+    <div class="btn-group">
+      <button class="btn-visualize" id="btnVisualizeShortLow">📊 Visualisation 6J</button>
+      <button class="btn-visualize" id="btnMonthlyShortLow">📅 Vue Mensuelle</button>
+    </div>
+    <div id="signalDeltaShortLowList" class="signal-list"></div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="loadingbar-wrap">
+      <div class="loadingbar-top">
+        <div>
+          <span id="barTitle">Chargement:</span>
+          <b><span id="done">0</span>/<span id="total">0</span></b>
+          <span class="muted">(cache inclus)</span>
+        </div>
+        <div class="mono"><span id="pct">0%</span></div>
+      </div>
+      <div class="bar"><div id="barFill"></div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:20%;">Symbole</th>
+          <th style="width:16%;">Date listing</th>
+          <th class="right" style="width:18%;">Prix 1er listing</th>
+          <th class="right" style="width:18%;" id="thCurrent">Prix actuel</th>
+          <th class="right" style="width:18%;" id="thCoeff">Coeff (signed)</th>
+          <th style="width:10%;">Statut</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6">
+          <span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="muted">Chargement…</span></span>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    - <b>Date jour</b> : pilote la colonne <b>Prix actuel</b><br/>
+      • Aujourd'hui = prix <b>live</b> (ticker).<br/>
+      • Précédent/Suivant = prix <b>clôture 1D</b> de la journée (UTC).<br/>
+    - <b>Coeff</b> = <b>Prix actuel/clôture</b> / <b>Prix 1er listing</b> (entier signé).<br/>
+    - <b>DELTA ≤ -3 (LONG)</b> : card verte si Total ≥ 53, card bleue si Total ≤ 52.<br/>
+    - <b>DELTA ≥ +3 (SHORT)</b> : card rouge si Total ≥ 53, card orange si Total ≤ 52.<br/>
+    - <b>Important :</b> Les valeurs des dates passées sont fixes (pas de recalcul).<br/>
+    - <b>Calendrier :</b> Cliquez sur la date pour ouvrir le calendrier et naviguer rapidement.<br/>
+    - <b>Vue Mensuelle :</b> Affiche toutes les dates d'un mois où le total de signaux ≥ 13.<br/>
+    - <b>Sélecteur de Mois :</b> Choisissez un mois et cliquez sur OK pour analyser les signaux LONG et SHORT.<br/>
+    - <b>UNIQUEMENT PERPETUEL :</b> Seuls les contrats perpetuels USDT sont affichés.
+  </div>
+</div>
+
+<script>
+(() => {
+  // --- Configuration ---
+  const PERP_BASES = ["https://fapi.binance.com", "https://fapi.binance.com"];
+  let PERP_BASE = PERP_BASES[0];
+
+  const QUOTE = "USDT";
+  const PRICE_DECIMALS = 10;
+  const DELTA_LONG_THRESHOLD = -3;  // ≤ -3
+  const DELTA_SHORT_THRESHOLD = 3;  // ≥ +3
+  const MIN_TOTAL_HIGH = 53;  // Minimum pour afficher les cards vertes/rouges
+  const MAX_TOTAL_LOW = 52;   // Maximum pour afficher les cards bleues/oranges
+  const PRICE_REFRESH_MS = 30 * 60 * 1000;
+
+  const LISTING_INTERVAL = "1d";
+  const DAY_INTERVAL = "1d";
+
+  const LISTING_WORKERS = 4;
+  const LISTING_DELAY_MS = 220;
+  const DAY_WORKERS = 4;
+  const DAY_DELAY_MS = 180;
+
+  const MONTHS_FR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", 
+                     "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+  const DAYS_FR = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+  // --- UI Elements ---
+  const tbody = document.getElementById("tbody");
+  const qInput = document.getElementById("q");
+  const sortSel = document.getElementById("sort");
+  const nowUtcEl = document.getElementById("nowUtc");
+  const lastUpdateEl = document.getElementById("lastUpdate");
+  const countSymbolsEl = document.getElementById("countSymbols");
+  const btnReload = document.getElementById("btnReload");
+  const btnClearCache = document.getElementById("btnClearCache");
+  const perpEpEl = document.getElementById("perpEp");
+
+  const barTitleEl = document.getElementById("barTitle");
+  const doneEl = document.getElementById("done");
+  const totalEl = document.getElementById("total");
+  const pctEl = document.getElementById("pct");
+  const barFillEl = document.getElementById("barFill");
+
+  const thCurrentEl = document.getElementById("thCurrent");
+  const thCoeffEl = document.getElementById("thCoeff");
+
+  const dayLabelEl = document.getElementById("dayLabel");
+  const btnPrevDay = document.getElementById("btnPrevDay");
+  const btnNextDay = document.getElementById("btnNextDay");
+
+  const calendarPopup = document.getElementById("calendarPopup");
+  const calendarGrid = document.getElementById("calendarGrid");
+  const selectMonth = document.getElementById("selectMonth");
+  const selectYear = document.getElementById("selectYear");
+  const btnPrevMonth = document.getElementById("btnPrevMonth");
+  const btnNextMonth = document.getElementById("btnNextMonth");
+
+  // Monthly selector elements
+  const monthLabelEl = document.getElementById("monthLabel");
+  const btnPrevMonth2 = document.getElementById("btnPrevMonth2");
+  const btnNextMonth2 = document.getElementById("btnNextMonth2");
+  const btnAnalyzeMonth = document.getElementById("btnAnalyzeMonth");
+  const monthPopup = document.getElementById("monthPopup");
+  const monthGrid = document.getElementById("monthGrid");
+  const selectMonthYear = document.getElementById("selectMonthYear");
+  const btnPrevYear = document.getElementById("btnPrevYear");
+  const btnNextYear = document.getElementById("btnNextYear");
+
+  // LONG High (≥53) - Carte VERTE
+  const alertDeltaLongHighEl = document.getElementById("alertDeltaLongHigh");
+  const signalDeltaLongHighListEl = document.getElementById("signalDeltaLongHighList");
+  const alertDeltaLongHighCountEl = document.getElementById("alertDeltaLongHighCount");
+  const btnVisualizeLongHigh = document.getElementById("btnVisualizeLongHigh");
+  const btnMonthlyLongHigh = document.getElementById("btnMonthlyLongHigh");
+
+  // LONG Low (≤52) - Carte BLEUE
+  const alertDeltaLongLowEl = document.getElementById("alertDeltaLongLow");
+  const signalDeltaLongLowListEl = document.getElementById("signalDeltaLongLowList");
+  const alertDeltaLongLowCountEl = document.getElementById("alertDeltaLongLowCount");
+  const btnVisualizeLongLow = document.getElementById("btnVisualizeLongLow");
+  const btnMonthlyLongLow = document.getElementById("btnMonthlyLongLow");
+
+  // SHORT High (≥53) - Carte ROUGE
+  const alertDeltaShortHighEl = document.getElementById("alertDeltaShortHigh");
+  const signalDeltaShortHighListEl = document.getElementById("signalDeltaShortHighList");
+  const alertDeltaShortHighCountEl = document.getElementById("alertDeltaShortHighCount");
+  const btnVisualizeShortHigh = document.getElementById("btnVisualizeShortHigh");
+  const btnMonthlyShortHigh = document.getElementById("btnMonthlyShortHigh");
+
+  // SHORT Low (≤52) - Carte ORANGE
+  const alertDeltaShortLowEl = document.getElementById("alertDeltaShortLow");
+  const signalDeltaShortLowListEl = document.getElementById("signalDeltaShortLowList");
+  const alertDeltaShortLowCountEl = document.getElementById("alertDeltaShortLowCount");
+  const btnVisualizeShortLow = document.getElementById("btnVisualizeShortLow");
+  const btnMonthlyShortLow = document.getElementById("btnMonthlyShortLow");
+
+  // --- State ---
+  let rows = [];
+  let perpPriceMap = new Map();
+  let refreshTimer = null;
+  let abort = { listing: false, day: false };
+
+  let dayShift = 0;
+  let calendarYear = new Date().getUTCFullYear();
+  let calendarMonth = new Date().getUTCMonth();
+
+  let selectedMonthYear = new Date().getUTCFullYear();
+  let selectedMonth = new Date().getUTCMonth();
+
+  // Cache keys
+  const LISTING_CACHE_KEY = "binance_listing_cache_perp_v1";
+  const DAY_CLOSE_CACHE_NS = "binance_day_close_cache_perp_v1";
+
+  // --- Visualisation Data Storage ---
+  let deltaLongHighData = [];
+  let deltaLongLowData = [];
+  let deltaShortHighData = [];
+  let deltaShortLowData = [];
+
+  // --- Helper Functions ---
+  function loadJSON(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch { return fallback; }
+  }
+
+  function saveJSON(key, obj) {
+    localStorage.setItem(key, JSON.stringify(obj));
+  }
+
+  function fmtPrice(x) {
+    if (x === null || x === undefined || Number.isNaN(x)) return "—";
+    return Number(x).toFixed(PRICE_DECIMALS);
+  }
+
+  function fmtDateFR_FromUTCDate(d) {
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const yy = String(d.getUTCFullYear());
+    return `${dd}/${mm}/${yy}`;
+  }
+
+  function fmtDateUTC(ms) {
+    if (!ms) return "—";
+    return fmtDateFR_FromUTCDate(new Date(ms));
+  }
+
+  function fmtUTCStamp(d) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    const hh = String(d.getUTCHours()).padStart(2, "0");
+    const mm = String(d.getUTCMinutes()).padStart(2, "0");
+    return `${dd}/${m}/${y} ${hh}:${mm} UTC`;
+  }
+
+  function ymdUTC(d) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  }
+
+  function startOfDayUTC(d) {
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+  }
+
+  function addDaysUTC(d, delta) {
+    return new Date(Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate() + delta,
+      d.getUTCHours(),
+      d.getUTCMinutes(),
+      d.getUTCSeconds(),
+      d.getUTCMilliseconds()
+    ));
+  }
+
+  function computeSelectedDayUTC() {
+    const now = new Date();
+    const base = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+    return addDaysUTC(base, dayShift);
+  }
+
+  function signedCoeffInt(ref, price) {
+    if (ref == null || price == null) return null;
+    if (!isFinite(ref) || !isFinite(price) || ref <= 0 || price <= 0) return null;
+    if (price >= ref) return +Math.round(price / ref);
+    return -Math.round(ref / price);
+  }
+
+  function fmtSignedCoeff(c) {
+    if (c === null || c === undefined || Number.isNaN(c)) return "—";
+    if (c > 0) return `+${c}`;
+    if (c < 0) return `${c}`;
+    return "0";
+  }
+
+  function isSameDay(d1, d2) {
+    return d1.getUTCFullYear() === d2.getUTCFullYear() &&
+           d1.getUTCMonth() === d2.getUTCMonth() &&
+           d1.getUTCDate() === d2.getUTCDate();
+  }
+
+  function isSameMonth(d1, d2) {
+    return d1.getUTCFullYear() === d2.getUTCFullYear() &&
+           d1.getUTCMonth() === d2.getUTCMonth();
+  }
+
+  // --- Calendar Functions ---
+  function initCalendarSelects() {
+    selectMonth.innerHTML = MONTHS_FR.map((m, i) => 
+      `<option value="${i}">${m}</option>`
+    ).join("");
+
+    const currentYear = new Date().getUTCFullYear();
+    const years = [];
+    for (let y = 2017; y <= currentYear; y++) {
+      years.push(y);
+    }
+    selectYear.innerHTML = years.map(y => 
+      `<option value="${y}">${y}</option>`
+    ).join("");
+  }
+
+  function updateCalendarSelects() {
+    selectMonth.value = calendarMonth;
+    selectYear.value = calendarYear;
+  }
+
+  function renderCalendar() {
+    const today = new Date();
+    const selectedDay = computeSelectedDayUTC();
+    
+    const firstDay = new Date(Date.UTC(calendarYear, calendarMonth, 1));
+    const lastDay = new Date(Date.UTC(calendarYear, calendarMonth + 1, 0));
+    
+    const firstDayOfWeek = firstDay.getUTCDay();
+    const daysInMonth = lastDay.getUTCDate();
+    
+    const prevMonthLastDay = new Date(Date.UTC(calendarYear, calendarMonth, 0));
+    const daysInPrevMonth = prevMonthLastDay.getUTCDate();
+    
+    let html = "";
+    
+    DAYS_FR.forEach(day => {
+      html += `<div class="calendar-day-header">${day}</div>`;
+    });
+    
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      const day = daysInPrevMonth - i;
+      html += `<div class="calendar-day empty other-month">${day}</div>`;
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(Date.UTC(calendarYear, calendarMonth, day));
+      const isToday = isSameDay(currentDate, today);
+      const isSelected = isSameDay(currentDate, selectedDay);
+      const isFuture = currentDate > today;
+      
+      let classes = "calendar-day";
+      if (isToday) classes += " today";
+      if (isSelected) classes += " selected";
+      if (isFuture) classes += " future";
+      
+      const dataDate = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      
+      html += `<div class="${classes}" data-date="${dataDate}" ${isFuture ? '' : 'onclick="selectCalendarDate(this)"'}>${day}</div>`;
+    }
+    
+    const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
+    const remainingCells = totalCells - (firstDayOfWeek + daysInMonth);
+    for (let day = 1; day <= remainingCells; day++) {
+      html += `<div class="calendar-day empty other-month">${day}</div>`;
+    }
+    
+    calendarGrid.innerHTML = html;
+    updateCalendarSelects();
+  }
+
+  window.selectCalendarDate = function(el) {
+    const dateStr = el.getAttribute("data-date");
+    if (!dateStr) return;
+    
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const targetDate = new Date(Date.UTC(year, month - 1, day));
+    const today = new Date();
+    const todayStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+    
+    const diffTime = targetDate.getTime() - todayStart.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    dayShift = diffDays;
+    calendarPopup.classList.remove("show");
+    
+    ensureModeData().then(() => applyFilterAndRender());
+  };
+
+  function toggleCalendar() {
+    calendarPopup.classList.toggle("show");
+    if (calendarPopup.classList.contains("show")) {
+      const selected = computeSelectedDayUTC();
+      calendarYear = selected.getUTCFullYear();
+      calendarMonth = selected.getUTCMonth();
+      renderCalendar();
+    }
+  }
+
+  // --- Month Picker Functions ---
+  function initMonthPicker() {
+    const currentYear = new Date().getUTCFullYear();
+    const years = [];
+    for (let y = 2017; y <= currentYear; y++) {
+      years.push(y);
+    }
+    selectMonthYear.innerHTML = years.map(y => 
+      `<option value="${y}">${y}</option>`
+    ).join("");
+  }
+
+  function updateMonthLabel() {
+    monthLabelEl.textContent = `${MONTHS_FR[selectedMonth]} ${selectedMonthYear}`;
+  }
+
+  function updateMonthYearSelect() {
+    selectMonthYear.value = selectedMonthYear;
+  }
+
+  function renderMonthPicker() {
+    const today = new Date();
+    
+    let html = "";
+    
+    for (let i = 0; i < 12; i++) {
+      const monthDate = new Date(Date.UTC(selectedMonthYear, i, 1));
+      const isCurrentMonth = isSameMonth(monthDate, today);
+      const isSelected = (i === selectedMonth);
+      const isFuture = monthDate > today;
+      
+      let classes = "month-item";
+      if (isSelected) classes += " selected";
+      if (isFuture) classes += " future";
+      
+      html += `<div class="${classes}" data-month="${i}" ${isFuture ? '' : 'onclick="selectMonth(this)"'}>${MONTHS_FR[i]}</div>`;
+    }
+    
+    monthGrid.innerHTML = html;
+    updateMonthYearSelect();
+  }
+
+  window.selectMonth = function(el) {
+    const monthIndex = parseInt(el.getAttribute("data-month"));
+    if (isNaN(monthIndex)) return;
+    
+    selectedMonth = monthIndex;
+    updateMonthLabel();
+    monthPopup.classList.remove("show");
+  };
+
+  function toggleMonthPicker() {
+    monthPopup.classList.toggle("show");
+    if (monthPopup.classList.contains("show")) {
+      renderMonthPicker();
+    }
+  }
+
+  // --- UI Updates ---
+  function updateDayUI() {
+    const selected = computeSelectedDayUTC();
+    const isToday = (dayShift === 0);
+
+    dayLabelEl.textContent = fmtDateFR_FromUTCDate(selected);
+
+    if (isToday) {
+      thCurrentEl.textContent = "Prix actuel (LIVE)";
+    } else {
+      thCurrentEl.textContent = `Prix clôture — ${fmtDateFR_FromUTCDate(selected)}`;
+    }
+
+    btnNextDay.disabled = (dayShift >= 0);
+    btnPrevDay.disabled = false;
+
+    const selectedDay = computeSelectedDayUTC();
+    const prev1 = addDaysUTC(selectedDay, -1);
+    const prev2 = addDaysUTC(selectedDay, -2);
+    
+    const date1Str = fmtDateFR_FromUTCDate(prev2);
+    const date2Str = fmtDateFR_FromUTCDate(prev1);
+    const date3Str = fmtDateFR_FromUTCDate(selectedDay);
+    
+    thCoeffEl.innerHTML = `Coeff (<span class="color-date1">${date1Str}</span> | <span class="color-date2">${date2Str}</span> | <span class="color-date3">${date3Str}</span> vs Listing)`;
+  }
+
+  // --- Data Functions ---
+  let totalJobs = 0;
+  let doneJobs = 0;
+  const doneSet = new Set();
+
+  function resetTotalBar(jobCount, title) {
+    totalJobs = jobCount;
+    doneJobs = 0;
+    doneSet.clear();
+    doneEl.textContent = "0";
+    totalEl.textContent = String(totalJobs);
+    pctEl.textContent = "0%";
+    barFillEl.style.width = "0%";
+    
+    if (title && title.includes("—")) {
+      const parts = title.split("—");
+      if (parts.length === 2) {
+        const beforeDash = parts[0].trim();
+        const afterDash = parts[1].trim();
+        
+        const dateMatch = afterDash.match(/(\d{2}\/\d{2}\/\d{4})\s*\|\s*(\d{2}\/\d{2}\/\d{4})\s*\|\s*(\d{2}\/\d{2}\/\d{4})/);
+        
+        if (dateMatch) {
+          const date1 = dateMatch[1];
+          const date2 = dateMatch[2];
+          const date3 = dateMatch[3];
+          const rest = afterDash.substring(dateMatch[0].length);
+          
+          barTitleEl.innerHTML = `${beforeDash} — <span class="color-date1">${date1}</span> | <span class="color-date2">${date2}</span> | <span class="color-date3">${date3}</span>${rest}`;
+        } else {
+          const dateMatch2 = afterDash.match(/(\d{2}\/\d{2}\/\d{4})\s*\|\s*(\d{2}\/\d{2}\/\d{4})/);
+          if (dateMatch2) {
+            const date1 = dateMatch2[1];
+            const date2 = dateMatch2[2];
+            const rest = afterDash.substring(dateMatch2[0].length);
+            
+            barTitleEl.innerHTML = `${beforeDash} — <span class="color-date1">${date1}</span> | <span class="color-date2">${date2}</span>${rest}`;
+          } else {
+            barTitleEl.textContent = title;
+          }
+        }
+      } else {
+        barTitleEl.textContent = title;
+      }
+    } else {
+      barTitleEl.textContent = title || "Chargement:";
+    }
+  }
+
+  function markJobDone(key) {
+    if (doneSet.has(key)) return;
+    doneSet.add(key);
+    doneJobs++;
+    doneEl.textContent = String(doneJobs);
+    totalEl.textContent = String(totalJobs);
+    const p = totalJobs ? Math.round(doneJobs / totalJobs * 100) : 0;
+    pctEl.textContent = p + "%";
+    barFillEl.style.width = p + "%";
+  }
+
+  async function fetchJSON(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  async function probePerp() {
+    for (const candidate of PERP_BASES) {
+      try { await fetchJSON(candidate + "/fapi/v1/time"); PERP_BASE = candidate; break; }
+      catch (e) { }
+    }
+    perpEpEl.textContent = PERP_BASE.replace("https://", "");
+  }
+
+  async function loadPerpSymbols() {
+    const info = await fetchJSON(`${PERP_BASE}/fapi/v1/exchangeInfo`);
+    return (info.symbols || [])
+      .filter(s => s && s.status === "TRADING")
+      .filter(s => s.quoteAsset === QUOTE)
+      .filter(s => s.contractType === "PERPETUAL")
+      .map(s => ({
+        id: `PERP:${s.symbol}`,
+        market: "PERP",
+        symbol: s.symbol,
+        base: s.baseAsset,
+        quote: s.quoteAsset,
+      }));
+  }
+
+  async function loadPerpPrices() {
+    const arr = await fetchJSON(`${PERP_BASE}/fapi/v1/ticker/price`);
+    const m = new Map();
+    for (const it of arr) {
+      if (it && it.symbol && it.price !== undefined) m.set(it.symbol, Number(it.price));
+    }
+    perpPriceMap = m;
+  }
+
+  async function refreshLivePrices() {
+    await loadPerpPrices();
+    for (const r of rows) {
+      const p = perpPriceMap.get(r.symbol);
+      if (p !== undefined) r.currentLive = p;
+    }
+    lastUpdateEl.textContent = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    nowUtcEl.textContent = fmtUTCStamp(new Date());
+  }
+
+  function displayedPriceToday(r) {
+    return (dayShift === 0) ? r.currentLive : r.dayCloseSel;
+  }
+  function displayedPriceYesterday(r) {
+    return r.dayClosePrev1;
+  }
+  function displayedPriceBeforeYesterday(r) {
+    return r.dayClosePrev2;
+  }
+
+  function coeffOrNull(r) {
+    return signedCoeffInt(r.listingPrice, displayedPriceToday(r));
+  }
+
+  function getSortFn() {
+    const v = sortSel.value;
+
+    if (v === "coefDesc") {
+      return (a, b) => {
+        const ca = coeffOrNull(a);
+        const cb = coeffOrNull(b);
+
+        const aNull = (ca == null);
+        const bNull = (cb == null);
+        if (aNull && bNull) return String(a.symbol).localeCompare(String(b.symbol));
+        if (aNull) return 1;
+        if (bNull) return -1;
+
+        const aPos = ca >= 0;
+        const bPos = cb >= 0;
+        if (aPos !== bPos) return aPos ? -1 : 1;
+
+        const aa = Math.abs(ca);
+        const ab = Math.abs(cb);
+        return (ab - aa) || (String(a.symbol).localeCompare(String(b.symbol)));
+      };
+    }
+
+    if (v === "coefAsc") {
+      return (a, b) => {
+        const ca = coeffOrNull(a);
+        const cb = coeffOrNull(b);
+
+        const aNull = (ca == null);
+        const bNull = (cb == null);
+        if (aNull && bNull) return String(a.symbol).localeCompare(String(b.symbol));
+        if (aNull) return 1;
+        if (bNull) return -1;
+
+        const aNeg = ca < 0;
+        const bNeg = cb < 0;
+
+        if (aNeg !== bNeg) return aNeg ? -1 : 1;
+
+        if (aNeg && bNeg) {
+          return (ca - cb) || (String(a.symbol).localeCompare(String(b.symbol)));
+        }
+
+        const aa = Math.abs(ca);
+        const ab = Math.abs(cb);
+        return (aa - ab) || (String(a.symbol).localeCompare(String(b.symbol)));
+      };
+    }
+
+    if (v === "listingDateDesc") {
+      return (b.listingTime || 0) - (a.listingTime || 0);
+    }
+
+    return (a, b) => a.symbol.localeCompare(b.symbol);
+  }
+
+  function updateSignalCards(view) {
+    deltaLongHighData = [];
+    deltaLongLowData = [];
+    deltaShortHighData = [];
+    deltaShortLowData = [];
+
+    for (const r of view) {
+      const cYest  = signedCoeffInt(r.listingPrice, displayedPriceYesterday(r));
+      const cBefY  = signedCoeffInt(r.listingPrice, displayedPriceBeforeYesterday(r));
+      const delta = (cYest == null || cBefY == null) ? null : (cYest - cBefY);
+
+      if (delta != null && delta <= DELTA_LONG_THRESHOLD) {
+        deltaLongHighData.push({
+          symbol: r.symbol,
+          market: r.market,
+          before: cBefY,
+          yest: cYest,
+          delta,
+          row: r
+        });
+      }
+
+      if (delta != null && delta >= DELTA_SHORT_THRESHOLD) {
+        deltaShortHighData.push({
+          symbol: r.symbol,
+          market: r.market,
+          before: cBefY,
+          yest: cYest,
+          delta,
+          row: r
+        });
+      }
+    }
+
+    deltaLongHighData.sort((a, b) => a.delta - b.delta);
+    deltaShortHighData.sort((a, b) => b.delta - a.delta);
+
+    // Séparation LONG : High (≥53) et Low (≤52)
+    deltaLongLowData = deltaLongHighData.filter((_, i) => deltaLongHighData.length <= MAX_TOTAL_LOW);
+    if (deltaLongHighData.length > MAX_TOTAL_LOW) {
+      deltaLongHighData = deltaLongHighData.filter((_, i) => deltaLongHighData.length >= MIN_TOTAL_HIGH);
+    } else {
+      deltaLongHighData = [];
+    }
+
+    // Séparation SHORT : High (≥53) et Low (≤52)
+    deltaShortLowData = deltaShortHighData.filter((_, i) => deltaShortHighData.length <= MAX_TOTAL_LOW);
+    if (deltaShortHighData.length > MAX_TOTAL_LOW) {
+      deltaShortHighData = deltaShortHighData.filter((_, i) => deltaShortHighData.length >= MIN_TOTAL_HIGH);
+    } else {
+      deltaShortHighData = [];
+    }
+
+    // --- DELTA LONG HIGH (≥ 53) : Card VERTE ---
+    if (deltaLongHighData.length === 0) {
+      alertDeltaLongHighEl.style.display = "none";
+      signalDeltaLongHighListEl.innerHTML = "";
+      alertDeltaLongHighCountEl.textContent = "0";
+    } else {
+      alertDeltaLongHighEl.style.display = "block";
+      alertDeltaLongHighCountEl.textContent = String(deltaLongHighData.length);
+
+      const chips = deltaLongHighData.map(s => `
+        <span class="signal-chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">[${s.market}]</span>
+          <span class="mono">${fmtSignedCoeff(s.before)} → ${fmtSignedCoeff(s.yest)}</span>
+          <span class="mono">Δ ${s.delta}</span>
+        </span>
+      `).join("");
+
+      signalDeltaLongHighListEl.innerHTML = chips;
+    }
+
+    // --- DELTA LONG LOW (≤ 52) : Card BLEUE ---
+    if (deltaLongLowData.length === 0) {
+      alertDeltaLongLowEl.style.display = "none";
+      signalDeltaLongLowListEl.innerHTML = "";
+      alertDeltaLongLowCountEl.textContent = "0";
+    } else {
+      alertDeltaLongLowEl.style.display = "block";
+      alertDeltaLongLowCountEl.textContent = String(deltaLongLowData.length);
+
+      const chips = deltaLongLowData.map(s => `
+        <span class="signal-chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">[${s.market}]</span>
+          <span class="mono">${fmtSignedCoeff(s.before)} → ${fmtSignedCoeff(s.yest)}</span>
+          <span class="mono">Δ ${s.delta}</span>
+        </span>
+      `).join("");
+
+      signalDeltaLongLowListEl.innerHTML = chips;
+    }
+
+    // --- DELTA SHORT HIGH (≥ 53) : Card ROUGE ---
+    if (deltaShortHighData.length === 0) {
+      alertDeltaShortHighEl.style.display = "none";
+      signalDeltaShortHighListEl.innerHTML = "";
+      alertDeltaShortHighCountEl.textContent = "0";
+    } else {
+      alertDeltaShortHighEl.style.display = "block";
+      alertDeltaShortHighCountEl.textContent = String(deltaShortHighData.length);
+
+      const chips = deltaShortHighData.map(s => `
+        <span class="signal-chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">[${s.market}]</span>
+          <span class="mono">${fmtSignedCoeff(s.before)} → ${fmtSignedCoeff(s.yest)}</span>
+          <span class="mono">Δ +${s.delta}</span>
+        </span>
+      `).join("");
+
+      signalDeltaShortHighListEl.innerHTML = chips;
+    }
+
+    // --- DELTA SHORT LOW (≤ 52) : Card ORANGE ---
+    if (deltaShortLowData.length === 0) {
+      alertDeltaShortLowEl.style.display = "none";
+      signalDeltaShortLowListEl.innerHTML = "";
+      alertDeltaShortLowCountEl.textContent = "0";
+    } else {
+      alertDeltaShortLowEl.style.display = "block";
+      alertDeltaShortLowCountEl.textContent = String(deltaShortLowData.length);
+
+      const chips = deltaShortLowData.map(s => `
+        <span class="signal-chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">[${s.market}]</span>
+          <span class="mono">${fmtSignedCoeff(s.before)} → ${fmtSignedCoeff(s.yest)}</span>
+          <span class="mono">Δ +${s.delta}</span>
+        </span>
+      `).join("");
+
+      signalDeltaShortLowListEl.innerHTML = chips;
+    }
+  }
+
+  function applyFilterAndRender() {
+    const q = (qInput.value || "").trim().toUpperCase();
+    let view = rows.slice();
+
+    if (q) {
+      view = view.filter(r =>
+        r.symbol.includes(q) ||
+        r.base.includes(q) ||
+        r.market.includes(q) ||
+        (r.id || "").includes(q)
+      );
+    }
+
+    view.sort(getSortFn());
+    updateSignalCards(view);
+    render(view);
+  }
+
+  function render(view) {
+    countSymbolsEl.textContent = String(view.length);
+
+    if (!view.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="muted">Aucun résultat.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = view.map(r => {
+      const priceToday = displayedPriceToday(r);
+
+      const cToday = signedCoeffInt(r.listingPrice, priceToday);
+      const cYest  = signedCoeffInt(r.listingPrice, displayedPriceYesterday(r));
+      const cBefY  = signedCoeffInt(r.listingPrice, displayedPriceBeforeYesterday(r));
+
+      const cBefYTxt = `<span class="color-date1">${fmtSignedCoeff(cBefY)}</span>`;
+      const cYestTxt = `<span class="color-date2">${fmtSignedCoeff(cYest)}</span>`;
+      const cTodayTxt = `<span class="color-date3">${fmtSignedCoeff(cToday)}</span>`;
+      
+      const cTxt = `${cBefYTxt} | ${cYestTxt} | ${cTodayTxt}`;
+
+      const okPriceToday = (dayShift === 0) ? (r.currentLive != null) : (r.dayCloseSel !== undefined);
+      const okListing = (r.listingPrice !== undefined);
+
+      let statusTxt = "OK";
+      if (!okPriceToday && !okListing) statusTxt = "Loading…";
+      else if (!okListing) statusTxt = "Listing…";
+      else if (!okPriceToday) statusTxt = (dayShift === 0) ? "Live…" : "Clôture…";
+
+      const statusClass = (statusTxt === "OK") ? "ok" : "muted";
+
+      // REMOVED: const rowClass = ... (no more coloring)
+
+      return `
+        <tr>
+          <td class="mono"><b>${r.symbol}</b><div class="muted">${r.base}/${r.quote}</div></td>
+          <td class="mono">${fmtDateUTC(r.listingTime)}</td>
+          <td class="right mono">${fmtPrice(r.listingPrice)}</td>
+          <td class="right mono">${fmtPrice(priceToday)}</td>
+          <td class="right mono">${cTxt}</td>
+          <td class="${statusClass}">${statusTxt}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  async function fetchListing(row) {
+    const url = `${PERP_BASE}/fapi/v1/klines?symbol=${encodeURIComponent(row.symbol)}&interval=${LISTING_INTERVAL}&startTime=0&limit=1`;
+    const data = await fetchJSON(url);
+    if (!Array.isArray(data) || !data.length) return null;
+    const k = data[0];
+    return { t: Number(k[0]), p: Number(k[1]) };
+  }
+
+  async function fetchDayClose(row, dayStartUtcMs) {
+    const start = dayStartUtcMs;
+    const end = dayStartUtcMs + 24 * 60 * 60 * 1000 - 1;
+    const url = `${PERP_BASE}/fapi/v1/klines?symbol=${encodeURIComponent(row.symbol)}&interval=${DAY_INTERVAL}&startTime=${start}&endTime=${end}&limit=1`;
+    const data = await fetchJSON(url);
+    if (!Array.isArray(data) || !data.length) return null;
+    const k = data[0];
+    return Number(k[4]);
+  }
+
+  async function loadListingProgressive() {
+    abort.listing = false;
+    const cache = loadJSON(LISTING_CACHE_KEY, {});
+
+    for (const r of rows) {
+      const c = cache[r.id];
+      if (c && c.t != null && c.p != null) {
+        r.listingTime = c.t;
+        r.listingPrice = c.p;
+        markJobDone("L:" + r.id);
+      }
+    }
+    applyFilterAndRender();
+
+    const pending = rows.filter(r => r.listingTime === undefined || r.listingPrice === undefined);
+    if (!pending.length) return;
+
+    let idx = 0;
+    async function worker() {
+      while (idx < pending.length) {
+        if (abort.listing) return;
+        const r = pending[idx++];
+        await new Promise(res => setTimeout(res, LISTING_DELAY_MS));
+        try {
+          const info = await fetchListing(r);
+          if (!info) continue;
+
+          r.listingTime = info.t;
+          r.listingPrice = info.p;
+
+          cache[r.id] = { t: r.listingTime, p: r.listingPrice };
+          saveJSON(LISTING_CACHE_KEY, cache);
+
+          markJobDone("L:" + r.id);
+          applyFilterAndRender();
+        } catch (e) { }
+      }
+    }
+    await Promise.all(Array.from({ length: LISTING_WORKERS }, () => worker()));
+  }
+
+  async function loadDayCloseProgressive(dayUtc, propName, jobPrefix) {
+    abort.day = false;
+
+    const dayKey = ymdUTC(dayUtc);
+    const cacheAll = loadJSON(DAY_CLOSE_CACHE_NS, {});
+    cacheAll[dayKey] = cacheAll[dayKey] || {};
+    const bucket = cacheAll[dayKey];
+
+    for (const r of rows) {
+      if (bucket[r.id] !== undefined) {
+        r[propName] = bucket[r.id];
+        markJobDone(`${jobPrefix}:${r.id}`);
+      }
+    }
+    applyFilterAndRender();
+
+    const pending = rows.filter(r => r[propName] === undefined);
+    if (!pending.length) return;
+
+    const dayStart = startOfDayUTC(dayUtc);
+    let idx = 0;
+
+    async function worker() {
+      while (idx < pending.length) {
+        if (abort.day) return;
+        const r = pending[idx++];
+        await new Promise(res => setTimeout(res, DAY_DELAY_MS));
+        try {
+          const close = await fetchDayClose(r, dayStart);
+          r[propName] = close;
+          bucket[r.id] = close;
+          saveJSON(DAY_CLOSE_CACHE_NS, cacheAll);
+          markJobDone(`${jobPrefix}:${r.id}`);
+          applyFilterAndRender();
+        } catch (e) {
+          r[propName] = null;
+          bucket[r.id] = null;
+          saveJSON(DAY_CLOSE_CACHE_NS, cacheAll);
+          markJobDone(`${jobPrefix}:${r.id}`);
+          applyFilterAndRender();
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: DAY_WORKERS }, () => worker()));
+  }
+
+  function clearDayCloseValues() {
+    for (const r of rows) {
+      r.dayCloseSel = undefined;
+      r.dayClosePrev1 = undefined;
+      r.dayClosePrev2 = undefined;
+    }
+  }
+
+  function stopLiveRefresh() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+
+  async function ensureModeData() {
+    updateDayUI();
+
+    const selectedDayUtc = computeSelectedDayUTC();
+    const prev1Utc = addDaysUTC(selectedDayUtc, -1);
+    const prev2Utc = addDaysUTC(selectedDayUtc, -2);
+
+    stopLiveRefresh();
+    clearDayCloseValues();
+
+    if (dayShift === 0) {
+      resetTotalBar(rows.length * 2, `Chargement clôtures — ${fmtDateFR_FromUTCDate(prev2Utc)} | ${fmtDateFR_FromUTCDate(prev1Utc)}:`);
+
+      await Promise.all([
+        loadDayCloseProgressive(prev2Utc, "dayClosePrev2", "Dprev2"),
+        loadDayCloseProgressive(prev1Utc, "dayClosePrev1", "Dprev1"),
+      ]);
+
+      await refreshLivePrices();
+      applyFilterAndRender();
+
+      refreshTimer = setInterval(async () => {
+        try {
+          await refreshLivePrices();
+          applyFilterAndRender();
+        } catch (e) { }
+      }, PRICE_REFRESH_MS);
+
+      return;
+    }
+
+    resetTotalBar(rows.length * 3, `Chargement clôtures — ${fmtDateFR_FromUTCDate(prev2Utc)} | ${fmtDateFR_FromUTCDate(prev1Utc)} | ${fmtDateFR_FromUTCDate(selectedDayUtc)}:`);
+
+    await Promise.all([
+      loadDayCloseProgressive(prev2Utc, "dayClosePrev2", "Dprev2"),
+      loadDayCloseProgressive(prev1Utc, "dayClosePrev1", "Dprev1"),
+      loadDayCloseProgressive(selectedDayUtc, "dayCloseSel", "Dsel"),
+    ]);
+
+    applyFilterAndRender();
+  }
+
+  async function boot() {
+    stopLiveRefresh();
+    abort.listing = true;
+    abort.day = true;
+
+    alertDeltaLongHighEl.style.display = "none";
+    signalDeltaLongHighListEl.innerHTML = "";
+    alertDeltaLongHighCountEl.textContent = "0";
+
+    alertDeltaLongLowEl.style.display = "none";
+    signalDeltaLongLowListEl.innerHTML = "";
+    alertDeltaLongLowCountEl.textContent = "0";
+
+    alertDeltaShortHighEl.style.display = "none";
+    signalDeltaShortHighListEl.innerHTML = "";
+    alertDeltaShortHighCountEl.textContent = "0";
+
+    alertDeltaShortLowEl.style.display = "none";
+    signalDeltaShortLowListEl.innerHTML = "";
+    alertDeltaShortLowCountEl.textContent = "0";
+
+    updateDayUI();
+    updateMonthLabel();
+    initCalendarSelects();
+    initMonthPicker();
+
+    tbody.innerHTML = `
+      <tr><td colspan="6">
+        <span class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="muted">Chargement Perpetuel…</span></span>
+      </td></tr>
+    `;
+
+    try {
+      await probePerp();
+      nowUtcEl.textContent = fmtUTCStamp(new Date());
+
+      const perpRows = await loadPerpSymbols();
+
+      rows = perpRows.map(r => ({
+        ...r,
+        listingTime: undefined,
+        listingPrice: undefined,
+        currentLive: null,
+
+        dayCloseSel: undefined,
+        dayClosePrev1: undefined,
+        dayClosePrev2: undefined,
+      }));
+
+      const initialJobs = rows.length;
+      resetTotalBar(initialJobs, "Chargement listing:");
+
+      await refreshLivePrices();
+      applyFilterAndRender();
+
+      await loadListingProgressive();
+      await ensureModeData();
+
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="6" class="bad">Erreur: ${String(err.message || err)}</td></tr>`;
+    }
+  }
+
+  // --- Visualisation Functions ---
+  function openVisualization(type) {
+    let data;
+    if (type === 'long-high') data = deltaLongHighData;
+    else if (type === 'long-low') data = deltaLongLowData;
+    else if (type === 'short-high') data = deltaShortHighData;
+    else if (type === 'short-low') data = deltaShortLowData;
+    
+    localStorage.setItem('visualizationData', JSON.stringify({
+      type: type,
+      data: data,
+      date: fmtDateFR_FromUTCDate(computeSelectedDayUTC())
+    }));
+    
+    window.open('imane-2.html', '_blank');
+  }
+
+  function openMonthlyView(type) {
+    const selectedDay = computeSelectedDayUTC();
+    const month = selectedDay.getUTCMonth();
+    const year = selectedDay.getUTCFullYear();
+    
+    localStorage.setItem('monthlyViewData', JSON.stringify({
+      type: type,
+      month: month,
+      year: year,
+      monthName: MONTHS_FR[month]
+    }));
+    
+    window.open('imane-3.html', '_blank');
+  }
+
+  // --- Monthly Analysis Function ---
+  async function analyzeSelectedMonth() {
+    localStorage.setItem('monthlyViewData', JSON.stringify({
+      type: 'both',
+      month: selectedMonth,
+      year: selectedMonthYear,
+      monthName: MONTHS_FR[selectedMonth]
+    }));
+    
+    window.open('imane-3.html', '_blank');
+  }
+
+  // --- Event Listeners ---
+  btnPrevDay.addEventListener("click", async () => {
+    dayShift -= 1;
+    await ensureModeData();
+    applyFilterAndRender();
+  });
+
+  btnNextDay.addEventListener("click", async () => {
+    if (dayShift >= 0) return;
+    dayShift += 1;
+    await ensureModeData();
+    applyFilterAndRender();
+  });
+
+  dayLabelEl.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleCalendar();
+  });
+
+  selectMonth.addEventListener("change", () => {
+    calendarMonth = parseInt(selectMonth.value);
+    renderCalendar();
+  });
+
+  selectYear.addEventListener("change", () => {
+    calendarYear = parseInt(selectYear.value);
+    renderCalendar();
+  });
+
+  btnPrevMonth.addEventListener("click", () => {
+    calendarMonth--;
+    if (calendarMonth < 0) {
+      calendarMonth = 11;
+      calendarYear--;
+    }
+    renderCalendar();
+  });
+
+  btnNextMonth.addEventListener("click", () => {
+    const now = new Date();
+    const currentYear = now.getUTCFullYear();
+    const currentMonth = now.getUTCMonth();
+    
+    if (calendarYear < currentYear || (calendarYear === currentYear && calendarMonth < currentMonth)) {
+      calendarMonth++;
+      if (calendarMonth > 11) {
+        calendarMonth = 0;
+        calendarYear++;
+      }
+      renderCalendar();
+    }
+  });
+
+  // Monthly selector event listeners
+  monthLabelEl.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleMonthPicker();
+  });
+
+  btnPrevMonth2.addEventListener("click", () => {
+    selectedMonth--;
+    if (selectedMonth < 0) {
+      selectedMonth = 11;
+      selectedMonthYear--;
+    }
+    updateMonthLabel();
+  });
+
+  btnNextMonth2.addEventListener("click", () => {
+    const now = new Date();
+    const currentYear = now.getUTCFullYear();
+    const currentMonth = now.getUTCMonth();
+    
+    if (selectedMonthYear < currentYear || (selectedMonthYear === currentYear && selectedMonth < currentMonth)) {
+      selectedMonth++;
+      if (selectedMonth > 11) {
+        selectedMonth = 0;
+        selectedMonthYear++;
+      }
+      updateMonthLabel();
+    }
+  });
+
+  selectMonthYear.addEventListener("change", () => {
+    selectedMonthYear = parseInt(selectMonthYear.value);
+    renderMonthPicker();
+  });
+
+  btnPrevYear.addEventListener("click", () => {
+    if (selectedMonthYear > 2017) {
+      selectedMonthYear--;
+      renderMonthPicker();
+    }
+  });
+
+  btnNextYear.addEventListener("click", () => {
+    const now = new Date();
+    const currentYear = now.getUTCFullYear();
+    
+    if (selectedMonthYear < currentYear) {
+      selectedMonthYear++;
+      renderMonthPicker();
+    }
+  });
+
+  btnAnalyzeMonth.addEventListener("click", () => {
+    analyzeSelectedMonth();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!calendarPopup.contains(e.target) && !dayLabelEl.contains(e.target)) {
+      calendarPopup.classList.remove("show");
+    }
+    if (!monthPopup.contains(e.target) && !monthLabelEl.contains(e.target)) {
+      monthPopup.classList.remove("show");
+    }
+  });
+
+  qInput.addEventListener("input", applyFilterAndRender);
+  sortSel.addEventListener("change", applyFilterAndRender);
+  btnReload.addEventListener("click", boot);
+
+  btnClearCache.addEventListener("click", () => {
+    localStorage.removeItem(LISTING_CACHE_KEY);
+    localStorage.removeItem(DAY_CLOSE_CACHE_NS);
+    boot();
+  });
+
+  // Visualisation buttons - LONG High (≥53)
+  btnVisualizeLongHigh.addEventListener("click", () => openVisualization('long-high'));
+  btnMonthlyLongHigh.addEventListener("click", () => openMonthlyView('long-high'));
+  
+  // Visualisation buttons - LONG Low (≤52)
+  btnVisualizeLongLow.addEventListener("click", () => openVisualization('long-low'));
+  btnMonthlyLongLow.addEventListener("click", () => openMonthlyView('long-low'));
+  
+  // Visualisation buttons - SHORT High (≥53)
+  btnVisualizeShortHigh.addEventListener("click", () => openVisualization('short-high'));
+  btnMonthlyShortHigh.addEventListener("click", () => openMonthlyView('short-high'));
+  
+  // Visualisation buttons - SHORT Low (≤52)
+  btnVisualizeShortLow.addEventListener("click", () => openVisualization('short-low'));
+  btnMonthlyShortLow.addEventListener("click", () => openMonthlyView('short-low'));
+
+  boot();
+})();
+</script>
+</body>
+</html>

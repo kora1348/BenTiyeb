@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Binance USDT — Perp Only — Scalp 30m</title>
+  <style>
+    :root{
+      --bg:#fff; --text:#111; --muted:#666; --border:#e6e6e6; --header:#f5f5f5;
+      --danger-bg:#ffe6e6; --danger-text:#b00020; --danger-border:#ffd1d1;
+      --success-bg:#e6f9f0; --success-text:#0a7a2f; --success-border:#b7e5d4;
+      --blue-bg:#e3f2fd; --blue-text:#1565c0; --blue-border:#90caf9;
+      --orange-bg:#fff3e0; --orange-text:#e65100; --orange-border:#ffb74d;
+    }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    .wrap{ width:90%; margin:24px auto 48px; }
+    .topbar{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
+    h1{ font-size:18px; margin:0; font-weight:800; }
+    .meta{ font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .pill{ border:1px solid var(--border); border-radius:999px; padding:6px 10px; background:#fff; white-space:nowrap; }
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0 14px; }
+    input, select, button{ border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:#fff; color:var(--text); font-size:13px; outline:none; }
+    button{ cursor:pointer; font-weight:800; }
+    button:hover{ background:#f5f5f5; }
+    .btn-toggle{ border:2px solid var(--border); font-weight:900; border-radius:12px; padding:10px 14px; }
+    .btn-toggle.active{ border-color:#111; background:#111; color:#fff; }
+
+    .table-wrap{ border:1px solid var(--border); border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.04); }
+    .loadingbar-wrap{ padding:10px 12px; border-bottom:1px solid var(--border); background:#fff; }
+    .loadingbar-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px; font-size:12px; color:var(--muted); }
+    .bar{ height:10px; border-radius:999px; background:#f0f0f0; overflow:hidden; border:1px solid var(--border); }
+    .bar > div{ height:100%; width:0%; background:#cfcfcf; transition: width .25s ease; }
+
+    table{ width:100%; border-collapse:collapse; }
+    thead th{
+      background:var(--header); font-size:12px; text-transform:uppercase;
+      letter-spacing:.6px; padding:12px 10px;
+      border-bottom:1px solid var(--border); text-align:left;
+      position:sticky; top:0; z-index:1;
+    }
+    tbody td{ padding:10px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+    tbody tr:hover{ background:#fafafa; }
+    .right{ text-align:right; font-variant-numeric:tabular-nums; }
+    .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+    .muted{ color:var(--muted); }
+    .ok{ color:var(--success-text); font-weight:900; }
+
+    .cards{ display:flex; gap:12px; flex-wrap:wrap; margin:12px 0 14px; }
+    .card{
+      flex: 1 1 420px;
+      border-radius:14px;
+      padding:12px 14px;
+      box-shadow:0 2px 12px rgba(0,0,0,.04);
+      display:none;
+    }
+    .card.green{ border:1px solid var(--success-border); background:var(--success-bg); color:var(--success-text); }
+    .card.red{ border:1px solid var(--danger-border); background:var(--danger-bg); color:var(--danger-text); }
+    .card.blue{ border:1px solid var(--blue-border); background:var(--blue-bg); color:var(--blue-text); }
+    .card.orange{ border:1px solid var(--orange-border); background:var(--orange-bg); color:var(--orange-text); }
+    .card-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid rgba(0,0,0,.12);
+      background:#fff;
+      border-radius:999px;
+      padding:6px 10px;
+      font-weight:900;
+      font-size:12px;
+      color:#111;
+      white-space:nowrap;
+    }
+    .card-title{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .count{ font-weight:900; }
+    .chips{ margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.12);
+      color:#111;
+      white-space:nowrap;
+    }
+    .chip .mono{ font-weight:900; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>Binance (USDT) — PERPETUAL UNIQUEMENT — Scalp 30m</h1>
+      <div class="meta">
+        <span class="pill">Perp API: <span class="mono" id="perpEp">—</span></span>
+        <span class="pill">Now (UTC): <span class="mono" id="nowUtc">—</span></span>
+        <span class="pill">Dernière MAJ: <span class="mono" id="lastUpdate">—</span></span>
+        <span class="pill">Lignes: <span class="mono" id="countSymbols">0</span></span>
+      </div>
+    </div>
+
+    <div class="meta">
+      <span class="pill">Mode: <span class="mono" id="modeLabel">SCALP (30m)</span></span>
+      <span class="pill">Δ: <span class="mono">CoeffNow - CoeffPrev</span></span>
+      <span class="pill">Coeff x100: <span class="mono">plus précis</span></span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input id="q" placeholder="Rechercher (ex: BTC, ETH, SOL…)" />
+    <select id="sort">
+      <option value="symbol">Tri: Symbole</option>
+      <option value="coefDesc">Tri: Coeff abs (haut → bas)</option>
+      <option value="listingDateDesc">Tri: Listing date (récent → ancien)</option>
+    </select>
+
+    <button id="btnReload" type="button">Recharger</button>
+    <button id="btnClearCache" type="button">Vider caches</button>
+  </div>
+
+  <div class="cards" id="signalCards">
+    <div class="card green" id="cardLong">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="badge">SCALP 30m</span>
+          <span class="badge">Δ ≥ +3</span>
+          <span class="badge">CoeffPrev &gt; 0</span>
+          <span class="badge">LONG</span>
+        </div>
+        <div class="count mono">Total: <span id="countLong">0</span></div>
+      </div>
+      <div class="chips" id="listLong"></div>
+    </div>
+
+    <div class="card blue" id="cardLongBlue">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="badge">SCALP 30m</span>
+          <span class="badge">Δ ≥ +3</span>
+          <span class="badge">CoeffPrev &gt; 0</span>
+          <span class="badge">LONG</span>
+        </div>
+        <div class="count mono">Total: <span id="countLongBlue">0</span></div>
+      </div>
+      <div class="chips" id="listLongBlue"></div>
+    </div>
+
+    <div class="card red" id="cardShort">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="badge">SCALP 30m</span>
+          <span class="badge">Δ ≤ -3</span>
+          <span class="badge">CoeffPrev &lt; 0</span>
+          <span class="badge">SHORT</span>
+        </div>
+        <div class="count mono">Total: <span id="countShort">0</span></div>
+      </div>
+      <div class="chips" id="listShort"></div>
+    </div>
+
+    <div class="card orange" id="cardShortOrange">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="badge">SCALP 30m</span>
+          <span class="badge">Δ ≤ -3</span>
+          <span class="badge">CoeffPrev &lt; 0</span>
+          <span class="badge">SHORT</span>
+        </div>
+        <div class="count mono">Total: <span id="countShortOrange">0</span></div>
+      </div>
+      <div class="chips" id="listShortOrange"></div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="loadingbar-wrap">
+      <div class="loadingbar-top">
+        <div>
+          <span id="barTitle">Chargement:</span>
+          <b><span id="done">0</span>/<span id="total">0</span></b>
+          <span class="muted" id="barHint">(cache inclus)</span>
+        </div>
+        <div class="mono"><span id="pct">0%</span></div>
+      </div>
+      <div class="bar"><div id="barFill"></div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:20%;">Symbole</th>
+          <th style="width:16%;">Date listing</th>
+          <th class="right" style="width:18%;">Prix 1er listing</th>
+          <th class="right" style="width:18%;" id="thCurrent">Clôture 30m (now)</th>
+          <th class="right" style="width:18%;" id="thCoeff">Coeff (Prev | Now | Δ) — x100</th>
+          <th style="width:10%;">Statut</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6" class="muted">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note" id="note" style="margin-top:10px; font-size:12px; color:var(--muted); line-height:1.45;">
+    - <b>SCALP (30m)</b> : Prix actuel = clôture 30m (now) ; Coeff = Prev | Now | Δ (coeff x100).<br/>
+    - <b>Signals (SCALP 30m)</b> :<br/>
+      • SHORT si <b>Δ ≤ -3</b> ET <b>CoeffPrev &lt; 0</b><br/>
+      • LONG si <b>Δ ≥ +3</b> ET <b>CoeffPrev &gt; 0</b><br/>
+    - <b>Affichage cards</b> :<br/>
+      • Vert/Rouge uniquement si <b>Total ≥ 53</b><br/>
+      • Bleu/Orange uniquement si <b>Total ≤ 52</b><br/>
+    - Le chargement SCALP se fait <b>une seule fois</b>. Pour relancer: bouton <b>Recharger</b>.
+  </div>
+</div>
+
+<script>
+(() => {
+  const PERP_BASE = "https://fapi.binance.com";
+  const QUOTE = "USDT";
+  const PRICE_DECIMALS = 10;
+
+  const LISTING_INTERVAL = "1d";
+  const SCALP_INTERVAL = "30m";  // ✅ Changé de 15m à 30m
+  const SCALP_WORKERS = 6;
+  const SCALP_DELAY_MS = 90;
+
+  const SCALP_COEFF_MULT = 100;
+
+  const SIGNAL_DELTA_LONG  =  3;
+  const SIGNAL_DELTA_SHORT = -3;
+
+  const MIN_TOTAL_HIGH = 53;
+  const MAX_TOTAL_LOW  = 52;
+
+  const LISTING_CACHE_KEY = "binance_listing_cache_perp_v1";
+
+  const tbody = document.getElementById("tbody");
+  const qInput = document.getElementById("q");
+  const sortSel = document.getElementById("sort");
+  const nowUtcEl = document.getElementById("nowUtc");
+  const lastUpdateEl = document.getElementById("lastUpdate");
+  const countSymbolsEl = document.getElementById("countSymbols");
+  const btnReload = document.getElementById("btnReload");
+  const btnClearCache = document.getElementById("btnClearCache");
+  const perpEpEl = document.getElementById("perpEp");
+
+  const barTitleEl = document.getElementById("barTitle");
+  const barHintEl  = document.getElementById("barHint");
+  const doneEl = document.getElementById("done");
+  const totalEl = document.getElementById("total");
+  const pctEl = document.getElementById("pct");
+  const barFillEl = document.getElementById("barFill");
+
+  const modeLabelEl  = document.getElementById("modeLabel");
+  const thCurrentEl  = document.getElementById("thCurrent");
+  const thCoeffEl    = document.getElementById("thCoeff");
+
+  const signalCardsEl = document.getElementById("signalCards");
+  const cardLongEl = document.getElementById("cardLong");
+  const cardLongBlueEl = document.getElementById("cardLongBlue");
+  const cardShortEl = document.getElementById("cardShort");
+  const cardShortOrangeEl = document.getElementById("cardShortOrange");
+  const countLongEl = document.getElementById("countLong");
+  const countLongBlueEl = document.getElementById("countLongBlue");
+  const countShortEl = document.getElementById("countShort");
+  const countShortOrangeEl = document.getElementById("countShortOrange");
+  const listLongEl = document.getElementById("listLong");
+  const listLongBlueEl = document.getElementById("listLongBlue");
+  const listShortEl = document.getElementById("listShort");
+  const listShortOrangeEl = document.getElementById("listShortOrange");
+
+  let rows = [];
+
+  function fmtUTCStamp(d){
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth()+1).padStart(2,"0");
+    const dd = String(d.getUTCDate()).padStart(2,"0");
+    const hh = String(d.getUTCHours()).padStart(2,"0");
+    const mm = String(d.getUTCMinutes()).padStart(2,"0");
+    const ss = String(d.getUTCSeconds()).padStart(2,"0");
+    return `${dd}/${m}/${y} ${hh}:${mm}:${ss} UTC`;
+  }
+  function fmtDateFR_FromUTCDate(d){
+    const dd = String(d.getUTCDate()).padStart(2,"0");
+    const mm = String(d.getUTCMonth()+1).padStart(2,"0");
+    const yy = String(d.getUTCFullYear());
+    return `${dd}/${mm}/${yy}`;
+  }
+  function fmtDateUTC(ms){
+    if(!ms) return "—";
+    return fmtDateFR_FromUTCDate(new Date(ms));
+  }
+  function fmtPrice(x){
+    if (x === null || x === undefined || Number.isNaN(x)) return "—";
+    return Number(x).toFixed(PRICE_DECIMALS);
+  }
+  function fmtSigned(c){
+    if(c === null || c === undefined || Number.isNaN(c)) return "—";
+    if(c > 0) return `+${c}`;
+    return String(c);
+  }
+
+  function loadJSON(key,fallback){
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch { return fallback; }
+  }
+  function saveJSON(key,obj){
+    try { localStorage.setItem(key, JSON.stringify(obj)); }
+    catch(e){ console.warn("localStorage quota, sauvegarde ignorée:", key); }
+  }
+  async function fetchJSON(url){
+    const res = await fetch(url, { cache:"no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function signedCoeffScaled(ref, price, mult){
+    if(ref == null || price == null) return null;
+    if(!isFinite(ref) || !isFinite(price) || ref<=0 || price<=0) return null;
+    if(price >= ref) return +Math.round((price/ref)*mult);
+    return -Math.round((ref/price)*mult);
+  }
+
+  let totalJobs = 0, doneJobs = 0;
+  const doneSet = new Set();
+  function resetBar(jobCount, title, hint){
+    totalJobs = jobCount;
+    doneJobs = 0;
+    doneSet.clear();
+    doneEl.textContent = "0";
+    totalEl.textContent = String(jobCount);
+    pctEl.textContent = "0%";
+    barFillEl.style.width = "0%";
+    barTitleEl.textContent = title || "Chargement:";
+    barHintEl.textContent  = hint || "";
+  }
+  function markDone(key){
+    if(doneSet.has(key)) return;
+    doneSet.add(key);
+    doneJobs++;
+    doneEl.textContent = String(doneJobs);
+    const p = totalJobs ? Math.round((doneJobs/totalJobs)*100) : 0;
+    pctEl.textContent = p + "%";
+    barFillEl.style.width = p + "%";
+  }
+
+  async function loadPerpSymbols(){
+    const info = await fetchJSON(`${PERP_BASE}/fapi/v1/exchangeInfo`);
+    return (info.symbols || [])
+      .filter(s => s && s.status === "TRADING")
+      .filter(s => s.quoteAsset === QUOTE)
+      .filter(s => s.contractType === "PERPETUAL")
+      .map(s => ({
+        id: `PERP:${s.symbol}`,
+        symbol: s.symbol,
+        base: s.baseAsset,
+        quote: s.quoteAsset,
+        listingTime: undefined,
+        listingPrice: undefined,
+        scalpPrevClose: null,
+        scalpNowClose: null,
+      }));
+  }
+
+  async function fetchListingFirstKline(symbol){
+    const url = `${PERP_BASE}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${LISTING_INTERVAL}&startTime=0&limit=1`;
+    const data = await fetchJSON(url);
+    if(!Array.isArray(data) || !data.length) return null;
+    return { t: Number(data[0][0]), p: Number(data[0][1]) };
+  }
+
+  async function fetchLast2Closes30m(symbol){
+    const url = `${PERP_BASE}/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${SCALP_INTERVAL}&limit=2`;
+    const data = await fetchJSON(url);
+    if(!Array.isArray(data) || data.length < 2) return null;
+    return { prevClose: Number(data[0][4]), nowClose: Number(data[1][4]) };
+  }
+
+  async function loadListingProgressive(){
+    const cache = loadJSON(LISTING_CACHE_KEY, {});
+    for(const r of rows){
+      const c = cache[r.id];
+      if(c && c.t != null && c.p != null){
+        r.listingTime = c.t;
+        r.listingPrice = c.p;
+        markDone("L:"+r.id);
+      }
+    }
+    render();
+
+    const pending = rows.filter(r => r.listingPrice == null);
+    if(!pending.length) return;
+
+    let idx = 0;
+    const WORKERS = 4;
+    const DELAY = 220;
+
+    async function worker(){
+      while(idx < pending.length){
+        const r = pending[idx++];
+        await new Promise(res => setTimeout(res, DELAY));
+        try{
+          const info = await fetchListingFirstKline(r.symbol);
+          if(!info) { markDone("L:"+r.id); continue; }
+          r.listingTime = info.t;
+          r.listingPrice = info.p;
+          cache[r.id] = { t: info.t, p: info.p };
+          saveJSON(LISTING_CACHE_KEY, cache);
+          markDone("L:"+r.id);
+          render();
+        }catch(e){
+          markDone("L:"+r.id);
+        }
+      }
+    }
+    await Promise.all(Array.from({length: WORKERS}, worker));
+  }
+
+  let scalpInFlight = false;
+
+  async function refreshScalpOnce(){
+    if(scalpInFlight) return;
+    scalpInFlight = true;
+
+    try{
+      const targets = rows.filter(r => r.listingPrice != null);
+      resetBar(targets.length, "Chargement bougies 30m (ALL):", "(une seule fois)");
+
+      let idx = 0;
+      async function worker(){
+        while(idx < targets.length){
+          const r = targets[idx++];
+          await new Promise(res => setTimeout(res, SCALP_DELAY_MS));
+          try{
+            const k = await fetchLast2Closes30m(r.symbol);
+            if(!k){
+              r.scalpPrevClose = null;
+              r.scalpNowClose = null;
+              markDone("S:"+r.id);
+              continue;
+            }
+            r.scalpPrevClose = k.prevClose;
+            r.scalpNowClose  = k.nowClose;
+            markDone("S:"+r.id);
+          }catch(e){
+            r.scalpPrevClose = null;
+            r.scalpNowClose  = null;
+            markDone("S:"+r.id);
+          }
+        }
+      }
+
+      await Promise.all(Array.from({length: SCALP_WORKERS}, worker));
+
+      lastUpdateEl.textContent = new Date().toLocaleTimeString(undefined, {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+      nowUtcEl.textContent = fmtUTCStamp(new Date());
+
+      render();
+    } finally {
+      scalpInFlight = false;
+    }
+  }
+
+  function coeffForSort(r){
+    return signedCoeffScaled(r.listingPrice, r.scalpNowClose, SCALP_COEFF_MULT);
+  }
+
+  function getSortedFilteredView(){
+    const q = (qInput.value||"").trim().toUpperCase();
+    let view = rows.slice();
+    if(q) view = view.filter(r => r.symbol.includes(q) || r.base.includes(q));
+
+    const sort = sortSel.value;
+    if(sort === "listingDateDesc"){
+      view.sort((b,a) => (a.listingTime||0)-(b.listingTime||0));
+      return view;
+    }
+    if(sort === "coefDesc"){
+      view.sort((a,b) => {
+        const ca = coeffForSort(a);
+        const cb = coeffForSort(b);
+        const aNull = (ca==null), bNull=(cb==null);
+        if(aNull && bNull) return a.symbol.localeCompare(b.symbol);
+        if(aNull) return 1;
+        if(bNull) return -1;
+        return (Math.abs(cb)-Math.abs(ca)) || a.symbol.localeCompare(b.symbol);
+      });
+      return view;
+    }
+    view.sort((a,b)=>a.symbol.localeCompare(b.symbol));
+    return view;
+  }
+
+  function hideAllCards(){
+    cardLongEl.style.display = "none";
+    cardLongBlueEl.style.display = "none";
+    cardShortEl.style.display = "none";
+    cardShortOrangeEl.style.display = "none";
+  }
+
+  function updateScalpCards(view){
+    const longAll = [];
+    const shortAll = [];
+
+    for(const r of view){
+      const cPrev = signedCoeffScaled(r.listingPrice, r.scalpPrevClose, SCALP_COEFF_MULT);
+      const cNow  = signedCoeffScaled(r.listingPrice, r.scalpNowClose,  SCALP_COEFF_MULT);
+      if(cPrev == null || cNow == null) continue;
+
+      const delta = cNow - cPrev;
+
+      if(delta >= SIGNAL_DELTA_LONG && cPrev > 0){
+        longAll.push({ symbol: r.symbol, cPrev, cNow, delta });
+      }
+      if(delta <= SIGNAL_DELTA_SHORT && cPrev < 0){
+        shortAll.push({ symbol: r.symbol, cPrev, cNow, delta });
+      }
+    }
+
+    longAll.sort((a,b)=>b.delta - a.delta);
+    shortAll.sort((a,b)=>a.delta - b.delta);
+
+    hideAllCards();
+
+    const showAny = (longAll.length > 0) || (shortAll.length > 0);
+    signalCardsEl.style.display = showAny ? "flex" : "none";
+    if(!showAny) return;
+
+    // ✅ LONG : soit bleu (<=52) soit vert (>=53)
+    if(longAll.length >= MIN_TOTAL_HIGH){
+      cardLongEl.style.display = "block";
+      countLongEl.textContent = String(longAll.length);
+      listLongEl.innerHTML = longAll.slice(0, 120).map(s => `
+        <span class="chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">${fmtSigned(s.cPrev)} → ${fmtSigned(s.cNow)}</span>
+          <span class="mono">Δ ${fmtSigned(s.delta)}</span>
+        </span>
+      `).join("");
+    } else if(longAll.length <= MAX_TOTAL_LOW && longAll.length > 0){
+      cardLongBlueEl.style.display = "block";
+      countLongBlueEl.textContent = String(longAll.length);
+      listLongBlueEl.innerHTML = longAll.slice(0, 120).map(s => `
+        <span class="chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">${fmtSigned(s.cPrev)} → ${fmtSigned(s.cNow)}</span>
+          <span class="mono">Δ ${fmtSigned(s.delta)}</span>
+        </span>
+      `).join("");
+    }
+
+    // ✅ SHORT : soit orange (<=52) soit rouge (>=53)
+    if(shortAll.length >= MIN_TOTAL_HIGH){
+      cardShortEl.style.display = "block";
+      countShortEl.textContent = String(shortAll.length);
+      listShortEl.innerHTML = shortAll.slice(0, 120).map(s => `
+        <span class="chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">${fmtSigned(s.cPrev)} → ${fmtSigned(s.cNow)}</span>
+          <span class="mono">Δ ${fmtSigned(s.delta)}</span>
+        </span>
+      `).join("");
+    } else if(shortAll.length <= MAX_TOTAL_LOW && shortAll.length > 0){
+      cardShortOrangeEl.style.display = "block";
+      countShortOrangeEl.textContent = String(shortAll.length);
+      listShortOrangeEl.innerHTML = shortAll.slice(0, 120).map(s => `
+        <span class="chip">
+          <span class="mono">${s.symbol}</span>
+          <span class="mono">${fmtSigned(s.cPrev)} → ${fmtSigned(s.cNow)}</span>
+          <span class="mono">Δ ${fmtSigned(s.delta)}</span>
+        </span>
+      `).join("");
+    }
+  }
+
+  function render(){
+    const view = getSortedFilteredView();
+    countSymbolsEl.textContent = String(view.length);
+
+    modeLabelEl.textContent = "SCALP (30m)";
+    thCurrentEl.textContent = "Clôture 30m (now)";
+    thCoeffEl.textContent   = `Coeff (Prev | Now | Δ) — x${SCALP_COEFF_MULT}`;
+    updateScalpCards(view);
+
+    if(!view.length){
+      tbody.innerHTML = `<tr><td colspan="6" class="muted">Aucun résultat.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = view.map(r => {
+      const priceNow = r.scalpNowClose;
+      const cPrev = signedCoeffScaled(r.listingPrice, r.scalpPrevClose, SCALP_COEFF_MULT);
+      const cNow  = signedCoeffScaled(r.listingPrice, r.scalpNowClose,  SCALP_COEFF_MULT);
+      const delta = (cPrev==null || cNow==null) ? null : (cNow - cPrev);
+      const deltaTxt = (delta==null) ? "—" : (delta>=0 ? `+${delta}` : String(delta));
+      const statusTxt = (r.listingPrice==null) ? "Listing…" : (priceNow==null ? "30m…" : "OK");
+      const statusClass = (statusTxt==="OK") ? "ok" : "muted";
+
+      return `
+        <tr>
+          <td class="mono"><b>${r.symbol}</b><div class="muted">${r.base}/${r.quote}</div></td>
+          <td class="mono">${fmtDateUTC(r.listingTime)}</td>
+          <td class="right mono">${fmtPrice(r.listingPrice)}</td>
+          <td class="right mono">${fmtPrice(priceNow)}</td>
+          <td class="right mono">${fmtSigned(cPrev)} | ${fmtSigned(cNow)} | ${deltaTxt}</td>
+          <td class="${statusClass}">${statusTxt}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  async function boot(){
+    perpEpEl.textContent = PERP_BASE.replace("https://","");
+    nowUtcEl.textContent = fmtUTCStamp(new Date());
+    lastUpdateEl.textContent = "—";
+
+    tbody.innerHTML = `<tr><td colspan="6" class="muted">Chargement Perp…</td></tr>`;
+
+    rows = await loadPerpSymbols();
+
+    resetBar(rows.length, "Chargement listing:", "(cache + fetch)");
+    await loadListingProgressive();
+
+    render();
+    await refreshScalpOnce();
+  }
+
+  qInput.addEventListener("input", () => render());
+  sortSel.addEventListener("change", () => render());
+
+  btnReload.addEventListener("click", async () => {
+    await boot();
+  });
+
+  btnClearCache.addEventListener("click", () => {
+    localStorage.removeItem(LISTING_CACHE_KEY);
+    boot();
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
