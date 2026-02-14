@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PIPPINUSDT — Delta Tracker Daily</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&display=swap');
+    
+    :root {
+      --bg: #0a0e1a;
+      --surface: #141824;
+      --border: #1e2535;
+      --text: #e8eaed;
+      --text-muted: #8a8f98;
+      --accent-green: #00ff88;
+      --accent-red: #ff3366;
+      --accent-yellow: #ffd700;
+      --accent-blue: #00aaff;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.6;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    
+    header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 255, 136, 0.1);
+    }
+    
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--accent-green);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    }
+    
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    
+    .info-bar {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .info-item {
+      background: var(--surface);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .info-label {
+      color: var(--text-muted);
+      margin-right: 6px;
+    }
+    
+    .info-value {
+      color: var(--accent-yellow);
+      font-weight: 700;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent-green);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .progress {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .day-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+    
+    .day-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    .day-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .day-coeff {
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    
+    .coeff-prev2 {
+      color: var(--accent-blue);
+    }
+    
+    .coeff-prev1 {
+      color: var(--accent-yellow);
+    }
+    
+    .coeff-current {
+      color: var(--accent-green);
+    }
+    
+    .day-price {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    
+    .delta-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    
+    .delta-positive {
+      background: rgba(255, 51, 102, 0.2);
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+    }
+    
+    .delta-negative {
+      background: rgba(0, 255, 136, 0.2);
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+    }
+    
+    .delta-neutral {
+      background: rgba(138, 143, 152, 0.2);
+      color: var(--text-muted);
+      border: 1px solid var(--text-muted);
+    }
+    
+    .stats {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .stats-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .error {
+      background: rgba(255, 51, 102, 0.1);
+      border: 2px solid var(--accent-red);
+      border-radius: 12px;
+      padding: 20px;
+      color: var(--accent-red);
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      
+      h1 {
+        font-size: 20px;
+      }
+      
+      .info-bar {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🚀 PIPPINUSDT [PERP]</h1>
+      <div class="subtitle">Delta Tracker — Daily Coefficient Analysis</div>
+      <div class="info-bar">
+        <div class="info-item">
+          <span class="info-label">Listing Date:</span>
+          <span class="info-value">25/11/2025</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Base Price:</span>
+          <span class="info-value" id="listingPrice">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Total Days:</span>
+          <span class="info-value" id="totalDays">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Status:</span>
+          <span class="info-value" id="status">Loading...</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="progress" id="progress" style="display: none;">
+      <div class="progress-text">
+        <span>Loading data...</span>
+        <span id="progressText">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <div>Initializing PIPPIN Delta Tracker...</div>
+    </div>
+
+    <div id="stats" class="stats" style="display: none;">
+      <div class="stats-title">📊 Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" style="color: var(--accent-green);" id="statPositive">0</div>
+          <div class="stat-label">Positive Deltas</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color: var(--accent-red);" id="statNegative">0</div>
+          <div class="stat-label">Negative Deltas</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color: var(--accent-yellow);" id="statMax">0</div>
+          <div class="stat-label">Max Coefficient</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color: var(--accent-blue);" id="statMin">0</div>
+          <div class="stat-label">Min Coefficient</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+    <div id="error" style="display: none;"></div>
+  </div>
+
+  <script>
+    (() => {
+      const SYMBOL = 'PIPPINUSDT';
+      const LISTING_DATE = '2025-11-25';
+      const API_BASE = 'https://fapi.binance.com';
+      const BATCH_SIZE = 10;
+      const DELAY_MS = 150;
+
+      const elements = {
+        loading: document.getElementById('loading'),
+        progress: document.getElementById('progress'),
+        progressFill: document.getElementById('progressFill'),
+        progressText: document.getElementById('progressText'),
+        grid: document.getElementById('grid'),
+        stats: document.getElementById('stats'),
+        error: document.getElementById('error'),
+        listingPrice: document.getElementById('listingPrice'),
+        totalDays: document.getElementById('totalDays'),
+        status: document.getElementById('status'),
+        statPositive: document.getElementById('statPositive'),
+        statNegative: document.getElementById('statNegative'),
+        statMax: document.getElementById('statMax'),
+        statMin: document.getElementById('statMin')
+      };
+
+      async function fetchJSON(url) {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      }
+
+      function formatDate(date) {
+        const d = new Date(date);
+        const day = String(d.getUTCDate()).padStart(2, '0');
+        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const year = d.getUTCFullYear();
+        return `${day}/${month}/${year}`;
+      }
+
+      function formatPrice(price) {
+        return price ? price.toFixed(10) : '—';
+      }
+
+      function signedCoeff(refPrice, currentPrice) {
+        if (!refPrice || !currentPrice) return null;
+        if (currentPrice >= refPrice) {
+          return Math.round(currentPrice / refPrice);
+        }
+        return -Math.round(refPrice / currentPrice);
+      }
+
+      function formatCoeff(coeff) {
+        if (coeff === null) return '—';
+        return coeff > 0 ? `+${coeff}` : `${coeff}`;
+      }
+
+      function getDaysBetween(start, end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const days = [];
+        
+        for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+          days.push(new Date(d));
+        }
+        
+        return days;
+      }
+
+      async function getListingPrice() {
+        const url = `${API_BASE}/fapi/v1/klines?symbol=${SYMBOL}&interval=1d&startTime=0&limit=1`;
+        const data = await fetchJSON(url);
+        if (!data || !data.length) throw new Error('No listing data');
+        return Number(data[0][1]);
+      }
+
+      async function getDayClose(date, isToday = false) {
+        if (isToday) {
+          const url = `${API_BASE}/fapi/v1/ticker/price?symbol=${SYMBOL}`;
+          const data = await fetchJSON(url);
+          return data ? Number(data.price) : null;
+        }
+
+        const startOfDay = new Date(date);
+        startOfDay.setUTCHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setUTCHours(23, 59, 59, 999);
+
+        const url = `${API_BASE}/fapi/v1/klines?symbol=${SYMBOL}&interval=1d&startTime=${startOfDay.getTime()}&endTime=${endOfDay.getTime()}&limit=1`;
+        const data = await fetchJSON(url);
+        return (data && data.length) ? Number(data[0][4]) : null;
+      }
+
+      function updateProgress(current, total) {
+        const percent = Math.round((current / total) * 100);
+        elements.progressFill.style.width = `${percent}%`;
+        elements.progressText.textContent = `${percent}%`;
+      }
+
+      function createDayCard(date, price, listingPrice, prev2Coeff, prev1Coeff, currentCoeff, isToday) {
+        const card = document.createElement('div');
+        card.className = 'day-card';
+
+        const delta = prev1Coeff !== null && prev2Coeff !== null ? prev1Coeff - prev2Coeff : null;
+        let deltaClass = 'delta-neutral';
+        let deltaText = 'Δ 0';
+
+        if (delta !== null) {
+          if (delta > 0) {
+            deltaClass = 'delta-positive';
+            deltaText = `Δ +${delta}`;
+          } else if (delta < 0) {
+            deltaClass = 'delta-negative';
+            deltaText = `Δ ${delta}`;
+          }
+        }
+
+        card.innerHTML = `
+          <div class="day-date">${formatDate(date)}${isToday ? ' (TODAY)' : ''}</div>
+          <div class="day-coeff">
+            <span class="coeff-prev2">${formatCoeff(prev2Coeff)}</span> |
+            <span class="coeff-prev1">${formatCoeff(prev1Coeff)}</span> |
+            <span class="coeff-current">${formatCoeff(currentCoeff)}</span>
+          </div>
+          <div class="day-price">Price: ${formatPrice(price)}</div>
+          ${delta !== null ? `<div class="delta-badge ${deltaClass}">${deltaText}</div>` : ''}
+        `;
+
+        return card;
+      }
+
+      async function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      async function loadData() {
+        try {
+          elements.loading.style.display = 'block';
+          elements.status.textContent = 'Fetching listing price...';
+
+          const listingPrice = await getListingPrice();
+          elements.listingPrice.textContent = formatPrice(listingPrice);
+
+          const listingDateObj = new Date(LISTING_DATE + 'T00:00:00Z');
+          const today = new Date();
+          const days = getDaysBetween(listingDateObj, today);
+
+          elements.totalDays.textContent = days.length;
+          elements.loading.style.display = 'none';
+          elements.progress.style.display = 'block';
+          elements.status.textContent = 'Loading daily data...';
+
+          const results = [];
+          let positiveDeltas = 0;
+          let negativeDeltas = 0;
+          let maxCoeff = -Infinity;
+          let minCoeff = Infinity;
+
+          for (let i = 0; i < days.length; i += BATCH_SIZE) {
+            const batch = days.slice(i, Math.min(i + BATCH_SIZE, days.length));
+            
+            await Promise.all(batch.map(async (date, idx) => {
+              const globalIdx = i + idx;
+              const isToday = globalIdx === days.length - 1;
+              
+              try {
+                const price = await getDayClose(date, isToday);
+                const currentCoeff = signedCoeff(listingPrice, price);
+                
+                let prev1Coeff = null;
+                let prev2Coeff = null;
+
+                if (globalIdx >= 1) {
+                  const prev1Price = results[globalIdx - 1]?.price;
+                  prev1Coeff = signedCoeff(listingPrice, prev1Price);
+                }
+
+                if (globalIdx >= 2) {
+                  const prev2Price = results[globalIdx - 2]?.price;
+                  prev2Coeff = signedCoeff(listingPrice, prev2Price);
+                }
+
+                results[globalIdx] = {
+                  date,
+                  price,
+                  currentCoeff,
+                  prev1Coeff,
+                  prev2Coeff,
+                  isToday
+                };
+
+                if (currentCoeff !== null) {
+                  if (currentCoeff > maxCoeff) maxCoeff = currentCoeff;
+                  if (currentCoeff < minCoeff) minCoeff = currentCoeff;
+                }
+
+                const delta = prev1Coeff !== null && prev2Coeff !== null ? prev1Coeff - prev2Coeff : null;
+                if (delta !== null) {
+                  if (delta > 0) positiveDeltas++;
+                  else if (delta < 0) negativeDeltas++;
+                }
+              } catch (err) {
+                console.error(`Error fetching ${formatDate(date)}:`, err);
+              }
+            }));
+
+            updateProgress(Math.min(i + BATCH_SIZE, days.length), days.length);
+            
+            if (i + BATCH_SIZE < days.length) {
+              await sleep(DELAY_MS);
+            }
+          }
+
+          elements.progress.style.display = 'none';
+          elements.status.textContent = 'Complete ✓';
+
+          results.reverse().forEach(data => {
+            if (data) {
+              const card = createDayCard(
+                data.date,
+                data.price,
+                listingPrice,
+                data.prev2Coeff,
+                data.prev1Coeff,
+                data.currentCoeff,
+                data.isToday
+              );
+              elements.grid.appendChild(card);
+            }
+          });
+
+          elements.statPositive.textContent = positiveDeltas;
+          elements.statNegative.textContent = negativeDeltas;
+          elements.statMax.textContent = formatCoeff(maxCoeff);
+          elements.statMin.textContent = formatCoeff(minCoeff);
+          elements.stats.style.display = 'block';
+
+        } catch (err) {
+          console.error('Error:', err);
+          elements.loading.style.display = 'none';
+          elements.progress.style.display = 'none';
+          elements.error.textContent = `Error: ${err.message}`;
+          elements.error.className = 'error';
+          elements.error.style.display = 'block';
+          elements.status.textContent = 'Error ✗';
+        }
+      }
+
+      loadData();
+    })();
+  </script>
+</body>
+</html>
